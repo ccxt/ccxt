@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import { Dictionary, IndexType } from '../types.js';
-import { isObject, isNumber, isDictionary, isArray } from './type.js';
+import { isObject, isNumber, isDict, isArray } from './type.js';
 
 // ----------------------------------------------------------------------------
 
@@ -33,7 +33,7 @@ const isEmpty = (object: any[] | Dictionary<any>) => {
     if (Array.isArray (object)) {
         return object.length < 1;
     }
-    if (isDictionary (object)) {
+    if (isDict (object)) {
         return Object.keys (object).length < 1;
     }
     return false;

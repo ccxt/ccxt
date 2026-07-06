@@ -1,8 +1,5 @@
-- [Fetch Order](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -91,5 +88,5 @@ if ($exchange->has['fetchOrder'] === true) {
     }
 
 }
- 
+
 ```

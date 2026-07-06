@@ -35,12 +35,12 @@ class grvt extends grvt$1["default"] {
             },
             'options': {
                 'watchOrderBookForSymbols': {
-                    'depth': 100,
-                    'interval': 500,
+                    'depth': 100, // 5, 10, 20, 50, 100
+                    'interval': 500, // 100, 200, 500, 1000
                     'channel': 'v1.book.s', // v1.book.s | v1.book.d
                 },
                 'watchTickers': {
-                    'channel': 'v1.ticker.s',
+                    'channel': 'v1.ticker.s', // v1.ticker.s | v1.ticker.d | v1.mini.s | v1.mini.d
                     'interval': 500, // raw, 50, 100, 200, 500, 1000, 5000
                 },
             },
@@ -135,7 +135,9 @@ class grvt extends grvt$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
         return tickers[symbol];
@@ -144,7 +146,7 @@ class grvt extends grvt$1["default"] {
      * @method
      * @name grvt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -157,7 +159,9 @@ class grvt extends grvt$1["default"] {
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
         let interval = undefined;
         [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', 500);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
@@ -258,7 +262,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
@@ -298,7 +302,9 @@ class grvt extends grvt$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
@@ -346,7 +352,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
@@ -377,7 +383,9 @@ class grvt extends grvt$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
@@ -395,7 +403,9 @@ class grvt extends grvt$1["default"] {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -441,12 +451,12 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
-        const secondPart = this.safeString(parts, 1);
+        const secondPart = this.safeString(parts, 1, '');
         const timeframeId = secondPart.replace('-TRADE', '');
         const timeframe = this.findTimeframe(timeframeId);
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;
@@ -474,10 +484,12 @@ class grvt extends grvt$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
@@ -490,10 +502,12 @@ class grvt extends grvt$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'channel', 'v1.book.d');
         const isSnapshot = channel === 'v1.book.s';
@@ -552,7 +566,7 @@ class grvt extends grvt$1["default"] {
         //    }
         //
         const data = this.safeDict(message, 'feed', {});
-        const selector = this.safeString(message, 'selector');
+        const selector = this.safeString(message, 'selector', '');
         const parts = selector.split('@');
         const marketId = this.safeString(parts, 0);
         const market = this.safeMarket(marketId, undefined);
@@ -562,7 +576,7 @@ class grvt extends grvt$1["default"] {
             this.orderbooks[symbol] = this.orderBook();
         }
         const orderbook = this.orderbooks[symbol];
-        const sequenceNumber = this.safeInteger(message, 'sequence_number');
+        const sequenceNumber = this.safeInteger(message, 'sequence_number', 0);
         const stream = this.safeString(message, 'stream');
         const isSnapshotChannel = stream === 'v1.book.s';
         const isSnapshotMessage = sequenceNumber <= 0;
@@ -578,6 +592,14 @@ class grvt extends grvt$1["default"] {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
+        // grvt defaults to the delta channel (v1.book.d); if the very first
+        // message is a delta, the freshly-created orderbook has symbol=null
+        // because no snapshot has reset it yet. Set it unconditionally — we
+        // know the symbol from the selector regardless of channel. Java's
+        // typed WsOrderBook surfaces this as `"symbol":null` in the output;
+        // Python/JS dict-backed orderbooks happen to mask it but the
+        // unconditional assignment is correct for every language.
+        orderbook['symbol'] = symbol;
         orderbook['nonce'] = sequenceNumber;
         const messageHash = 'orderbook::' + symbol;
         this.orderbooks[symbol] = orderbook;
@@ -621,7 +643,9 @@ class grvt extends grvt$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const subAccountId = this.getSubAccountId(params);
         const messageHashes = [];
@@ -707,7 +731,9 @@ class grvt extends grvt$1["default"] {
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const subAccountId = this.getSubAccountId(params);
         symbols = this.marketSymbols(symbols);
         const rawHashes = [];
@@ -791,7 +817,9 @@ class grvt extends grvt$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const subAccountId = this.getSubAccountId(params);
         const messageHashes = [];

@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, Bool, List, NullableDict, IndexType } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -157,9 +157,8 @@ export default class blofin extends Exchange {
                 '1w': '1W',
                 '1M': '1M',
             },
-            'hostname': 'www.blofin.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b',
+                'logo': 'https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1',
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
@@ -521,7 +520,7 @@ export default class blofin extends Exchange {
      */
     async fetchMarkets (params = {}): Promise<Market[]> {
         const response = await this.publicGetMarketInstruments (params);
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseMarkets (data);
     }
 
@@ -547,12 +546,13 @@ export default class blofin extends Exchange {
         const strikePrice = undefined;
         const optionType = undefined;
         const tickSize = this.safeString (market, 'tickSize');
-        const fees = this.safeDict2 (this.fees, type, 'trading', {});
+        const fees = this.safeDict2 (this.fees, type as IndexType, 'trading', {});
         const taker = this.safeNumber (fees, 'taker');
         const maker = this.safeNumber (fees, 'maker');
         let maxLeverage = this.safeString (market, 'maxLeverage', '100');
         maxLeverage = Precise.stringMax (maxLeverage, '1');
         const isActive = (this.safeString (market, 'state') === 'live');
+        const isMargin = spot && (Precise.stringGt (maxLeverage, '1'));
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -565,7 +565,7 @@ export default class blofin extends Exchange {
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': spot && (Precise.stringGt (maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -614,10 +614,12 @@ export default class blofin extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -648,10 +650,10 @@ export default class blofin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const first = this.safeDict (data, 0, {});
         const timestamp = this.safeInteger (first, 'ts');
-        return this.parseOrderBook (first, symbol, timestamp);
+        return this.parseOrderBook (first as Dict, symbol, timestamp);
     }
 
     parseTicker (ticker: Dict, market: Market = undefined): Ticker {
@@ -721,15 +723,17 @@ export default class blofin extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.publicGetMarketTickers (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const first = this.safeDict (data, 0, {});
-        return this.parseTicker (first, market);
+        return this.parseTicker (first as Dict, market);
     }
 
     /**
@@ -743,15 +747,17 @@ export default class blofin extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
         const response = await this.publicGetMarketMarkPrice (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const first = this.safeDict (data, 0, {});
-        return this.parseTicker (first, market);
+        return this.parseTicker (first as Dict, market);
     }
 
     /**
@@ -764,10 +770,12 @@ export default class blofin extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
-        const tickers = this.safeList (response, 'data', []);
+        const tickers = this.safeList (response, 'data', []) as List;
         return this.parseTickers (tickers, symbols);
     }
 
@@ -824,7 +832,7 @@ export default class blofin extends Exchange {
         const side = this.safeString (trade, 'side');
         const orderId = this.safeString (trade, 'orderId');
         const feeCost = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         let feeCurrency = this.safeString (trade, 'feeCurrency');
         const isSpot = feeCurrency !== undefined;
         if (feeCurrency === undefined) {
@@ -894,7 +902,9 @@ export default class blofin extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -904,16 +914,16 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
-        let response = undefined;
+        let response: NullableDict = undefined;
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let method = undefined;
+        let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'method', 'publicGetMarketTrades');
         if (method === 'publicGetMarketTrades') {
             response = await this.publicGetMarketTrades (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -956,7 +966,9 @@ export default class blofin extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
@@ -976,9 +988,8 @@ export default class blofin extends Exchange {
             request['after'] = until;
             params = this.omit (params, 'until');
         }
-        let response = undefined;
-        response = await this.publicGetMarketCandles (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const response = await this.publicGetMarketCandles (this.extend (request, params));
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -999,7 +1010,9 @@ export default class blofin extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1021,8 +1034,8 @@ export default class blofin extends Exchange {
             params = this.omit (params, 'until');
         }
         const response = await this.publicGetMarketFundingRateHistory (this.extend (request, params));
-        const rates = [];
-        const data = this.safeList (response, 'data', []);
+        const rates: List = [];
+        const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger (rate, 'fundingTime');
@@ -1082,7 +1095,9 @@ export default class blofin extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new ExchangeError (this.id + ' fetchFundingRate() is only valid for swap markets');
@@ -1104,7 +1119,7 @@ export default class blofin extends Exchange {
         //        "msg": ""
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const entry = this.safeDict (data, 0, {});
         return this.parseFundingRate (entry, market);
     }
@@ -1152,7 +1167,7 @@ export default class blofin extends Exchange {
         const result: Dict = { 'info': response };
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
-        const details = this.safeList (data, 'details', []);
+        const details = this.safeList (data, 'details', []) as List;
         for (let i = 0; i < details.length; i++) {
             const balance = details[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1168,7 +1183,7 @@ export default class blofin extends Exchange {
                 account['total'] = eq;
                 account['free'] = availEq;
             }
-            result[code] = account;
+            result[code as IndexType] = account;
         }
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
@@ -1192,7 +1207,7 @@ export default class blofin extends Exchange {
         //  }
         //
         const result: Dict = { 'info': response };
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -1202,7 +1217,7 @@ export default class blofin extends Exchange {
             account['total'] = this.safeString (balance, 'balance');
             account['free'] = this.safeString (balance, 'available');
             account['used'] = this.safeString (balance, 'frozen');
-            result[code] = account;
+            result[code as IndexType] = account;
         }
         return this.safeBalance (result);
     }
@@ -1230,12 +1245,14 @@ export default class blofin extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
-        let accountType = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let accountType: Str = undefined;
         [ accountType, params ] = this.handleOptionAndParams2 (params, 'fetchBalance', 'accountType', 'type');
         const request: Dict = {
         };
-        let response = undefined;
+        let response: Dict;
         if (accountType !== undefined && accountType !== 'swap') {
             const options = this.safeDict (this.options, 'accountsByType', {});
             const parsedAccountType = this.safeString (options, accountType, accountType);
@@ -1256,7 +1273,7 @@ export default class blofin extends Exchange {
             'size': this.amountToPrecision (symbol, amount),
             'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params, 'cross');
         request['marginMode'] = marginMode;
         const triggerPriceAny = this.safeStringN (params, [ 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ]);
@@ -1322,7 +1339,7 @@ export default class blofin extends Exchange {
             'filled': 'closed',
             'effective': 'closed',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -1367,8 +1384,8 @@ export default class blofin extends Exchange {
         const lastTradeTimestamp = this.safeInteger (order, 'fillTime');
         const side = this.safeString (order, 'side');
         let type = this.safeString (order, 'orderType');
-        let postOnly = undefined;
-        let timeInForce = undefined;
+        let postOnly: Bool = undefined;
+        let timeInForce: Str = undefined;
         if (type === 'post_only') {
             postOnly = true;
             type = 'limit';
@@ -1399,7 +1416,7 @@ export default class blofin extends Exchange {
             cost = Precise.stringDiv (cost, leverage);
         }
         // spot market buy: "sz" can refer either to base currency units or to quote currency units
-        let fee = undefined;
+        let fee: Fee = undefined;
         if (feeCostString !== undefined) {
             const feeCostSigned = Precise.stringAbs (feeCostString);
             const feeCurrencyId = this.safeString (order, 'feeCcy', 'USDT');
@@ -1476,17 +1493,22 @@ export default class blofin extends Exchange {
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
+     * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const isStopLossPriceDefined = this.safeString (params, 'stopLossPrice') !== undefined;
         const isTakeProfitPriceDefined = this.safeString (params, 'takeProfitPrice') !== undefined;
         const isTriggerOrder = this.safeString (params, 'triggerPrice') !== undefined;
-        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined);
+        let isTpslEndpoint = false;
+        [ isTpslEndpoint, params ] = this.handleOptionAndParams (params, 'createOrder', 'tpsl', false);
+        const isCombinedSlTp = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         const isSlOrTp = isStopLossPriceDefined || isTakeProfitPriceDefined;
-        let response = undefined;
+        let response: Dict;
         const reduceOnly = this.safeBool (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             params['reduceOnly'] = reduceOnly ? 'true' : 'false';
@@ -1503,11 +1525,11 @@ export default class blofin extends Exchange {
         }
         if (isCombinedSlTp || isSlOrTp || isTriggerOrder) {
             const dataDict = this.safeDict (response, 'data', {});
-            return this.parseOrder (dataDict, market);
+            return this.parseOrder (dataDict as Dict, market);
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const first = this.safeDict (data, 0);
-        const order = this.parseOrder (first, market);
+        const order = this.parseOrder (first as Dict, market);
         order['type'] = type;
         order['side'] = side;
         return order;
@@ -1538,11 +1560,29 @@ export default class blofin extends Exchange {
         const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
         if (stopLossPrice !== undefined) {
             request['slTriggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
-            request['slOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
+            if (type === 'market') {
+                request['slOrderPrice'] = '-1';
+            } else {
+                const slLimitPrice = this.safeString (params, 'stopLossLimitPrice');
+                if (slLimitPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter (instead of "price" argument) for stop loss orders when the order type is not market');
+                }
+                request['slOrderPrice'] = this.priceToPrecision (symbol, slLimitPrice);
+                params = this.omit (params, 'stopLossLimitPrice');
+            }
         }
         if (takeProfitPrice !== undefined) {
             request['tpTriggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
-            request['tpOrderPrice'] = (type === 'market') ? '-1' : this.priceToPrecision (symbol, price);
+            if (type === 'market') {
+                request['tpOrderPrice'] = '-1';
+            } else {
+                const tpLimitPrice = this.safeString (params, 'takeProfitLimitPrice');
+                if (tpLimitPrice === undefined) {
+                    throw new ArgumentsRequired (this.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter (instead of "price" argument) for take profit orders when the order type is not market');
+                }
+                request['tpOrderPrice'] = this.priceToPrecision (symbol, tpLimitPrice);
+                params = this.omit (params, 'takeProfitLimitPrice');
+            }
         }
         request['marginMode'] = marginMode;
         params = this.omit (params, [ 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged' ]);
@@ -1566,7 +1606,9 @@ export default class blofin extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
@@ -1593,12 +1635,12 @@ export default class blofin extends Exchange {
         } else if (isTrigger) {
             const triggerResponse = await this.privatePostTradeCancelAlgo (this.extend (request, query));
             const triggerData = this.safeDict (triggerResponse, 'data');
-            return this.parseOrder (triggerData, market);
+            return this.parseOrder (triggerData as Dict, market);
         }
         const response = await this.privatePostTradeCancelOrder (this.extend (request, query));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const order = this.safeDict (data, 0);
-        return this.parseOrder (order, market);
+        return this.parseOrder (order as Dict, market);
     }
 
     /**
@@ -1611,8 +1653,10 @@ export default class blofin extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        const ordersRequests = [];
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const ordersRequests: List = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
             const marketId = this.safeString (rawOrder, 'symbol');
@@ -1622,11 +1666,11 @@ export default class blofin extends Exchange {
             const price = this.safeValue (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const extendedParams = this.extend (orderParams, params); // the request does not accept extra params since it's a list, so we're extending each order with the common params
-            const orderRequest = this.createOrderRequest (marketId, type, side, amount, price, extendedParams);
+            const orderRequest = this.createOrderRequest (marketId as string, type, side, amount, price, extendedParams);
             ordersRequests.push (orderRequest);
         }
         const response = await this.privatePostTradeBatchOrders (ordersRequests);
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data);
     }
 
@@ -1646,7 +1690,9 @@ export default class blofin extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
@@ -1654,7 +1700,7 @@ export default class blofin extends Exchange {
         }
         const request: Dict = {
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
@@ -1667,7 +1713,7 @@ export default class blofin extends Exchange {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
-        let response = undefined;
+        let response: Dict;
         if (isTpSl || (method === 'privateGetTradeOrdersTpslPending')) {
             response = await this.privateGetTradeOrdersTpslPending (this.extend (request, query));
         } else if (isTrigger || (method === 'privateGetTradeOrdersAlgoPending')) {
@@ -1676,7 +1722,7 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privateGetTradeOrdersPending (this.extend (request, query));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -1696,7 +1742,9 @@ export default class blofin extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -1704,7 +1752,7 @@ export default class blofin extends Exchange {
         }
         let request: Dict = {
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
@@ -1715,7 +1763,7 @@ export default class blofin extends Exchange {
         }
         let type = 'swap';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params, type);
-        let response = undefined;
+        let response: Dict;
         if (type === 'spot') {
             request['instType'] = 'SPOT';
             //
@@ -1743,7 +1791,7 @@ export default class blofin extends Exchange {
         } else {
             response = await this.privateGetTradeFillsHistory (this.extend (request, params));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -1761,7 +1809,9 @@ export default class blofin extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -1769,7 +1819,7 @@ export default class blofin extends Exchange {
         }
         let request: Dict = {
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1782,7 +1832,7 @@ export default class blofin extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('after', request, params);
         const response = await this.privateGetAssetDepositHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -1800,7 +1850,9 @@ export default class blofin extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -1808,7 +1860,7 @@ export default class blofin extends Exchange {
         }
         let request: Dict = {
         };
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1821,7 +1873,7 @@ export default class blofin extends Exchange {
         }
         [ request, params ] = this.handleUntilOption ('after', request, params);
         const response = await this.privateGetAssetWithdrawalHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseTransactions (data, currency, since, limit, params);
     }
 
@@ -1840,7 +1892,9 @@ export default class blofin extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -1851,15 +1905,14 @@ export default class blofin extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
         }
         [ request, params ] = this.handleUntilOption ('end', request, params);
-        let response = undefined;
-        response = await this.privateGetAssetBills (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const response = await this.privateGetAssetBills (this.extend (request, params));
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseLedger (data, currency, since, limit);
     }
 
@@ -1899,9 +1952,9 @@ export default class blofin extends Exchange {
         //        "withdrawId": "e0768698cfdf4aee8e54654c3775914b"
         //    }
         //
-        let type = undefined;
-        let id = undefined;
-        let status = undefined;
+        let type: Str = undefined;
+        let id: Str = undefined;
+        let status: Str = undefined;
         const withdrawalId = this.safeString (transaction, 'withdrawId');
         const depositId = this.safeString (transaction, 'depositId');
         const addressTo = this.safeString (transaction, 'address');
@@ -1960,7 +2013,7 @@ export default class blofin extends Exchange {
             '6': 'pending',
             '7': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status);
     }
 
     parseTransactionDepositStatus (status: Str) {
@@ -1970,7 +2023,7 @@ export default class blofin extends Exchange {
             '2': 'failed',
             '3': 'pending',
         };
-        return this.safeString (statuses, status, status);
+        return this.safeString (statuses, status as IndexType, status);
     }
 
     parseLedgerEntryType (type) {
@@ -2045,9 +2098,11 @@ export default class blofin extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        const request = [];
+        const request: List = [];
         const options = this.safeDict (this.options, 'cancelOrders', {});
         const defaultMethod = this.safeString (options, 'method', 'privatePostTradeCancelBatchOrders');
         let method = this.safeString (params, 'method', defaultMethod);
@@ -2088,13 +2143,13 @@ export default class blofin extends Exchange {
                 });
             }
         }
-        let response = undefined;
+        let response: Dict;
         if (method === 'privatePostTradeCancelTpsl') {
             response = await this.privatePostTradeCancelTpsl (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         } else {
             response = await this.privatePostTradeCancelBatchOrders (request); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }
-        const ordersData = this.safeList (response, 'data', []);
+        const ordersData = this.safeList (response, 'data', []) as List;
         return this.parseOrders (ordersData, market, undefined, undefined, params);
     }
 
@@ -2111,7 +2166,9 @@ export default class blofin extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount, fromAccount);
@@ -2124,7 +2181,7 @@ export default class blofin extends Exchange {
         };
         const response = await this.privatePostAssetTransfer (this.extend (request, params));
         const data = this.safeDict (response, 'data', {});
-        return this.parseTransfer (data, currency);
+        return this.parseTransfer (data as Dict, currency);
     }
 
     parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
@@ -2153,13 +2210,15 @@ export default class blofin extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition (symbol: string, params = {}): Promise<Position> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'instId': market['id'],
         };
         const response = await this.privateGetAccountPositions (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const position = this.safeDict (data, 0);
         if (position === undefined) {
             return undefined;
@@ -2178,10 +2237,12 @@ export default class blofin extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.privateGetAccountPositions (params);
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const result = this.parsePositions (data);
         return this.filterByArrayPositions (result, 'symbol', symbols, false);
     }
@@ -2201,9 +2262,11 @@ export default class blofin extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
             if (symbolsLength === 0) {
@@ -2246,7 +2309,7 @@ export default class blofin extends Exchange {
         //        ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const positions = this.parsePositions (data, symbols, params);
         return this.filterBySinceLimit (positions, since, limit);
     }
@@ -2329,12 +2392,12 @@ export default class blofin extends Exchange {
         }
         const notional = this.parseNumber (notionalString);
         const marginMode = this.safeString (position, 'marginMode');
-        let initialMarginString = undefined;
+        let initialMarginString: Str = undefined;
         const entryPriceString = this.safeString2 (position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
         const leverageString = this.safeString (position, 'leverage');
         let initialMarginPercentage = undefined;
-        let collateralString = undefined;
+        let collateralString: Str = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString (position, 'initialMargin');
             collateralString = Precise.stringAdd (initialMarginString, unrealizedPnlString);
@@ -2401,11 +2464,13 @@ export default class blofin extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLeverages() requires a symbols argument');
         }
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverages', params);
         if (marginMode === undefined) {
             marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
@@ -2414,9 +2479,10 @@ export default class blofin extends Exchange {
             throw new BadRequest (this.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated');
         }
         symbols = this.marketSymbols (symbols);
+        const symbolsList = symbols;
         let instIds = '';
-        for (let i = 0; i < symbols.length; i++) {
-            const entry = symbols[i];
+        for (let i = 0; i < symbolsList.length; i++) {
+            const entry = symbolsList[i];
             const entryMarket = this.market (entry);
             if (i > 0) {
                 instIds = instIds + ',' + entryMarket['id'];
@@ -2442,7 +2508,7 @@ export default class blofin extends Exchange {
         //         ]
         //     }
         //
-        const leverages = this.safeList (response, 'data', []);
+        const leverages = this.safeList (response, 'data', []) as List;
         return this.parseLeverages (leverages, symbols, 'instId');
     }
 
@@ -2457,8 +2523,10 @@ export default class blofin extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
-        let marginMode = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
         if (marginMode === undefined) {
             marginMode = this.safeString (params, 'marginMode', 'cross'); // cross as default marginMode
@@ -2484,7 +2552,7 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseLeverage (data, market);
+        return this.parseLeverage (data as Dict, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
@@ -2520,9 +2588,11 @@ export default class blofin extends Exchange {
         if ((leverage < 1) || (leverage > 125)) {
             throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 125');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params, 'cross');
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new BadRequest (this.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated');
@@ -2554,10 +2624,12 @@ export default class blofin extends Exchange {
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const clientOrderId = this.safeString (params, 'clientOrderId');
-        let marginMode = undefined;
+        let marginMode: Str = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('closePosition', params, 'cross');
         const request: Dict = {
             'instId': market['id'],
@@ -2585,7 +2657,9 @@ export default class blofin extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
@@ -2593,7 +2667,7 @@ export default class blofin extends Exchange {
         }
         const request: Dict = {
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instId'] = market['id'];
@@ -2608,13 +2682,13 @@ export default class blofin extends Exchange {
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit (params, [ 'method', 'stop', 'trigger', 'tpsl', 'TPSL' ]);
-        let response = undefined;
+        let response: Dict;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {
             response = await this.privateGetTradeOrdersTpslHistory (this.extend (request, query));
         } else {
             response = await this.privateGetTradeOrdersHistory (this.extend (request, query));
         }
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -2628,7 +2702,9 @@ export default class blofin extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode (symbol: string, params = {}): Promise<MarginMode> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const response = await this.privateGetAccountMarginMode (params);
         //
@@ -2641,7 +2717,7 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data, market);
+        return this.parseMarginMode (data as Dict, market);
     }
 
     parseMarginMode (marginMode: Dict, market: Market = undefined): MarginMode {
@@ -2664,8 +2740,10 @@ export default class blofin extends Exchange {
      */
     async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}) {
         this.checkRequiredArgument ('setMarginMode', marginMode, 'marginMode', [ 'cross', 'isolated' ]);
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -2683,7 +2761,7 @@ export default class blofin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseMarginMode (data, market) as any;
+        return this.parseMarginMode (data as Dict, market) as any; // keep untyped to match the base setMarginMode return ({}) — narrowing it breaks the Go IExchange interface
     }
 
     /**
@@ -2750,7 +2828,9 @@ export default class blofin extends Exchange {
      * @returns {object[]} an array of [auto de leverage structures]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         const response = await this.privateGetAccountPositions (params);
         //
@@ -2782,7 +2862,7 @@ export default class blofin extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseADLRanks (data, symbols);
     }
 
@@ -2861,10 +2941,10 @@ export default class blofin extends Exchange {
         return undefined;
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/api/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        let url = this.implodeHostname (this.urls['api']['rest']) + request;
+        let url = this.urls['api']['rest'] + request;
         // const type = this.getPathAuthenticationType (path);
         if (api === 'public') {
             if (!this.isEmpty (query)) {

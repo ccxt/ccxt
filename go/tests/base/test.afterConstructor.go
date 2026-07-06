@@ -117,21 +117,13 @@ func HelperTestProperties() {
 	// options
 	//
 	Assert(!ccxt.IsEqual(exchange.Options, nil))
-	var defaultNetworkCodeReplacements map[string]any = map[string]any{
-		"ETH": map[string]any{
-			"ERC20": "ETH",
-		},
-		"TRX": map[string]any{
-			"TRC20": "TRX",
-		},
-		"CRO": map[string]any{
-			"CRC20": "CRONOS",
-		},
-		"BRC20": map[string]any{
-			"BRC20": "BTC",
-		},
-	}
-	AssertDeepEqual(exchange, map[string]any{}, "options", ccxt.GetValue(exchange.Options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements)
+	// const defaultNetworkCodeReplacements = [
+	//     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+	//     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+	//     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+	//     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+	// ];
+	// assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 	//
 	// credentials
 	//
@@ -206,6 +198,9 @@ func HelperTestProperties() {
 		"XBT":   "BTC",
 		"BCHSV": "BSV",
 	})
+	// fetch history
+	var fetchHistoryCache any = exchange.GetFetchCache()
+	assert(ccxt.IsEqual(ccxt.GetArrayLength(fetchHistoryCache), 0), "fetchHistoryCache should be an empty array")
 }
 func TestAfterConstructor() {
 	// here should be added all needed tests

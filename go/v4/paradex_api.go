@@ -11,6 +11,10 @@ func (this *ParadexCore) PublicGetBboMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetBboMarket", args...)
 }
 
+func (this *ParadexCore) PublicGetBboMarketInteractive(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetBboMarketInteractive", args...)
+}
+
 func (this *ParadexCore) PublicGetFundingData(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundingData", args...)
 }
@@ -31,16 +35,44 @@ func (this *ParadexCore) PublicGetOrderbookMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbookMarket", args...)
 }
 
+func (this *ParadexCore) PublicGetOrderbookMarketImpactPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbookMarketImpactPrice", args...)
+}
+
+func (this *ParadexCore) PublicGetOrderbookMarketInteractive(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbookMarketInteractive", args...)
+}
+
 func (this *ParadexCore) PublicGetInsurance(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInsurance", args...)
+}
+
+func (this *ParadexCore) PublicGetJwksJson(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetJwksJson", args...)
+}
+
+func (this *ParadexCore) PublicGetOnboarding(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOnboarding", args...)
 }
 
 func (this *ParadexCore) PublicGetReferralsConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetReferralsConfig", args...)
 }
 
+func (this *ParadexCore) PublicGetStakingConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStakingConfig", args...)
+}
+
+func (this *ParadexCore) PublicGetSystemAnnouncements(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemAnnouncements", args...)
+}
+
 func (this *ParadexCore) PublicGetSystemConfig(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemConfig", args...)
+}
+
+func (this *ParadexCore) PublicGetSystemPortfolioMarginConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemPortfolioMarginConfig", args...)
 }
 
 func (this *ParadexCore) PublicGetSystemState(args ...any) <-chan any {
@@ -49,6 +81,10 @@ func (this *ParadexCore) PublicGetSystemState(args ...any) <-chan any {
 
 func (this *ParadexCore) PublicGetSystemTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemTime", args...)
+}
+
+func (this *ParadexCore) PublicGetSystemVolumeTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSystemVolumeTiers", args...)
 }
 
 func (this *ParadexCore) PublicGetTrades(args ...any) <-chan any {
@@ -83,16 +119,32 @@ func (this *ParadexCore) PublicGetVaultsTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetVaultsTransfers", args...)
 }
 
+func (this *ParadexCore) PublicGetXpFeeConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetXpFeeConfig", args...)
+}
+
+func (this *ParadexCore) PublicGetXpPublicTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetXpPublicTransfers", args...)
+}
+
+func (this *ParadexCore) PublicGetXpTransferTransferId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetXpTransferTransferId", args...)
+}
+
 func (this *ParadexCore) PrivateGetAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccount", args...)
 }
 
-func (this *ParadexCore) PrivateGetAccountInfo(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAccountInfo", args...)
+func (this *ParadexCore) PrivateGetAccountCompliance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountCompliance", args...)
 }
 
 func (this *ParadexCore) PrivateGetAccountHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountHistory", args...)
+}
+
+func (this *ParadexCore) PrivateGetAccountInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountInfo", args...)
 }
 
 func (this *ParadexCore) PrivateGetAccountMargin(args ...any) <-chan any {
@@ -103,8 +155,16 @@ func (this *ParadexCore) PrivateGetAccountProfile(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountProfile", args...)
 }
 
+func (this *ParadexCore) PrivateGetAccountSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountSettings", args...)
+}
+
 func (this *ParadexCore) PrivateGetAccountSubaccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountSubaccounts", args...)
+}
+
+func (this *ParadexCore) PrivateGetAccountSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountSummary", args...)
 }
 
 func (this *ParadexCore) PrivateGetBalance(args ...any) <-chan any {
@@ -131,6 +191,46 @@ func (this *ParadexCore) PrivateGetTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransactions", args...)
 }
 
+func (this *ParadexCore) PrivateGetAccountKeysSubkeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountKeysSubkeys", args...)
+}
+
+func (this *ParadexCore) PrivateGetAccountKeysSubkeysPublicKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountKeysSubkeysPublicKey", args...)
+}
+
+func (this *ParadexCore) PrivateGetAccountTokens(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountTokens", args...)
+}
+
+func (this *ParadexCore) PrivateGetAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAlgoOrders", args...)
+}
+
+func (this *ParadexCore) PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAlgoOrdersHistory", args...)
+}
+
+func (this *ParadexCore) PrivateGetAlgoOrdersAlgoId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...)
+}
+
+func (this *ParadexCore) PrivateGetBlockTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBlockTrades", args...)
+}
+
+func (this *ParadexCore) PrivateGetBlockTradesBlockTradeId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBlockTradesBlockTradeId", args...)
+}
+
+func (this *ParadexCore) PrivateGetBlockTradesBlockTradeIdOffers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBlockTradesBlockTradeIdOffers", args...)
+}
+
+func (this *ParadexCore) PrivateGetBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetBlockTradesBlockTradeIdOffersOfferId", args...)
+}
+
 func (this *ParadexCore) PrivateGetLiquidations(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLiquidations", args...)
 }
@@ -151,10 +251,6 @@ func (this *ParadexCore) PrivateGetOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersOrderId", args...)
 }
 
-func (this *ParadexCore) PrivateGetPointsDataMarketProgram(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetPointsDataMarketProgram", args...)
-}
-
 func (this *ParadexCore) PrivateGetReferralsQrCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReferralsQrCode", args...)
 }
@@ -163,44 +259,112 @@ func (this *ParadexCore) PrivateGetReferralsSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetReferralsSummary", args...)
 }
 
+func (this *ParadexCore) PrivateGetStakingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStakingHistory", args...)
+}
+
+func (this *ParadexCore) PrivateGetStakingSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetStakingSummary", args...)
+}
+
 func (this *ParadexCore) PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransfers", args...)
-}
-
-func (this *ParadexCore) PrivateGetAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAlgoOrders", args...)
-}
-
-func (this *ParadexCore) PrivateGetAlgoOrdersHistory(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAlgoOrdersHistory", args...)
-}
-
-func (this *ParadexCore) PrivateGetAlgoOrdersAlgoId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...)
 }
 
 func (this *ParadexCore) PrivateGetVaultsAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetVaultsAccountSummary", args...)
 }
 
+func (this *ParadexCore) PrivateGetVaultsMine(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetVaultsMine", args...)
+}
+
+func (this *ParadexCore) PrivateGetXpAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetXpAccountBalance", args...)
+}
+
+func (this *ParadexCore) PrivateGetXpTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetXpTransfers", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountCompliance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountCompliance", args...)
+}
+
 func (this *ParadexCore) PrivatePostAccountMarginMarket(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountMarginMarket", args...)
 }
 
-func (this *ParadexCore) PrivatePostAccountProfileMaxSlippage(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAccountProfileMaxSlippage", args...)
+func (this *ParadexCore) PrivatePostAccountProfileMarketMaxSlippageMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileMarketMaxSlippageMarket", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountProfileNotifications(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileNotifications", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountProfileNotificationsLastSeen(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileNotificationsLastSeen", args...)
 }
 
 func (this *ParadexCore) PrivatePostAccountProfileReferralCode(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileReferralCode", args...)
 }
 
+func (this *ParadexCore) PrivatePostAccountProfileRefreshInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileRefreshInventory", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountProfileSizeCurrencyDisplay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountProfileSizeCurrencyDisplay", args...)
+}
+
 func (this *ParadexCore) PrivatePostAccountProfileUsername(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountProfileUsername", args...)
 }
 
+func (this *ParadexCore) PrivatePostAccountReferrer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountReferrer", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountSettingsTradingValueDisplay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSettingsTradingValueDisplay", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountKeysSubkeysActivate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountKeysSubkeysActivate", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountKeysSubkeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountKeysSubkeys", args...)
+}
+
+func (this *ParadexCore) PrivatePostAccountTokens(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountTokens", args...)
+}
+
+func (this *ParadexCore) PrivatePostAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAlgoOrders", args...)
+}
+
 func (this *ParadexCore) PrivatePostAuth(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuth", args...)
+}
+
+func (this *ParadexCore) PrivatePostBlockTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBlockTrades", args...)
+}
+
+func (this *ParadexCore) PrivatePostBlockTradesBlockTradeIdExecute(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBlockTradesBlockTradeIdExecute", args...)
+}
+
+func (this *ParadexCore) PrivatePostBlockTradesBlockTradeIdOffers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBlockTradesBlockTradeIdOffers", args...)
+}
+
+func (this *ParadexCore) PrivatePostBlockTradesBlockTradeIdOffersOfferIdExecute(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBlockTradesBlockTradeIdOffersOfferIdExecute", args...)
 }
 
 func (this *ParadexCore) PrivatePostOnboarding(args ...any) <-chan any {
@@ -215,20 +379,60 @@ func (this *ParadexCore) PrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
-func (this *ParadexCore) PrivatePostAlgoOrders(args ...any) <-chan any {
-	return this.callEndpointAsync("privatePostAlgoOrders", args...)
+func (this *ParadexCore) PrivatePostV2Auth(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2Auth", args...)
+}
+
+func (this *ParadexCore) PrivatePostV2Onboarding(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2Onboarding", args...)
 }
 
 func (this *ParadexCore) PrivatePostVaults(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostVaults", args...)
 }
 
+func (this *ParadexCore) PrivatePostXpTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostXpTransfer", args...)
+}
+
+func (this *ParadexCore) PrivatePutAccountProfile(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAccountProfile", args...)
+}
+
+func (this *ParadexCore) PrivatePutAccountKeysSubkeysPublicKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAccountKeysSubkeysPublicKey", args...)
+}
+
 func (this *ParadexCore) PrivatePutOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrdersOrderId", args...)
 }
 
+func (this *ParadexCore) PrivateDeleteAccountKeysSubkeysPublicKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAccountKeysSubkeysPublicKey", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteAccountTokensLookupId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAccountTokensLookupId", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteAlgoOrdersAlgoId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAlgoOrdersAlgoId", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteBlockTradesBlockTradeId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteBlockTradesBlockTradeId", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteBlockTradesBlockTradeIdOffersOfferId", args...)
+}
+
 func (this *ParadexCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)
+}
+
+func (this *ParadexCore) PrivateDeleteOrdersBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrdersBatch", args...)
 }
 
 func (this *ParadexCore) PrivateDeleteOrdersByClientIdClientId(args ...any) <-chan any {
@@ -237,8 +441,4 @@ func (this *ParadexCore) PrivateDeleteOrdersByClientIdClientId(args ...any) <-ch
 
 func (this *ParadexCore) PrivateDeleteOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersOrderId", args...)
-}
-
-func (this *ParadexCore) PrivateDeleteAlgoOrdersAlgoId(args ...any) <-chan any {
-	return this.callEndpointAsync("privateDeleteAlgoOrdersAlgoId", args...)
 }

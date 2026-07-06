@@ -2,10 +2,10 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var coinbaseexchange$1 = require('../coinbaseexchange.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchOHLCV': false,
+                'watchOHLCV': false, // missing on the exchange side
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchTicker': true,
@@ -24,7 +24,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                 'watchTradesForSymbols': true,
                 'watchMyTradesForSymbols': true,
                 'watchBalance': false,
-                'watchStatus': false,
+                'watchStatus': false, // for now
                 'watchOrders': true,
                 'watchOrdersForSymbols': true,
                 'watchMyTrades': true,
@@ -49,7 +49,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         const path = '/users/self/verify';
         const nonce = this.nonce();
         const payload = nonce.toString() + 'GET' + path;
-        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256.sha256, 'base64');
+        const signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha2_js.sha256, 'base64');
         return {
             'timestamp': nonce,
             'key': this.apiKey,
@@ -58,7 +58,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         };
     }
     async subscribe(name, symbol = undefined, messageHashStart = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = messageHashStart;
         const productIds = [];
@@ -83,7 +85,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         return await this.watch(url, messageHash, request, messageHash);
     }
     async subscribeMultiple(name, symbols = [], messageHashStart = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         symbols = this.marketSymbols(symbols);
         const messageHashes = [];
@@ -131,7 +135,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new errors.BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
@@ -157,7 +163,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'matches';
         const trades = await this.subscribe(name, symbol, name, params);
@@ -168,7 +176,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     }
     /**
      * @method
-     * @name coinbase#watchTradesForSymbols
+     * @name coinbaseexchange#watchTradesForSymbols
      * @description get the list of most recent trades for a particular symbol
      * @param {string[]} symbols unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -181,7 +189,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (symbolsLength === 0) {
             throw new errors.BadRequest(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const name = 'matches';
         const trades = await this.subscribeMultiple(name, symbols, name, params);
@@ -206,7 +216,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'user';
         const messageHash = 'myTrades';
@@ -229,7 +241,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      */
     async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'user';
         const messageHash = 'myTrades';
         const authentication = this.authenticate();
@@ -252,7 +266,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';
         const messageHash = 'orders';
@@ -279,7 +295,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (symbol === undefined) {
             throw new errors.BadSymbol(this.id + ' watchMyTrades requires a symbol');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'user';
         const messageHash = 'orders';
@@ -297,7 +315,7 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const symbolsLength = symbols.length;
@@ -305,7 +323,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const name = 'level2';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
         const messageHashes = [];
@@ -339,11 +359,13 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const name = 'level2';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = name + ':' + market['id'];
@@ -651,11 +673,11 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
                         if (previousOrder['fee'] === undefined) {
                             previousOrder['fee'] = {
                                 'cost': 0,
-                                'currency': trade['fee']['currency'],
+                                'currency': this.safeString(trade['fee'], 'currency'),
                             };
                         }
-                        if ((previousOrder['fee']['cost'] !== undefined) && (trade['fee']['cost'] !== undefined)) {
-                            previousOrder['fee']['cost'] = this.sum(previousOrder['fee']['cost'], trade['fee']['cost']);
+                        if ((previousOrder['fee']['cost'] !== undefined) && (this.safeNumber(trade['fee'], 'cost') !== undefined)) {
+                            previousOrder['fee']['cost'] = this.sum(previousOrder['fee']['cost'], this.safeNumber(trade['fee'], 'cost'));
                             const previousOrderFee = this.safeDict(previousOrder, 'fee');
                             const tradeFee = this.safeDict(trade, 'fee');
                             previousOrder['fee']['cost'] = this.parseNumber(Precise["default"].stringAdd(this.safeString(previousOrderFee, 'cost'), this.safeString(tradeFee, 'cost')));

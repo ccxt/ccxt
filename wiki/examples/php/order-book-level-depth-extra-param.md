@@ -1,8 +1,5 @@
-- [Order Book Level Depth Extra Param](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 
@@ -15,5 +12,5 @@ $limit = 10; // up to ten order on each side, for example
 var_dump ($exchange->fetch_order_book ('BTC/USD', $limit));
 
 
-?> 
+?>
 ```

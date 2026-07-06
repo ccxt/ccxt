@@ -294,8 +294,9 @@ public partial class coinbaseinternational : Exchange
         throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a portfolio parameter or set the default portfolio with this.options[\"portfolio\"]")) ;
     }
 
-    public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters)
+    public async virtual Task<object> handleNetworkIdAndParams(object currencyCode, object methodName, object parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         object networkId = null;
         var networkIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "network_arn_id");
         networkId = ((IList<object>)networkIdparametersVariable)[0];
@@ -495,9 +496,10 @@ public partial class coinbaseinternational : Exchange
         }
         object market = this.market(symbol);
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
             { "instrument", getValue(market, "id") },
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -953,7 +955,7 @@ public partial class coinbaseinternational : Exchange
 
     /**
      * @method
-     * @name exchange#fetchDepositsWithdrawals
+     * @name coinbaseinternational#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
      * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -985,8 +987,9 @@ public partial class coinbaseinternational : Exchange
             return await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         if (isTrue(!isEqual(since, null)))
         {
@@ -1255,13 +1258,14 @@ public partial class coinbaseinternational : Exchange
         object addressFrom = this.safeStringN(transaction, new List<object>() {"from_address", "from_cb_account", this.safeStringN(fromPorfolio, new List<object>() {"id", "uuid", "name"}), "from_counterparty_id"});
         object toPorfolio = this.safeDict(transaction, "from_portfolio", new Dictionary<string, object>() {});
         object addressTo = this.safeStringN(transaction, new List<object>() {"to_address", "to_cb_account", this.safeStringN(toPorfolio, new List<object>() {"id", "uuid", "name"}), "to_counterparty_id"});
+        object code = this.safeString(currency, "code");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "transfer_uuid") },
             { "txid", this.safeString(transaction, "transaction_uuid") },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network_name")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network_name"), code) },
             { "address", null },
             { "addressTo", addressTo },
             { "addressFrom", addressFrom },
@@ -1461,16 +1465,18 @@ public partial class coinbaseinternational : Exchange
             settleId = quoteId;
             symbol = add(symbol, add(":", quoteId));
         }
+        object isLinear = ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId));
+        object isInverse = ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId));
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "lowercaseId", ((string)marketId).ToLower() },
             { "symbol", symbol },
             { "base", baseId },
             { "quote", quoteId },
-            { "settle", ((bool) isTrue(settleId)) ? settleId : null },
+            { "settle", settleId },
             { "baseId", baseId },
             { "quoteId", quoteId },
-            { "settleId", ((bool) isTrue(settleId)) ? settleId : null },
+            { "settleId", settleId },
             { "type", ((bool) isTrue(isSpot)) ? "spot" : "swap" },
             { "spot", isSpot },
             { "margin", false },
@@ -1479,8 +1485,8 @@ public partial class coinbaseinternational : Exchange
             { "option", false },
             { "active", isEqual(this.safeString(market, "trading_state"), "TRADING") },
             { "contract", !isTrue(isSpot) },
-            { "linear", ((bool) isTrue(isSpot)) ? null : (isEqual(settleId, quoteId)) },
-            { "inverse", ((bool) isTrue(isSpot)) ? null : (!isEqual(settleId, quoteId)) },
+            { "linear", isLinear },
+            { "inverse", isInverse },
             { "taker", getValue(getValue(fees, "trading"), "taker") },
             { "maker", getValue(getValue(fees, "trading"), "maker") },
             { "contractSize", ((bool) isTrue(isSpot)) ? null : 1 },
@@ -1532,7 +1538,7 @@ public partial class coinbaseinternational : Exchange
         //    [
         //        {
         //           "asset_id":"1",
-        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+        //           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
         //           "asset_name":"USDC",
         //           "status":"ACTIVE",
         //           "collateral_weight":1.0,
@@ -2213,9 +2219,10 @@ public partial class coinbaseinternational : Exchange
             return await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         object market = null;
         if (isTrue(symbol))
@@ -2310,8 +2317,9 @@ public partial class coinbaseinternational : Exchange
             market = this.market(symbol);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
+        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         object request = new Dictionary<string, object>() {
-            { "result_offset", this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest)) },
+            { "result_offset", offSet },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -2430,48 +2438,6 @@ public partial class coinbaseinternational : Exchange
         //    }
         //
         return this.parseTransaction(response, currency);
-    }
-
-    public virtual object safeNetwork(object network)
-    {
-        object withdrawEnabled = this.safeBool(network, "withdraw");
-        object depositEnabled = this.safeBool(network, "deposit");
-        object limits = this.safeDict(network, "limits");
-        object withdraw = this.safeDict(limits, "withdraw");
-        object withdrawMax = this.safeNumber(withdraw, "max");
-        object deposit = this.safeDict(limits, "deposit");
-        object depositMax = this.safeNumber(deposit, "max");
-        if (isTrue(isTrue(isEqual(withdrawEnabled, null)) && isTrue(!isEqual(withdrawMax, null))))
-        {
-            withdrawEnabled = (isGreaterThan(withdrawMax, 0));
-        }
-        if (isTrue(isTrue(isEqual(depositEnabled, null)) && isTrue(!isEqual(depositMax, null))))
-        {
-            depositEnabled = (isGreaterThan(depositMax, 0));
-        }
-        object networkId = this.safeString(network, "id");
-        object isEnabled = (isTrue(withdrawEnabled) && isTrue(depositEnabled));
-        return new Dictionary<string, object>() {
-            { "info", getValue(network, "info") },
-            { "id", networkId },
-            { "name", this.safeString(network, "name") },
-            { "network", this.safeString(network, "network") },
-            { "active", this.safeBool(network, "active", isEnabled) },
-            { "deposit", depositEnabled },
-            { "withdraw", withdrawEnabled },
-            { "fee", this.safeNumber(network, "fee") },
-            { "precision", this.safeNumber(network, "precision") },
-            { "limits", new Dictionary<string, object>() {
-                { "withdraw", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(withdraw, "min") },
-                    { "max", withdrawMax },
-                } },
-                { "deposit", new Dictionary<string, object>() {
-                    { "min", this.safeNumber(deposit, "min") },
-                    { "max", depositMax },
-                } },
-            } },
-        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

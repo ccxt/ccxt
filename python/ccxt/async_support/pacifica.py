@@ -41,7 +41,7 @@ class pacifica(Exchange, ImplicitAPI):
                 'spot': False,
                 'margin': False,
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': False,
                 'borrowCrossMargin': False,
@@ -146,7 +146,7 @@ class pacifica(Exchange, ImplicitAPI):
             },
             'hostname': 'pacifica.fi',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4',
+                'logo': 'https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610',
                 'api': {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
@@ -647,7 +647,8 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
         await self.load_account_settings()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         userAccount = None
         userAccount, params = self.handle_origin_and_single_address('fetchLeverage', params)
@@ -656,7 +657,7 @@ class pacifica(Exchange, ImplicitAPI):
         if userAccount == cacheAddress:
             settings = self.handle_option('fetchLeverage', 'settings', None)
         else:
-            request: dict = {
+            request = {
                 'account': userAccount,
             }
             settings = await self.fetch_account_settings(self.extend(request, params))
@@ -712,7 +713,7 @@ class pacifica(Exchange, ImplicitAPI):
         """
         userAccount = None
         userAccount, params = self.handle_origin_and_single_address('fetchAccountSettings', params)
-        request: dict = {
+        request = {
             'account': userAccount,
         }
         response = await self.publicGetAccountSettings(self.extend(request, params))
@@ -767,7 +768,7 @@ class pacifica(Exchange, ImplicitAPI):
         if userAccount == cacheAddress:
             settings = self.handle_option('fetchMarginMode', 'settings', None)
         else:
-            request: dict = {
+            request = {
                 'account': userAccount,
             }
             settings = await self.fetch_account_settings(self.extend(request, params))
@@ -818,13 +819,14 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.aggLevel]: aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         aggLevel = None
         aggLevel, params = self.handle_option_and_params(params, 'fetchOrderBook', 'aggLevel', 1)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'agg_level': aggLevel,
         }
@@ -866,7 +868,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         data = self.safe_dict(response, 'data', {})
         levels = self.safe_list(data, 'l', [])
-        result: dict = {
+        result = {
             'bids': self.safe_list(levels, 0, []),
             'asks': self.safe_list(levels, 1, []),
         }
@@ -970,54 +972,54 @@ class pacifica(Exchange, ImplicitAPI):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "symbol" argument')
         defaultMaxLimit = 3950  # 4000 by docs, but in fact >~3960 returns error
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, defaultMaxLimit)
-        else:
-            tf = self.safe_string(self.timeframes, timeframe, timeframe)
-            request: dict = {
-                'symbol': market['id'],
-                'interval': tf,
-                'start_time': since,
-            }
-            request, params = self.handle_until_option('end_time', request, params)
-            nowMillis = self.milliseconds()
-            until = self.safe_integer(request, 'end_time')
+        tf = self.safe_string(self.timeframes, timeframe, timeframe)
+        request = {
+            'symbol': market['id'],
+            'interval': tf,
+            'start_time': since,
+        }
+        request, params = self.handle_until_option('end_time', request, params)
+        nowMillis = self.milliseconds()
+        until = self.safe_integer(request, 'end_time')
+        if until is None:
+            if limit is not None:
+                until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
             if until is None:
-                if limit is not None:
-                    until = since + (limit * (self.parse_timeframe(tf) * 1000)) - 1
-                if until is None:
-                    until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
-                if until > nowMillis:
-                    until = nowMillis
-                request['end_time'] = until
-            response = await self.publicGetKline(self.extend(request, params))
-            #
-            # {
-            #   "success": True,
-            #   "data": [
-            #     {
-            #       "t": 1748954160000,
-            #       "T": 1748954220000,
-            #       "s": "BTC",
-            #       "i": "1m",
-            #       "o": "105376",
-            #       "c": "105376",
-            #       "h": "105376",
-            #       "l": "105376",
-            #       "v": "0.00022",
-            #       "n": 2
-            #     }
-            #   ],
-            #   "error": null,
-            #   "code": null
-            # }
-            #
-            candles = self.safe_list(response, 'data', [])
-            return self.parse_ohlcvs(candles, market, timeframe, since, limit)
+                until = since + (defaultMaxLimit * (self.parse_timeframe(tf) * 1000)) - 1
+            if until > nowMillis:
+                until = nowMillis
+            request['end_time'] = until
+        response = await self.publicGetKline(self.extend(request, params))
+        #
+        # {
+        #   "success": True,
+        #   "data": [
+        #     {
+        #       "t": 1748954160000,
+        #       "T": 1748954220000,
+        #       "s": "BTC",
+        #       "i": "1m",
+        #       "o": "105376",
+        #       "c": "105376",
+        #       "h": "105376",
+        #       "l": "105376",
+        #       "v": "0.00022",
+        #       "n": 2
+        #     }
+        #   ],
+        #   "error": null,
+        #   "code": null
+        # }
+        #
+        candles = self.safe_list(response, 'data', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -1055,7 +1057,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1098,7 +1101,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1109,11 +1113,11 @@ class pacifica(Exchange, ImplicitAPI):
         defaultLimit = 100  # Default max limit
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
-        request: dict = {}
+        request = {}
         request, params = self.handle_until_option('end_time', request, params)
         request['account'] = userAddress
         if symbol is not None:
-            request['symbol'] = market['id']
+            request['symbol'] = self.safe_string(market, 'id')
         if limit is not None:
             request['limit'] = limit
         if since is not None:
@@ -1242,7 +1246,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.initialize_client()
         request, operationType = self.create_order_request(symbol, type, side, amount, price, params)
         params = self.omit(params, [
@@ -1276,7 +1281,7 @@ class pacifica(Exchange, ImplicitAPI):
         orderId = self.safe_string(order, 'order_id')
         return self.safe_order({'id': orderId, 'status': status, 'info': response, 'symbol': symbol})
 
-    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> list:
         """
  @ignore
         create a trade order
@@ -1300,7 +1305,7 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: an [order structure]
         """
         market = self.market(symbol)
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
             'side': self.map_side(side),
         }
@@ -1346,14 +1351,14 @@ class pacifica(Exchange, ImplicitAPI):
             else:
                 sigPayload['tif'] = timeInForce
         if isTakeProfitOrder:
-            tpPayload: dict = {
+            tpPayload = {
                 'stop_price': self.price_to_precision(symbol, takeProfitPrice),
             }
             if price is not None:
                 tpPayload['limit_price'] = self.price_to_precision(symbol, price)
             sigPayload['take_profit'] = tpPayload
         if isStopLossOrder:
-            slPayload: dict = {
+            slPayload = {
                 'stop_price': self.price_to_precision(symbol, stopLossPrice),
             }
             if price is not None:
@@ -1447,7 +1452,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.initialize_client()
         request = self.create_orders_request(orders)
         response = await self.privatePostOrdersBatch(self.extend(request, params))
@@ -1498,7 +1504,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.initialize_client()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a "symbol" argument!')
@@ -1576,7 +1583,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.initialize_client()
         request = self.cancel_all_orders_request(symbol, params)
         params = self.omit(params, ['excludeReduceOnly', 'expiryWindow'])
@@ -1599,7 +1607,7 @@ class pacifica(Exchange, ImplicitAPI):
 
     def cancel_all_orders_request(self, symbol: Str, params={}):
         operationType = 'cancel_all_orders'
-        sigPayload: dict = {}
+        sigPayload = {}
         excludeReduceOnly = self.safe_bool(params, 'excludeReduceOnly', False)
         sigPayload['exclude_reduce_only'] = excludeReduceOnly
         if symbol is not None:
@@ -1626,7 +1634,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.initialize_client()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
@@ -1658,7 +1667,7 @@ class pacifica(Exchange, ImplicitAPI):
         else:
             operationType = 'cancel_order'
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
         }
         if clientOrderId is not None:
@@ -1685,7 +1694,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.initialize_client()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, market, params)
@@ -1711,8 +1721,8 @@ class pacifica(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         priceNormalized = self.price_to_precision(symbol, price)
         amountNormalized = self.amount_to_precision(symbol, amount)
-        sigPayload: dict = {
-            'symbol': market['id'],
+        sigPayload = {
+            'symbol': self.safe_string(market, 'id'),
             'price': priceNormalized,
             'amount': amountNormalized,
         }
@@ -1739,7 +1749,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
@@ -1748,7 +1759,7 @@ class pacifica(Exchange, ImplicitAPI):
         defaultLimit = 100  # Default max limit
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1797,7 +1808,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetInfoPrices(params)
         #
@@ -1822,7 +1834,7 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_list(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(data)):
             info = data[i]
             ticker = self.parse_ticker(info)
@@ -1871,7 +1883,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
         closedOrders = self.filter_by_array(orders, 'status', ['closed'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
@@ -1886,7 +1899,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
         closedOrders = self.filter_by_array(orders, 'status', ['canceled'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
@@ -1901,7 +1915,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
         closedOrders = self.filter_by_array(orders, 'status', ['canceled', 'closed', 'rejected'], False)
         return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
@@ -1919,10 +1934,11 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchOpenOrders', params)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         market = None
@@ -1973,7 +1989,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate', False)
         defaultLimit = 100  # max default 100
@@ -1984,7 +2001,7 @@ class pacifica(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         if limit is not None:
@@ -2046,11 +2063,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = await self.publicGetOrdersHistoryById(self.extend(request, params))
@@ -2109,7 +2127,7 @@ class pacifica(Exchange, ImplicitAPI):
         return self.parse_order(lastInfo, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'open': 'open',
             'partially_filled': 'open',
             'filled': 'closed',
@@ -2119,7 +2137,7 @@ class pacifica(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def map_time_in_force(self, tifRaw: Str):
-        tifMap: dict = {
+        tifMap = {
             'GTC': 'GTC',
             'IOC': 'IOC',
             'PO': 'ALO',
@@ -2134,14 +2152,14 @@ class pacifica(Exchange, ImplicitAPI):
         return self.safe_string(tifMap, tif, None)
 
     def map_side(self, sideRaw: str):
-        sideMap: dict = {
+        sideMap = {
             'sell': 'ask',
             'buy': 'bid',
         }
         return self.safe_string(sideMap, sideRaw, sideRaw)
 
     def parse_order_type(self, status: str):
-        statuses: dict = {
+        statuses = {
             'stop_limit': 'limit',
             'stop_market': 'market',
             'take_profit_limit': 'limit',
@@ -2302,11 +2320,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchPositions', params)
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         response = await self.publicGetPositions(self.extend(request, params))
@@ -2400,10 +2419,11 @@ class pacifica(Exchange, ImplicitAPI):
         operationType = 'update_margin_mode'
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         isIsolated = (marginMode == 'isolated')
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
             'is_isolated': isIsolated,
         }
@@ -2430,9 +2450,10 @@ class pacifica(Exchange, ImplicitAPI):
         operationType = 'update_leverage'
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        sigPayload: dict = {
+        sigPayload = {
             'symbol': market['id'],
             'leverage': leverage,
         }
@@ -2459,9 +2480,10 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         operationType = 'withdraw'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         self.check_address(address)
-        sigPayload: dict = {
+        sigPayload = {
             'amount': str(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
@@ -2480,11 +2502,12 @@ class pacifica(Exchange, ImplicitAPI):
         :param str [params.account]: will default to walletAddress if not provided
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchTradingFee', params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         response = await self.publicGetAccount(self.extend(request, params))
@@ -2510,7 +2533,7 @@ class pacifica(Exchange, ImplicitAPI):
         #   "error": null,
         #   "code": null
         # }
-        data: dict = self.safe_dict(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_trading_fee(data, market)
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -2551,7 +2574,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         swapMarkets = await self.fetch_swap_markets()
         return self.parse_open_interests(swapMarkets, symbols)
@@ -2564,7 +2588,8 @@ class pacifica(Exchange, ImplicitAPI):
         :returns dict: an `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         symbol = self.symbol(symbol)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         ois = await self.fetch_open_interests([symbol], params)
         return ois[symbol]
 
@@ -2618,7 +2643,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate', False)
         userAddress = None
@@ -2626,7 +2652,7 @@ class pacifica(Exchange, ImplicitAPI):
         defaultLimit = 100  # Default max limit
         if paginate:
             return await self.fetch_paginated_call_cursor('fetchLedger', code, since, limit, params, 'next_cursor', 'cursor', None, defaultLimit)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         if limit is not None:
@@ -2683,7 +2709,7 @@ class pacifica(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+        ledgerType = {
             'subaccount_transfer': 'transfer',
             'deposit': 'transaction',
             'deposit_release': 'transaction',
@@ -2714,7 +2740,8 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2722,7 +2749,7 @@ class pacifica(Exchange, ImplicitAPI):
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate', False)
         userAddress = None
         userAddress, params = self.handle_origin_and_single_address('fetchFundingHistory', params)
-        request: dict = {
+        request = {
             'account': userAddress,
         }
         if limit is not None:
@@ -2959,7 +2986,7 @@ class pacifica(Exchange, ImplicitAPI):
         request = self.post_action_request(operationType, sigPayload, params)
         return await self.privatePostAccountBuilderCodesRevoke(self.extend(request, params))
 
-    def handle_origin_and_single_address(self, methodName: str, params: dict):
+    def handle_origin_and_single_address(self, methodName: str, params: dict) -> list:
         address = None
         address, params = self.handle_param_string_2(params, 'account', 'address', None)  # self is for get endpoints that accept account or address
         if address is not None:
@@ -2993,7 +3020,7 @@ class pacifica(Exchange, ImplicitAPI):
             raise ExchangeError(feedback)  # unknown message
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         isTestnet = self.isSandboxModeEnabled
         urlKey = 'test' if (isTestnet) else 'api'
         host = self.implode_hostname(self.urls[urlKey][api])
@@ -3027,7 +3054,7 @@ class pacifica(Exchange, ImplicitAPI):
         return costNumber
 
     def sort_json_keys(self, value: Any) -> Any:
-        if isinstance(value, dict):
+        if self.is_dictionary(value):
             result = {}
             keys = list(value.keys())
             sortedKeys = self.sort(keys)

@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/grvt.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol, OperationFailed, OperationRejected } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
 //  ---------------------------------------------------------------------------
@@ -24,7 +24,7 @@ export default class grvt extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'grvt',
             'name': 'GRVT',
-            'countries': ['SG'],
+            'countries': ['SG'], // Singapore
             'rateLimit': 10,
             'certified': false,
             'version': 'v1',
@@ -85,7 +85,7 @@ export default class grvt extends Exchange {
                 '4w': 'CI_4_W',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo': 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api': {
                     'privateEdge': 'https://edge.grvt.io/',
                     'privateTrading': 'https://trades.grvt.io/',
@@ -149,9 +149,9 @@ export default class grvt extends Exchange {
                         'full/v1/transfer_history': 100,
                         'full/v1/withdrawal': 100,
                         'full/v1/withdrawal_history': 100,
-                        'full/v1/add_position_margin': rlOthers,
+                        'full/v1/add_position_margin': rlOthers, // addMargin
                         'full/v1/get_position_margin_limits': rlOthers,
-                        'full/v1/set_position_config': rlOthers,
+                        'full/v1/set_position_config': rlOthers, // setPositionMode/setMarginMode
                         'full/v1/set_initial_leverage': rlOthers,
                         'full/v1/get_all_initial_leverage': rlOthers,
                         'full/v1/set_derisk_mm_ratio': rlOthers,
@@ -162,7 +162,7 @@ export default class grvt extends Exchange {
                         'full/v1/vault_redeem_cancel': rlOthers,
                         'full/v1/vault_view_redemption_queue': rlOthers,
                         'full/v1/vault_manager_investor_history': rlOthers,
-                        'full/v1/authorize_builder': rlOthers,
+                        'full/v1/authorize_builder': rlOthers, // https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders': rlOthers,
                         'full/v1/builder_fill_history': rlOthers,
                     },
@@ -170,7 +170,7 @@ export default class grvt extends Exchange {
             },
             // exchange-specific options
             'options': {
-                'accountId': undefined,
+                'accountId': undefined, // needs to be set manually by user
                 // https://api.rhino.fi/bridge/configs
                 'networks': {
                     'ARBONE': '42161',
@@ -275,115 +275,115 @@ export default class grvt extends Exchange {
                 'apiKey': false,
                 'secret': false,
             },
-            'quoteJsonNumbers': false,
+            'quoteJsonNumbers': false, // needed for some endpoints (todo: specify in implementations)
             'exceptions': {
                 'exact': {
-                    '1000': AuthenticationError,
-                    '1001': PermissionDenied,
-                    '1002': OperationFailed,
-                    '1003': BadRequest,
-                    '1004': OperationRejected,
-                    '1005': OperationFailed,
-                    '1006': RateLimitExceeded,
-                    '1008': PermissionDenied,
-                    '1009': OperationRejected,
-                    '1012': BadRequest,
-                    '1400': PermissionDenied,
-                    '2000': PermissionDenied,
-                    '2001': InvalidNonce,
-                    '2002': BadRequest,
-                    '2003': PermissionDenied,
-                    '2004': InvalidNonce,
-                    '2005': BadRequest,
-                    '2006': BadRequest,
-                    '2007': BadRequest,
-                    '2008': BadRequest,
-                    '2010': InvalidOrder,
-                    '2011': InvalidOrder,
-                    '2012': InvalidOrder,
-                    '2020': InvalidOrder,
-                    '2021': InvalidOrder,
-                    '2030': InvalidOrder,
-                    '2031': InvalidOrder,
-                    '2032': InvalidOrder,
-                    '2040': InvalidOrder,
-                    '2041': InvalidOrder,
-                    '2042': InvalidOrder,
-                    '2050': InvalidOrder,
-                    '2051': InvalidOrder,
-                    '2060': BadSymbol,
-                    '2061': BadSymbol,
-                    '2062': InvalidOrder,
-                    '2063': InvalidOrder,
-                    '2064': InvalidOrder,
-                    '2065': InvalidOrder,
-                    '2070': InvalidOrder,
-                    '2080': InsufficientFunds,
-                    '2081': OperationRejected,
-                    '2082': InvalidOrder,
-                    '2083': OperationRejected,
-                    '2090': RateLimitExceeded,
-                    '2100': BadRequest,
-                    '2101': BadRequest,
-                    '2102': OperationRejected,
-                    '2103': OperationRejected,
-                    '2104': BadRequest,
-                    '2105': BadRequest,
-                    '2107': BadRequest,
-                    '2108': BadRequest,
-                    '2110': InvalidOrder,
-                    '2111': InvalidOrder,
-                    '2112': InvalidOrder,
-                    '2113': InvalidOrder,
-                    '2114': InvalidOrder,
-                    '2115': InvalidOrder,
-                    '2116': InvalidOrder,
-                    '2117': InvalidOrder,
-                    '2300': OperationRejected,
-                    '2301': OperationRejected,
-                    '2400': OperationRejected,
-                    '2401': OperationRejected,
-                    '2402': OperationRejected,
-                    '3000': BadSymbol,
-                    '3004': OperationRejected,
-                    '3005': OperationRejected,
-                    '3006': OperationRejected,
-                    '3021': BadRequest,
-                    '3031': BadRequest,
-                    '4000': InsufficientFunds,
-                    '4002': OperationFailed,
-                    '4010': OperationRejected,
-                    '5000': OperationRejected,
-                    '5001': OperationRejected,
-                    '5002': OperationRejected,
-                    '5003': OperationRejected,
-                    '5004': OperationRejected,
-                    '5005': OperationRejected,
-                    '6000': OperationRejected,
-                    '6100': OperationRejected,
-                    '7000': OperationRejected,
-                    '7001': InsufficientFunds,
-                    '7002': OperationFailed,
-                    '7003': OperationRejected,
-                    '7004': OperationRejected,
-                    '7005': InsufficientFunds,
-                    '7006': OperationFailed,
-                    '7007': PermissionDenied,
-                    '7100': OperationFailed,
-                    '7101': OperationRejected,
-                    '7102': OperationRejected,
-                    '7103': OperationRejected,
-                    '7201': OperationRejected,
-                    '7450': OperationRejected,
-                    '7451': OperationRejected,
-                    '7452': OperationRejected,
-                    '7453': OperationRejected,
-                    '7454': OperationRejected,
-                    '7455': OperationRejected,
-                    '7500': OperationRejected,
-                    '7501': BadRequest,
-                    '7502': OperationRejected,
-                    '7503': OperationRejected,
+                    '1000': AuthenticationError, // "You need to authenticate prior to using this functionality"
+                    '1001': PermissionDenied, // "You are not authorized to access this functionality"
+                    '1002': OperationFailed, // "Internal Server Error"
+                    '1003': BadRequest, // "Request could not be processed due to malformed syntax"
+                    '1004': OperationRejected, // "Data Not Found"
+                    '1005': OperationFailed, // "Unknown Error"
+                    '1006': RateLimitExceeded, // "You have surpassed the allocated rate limit for your tier"
+                    '1008': PermissionDenied, // "Your IP has not been whitelisted for access"
+                    '1009': OperationRejected, // "We are temporarily deactivating this API endpoint, please try again later"
+                    '1012': BadRequest, // "Invalid signature chain ID"
+                    '1400': PermissionDenied, // "Signer does not have trade permission"
+                    '2000': PermissionDenied, // "Signature is from an unauthorized signer"
+                    '2001': InvalidNonce, // "Signature has expired"
+                    '2002': BadRequest, // "Signature does not match payload"
+                    '2003': PermissionDenied, // "Order sub account does not match logged in user"
+                    '2004': InvalidNonce, // "Signature is from an expired session key"
+                    '2005': BadRequest, // "Signature V must be 27/28"
+                    '2006': BadRequest, // "Signature R/S must have exactly 64 characters long without 0x prefix"
+                    '2007': BadRequest, // "Signature S must be in the lower half of the curve"
+                    '2008': BadRequest, // "Signature exceeds maximum allowed duration."
+                    '2010': InvalidOrder, // "Order ID should be empty when creating an order"
+                    '2011': InvalidOrder, // "Client Order ID should be supplied when creating an order"
+                    '2012': InvalidOrder, // "Client Order ID overlaps with existing active order"
+                    '2020': InvalidOrder, // "Market Order must always be supplied without a limit price"
+                    '2021': InvalidOrder, // "Limit Order must always be supplied with a limit price"
+                    '2030': InvalidOrder, // "Orderbook Orders must have a TimeInForce of GTT/IOC/FOK"
+                    '2031': InvalidOrder, // "RFQ Orders must have a TimeInForce of GTT/AON/IOC/FOK"
+                    '2032': InvalidOrder, // "Post Only can only be set to true for GTT/AON orders"
+                    '2040': InvalidOrder, // "Order must contain at least one leg"
+                    '2041': InvalidOrder, // "Order Legs must be sorted by Derivative.Instrument/Underlying/BaseCurrency/Expiration/StrikePrice"
+                    '2042': InvalidOrder, // "Orderbook Orders must contain only one leg"
+                    '2050': InvalidOrder, // "Order state must be empty upon creation"
+                    '2051': InvalidOrder, // "Order execution metadata must be empty upon creation"
+                    '2060': BadSymbol, // "Order Legs contain one or more inactive derivative"
+                    '2061': BadSymbol, // "Unsupported Instrument Requested"
+                    '2062': InvalidOrder, // "Order size smaller than min size"
+                    '2063': InvalidOrder, // "Order size smaller than min block size in block trade venue"
+                    '2064': InvalidOrder, // "Invalid limit price tick"
+                    '2065': InvalidOrder, // "Order size too granular"
+                    '2070': InvalidOrder, // "Liquidation Order is not supported"
+                    '2080': InsufficientFunds, // "Insufficient margin to create order"
+                    '2081': OperationRejected, // "Order Fill would result in exceeding maximum position size"
+                    '2082': InvalidOrder, // "Pre-order check failed"
+                    '2083': OperationRejected, // "Order Fill would result in exceeding maximum position size under current configurable leverage tier"
+                    '2090': RateLimitExceeded, // "Max open orders exceeded"
+                    '2100': BadRequest, // "Invalid initial leverage"
+                    '2101': BadRequest, // "Vaults cannot configure leverage"
+                    '2102': OperationRejected, // "Margin type change failed, has open position for this instrument"
+                    '2103': OperationRejected, // "Margin type change failed, has open orders for this instrument"
+                    '2104': BadRequest, // "Margin type not supported"
+                    '2105': BadRequest, // "Margin type change failed"
+                    '2107': BadRequest, // "Attempted to set leverage below minimum"
+                    '2108': BadRequest, // "Attempted to set leverage above maximum"
+                    '2110': InvalidOrder, // "Invalid trigger by"
+                    '2111': InvalidOrder, // "Unsupported trigger by"
+                    '2112': InvalidOrder, // "Invalid trigger order"
+                    '2113': InvalidOrder, // "Trigger price must be non-zero"
+                    '2114': InvalidOrder, // "Invalid position linked TPSL orders, position linked TPSL must be a reduce-only order"
+                    '2115': InvalidOrder, // "Invalid position linked TPSL orders, position linked TPSL must not have smaller size than the position"
+                    '2116': InvalidOrder, // "Position linked TPSL order for this asset already exists"
+                    '2117': InvalidOrder, // "Position linked TPSL orders must be created from web or mobile clients"
+                    '2300': OperationRejected, // "Order cancel time-to-live settings currently disabled."
+                    '2301': OperationRejected, // "Order cancel time-to-live exceeds maximum allowed value."
+                    '2400': OperationRejected, // "Reduce only order with no position"
+                    '2401': OperationRejected, // "Reduce only order must not increase position size"
+                    '2402': OperationRejected, // "Reduce only order size exceeds maximum allowed value"
+                    '3000': BadSymbol, // "Instrument is invalid"
+                    '3004': OperationRejected, // "Instrument does not have a valid maintenance margin configuration"
+                    '3005': OperationRejected, // "Instrument's underlying currency does not have a valid balance decimal configuration"
+                    '3006': OperationRejected, // "Instrument's quote currency does not have a valid balance decimal configuration"
+                    '3021': BadRequest, // "Either order ID or client order ID must be supplied"
+                    '3031': BadRequest, // "Depth is invalid"
+                    '4000': InsufficientFunds, // "Insufficient balance to complete transfer"
+                    '4002': OperationFailed, // "Transfer failed with an unrefined failure reason, please report to GRVT"
+                    '4010': OperationRejected, // "This wallet is not supported. Please try another wallet."
+                    '5000': OperationRejected, // "Transfer Metadata does not match the expected structure."
+                    '5001': OperationRejected, // "Transfer Provider does not match the expected provider."
+                    '5002': OperationRejected, // "Direction of the transfer does not match the expected direction."
+                    '5003': OperationRejected, // "Endpoint account ID is invalid."
+                    '5004': OperationRejected, // "Funding account does not exist in our system."
+                    '5005': OperationRejected, // "Invalid ChainID for the transfer request."
+                    '6000': OperationRejected, // "Countdown time is bigger than 300s supported"
+                    '6100': OperationRejected, // "Derisk MM Ratio is out of range"
+                    '7000': OperationRejected, // "Vault ID provided is invalid and does not belong to any vault"
+                    '7001': InsufficientFunds, // "Vault does not have sufficient LP token balance"
+                    '7002': OperationFailed, // "User has an ongoing redemption"
+                    '7003': OperationRejected, // "This vault has been delisted/closed."
+                    '7004': OperationRejected, // "This investment would cause the vault to exceed its valuation cap."
+                    '7005': InsufficientFunds, // "You are attempting to burn more vault tokens than you own."
+                    '7006': OperationFailed, // "You are attempting to burn vault tokens whilst having an active redemption request."
+                    '7007': PermissionDenied, // "The investor is not an LP for this vault."
+                    '7100': OperationFailed, // "Unknown transaction type"
+                    '7101': OperationRejected, // "Transfer account not found"
+                    '7102': OperationRejected, // "Transfer sub-account not found"
+                    '7103': OperationRejected, // "Charged trading fee below the config minimum"
+                    '7201': OperationRejected, // "Attempted to create a limit order at a price outside of asset's price protection band."
+                    '7450': OperationRejected, // "Add margin failed"
+                    '7451': OperationRejected, // "Add margin to empty position"
+                    '7452': OperationRejected, // "Add margin to non isolated position"
+                    '7453': OperationRejected, // "Max addable amount exceeded"
+                    '7454': OperationRejected, // "Max removable amount exceeded"
+                    '7455': OperationRejected, // "Not isolated margin position"
+                    '7500': OperationRejected, // "Builder Fee exceeds the allowed program limit."
+                    '7501': BadRequest, // "Builder Fee can't be negative."
+                    '7502': OperationRejected, // "Builder Account does not exist."
+                    '7503': OperationRejected, // "Builder is already authorized for this account with the given fee."
                     '7504': OperationRejected, // "Builder is not authorized for the specified user.","status":400
                 },
                 'broad': {},
@@ -717,17 +717,17 @@ export default class grvt extends Exchange {
             'swap': isSwap,
             'future': isFuture,
             'option': false,
-            'active': undefined,
+            'active': undefined, // todo: ask support to add
             'contract': isContract,
             'linear': isSwap ? true : undefined,
             'inverse': isSwap ? false : undefined,
-            'contractSize': this.parseNumber('1'),
+            'contractSize': this.parseNumber('1'), // tbd, vague response from support
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber(market, 'min_size'),
+                'amount': this.safeNumber(market, 'min_size'), // confirmed, not 'base_decimals'
                 'price': this.safeNumber(market, 'tick_size'),
                 'base': this.parseNumber(this.parsePrecision(this.safeString(market, 'base_decimals'))),
                 'quote': this.parseNumber(this.parsePrecision(this.safeString(market, 'quote_decimals'))),
@@ -814,7 +814,7 @@ export default class grvt extends Exchange {
                     'max': undefined,
                 },
             },
-            'type': 'crypto',
+            'type': 'crypto', // only crypto for now
             'networks': undefined,
             'numericId': this.safeInteger(rawCurrency, 'id'),
         });
@@ -829,7 +829,9 @@ export default class grvt extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'instrument': this.marketId(symbol),
@@ -936,7 +938,9 @@ export default class grvt extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'instrument': this.marketId(symbol),
         };
@@ -981,7 +985,9 @@ export default class grvt extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {
             'instrument': market['id'],
@@ -1116,7 +1122,9 @@ export default class grvt extends Exchange {
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const maxLimit = 1000;
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1206,7 +1214,9 @@ export default class grvt extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1420,9 +1430,9 @@ export default class grvt extends Exchange {
     }
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -1594,13 +1604,15 @@ export default class grvt extends Exchange {
         let networkCode = undefined;
         let addressFrom = this.safeString(transaction, 'from_account_id');
         let addressTo = this.safeString(transaction, 'to_account_id');
+        const currencyId = this.safeString(transaction, 'currency');
+        const code = this.safeCurrencyCode(currencyId, currency);
         if ('transfer_metadata' in transaction) {
             const metaData = this.omitZero(this.safeString(transaction, 'transfer_metadata'));
             if (metaData !== undefined) {
                 const parsedMeta = this.parseJson(metaData);
                 direction = this.safeStringLower(parsedMeta, 'direction');
                 txId = this.safeString(parsedMeta, 'provider_tx_id');
-                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'));
+                networkCode = this.networkIdToCode(this.safeString(parsedMeta, 'chainid'), code);
                 if (direction === 'withdrawal') {
                     addressTo = this.safeString(parsedMeta, 'endpoint');
                 }
@@ -1610,8 +1622,6 @@ export default class grvt extends Exchange {
             }
         }
         const timestamp = this.safeIntegerProduct2(transaction, 'event_time', 'initiated_time', 0.000001);
-        const currencyId = this.safeString(transaction, 'currency');
-        const code = this.safeCurrencyCode(currencyId, currency);
         return {
             'info': transaction,
             'id': undefined,
@@ -1832,7 +1842,7 @@ export default class grvt extends Exchange {
     }
     async loadAccountInfos() {
         if (this.safeString(this.options, 'userMainAccountId') !== undefined) {
-            return;
+            return false;
         }
         const promises = [];
         promises.push(this.privateTradingPostFullV1AggregatedAccountSummary());
@@ -1885,6 +1895,7 @@ export default class grvt extends Exchange {
             const subAccountId = this.safeString(subAccountIds, 0);
             this.options['accountId'] = subAccountId;
         }
+        return true;
     }
     /**
      * @method
@@ -1912,7 +1923,7 @@ export default class grvt extends Exchange {
             'signature': this.defaultSignature(),
         };
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest(this.id + ' withdraw() requires a network parameter');
         }
@@ -1977,8 +1988,10 @@ export default class grvt extends Exchange {
         }
         params = this.omit(params, ['clientOrderId']);
         const isMarketOrder = (type === 'market');
+        const subAccountId = this.getSubAccountId(params);
+        const isReduceOnly = this.safeBool(params, 'reduceOnly', false);
         const orderRequest = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccountId,
             'time_in_force': undefined,
             'legs': [orderLeg],
             'signature': this.defaultSignature(),
@@ -1987,7 +2000,7 @@ export default class grvt extends Exchange {
             },
             'is_market': isMarketOrder,
             'post_only': false,
-            'reduce_only': this.safeBool(params, 'reduceOnly', false),
+            'reduce_only': isReduceOnly,
             // 'order_id': null,
             // 'state': null,
         };
@@ -2002,7 +2015,7 @@ export default class grvt extends Exchange {
         else {
             const tifMap = {
                 'GTC': 'GOOD_TILL_TIME',
-                'FOK': 'FILL_OR_KILL',
+                'FOK': 'FILL_OR_KILL', // tbd: why not 'ALL_OR_NONE'
                 'IOC': 'IMMEDIATE_OR_CANCEL',
             };
             timeInForce = this.safeString(tifMap, timeInForce, timeInForce);
@@ -2620,8 +2633,9 @@ export default class grvt extends Exchange {
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarketsAndSignIn();
+        const subAccountId = this.getSubAccountId(params);
         let request = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccountId,
         };
         let market = undefined;
         if (symbol !== undefined) {
@@ -2797,8 +2811,9 @@ export default class grvt extends Exchange {
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarketsAndSignIn();
+        const subAccountId = this.getSubAccountId(params);
         const request = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccountId,
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
@@ -2954,7 +2969,7 @@ export default class grvt extends Exchange {
         let price = undefined;
         let filled = undefined;
         let avgPrice = undefined;
-        const legs = this.safeList(order, 'legs');
+        const legs = this.safeList(order, 'legs', []);
         const metadata = this.safeDict(order, 'metadata', {});
         const stateObj = this.safeDict(order, 'state', {});
         const filledAmounts = this.safeList(stateObj, 'traded_size', []);
@@ -2982,7 +2997,7 @@ export default class grvt extends Exchange {
             'lastTradeTimeStamp': undefined,
             'lastUpdateTimestamp': this.safeIntegerProduct(stateObj, 'update_time', 0.000001),
             'status': this.parseOrderStatus(this.safeString(stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -3002,7 +3017,7 @@ export default class grvt extends Exchange {
     }
     parseTimeInForce(type) {
         const types = {
-            'GOOD_TILL_TIME': 'GTC',
+            'GOOD_TILL_TIME': 'GTC', // yeah, not GTD
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
             // exchange specific types
@@ -3061,7 +3076,7 @@ export default class grvt extends Exchange {
         //    }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrders([result], undefined);
+        return this.parseOrders([result]);
     }
     /**
      * @method
@@ -3076,8 +3091,9 @@ export default class grvt extends Exchange {
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         await this.loadMarketsAndSignIn();
+        const subAccoubntId = this.getSubAccountId(params);
         const request = {
-            'sub_account_id': this.getSubAccountId(params),
+            'sub_account_id': subAccoubntId,
         };
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {

@@ -1,5 +1,5 @@
 import Exchange from './abstract/grvt.js';
-import type { Balances, Currencies, Currency, Dict, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, NullableDict, List, FundingRateHistory, FundingHistory, Int, Leverage, Leverages, MarginMode, MarginModes, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, int } from './base/types.js';
 /**
  * @class grvt
  * @augments Exchange
@@ -159,7 +159,7 @@ export default class grvt extends Exchange {
         timestamp: number;
         datetime: string;
     };
-    getSubAccountId(params: any): any;
+    getSubAccountId(params: any): string;
     /**
      * @method
      * @name grvt#fetchBalance
@@ -185,9 +185,9 @@ export default class grvt extends Exchange {
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     /**
      * @method
-     * @name grvrt#fetchWithdrawals
+     * @name grvt#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+     * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
      * @param {string} [code] unified currency code of the currency transferred
      * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
      * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
@@ -226,7 +226,7 @@ export default class grvt extends Exchange {
      */
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    loadAccountInfos(): Promise<void>;
+    loadAccountInfos(): Promise<boolean>;
     /**
      * @method
      * @name grvt#withdraw
@@ -269,7 +269,7 @@ export default class grvt extends Exchange {
         timeInForce: number;
         postOnly: any;
         reduceOnly: any;
-        legs: any[];
+        legs: List;
         nonce: any;
         expiration: any;
     };
@@ -436,11 +436,11 @@ export default class grvt extends Exchange {
     };
     handleUntilOptionString(key: string, request: any, params: any, multiplier?: number): any[];
     requestId(): any;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: any;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

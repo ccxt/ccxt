@@ -324,7 +324,6 @@ public partial class bitopro : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetProvisioningCurrencies(parameters);
-        object currencies = this.safeList(response, "data", new List<object>() {});
         //
         //     {
         //         "data":[
@@ -341,45 +340,41 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        object result = new Dictionary<string, object>() {};
+        object currencies = this.safeList(response, "data", new List<object>() {});
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
         object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = getValue(currencies, i);
-            object currencyId = this.safeString(currency, "currency");
-            object code = this.safeCurrencyCode(currencyId);
-            object deposit = this.safeBool(currency, "deposit");
-            object withdraw = this.safeBool(currency, "withdraw");
-            object fee = this.safeNumber(currency, "withdrawFee");
-            object withdrawMin = this.safeNumber(currency, "minWithdraw");
-            object withdrawMax = this.safeNumber(currency, "maxWithdraw");
-            object limits = new Dictionary<string, object>() {
+        object currencyId = this.safeString(rawCurrency, "currency");
+        object code = this.safeCurrencyCode(currencyId);
+        object deposit = this.safeBool(rawCurrency, "deposit");
+        object withdraw = this.safeBool(rawCurrency, "withdraw");
+        object isFiat = this.inArray(code, fiatCurrencies);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "info", rawCurrency },
+            { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
+            { "name", null },
+            { "active", isTrue(deposit) && isTrue(withdraw) },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", this.safeNumber(rawCurrency, "withdrawFee") },
+            { "precision", null },
+            { "limits", new Dictionary<string, object>() {
                 { "withdraw", new Dictionary<string, object>() {
-                    { "min", withdrawMin },
-                    { "max", withdrawMax },
+                    { "min", this.safeNumber(rawCurrency, "minWithdraw") },
+                    { "max", this.safeNumber(rawCurrency, "maxWithdraw") },
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", null },
                     { "max", null },
                 } },
-            };
-            object isFiat = this.inArray(code, fiatCurrencies);
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "info", currency },
-                { "type", ((bool) isTrue(isFiat)) ? "fiat" : "crypto" },
-                { "name", null },
-                { "active", isTrue(deposit) && isTrue(withdraw) },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", fee },
-                { "precision", null },
-                { "limits", limits },
-                { "networks", null },
-            };
-        }
-        return result;
+            } },
+            { "networks", null },
+        });
     }
 
     /**
@@ -597,7 +592,7 @@ public partial class bitopro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1050,7 +1045,7 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return this.safeString(statuses, status, null);
+        return ((bool) isTrue((isEqual(status, null)))) ? null : this.safeString(statuses, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1636,7 +1631,7 @@ public partial class bitopro : Exchange
             { "txid", this.safeString(transaction, "txid") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "amount", this.safeNumber(transaction, "total") },
             { "status", this.parseTransactionStatus(status) },
             { "timestamp", timestamp },
@@ -1846,7 +1841,7 @@ public partial class bitopro : Exchange
             object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
-            object networkId = this.safeString(networks, requestedNetwork);
+            object networkId = ((bool) isTrue((isEqual(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
             if (isTrue(isEqual(networkId, null)))
             {
                 throw new ExchangeError ((string)add(add(this.id, " invalid network "), requestedNetwork)) ;

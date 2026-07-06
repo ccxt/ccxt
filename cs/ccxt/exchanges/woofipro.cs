@@ -16,7 +16,6 @@ public partial class woofipro : Exchange
             { "certified", true },
             { "pro", true },
             { "dex", true },
-            { "hostname", "dex.woo.org" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", false },
@@ -692,62 +691,76 @@ public partial class woofipro : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
-            object currencyId = this.safeString(token, "token");
-            object networks = this.safeList(token, "chain_details");
-            object code = this.safeCurrencyCode(currencyId);
-            object resultingNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
-            {
-                object networkEntry = getValue(networks, j);
-                object networkId = this.safeString(networkEntry, "chain_id");
-                object networkRow = this.safeDict(indexedChains, networkId);
-                object networkName = this.safeString(networkRow, "name");
-                object networkCode = this.networkIdToCode(networkName, code);
-                ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
-                    { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
-                    { "info", new List<object>() {networkEntry, networkRow} },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "name", null },
-                { "code", code },
-                { "precision", null },
-                { "active", null },
-                { "fee", null },
-                { "networks", resultingNetworks },
-                { "deposit", null },
-                { "withdraw", null },
+            object parsed = this.parseCurrency(new Dictionary<string, object>() {
+                { "_token", token },
+                { "_indexedChains", indexedChains },
+            });
+            ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
+        }
+        return result;
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object token = this.safeDict(rawCurrency, "_token", new Dictionary<string, object>() {});
+        object currencyId = this.safeString(token, "token");
+        object networks = this.safeList(token, "chain_details", new List<object>() {});
+        object code = this.safeCurrencyCode(currencyId);
+        object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new Dictionary<string, object>() {});
+        object resultingNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        {
+            object networkEntry = getValue(networks, j);
+            object networkId = this.safeString(networkEntry, "chain_id");
+            object networkRow = this.safeDict(indexedChains, networkId);
+            object networkName = this.safeString(networkRow, "name");
+            object networkCode = this.networkIdToCode(networkName, code);
+            ((IDictionary<string,object>)resultingNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
                     { "deposit", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(token, "minimum_withdraw_amount") },
-                        { "max", null },
-                    } },
                 } },
-                { "info", token },
-            });
+                { "active", null },
+                { "deposit", null },
+                { "withdraw", null },
+                { "fee", this.safeNumber(networkEntry, "withdrawal_fee") },
+                { "precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "decimals"))) },
+                { "info", new Dictionary<string, object>() {
+                    { "network", networkEntry },
+                    { "networkRow", networkRow },
+                } },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "name", null },
+            { "code", code },
+            { "precision", null },
+            { "active", null },
+            { "fee", null },
+            { "networks", resultingNetworks },
+            { "deposit", null },
+            { "withdraw", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(token, "minimum_withdraw_amount") },
+                    { "max", null },
+                } },
+            } },
+            { "info", token },
+        });
     }
 
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
@@ -1277,7 +1290,7 @@ public partial class woofipro : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1499,7 +1512,7 @@ public partial class woofipro : Exchange
             { "fok", "FOK" },
             { "post_only", "PO" },
         };
-        return this.safeString(timeInForces, timeInForce, null);
+        return this.safeString(timeInForces, timeInForce);
     }
 
     public virtual object parseOrderStatus(object status)
@@ -1688,7 +1701,7 @@ public partial class woofipro : Exchange
         {
             response = await this.v1PrivatePostOrder(request);
         }
-        object data = this.safeDict(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         ((IDictionary<string,object>)data)["timestamp"] = this.safeInteger(response, "timestamp");
         object order = this.parseOrder(data, market);
         ((IDictionary<string,object>)order)["type"] = type;
@@ -1878,7 +1891,7 @@ public partial class woofipro : Exchange
             market = this.market(symbol);
         }
         object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
         };
         object clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
         object clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
@@ -2187,7 +2200,7 @@ public partial class woofipro : Exchange
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "meta": {
         //                 "total": 9,
@@ -2830,7 +2843,7 @@ public partial class woofipro : Exchange
         object leverageValue = this.safeInteger(leverage, "max_leverage");
         return new Dictionary<string, object>() {
             { "info", leverage },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "marginMode", null },
             { "longLeverage", leverageValue },
             { "shortLeverage", leverageValue },
@@ -3099,8 +3112,7 @@ public partial class woofipro : Exchange
         object version = getValue(section, 0);
         object access = getValue(section, 1);
         object pathWithParams = this.implodeParams(path, parameters);
-        object url = this.implodeHostname(getValue(getValue(this.urls, "api"), access));
-        url = add(url, add(add("/", version), "/"));
+        object url = add(add(add(getValue(getValue(this.urls, "api"), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
         if (isTrue(isEqual(access, "public")))

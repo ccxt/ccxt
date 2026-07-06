@@ -5,14 +5,16 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 /*  ------------------------------------------------------------------------ */
-import { hmac as _hmac } from '../../static_dependencies/noble-hashes/hmac.js';
-import { base16, base64, base58 } from '../../static_dependencies/scure-base/index.js';
-import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
-import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
-import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
-import { P256 } from '../../static_dependencies/noble-curves/p256.js';
-import { numberToBytesLE } from '../../static_dependencies/noble-curves/abstract/utils.js';
-/*  ------------------------------------------------------------------------ */
+import { hmac as _hmac } from '@noble/hashes/hmac.js';
+import { hex as base16, base64 } from '@scure/base';
+import { utf8ToBytes } from '@noble/hashes/utils.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { p256 as P256 } from '@noble/curves/nist.js';
+import { numberToBytesLE, hexToBytes } from '@noble/curves/utils.js';
+// @noble/hashes v2 and @noble/curves v2 accept Uint8Array only
+// strings were treated as utf8 by noble-hashes v1 and as hex by noble-curves v1
+const utf8Bytes = (data) => ((typeof data === 'string') ? utf8ToBytes(data) : data);
+const hexBytes = (data) => ((typeof data === 'string') ? hexToBytes(data) : data);
 const encoders = {
     binary: x => x,
     hex: base16.encode,
@@ -22,14 +24,70 @@ const supportedCurve = {
     '1.3.132.0.10': secp256k1,
     '1.2.840.10045.3.1.7': P256,
 };
+/*  ----- minimal PEM / DER helpers (replace the vendored jsencrypt asn1js) ----- */
+// strip the PEM armor (-----BEGIN/END ...-----) and base64-decode the body to DER bytes
+function pemToDer(pem) {
+    const body = pem
+        .replace(/-----BEGIN [^-]+-----/g, '')
+        .replace(/-----END [^-]+-----/g, '')
+        .replace(/\s+/g, '');
+    return base64.decode(body);
+}
+// read a definite-form DER length, returns [ length, nextOffset ]
+function readDerLength(bytes, offset) {
+    let length = bytes[offset];
+    offset += 1;
+    if (length & 0x80) {
+        const numBytes = length & 0x7f;
+        length = 0;
+        for (let i = 0; i < numBytes; i++) {
+            length = (length * 256) + bytes[offset];
+            offset += 1;
+        }
+    }
+    return [length, offset];
+}
+// parse a DER buffer into a flat list of its top-level TLV elements
+function parseDerElements(bytes) {
+    const elements = [];
+    let offset = 0;
+    while (offset < bytes.length) {
+        const tag = bytes[offset];
+        offset += 1;
+        const result = readDerLength(bytes, offset);
+        const length = result[0];
+        offset = result[1];
+        const content = bytes.slice(offset, offset + length);
+        elements.push({ 'tag': tag, 'content': content });
+        offset += length;
+    }
+    return elements;
+}
+// decode an OID's content bytes into a dotted-decimal string
+function decodeOid(bytes) {
+    const values = [];
+    const first = bytes[0];
+    values.push(Math.floor(first / 40));
+    values.push(first % 40);
+    let value = 0;
+    for (let i = 1; i < bytes.length; i++) {
+        const b = bytes[i];
+        value = (value * 128) + (b & 0x7f);
+        if ((b & 0x80) === 0) {
+            values.push(value);
+            value = 0;
+        }
+    }
+    return values.join('.');
+}
 /*  .............................................   */
 const hash = (request, hash, digest = 'hex') => {
-    const binary = hash(request);
+    const binary = hash(utf8Bytes(request));
     return encoders[digest](binary);
 };
 /*  .............................................   */
 const hmac = (request, secret, hash, digest = 'hex') => {
-    const binary = _hmac(hash, secret, request);
+    const binary = _hmac(hash, utf8Bytes(secret), utf8Bytes(request));
     return encoders[digest](binary);
 };
 /*  .............................................   */
@@ -40,22 +98,24 @@ function ecdsa(request, secret, curve, prehash = null, fixedLength = false) {
     if (typeof secret === 'string' && secret.length > 64) {
         // decode pem key
         if (secret.startsWith('-----BEGIN EC PRIVATE KEY-----')) {
-            const der = Base64.unarmor(secret);
-            let asn1 = ASN1.decode(der);
-            if (asn1.sub.length === 4) {
-                // ECPrivateKey ::= SEQUENCE {
-                //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
-                //     privateKey     OCTET STRING,
-                //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
-                //     publicKey  [1] BIT STRING OPTIONAL
-                // }
-                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
-                    const oid = asn1.sub[2].sub[0].content(undefined);
+            const der = pemToDer(secret);
+            const top = parseDerElements(der);
+            // ECPrivateKey ::= SEQUENCE {
+            //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+            //     privateKey     OCTET STRING,
+            //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+            //     publicKey  [1] BIT STRING OPTIONAL
+            // }
+            const fields = parseDerElements(top[0].content);
+            if (fields.length === 4) {
+                const params = fields[2];
+                if (params !== undefined && params.tag === 0xA0 && params.content.length > 0) {
+                    const oid = decodeOid(parseDerElements(params.content)[0].content);
                     if (supportedCurve[oid] === undefined)
                         throw new Error('Unsupported curve');
                     curve = supportedCurve[oid];
                 }
-                secret = asn1.sub[1].getHexStringValue();
+                secret = base16.encode(fields[1].content);
             }
             else {
                 // maybe return false
@@ -67,17 +127,25 @@ function ecdsa(request, secret, curve, prehash = null, fixedLength = false) {
             throw new Error('Unsupported key format');
         }
     }
-    let signature = curve.sign(request, secret, {
+    // @noble/curves v2 sign () accepts bytes only, returns encoded signature bytes
+    // and expects an unhashed message by default (prehash: true), so prehash is disabled explicitly
+    const messageBytes = hexBytes(request);
+    const secretBytes = hexBytes(secret);
+    let signature = curve.Signature.fromBytes(curve.sign(messageBytes, secretBytes, {
         lowS: true,
-    });
+        prehash: false,
+        format: 'recovered',
+    }), 'recovered');
     const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
-    const halfOrder = curve.CURVE.n / BigInt(2);
+    const halfOrder = curve.Point.Fn.ORDER / BigInt(2);
     let counter = 0;
     while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
-        signature = curve.sign(request, secret, {
+        signature = curve.Signature.fromBytes(curve.sign(messageBytes, secretBytes, {
             lowS: true,
+            prehash: false,
+            format: 'recovered',
             extraEntropy: numberToBytesLE(BigInt(counter), 32)
-        });
+        }), 'recovered');
         counter += 1;
     }
     return {
@@ -86,23 +154,18 @@ function ecdsa(request, secret, curve, prehash = null, fixedLength = false) {
         'v': signature.recovery,
     };
 }
-function axolotl(request, secret, curve) {
-    // used for waves.exchange (that's why the output is base58)
-    const signature = curve.signModified(request, secret);
-    return base58.encode(signature);
-}
 function eddsa(request, secret, curve) {
     let privateKey = undefined;
     if (secret.length === 32) {
         // ed25519 secret is 32 bytes
-        privateKey = secret;
+        privateKey = utf8Bytes(secret);
     }
     else if (typeof secret === 'string') {
         // secret is the base64 pem encoded key
         // we get the last 32 bytes
-        privateKey = new Uint8Array(Base64.unarmor(secret).slice(16));
+        privateKey = new Uint8Array(pemToDer(secret).slice(16));
     }
-    const signature = curve.sign(request, privateKey);
+    const signature = curve.sign(hexBytes(request), privateKey);
     return base64.encode(signature);
 }
 /*  ------------------------------------------------------------------------ */
@@ -127,5 +190,5 @@ function crc32(str, signed = false) {
     }
 }
 /*  ------------------------------------------------------------------------ */
-export { hash, hmac, crc32, ecdsa, eddsa, axolotl, };
+export { hash, hmac, crc32, ecdsa, eddsa, pemToDer, };
 /*  ------------------------------------------------------------------------ */

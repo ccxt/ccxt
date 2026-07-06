@@ -145,6 +145,10 @@ public partial class bitmart : ccxt.bitmart
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols, type, false, true);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "public"));
         object channelType = ((bool) isTrue((isEqual(type, "spot")))) ? "spot" : "futures";
         object actionType = ((bool) isTrue((isEqual(type, "spot")))) ? "op" : "action";
@@ -300,6 +304,10 @@ public partial class bitmart : ccxt.bitmart
         //    }
         //
         object channel = this.safeString2(message, "table", "group");
+        if (isTrue(isEqual(channel, null)))
+        {
+            return;
+        }
         object data = this.safeValue(message, "data");
         if (isTrue(isEqual(data, null)))
         {
@@ -385,7 +393,7 @@ public partial class bitmart : ccxt.bitmart
         marketType = ((IList<object>)symbolsmarketTypeparametersVariable)[1];
         parameters = ((IList<object>)symbolsmarketTypeparametersVariable)[2];
         object channelName = "trade";
-        object trades = await this.subscribeMultiple("trade", channelName, marketType, symbols, parameters);
+        object trades = await this.subscribeMultiple("trade", channelName, ((string)marketType), symbols, parameters);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeDict(trades, 0);
@@ -441,7 +449,7 @@ public partial class bitmart : ccxt.bitmart
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
         });
-        return await this.subscribeMultiple("trade", channelName, marketType, symbols, parameters);
+        return await this.subscribeMultiple("trade", channelName, ((string)marketType), symbols, parameters);
     }
 
     public virtual object getParamsForMultipleSub(object methodName, object symbols, object limit = null, object parameters = null)
@@ -565,6 +573,10 @@ public partial class bitmart : ccxt.bitmart
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
+        if (isTrue(isEqual(symbols, null)))
+        {
+            symbols = new List<object>() {};
+        }
         object firstMarket = this.getMarketFromSymbols(symbols);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
@@ -624,7 +636,10 @@ public partial class bitmart : ccxt.bitmart
         {
             object ticker = this.parseWsBidAsk(getValue(rawTickers, i));
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            }
             object messageHash = add("bidask::", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
@@ -681,7 +696,7 @@ public partial class bitmart : ccxt.bitmart
         if (isTrue(isEqual(type, "spot")))
         {
             object argsRequest = "spot/user/order:";
-            if (isTrue(!isEqual(symbol, null)))
+            if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(market, null)))))
             {
                 argsRequest = add(argsRequest, getValue(market, "id"));
             } else
@@ -743,7 +758,7 @@ public partial class bitmart : ccxt.bitmart
         if (isTrue(isEqual(type, "spot")))
         {
             object argsRequest = "spot/user/order:";
-            if (isTrue(!isEqual(symbol, null)))
+            if (isTrue(isTrue((!isEqual(symbol, null))) && isTrue((!isEqual(market, null)))))
             {
                 argsRequest = add(argsRequest, getValue(market, "id"));
             } else
@@ -842,7 +857,10 @@ public partial class bitmart : ccxt.bitmart
                 callDynamically(stored, "append", new object[] {order});
                 ((IList<object>)newOrders).Add(order);
                 object symbol = getValue(order, "symbol");
-                ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                }
             }
         }
         object messageHash = "orders";
@@ -953,7 +971,7 @@ public partial class bitmart : ccxt.bitmart
             object lastTrade = this.safeDict(orderInfo, "last_trade");
             object cachedOrders = this.orders;
             object orders = this.safeValue((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-            object cachedOrder = this.safeValue(orders, orderId);
+            object cachedOrder = ((bool) isTrue((isEqual(orderId, null)))) ? null : this.safeValue(orders, orderId);
             object trades = null;
             if (isTrue(!isEqual(cachedOrder, null)))
             {
@@ -1269,13 +1287,20 @@ public partial class bitmart : ccxt.bitmart
                 symbol = this.handleTradeLoop(getValue(data, i));
             }
         }
-        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), add("trade::", symbol)});
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.trades, symbol), add("trade::", symbol)});
+        }
     }
 
     public virtual object handleTradeLoop(object entry)
     {
         object trade = this.parseWsTrade(entry);
         object symbol = getValue(trade, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            return symbol;
+        }
         object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         if (isTrue(isEqual(this.safeValue(this.trades, symbol), null)))
         {
@@ -1409,7 +1434,10 @@ public partial class bitmart : ccxt.bitmart
         {
             object ticker = ((bool) isTrue(isSpot)) ? this.parseTicker(getValue(rawTickers, i)) : this.parseWsSwapTicker(getValue(rawTickers, i));
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             object messageHash = add("ticker::", symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
@@ -1575,7 +1603,7 @@ public partial class bitmart : ccxt.bitmart
         //        }
         //    }
         //
-        object channel = this.safeString2(message, "table", "group");
+        object channel = this.safeString2(message, "table", "group", "");
         object isSpot = (isGreaterThanOrEqual(getIndexOf(channel, "spot"), 0));
         object data = this.safeValue(message, "data");
         if (isTrue(isEqual(data, null)))
@@ -1587,10 +1615,14 @@ public partial class bitmart : ccxt.bitmart
         object interval = ((string)part1).Replace((string)"kline", (string)"");
         interval = ((string)interval).Replace((string)"Bin", (string)"");
         object intervalParts = ((string)interval).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-        interval = this.safeString(intervalParts, 0);
+        interval = this.safeString(intervalParts, 0, "");
         // use a reverse lookup in a static map instead
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(interval, timeframes);
+        if (isTrue(isEqual(timeframe, null)))
+        {
+            return;
+        }
         object duration = this.parseTimeframe(timeframe);
         object durationInMs = multiply(duration, 1000);
         if (isTrue(isSpot))
@@ -1602,7 +1634,7 @@ public partial class bitmart : ccxt.bitmart
                 object symbol = getValue(market, "symbol");
                 object rawOHLCV = this.safeList(getValue(data, i), "candle");
                 object parsed = this.parseOHLCV(rawOHLCV, market);
-                ((List<object>)parsed)[Convert.ToInt32(0)] = multiply(this.parseToInt(divide(getValue(parsed, 0), durationInMs)), durationInMs);
+                ((List<object>)parsed)[Convert.ToInt32(0)] = multiply(this.parseToInt(divide(this.parseToInt(getValue(parsed, 0)), durationInMs)), durationInMs);
                 ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
                 if (isTrue(isEqual(stored, null)))
@@ -1650,7 +1682,7 @@ public partial class bitmart : ccxt.bitmart
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.speed] *futures only* '100ms' or '200ms'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1681,7 +1713,7 @@ public partial class bitmart : ccxt.bitmart
      * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -1842,7 +1874,7 @@ public partial class bitmart : ccxt.bitmart
         {
             return;
         }
-        object channelName = this.safeString2(message, "table", "group");
+        object channelName = this.safeString2(message, "table", "group", "");
         // find limit subscribed to
         object limitsToCheck = new List<object>() {"100", "50", "20", "10", "5"};
         object limit = 0;
@@ -1937,7 +1969,7 @@ public partial class bitmart : ccxt.bitmart
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -1956,7 +1988,7 @@ public partial class bitmart : ccxt.bitmart
         {
             channel = "depth50";
         }
-        object orderbook = await this.subscribeMultiple("orderbook", channel, type, symbols, parameters);
+        object orderbook = await this.subscribeMultiple("orderbook", ((string)channel), ((string)type), symbols, parameters);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -1968,7 +2000,7 @@ public partial class bitmart : ccxt.bitmart
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -1990,7 +2022,7 @@ public partial class bitmart : ccxt.bitmart
         parameters = this.extend(parameters, new Dictionary<string, object>() {
             { "unsubscribe", true },
         });
-        return await this.subscribeMultiple("orderbook", channel, type, symbols, parameters);
+        return await this.subscribeMultiple("orderbook", ((string)channel), ((string)type), symbols, parameters);
     }
 
     /**
@@ -2063,7 +2095,10 @@ public partial class bitmart : ccxt.bitmart
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object fundingRate = this.parseFundingRate(data);
         object symbol = getValue(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        }
         object messageHash = add("fundingRate::", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
@@ -2140,6 +2175,17 @@ public partial class bitmart : ccxt.bitmart
         //
         object errorCode = this.safeString(message, "errorCode");
         object error = this.safeString(message, "error");
+        // Duplicate-subscription notice errorCode 90008: bitmart's WS rejects
+        // a re-subscribe attempt on a topic that's already active on this
+        // connection, but the original subscription keeps delivering data —
+        // so treat it as benign. Without this short-circuit, the generic
+        // ((WebSocketClient)client).reject below kills every unrelated in-flight future —
+        // e.g. a watchOHLCV waiting on its kline subscription gets rejected
+        // by an orderbook 90008 raised on the same socket.
+        if (isTrue(isEqual(errorCode, "90008")))
+        {
+            return false;
+        }
         try
         {
             if (isTrue(isTrue(!isEqual(errorCode, null)) || isTrue(!isEqual(error, null))))
@@ -2194,7 +2240,7 @@ public partial class bitmart : ccxt.bitmart
         //         }
         //     }
         //
-        object messageTopic = this.safeString2(message, "topic", "group");
+        object messageTopic = this.safeString2(message, "topic", "group", "");
         object unSubMessageTopic = add("unsubscribe::", messageTopic);
         // one message includes info about one unsubscription only even if we requested multiple
         // so we can not just create subscription object in unWatch method and use it here
@@ -2204,7 +2250,7 @@ public partial class bitmart : ccxt.bitmart
         object unsubHash = add("unsubscribe::", subHash);
         object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         // clean up both ways of storing subscription and unsubscription
-        this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash, subHashIsPrefix);
+        this.cleanUnsubscription(client as WebSocketClient, ((string)subHash), unsubHash, subHashIsPrefix);
         this.cleanUnsubscription(client as WebSocketClient, messageTopic, unSubMessageTopic, subHashIsPrefix);
         this.cleanCache(subscription);
     }
@@ -2212,11 +2258,11 @@ public partial class bitmart : ccxt.bitmart
     public virtual object getUnSubParams(object messageTopic)
     {
         object parts = ((string)messageTopic).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
-        object channel = this.safeString(parts, 0);
+        object channel = this.safeString(parts, 0, "");
         object marketTypeAndTopic = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
         object rawMarketType = this.safeStringLower(marketTypeAndTopic, 0);
-        object marketType = this.parseMarketType(rawMarketType);
-        object topic = this.safeString(marketTypeAndTopic, 1);
+        object marketType = this.parseMarketType(((string)rawMarketType));
+        object topic = this.safeString(marketTypeAndTopic, 1, "");
         object thirdPart = this.safeString(marketTypeAndTopic, 2);
         if (isTrue(!isEqual(thirdPart, null)))
         {
@@ -2378,7 +2424,7 @@ public partial class bitmart : ccxt.bitmart
             }
         } else
         {
-            object channel = this.safeString2(message, "table", "group");
+            object channel = this.safeString2(message, "table", "group", "");
             object methods = new Dictionary<string, object>() {
                 { "depth", this.handleOrderBook },
                 { "bookTicker", this.handleBidAsk },
@@ -2393,6 +2439,16 @@ public partial class bitmart : ccxt.bitmart
             if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "fundingRate"), 0)))
             {
                 this.handleFundingRate(client as WebSocketClient, message);
+                return;
+            }
+            // 'ticker' is a substring of 'bookTicker', so a bookTicker channel could
+            // be wrongly captured by (or double-dispatched with) the 'ticker' key in a
+            // first-match loop (in Go map iteration order is randomized). Check the
+            // bookTicker prefix explicitly, then fall back to a simple first-match.
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(channel, "bookTicker"), 0)))
+            {
+                this.handleBidAsk(client as WebSocketClient, message);
+                return;
             }
             object keys = new List<object>(((IDictionary<string,object>)methods).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -2402,6 +2458,7 @@ public partial class bitmart : ccxt.bitmart
                 {
                     object method = this.safeValue(methods, key);
                     DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                    return;
                 }
             }
         }

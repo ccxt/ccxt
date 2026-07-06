@@ -112,7 +112,7 @@ function testSafeMethods () {
     assert (exchange.safeList (inputDict, 'dict') === undefined);
     assert (exchange.safeList (inputList, 1) === undefined);
     const arrayOfDicts = exchange.safeList (inputDict, 'listOfDicts');
-    assert (equals (arrayOfDicts[0], { 'a': 1 }));
+    assert (equals ((arrayOfDicts as any[])[0], { 'a': 1 }));
 
     // safeList2
     listObject = exchange.safeList2 (inputDict, 'a', 'list');
@@ -322,7 +322,7 @@ function testSafeMethods () {
     assert (exchange.safeNumberOmitZero (inputDict, 'floatString') !== undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'bool') === undefined);
     // tbd assert (exchange.safeNumberOmitZero (inputDict, 'str') === undefined);
-
+    // init array cache tests
     // Test cache types - ArrayCache
     const arrayCache = new ArrayCache (100);
     arrayCache.append ({ 'symbol': 'BTC/USDT', 'id': 'order1', 'price': 50000 });

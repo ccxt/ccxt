@@ -51,7 +51,7 @@ public partial class bitstamp : ccxt.bitstamp
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -145,7 +145,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(bidAsks, i));
+            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -351,7 +351,7 @@ public partial class bitstamp : ccxt.bitstamp
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object stored = this.orders;
-        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, channel);
+        object subscription = ((bool) isTrue((isEqual(channel, null)))) ? null : this.safeValue(((WebSocketClient)client).subscriptions, channel);
         object symbol = this.safeString(subscription, "symbol");
         object market = this.market(symbol);
         ((IDictionary<string,object>)order)["event"] = this.safeString(message, "event");

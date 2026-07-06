@@ -177,7 +177,7 @@ public partial class bydfi : Exchange
                 { "ws", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769" },
+                { "logo", "https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.bydfi.com/api" },
                     { "private", "https://api.bydfi.com/api" },
@@ -644,7 +644,7 @@ public partial class bydfi : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = await this.publicGetV1FapiMarketTrades(this.extend(request, parameters));
         //
@@ -3108,7 +3108,7 @@ public partial class bydfi : Exchange
             { "txid", this.safeString(transaction, "txId") },
             { "type", null },
             { "currency", code },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network")) },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.safeNumber(transaction, "amount") },
             { "status", this.parseTransactionStatus(rawStatus) },
             { "timestamp", timestamp },

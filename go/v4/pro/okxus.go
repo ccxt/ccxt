@@ -40,7 +40,7 @@ func  (this *OkxusCore) Describe() any  {
             },
         },
         "has": map[string]any {
-            "swap": false,
+            "swap": true,
             "future": false,
             "option": false,
         },

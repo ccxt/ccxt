@@ -3,13 +3,14 @@ import ts from "typescript";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
-import { createFolderRecursively, replaceInFile, overwriteFile, writeFile, checkCreateFolder } from './fsLocal.js'
+import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
+import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
 import { platform } from 'process'
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler, parallelizeTranspiling } from "./transpile.js";
-import { promisify } from 'util';
+import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -18,8 +19,6 @@ import { unCamelCase } from "../js/src/base/functions.js";
 ansi.nice
 
 type dict = { [key: string]: string }
-
-const promisedWriteFile = promisify (fs.writeFile);
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
@@ -35,7 +34,7 @@ function overwriteFileAndFolder (path: string, content: string) {
         checkCreateFolder (path);
     }
     overwriteFile (path, content);
-    writeFile (path, content);
+    fs.writeFileSync (path, content);
 }
 
 // this is necessary because for some reason
@@ -366,6 +365,22 @@ class NewTranspiler {
             return addTaskIfNeeded('object'); // default if type is unknown;
         }
 
+        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
+        // to `any[]` so it flows through the array branch below instead of leaking the
+        // bare `List` identifier, which is not a valid C# type without a generic arg.
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
+        }
+
+        // Tuple return types like `[Dict, Str]` belong to internal multi-return helpers
+        // (e.g. createOrderRequest) that aren't part of the unified API. C# has no inline
+        // tuple syntax matching `[A, B]`, so treat them as an untyped array — exactly how
+        // they transpiled before being annotated (they were `any[]`). The generated
+        // wrapper only needs to compile; these helpers are never called through it.
+        if (wrappedType.startsWith('[') && wrappedType.endsWith(']')) {
+            wrappedType = 'any[]';
+        }
+
         if (wrappedType === 'string[][]') {
             return addTaskIfNeeded('List<List<string>>');
         }
@@ -497,6 +512,8 @@ class NewTranspiler {
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
+            'setLastRequest',
+            'setLastRestRequestTimestamp',
             'setProperty',
             'setProxyAgents',
             'watch',
@@ -558,6 +575,9 @@ class NewTranspiler {
         if (unwrappedType.startsWith('List<')) {
             if (unwrappedType === 'List<Dictionary<string, object>>') {
                 returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
+            } else if (unwrappedType === 'List<string>' || unwrappedType === 'List<String>') {
+                // string is a primitive with no `new string(object)` constructor — cast each element instead
+                returnStatement = `return ((IList<object>)res).Select(item => (item as string)).ToList();`
             } else {
                 returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
             }
@@ -741,7 +761,9 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
-        const baseFile: any = this.transpiler.transpileCSharpByPath(baseExchangeFile);
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileCSharpByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types
@@ -1198,7 +1220,7 @@ class NewTranspiler {
         const inputFiles = fs.readdirSync('./ts/src/test/exchange');
         const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
         const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => promisedWriteFile (outDir + file[0] + '.cs', file[1])))
+        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', file[1])));
     }
 
     transpileBaseTestsToCSharp () {
@@ -1465,7 +1487,7 @@ async function runMain () {
     } else if (test) {
         transpiler.transpileTests ()
     } else if (multiprocess) {
-        parallelizeTranspiling (exchangeIds)
+        await parallelizeTranspiling (exchangeIds)
     } else {
         await transpiler.transpileEverything (force, child, baseOnly, examples)
     }

@@ -115,7 +115,7 @@ func  (this *WoofiproCore) WatchPublic(messageHash any, message any) <- chan any
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *WoofiproCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -126,9 +126,11 @@ func  (this *WoofiproCore) WatchOrderBook(symbol any, optionalArgs ...any) <- ch
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1068 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1068)
+                retRes10712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes10712)
+            }
             var name any = "orderbook"
             var market any = this.Market(symbol)
             var topic any = ccxt.Add(ccxt.Add(ccxt.GetValue(market, "id"), "@"), name)
@@ -199,9 +201,11 @@ func  (this *WoofiproCore) WatchTicker(symbol any, optionalArgs ...any) <- chan 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1668 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1668)
+                retRes16912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes16912)
+            }
             var name any = "ticker"
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -212,9 +216,9 @@ func  (this *WoofiproCore) WatchTicker(symbol any, optionalArgs ...any) <- chan 
             }
             var message any = this.Extend(request, params)
         
-                retRes17615 :=  (<-this.WatchPublic(topic, message))
-                ccxt.PanicOnError(retRes17615)
-                ch <- retRes17615
+                retRes18015 :=  (<-this.WatchPublic(topic, message))
+                ccxt.PanicOnError(retRes18015)
+                ch <- retRes18015
                 return nil
         
             }()
@@ -305,9 +309,11 @@ func  (this *WoofiproCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2568 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2568)
+                retRes26112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes26112)
+            }
             symbols = this.MarketSymbols(symbols)
             var name any = "tickers"
             var topic any = name
@@ -379,9 +385,11 @@ func  (this *WoofiproCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3138 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3138)
+                retRes32012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes32012)
+            }
             symbols = this.MarketSymbols(symbols)
             var name any = "bbos"
             var topic any = name
@@ -472,9 +480,11 @@ func  (this *WoofiproCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3848 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3848)
+                retRes39312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes39312)
+            }
             if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1m"))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "5m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "15m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "30m")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1h")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1d")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1w")))) && ccxt.IsTrue((!ccxt.IsEqual(timeframe, "1M")))) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")))
             }
@@ -560,9 +570,11 @@ func  (this *WoofiproCore) WatchTrades(symbol any, optionalArgs ...any) <- chan 
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4628 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4628)
+                retRes47312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes47312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var topic any = ccxt.Add(ccxt.GetValue(market, "id"), "@trade")
@@ -750,9 +762,9 @@ func  (this *WoofiproCore) Authenticate(optionalArgs ...any) <- chan any {
                 this.Watch(url, messageHash, message, messageHash)
             }
         
-                retRes63615 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes63615)
-                ch <- retRes63615
+                retRes64815 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes64815)
+                ch <- retRes64815
                 return nil
         
             }()
@@ -766,8 +778,8 @@ func  (this *WoofiproCore) WatchPrivate(messageHash any, message any, optionalAr
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes6408 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes6408)
+            retRes6528 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes6528)
             var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
             var requestId any = this.RequestId(url)
             var subscribe any = map[string]any {
@@ -775,9 +787,9 @@ func  (this *WoofiproCore) WatchPrivate(messageHash any, message any, optionalAr
             }
             var request any = this.Extend(subscribe, message)
         
-                retRes64715 :=  (<-this.Watch(url, messageHash, request, messageHash, subscribe))
-                ccxt.PanicOnError(retRes64715)
-                ch <- retRes64715
+                retRes65915 :=  (<-this.Watch(url, messageHash, request, messageHash, subscribe))
+                ccxt.PanicOnError(retRes65915)
+                ch <- retRes65915
                 return nil
         
             }()
@@ -791,8 +803,8 @@ func  (this *WoofiproCore) WatchPrivateMultiple(messageHashes any, message any, 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes6518 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes6518)
+            retRes6638 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes6638)
             var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "/"), this.AccountId)
             var requestId any = this.RequestId(url)
             var subscribe any = map[string]any {
@@ -800,9 +812,9 @@ func  (this *WoofiproCore) WatchPrivateMultiple(messageHashes any, message any, 
             }
             var request any = this.Extend(subscribe, message)
         
-                retRes65815 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
-                ccxt.PanicOnError(retRes65815)
-                ch <- retRes65815
+                retRes67015 :=  (<-this.WatchMultiple(url, messageHashes, request, messageHashes, subscribe))
+                ccxt.PanicOnError(retRes67015)
+                ch <- retRes67015
                 return nil
         
             }()
@@ -834,9 +846,11 @@ func  (this *WoofiproCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6758 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6758)
+                retRes68812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes68812)
+            }
             var trigger any = this.SafeBool2(params, "stop", "trigger", false)
             var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
             params = this.Omit(params, []any{"stop", "trigger"})
@@ -890,9 +904,11 @@ func  (this *WoofiproCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes7118 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7118)
+                retRes72612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes72612)
+            }
             var trigger any = this.SafeBool2(params, "stop", "trigger", false)
             var topic any = ccxt.Ternary(ccxt.IsTrue((trigger)), "algoexecutionreport", "executionreport")
             params = this.Omit(params, "stop")
@@ -941,7 +957,7 @@ func  (this *WoofiproCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //         "orderTag": "default",
     //         "totalFee": 0,
     //         "visible": 0.01,
-    //         "timestamp": 1657515556799,
+    //         "timestamp": 1657515556798,
     //         "reduceOnly": false,
     //         "maker": false
     //     }
@@ -1174,9 +1190,9 @@ func  (this *WoofiproCore) HandleMyTrade(client any, message any)  {
  * @see https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
- * @param since timestamp in ms of the earliest position to fetch
- * @param limit the maximum number of positions to fetch
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func  (this *WoofiproCore) WatchPositions(optionalArgs ...any) <- chan any {
@@ -1192,9 +1208,11 @@ func  (this *WoofiproCore) WatchPositions(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9958 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9958)
+                retRes101212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes101212)
+            }
             var messageHashes any = []any{}
             symbols = this.MarketSymbols(symbols)
             if !ccxt.IsTrue(this.IsEmpty(symbols)) {
@@ -1419,9 +1437,11 @@ func  (this *WoofiproCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes11938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes11938)
+                retRes121212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes121212)
+            }
             var topic any = "balance"
             var messageHash any = topic
             var request any = map[string]any {
@@ -1430,9 +1450,9 @@ func  (this *WoofiproCore) WatchBalance(optionalArgs ...any) <- chan any {
             }
             var message any = this.Extend(request, params)
         
-                retRes120115 :=  (<-this.WatchPrivate(messageHash, message))
-                ccxt.PanicOnError(retRes120115)
-                ch <- retRes120115
+                retRes122115 :=  (<-this.WatchPrivate(messageHash, message))
+                ccxt.PanicOnError(retRes122115)
+                ch <- retRes122115
                 return nil
         
             }()
@@ -1597,10 +1617,22 @@ func  (this *WoofiproCore) Ping(client any) any  {
         "event": "ping",
     }
 }
-func  (this *WoofiproCore) HandlePing(client any, message any) any  {
-    return map[string]any {
-        "event": "pong",
-    }
+func  (this *WoofiproCore) Pong(client any, message any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ccxt.ReturnPanicError(ch)
+                
+            retRes13668 := (<-client.(ccxt.ClientInterface).Send(map[string]any {
+                "event": "pong",
+            }))
+            ccxt.PanicOnError(retRes13668)
+                return nil
+            }()
+            return ch
+        }
+func  (this *WoofiproCore) HandlePing(client any, message any)  {
+    this.Spawn(this.Pong, client, message)
 }
 func  (this *WoofiproCore) HandlePong(client any, message any) any  {
     //

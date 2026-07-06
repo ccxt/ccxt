@@ -13,11 +13,8 @@ add margin
 | symbol | <code>string</code> | Yes | unified market symbol |
 | amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#addmargin)
-* [ascendex](/exchanges/ascendex.md#addmargin)
 * [aster](/exchanges/aster.md#addmargin)
 * [binance](/exchanges/binance.md#addmargin)
 * [bitget](/exchanges/bitget.md#addmargin)
@@ -26,17 +23,19 @@ add margin
 * [digifinex](/exchanges/digifinex.md#addmargin)
 * [exmo](/exchanges/exmo.md#addmargin)
 * [gate](/exchanges/gate.md#addmargin)
+* [hashkey](/exchanges/hashkey.md#addmargin)
 * [hitbtc](/exchanges/hitbtc.md#addmargin)
 * [hyperliquid](/exchanges/hyperliquid.md#addmargin)
 * [kucoin](/exchanges/kucoin.md#addmargin)
 * [lighter](/exchanges/lighter.md#addmargin)
 * [mexc](/exchanges/mexc.md#addmargin)
+* [mudrex](/exchanges/mudrex.md#addmargin)
 * [okx](/exchanges/okx.md#addmargin)
 * [poloniex](/exchanges/poloniex.md#addmargin)
 * [weex](/exchanges/weex.md#addmargin)
 * [woo](/exchanges/woo.md#addmargin)
 * [xt](/exchanges/xt.md#addmargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#addmargin)
+* [zebpay](/exchanges/zebpay.md#addmargin)
 
 ---
 
@@ -60,7 +59,6 @@ create a loan to borrow margin
 * [binance](/exchanges/binance.md#borrowcrossmargin)
 * [bitget](/exchanges/bitget.md#borrowcrossmargin)
 * [bybit](/exchanges/bybit.md#borrowcrossmargin)
-* [coinmetro](/exchanges/coinmetro.md#borrowcrossmargin)
 * [gate](/exchanges/gate.md#borrowcrossmargin)
 * [htx](/exchanges/htx.md#borrowcrossmargin)
 * [kucoin](/exchanges/kucoin.md#borrowcrossmargin)
@@ -152,8 +150,6 @@ cancel all open orders in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#cancelallorders)
 * [apex](/exchanges/apex.md#cancelallorders)
-* [arkham](/exchanges/arkham.md#cancelallorders)
-* [ascendex](/exchanges/ascendex.md#cancelallorders)
 * [aster](/exchanges/aster.md#cancelallorders)
 * [backpack](/exchanges/backpack.md#cancelallorders)
 * [bigone](/exchanges/bigone.md#cancelallorders)
@@ -184,6 +180,7 @@ cancel all open orders in a market
 * [delta](/exchanges/delta.md#cancelallorders)
 * [deribit](/exchanges/deribit.md#cancelallorders)
 * [derive](/exchanges/derive.md#cancelallorders)
+* [extended](/exchanges/extended.md#cancelallorders)
 * [foxbit](/exchanges/foxbit.md#cancelallorders)
 * [gate](/exchanges/gate.md#cancelallorders)
 * [grvt](/exchanges/grvt.md#cancelallorders)
@@ -202,7 +199,6 @@ cancel all open orders in a market
 * [modetrade](/exchanges/modetrade.md#cancelallorders)
 * [ndax](/exchanges/ndax.md#cancelallorders)
 * [onetrading](/exchanges/onetrading.md#cancelallorders)
-* [oxfun](/exchanges/oxfun.md#cancelallorders)
 * [pacifica](/exchanges/pacifica.md#cancelallorders)
 * [paradex](/exchanges/paradex.md#cancelallorders)
 * [phemex](/exchanges/phemex.md#cancelallorders)
@@ -234,7 +230,9 @@ dead man's switch, cancel all orders after the given timeout
 ##### Supported exchanges
 * [bingx](/exchanges/bingx.md#cancelallordersafter)
 * [bitmex](/exchanges/bitmex.md#cancelallordersafter)
+* [bitvavo](/exchanges/bitvavo.md#cancelallordersafter)
 * [bybit](/exchanges/bybit.md#cancelallordersafter)
+* [extended](/exchanges/extended.md#cancelallordersafter)
 * [htx](/exchanges/htx.md#cancelallordersafter)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelallordersafter)
 * [kraken](/exchanges/kraken.md#cancelallordersafter)
@@ -351,11 +349,8 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
-* [arkham](/exchanges/arkham.md#cancelorder)
-* [ascendex](/exchanges/ascendex.md#cancelorder)
 * [aster](/exchanges/aster.md#cancelorder)
 * [backpack](/exchanges/backpack.md#cancelorder)
 * [bigone](/exchanges/bigone.md#cancelorder)
@@ -391,7 +386,6 @@ cancels an open order
 * [coincheck](/exchanges/coincheck.md#cancelorder)
 * [coinex](/exchanges/coinex.md#cancelorder)
 * [coinmate](/exchanges/coinmate.md#cancelorder)
-* [coinmetro](/exchanges/coinmetro.md#cancelorder)
 * [coinone](/exchanges/coinone.md#cancelorder)
 * [coinsph](/exchanges/coinsph.md#cancelorder)
 * [coinspot](/exchanges/coinspot.md#cancelorder)
@@ -404,6 +398,7 @@ cancels an open order
 * [digifinex](/exchanges/digifinex.md#cancelorder)
 * [dydx](/exchanges/dydx.md#cancelorder)
 * [exmo](/exchanges/exmo.md#cancelorder)
+* [extended](/exchanges/extended.md#cancelorder)
 * [foxbit](/exchanges/foxbit.md#cancelorder)
 * [gate](/exchanges/gate.md#cancelorder)
 * [gemini](/exchanges/gemini.md#cancelorder)
@@ -426,11 +421,10 @@ cancels an open order
 * [mercado](/exchanges/mercado.md#cancelorder)
 * [mexc](/exchanges/mexc.md#cancelorder)
 * [modetrade](/exchanges/modetrade.md#cancelorder)
+* [mudrex](/exchanges/mudrex.md#cancelorder)
 * [ndax](/exchanges/ndax.md#cancelorder)
-* [novadax](/exchanges/novadax.md#cancelorder)
 * [okx](/exchanges/okx.md#cancelorder)
 * [onetrading](/exchanges/onetrading.md#cancelorder)
-* [oxfun](/exchanges/oxfun.md#cancelorder)
 * [p2b](/exchanges/p2b.md#cancelorder)
 * [pacifica](/exchanges/pacifica.md#cancelorder)
 * [paradex](/exchanges/paradex.md#cancelorder)
@@ -439,16 +433,13 @@ cancels an open order
 * [tokocrypto](/exchanges/tokocrypto.md#cancelorder)
 * [toobit](/exchanges/toobit.md#cancelorder)
 * [upbit](/exchanges/upbit.md#cancelorder)
-* [wavesexchange](/exchanges/wavesexchange.md#cancelorder)
 * [weex](/exchanges/weex.md#cancelorder)
 * [whitebit](/exchanges/whitebit.md#cancelorder)
 * [woo](/exchanges/woo.md#cancelorder)
 * [woofipro](/exchanges/woofipro.md#cancelorder)
 * [xt](/exchanges/xt.md#cancelorder)
-* [yobit](/exchanges/yobit.md#cancelorder)
 * [zaif](/exchanges/zaif.md#cancelorder)
 * [zebpay](/exchanges/zebpay.md#cancelorder)
-* [zonda](/exchanges/zonda.md#cancelorder)
 
 ---
 
@@ -478,7 +469,6 @@ cancel multiple orders
 * [gate](/exchanges/gate.md#cancelorderws)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelorderws)
 * [okx](/exchanges/okx.md#cancelorderws)
-* [oxfun](/exchanges/oxfun.md#cancelorderws)
 * [pacifica](/exchanges/pacifica.md#cancelorderws)
 
 ---
@@ -489,18 +479,18 @@ cancel multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | No | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account to cancel orders for, required |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params.origClientOrderIdList | <code>Array&lt;string&gt;</code> | No | max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma |
+| params.recvWindow | <code>Array&lt;int&gt;</code> | No |  |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#cancelorders)
 * [aster](/exchanges/aster.md#cancelorders)
 * [binance](/exchanges/binance.md#cancelorders)
 * [bingx](/exchanges/bingx.md#cancelorders)
@@ -520,6 +510,7 @@ cancel multiple orders
 * [deepcoin](/exchanges/deepcoin.md#cancelorders)
 * [digifinex](/exchanges/digifinex.md#cancelorders)
 * [dydx](/exchanges/dydx.md#cancelorders)
+* [extended](/exchanges/extended.md#cancelorders)
 * [gate](/exchanges/gate.md#cancelorders)
 * [hashkey](/exchanges/hashkey.md#cancelorders)
 * [hibachi](/exchanges/hibachi.md#cancelorders)
@@ -532,8 +523,8 @@ cancel multiple orders
 * [modetrade](/exchanges/modetrade.md#cancelorders)
 * [okx](/exchanges/okx.md#cancelorders)
 * [onetrading](/exchanges/onetrading.md#cancelorders)
-* [oxfun](/exchanges/oxfun.md#cancelorders)
 * [pacifica](/exchanges/pacifica.md#cancelorders)
+* [paradex](/exchanges/paradex.md#cancelorders)
 * [toobit](/exchanges/toobit.md#cancelorders)
 * [weex](/exchanges/weex.md#cancelorders)
 * [woofipro](/exchanges/woofipro.md#cancelorders)
@@ -604,7 +595,6 @@ cancel multiple orders
 * [cex](/exchanges/cex.md#cancelordersws)
 * [hyperliquid](/exchanges/hyperliquid.md#cancelordersws)
 * [okx](/exchanges/okx.md#cancelordersws)
-* [oxfun](/exchanges/oxfun.md#cancelordersws)
 * [pacifica](/exchanges/pacifica.md#cancelordersws)
 
 ---
@@ -723,11 +713,12 @@ closes open positions for a market
 * [blofin](/exchanges/blofin.md#closeposition)
 * [coinbase](/exchanges/coinbase.md#closeposition)
 * [coinex](/exchanges/coinex.md#closeposition)
-* [coinmetro](/exchanges/coinmetro.md#closeposition)
 * [deepcoin](/exchanges/deepcoin.md#closeposition)
 * [gate](/exchanges/gate.md#closeposition)
 * [hitbtc](/exchanges/hitbtc.md#closeposition)
+* [htx](/exchanges/htx.md#closeposition)
 * [kucoin](/exchanges/kucoin.md#closeposition)
+* [mudrex](/exchanges/mudrex.md#closeposition)
 * [okx](/exchanges/okx.md#closeposition)
 * [weex](/exchanges/weex.md#closeposition)
 * [zebpay](/exchanges/zebpay.md#closeposition)
@@ -751,7 +742,6 @@ closes open positions for a market
 ##### Supported exchanges
 * [bitget](/exchanges/bitget.md#closepositions)
 * [cryptocom](/exchanges/cryptocom.md#closepositions)
-* [htx](/exchanges/htx.md#closepositions)
 
 ---
 
@@ -883,7 +873,6 @@ create a currency deposit address
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#createdepositaddress)
 * [bitfinex](/exchanges/bitfinex.md#createdepositaddress)
 * [coinbase](/exchanges/coinbase.md#createdepositaddress)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#createdepositaddress)
@@ -901,7 +890,6 @@ create a currency deposit address
 * [poloniex](/exchanges/poloniex.md#createdepositaddress)
 * [upbit](/exchanges/upbit.md#createdepositaddress)
 * [whitebit](/exchanges/whitebit.md#createdepositaddress)
-* [yobit](/exchanges/yobit.md#createdepositaddress)
 
 ---
 
@@ -983,7 +971,6 @@ create a market buy order by providing the symbol and cost
 * [lbank](/exchanges/lbank.md#createmarketbuyorderwithcost)
 * [mexc](/exchanges/mexc.md#createmarketbuyorderwithcost)
 * [okx](/exchanges/okx.md#createmarketbuyorderwithcost)
-* [oxfun](/exchanges/oxfun.md#createmarketbuyorderwithcost)
 * [whitebit](/exchanges/whitebit.md#createmarketbuyorderwithcost)
 * [woo](/exchanges/woo.md#createmarketbuyorderwithcost)
 * [xt](/exchanges/xt.md#createmarketbuyorderwithcost)
@@ -1058,20 +1045,17 @@ create a trade order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
+| type | <code>string</code> | Yes | 'market', 'limit' or 'stop_limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
-| params.account | <code>Account</code> | No | account id to use, required |
+| params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
-* [arkham](/exchanges/arkham.md#createorder)
-* [ascendex](/exchanges/ascendex.md#createorder)
 * [aster](/exchanges/aster.md#createorder)
 * [backpack](/exchanges/backpack.md#createorder)
 * [bigone](/exchanges/bigone.md#createorder)
@@ -1108,7 +1092,6 @@ create a trade order
 * [coincheck](/exchanges/coincheck.md#createorder)
 * [coinex](/exchanges/coinex.md#createorder)
 * [coinmate](/exchanges/coinmate.md#createorder)
-* [coinmetro](/exchanges/coinmetro.md#createorder)
 * [coinone](/exchanges/coinone.md#createorder)
 * [coinsph](/exchanges/coinsph.md#createorder)
 * [coinspot](/exchanges/coinspot.md#createorder)
@@ -1121,6 +1104,7 @@ create a trade order
 * [digifinex](/exchanges/digifinex.md#createorder)
 * [dydx](/exchanges/dydx.md#createorder)
 * [exmo](/exchanges/exmo.md#createorder)
+* [extended](/exchanges/extended.md#createorder)
 * [foxbit](/exchanges/foxbit.md#createorder)
 * [gate](/exchanges/gate.md#createorder)
 * [gemini](/exchanges/gemini.md#createorder)
@@ -1143,11 +1127,10 @@ create a trade order
 * [mercado](/exchanges/mercado.md#createorder)
 * [mexc](/exchanges/mexc.md#createorder)
 * [modetrade](/exchanges/modetrade.md#createorder)
+* [mudrex](/exchanges/mudrex.md#createorder)
 * [ndax](/exchanges/ndax.md#createorder)
-* [novadax](/exchanges/novadax.md#createorder)
 * [okx](/exchanges/okx.md#createorder)
 * [onetrading](/exchanges/onetrading.md#createorder)
-* [oxfun](/exchanges/oxfun.md#createorder)
 * [p2b](/exchanges/p2b.md#createorder)
 * [pacifica](/exchanges/pacifica.md#createorder)
 * [paradex](/exchanges/paradex.md#createorder)
@@ -1157,16 +1140,13 @@ create a trade order
 * [tokocrypto](/exchanges/tokocrypto.md#createorder)
 * [toobit](/exchanges/toobit.md#createorder)
 * [upbit](/exchanges/upbit.md#createorder)
-* [wavesexchange](/exchanges/wavesexchange.md#createorder)
 * [weex](/exchanges/weex.md#createorder)
 * [whitebit](/exchanges/whitebit.md#createorder)
 * [woo](/exchanges/woo.md#createorder)
 * [woofipro](/exchanges/woofipro.md#createorder)
 * [xt](/exchanges/xt.md#createorder)
-* [yobit](/exchanges/yobit.md#createorder)
 * [zaif](/exchanges/zaif.md#createorder)
 * [zebpay](/exchanges/zebpay.md#createorder)
-* [zonda](/exchanges/zonda.md#createorder)
 
 ---
 
@@ -1199,7 +1179,6 @@ create a trade order
 * [gate](/exchanges/gate.md#createorderws)
 * [hyperliquid](/exchanges/hyperliquid.md#createorderws)
 * [okx](/exchanges/okx.md#createorderws)
-* [oxfun](/exchanges/oxfun.md#createorderws)
 * [pacifica](/exchanges/pacifica.md#createorderws)
 
 ---
@@ -1217,11 +1196,8 @@ create a list of trade orders
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#createorders)
-* [ascendex](/exchanges/ascendex.md#createorders)
 * [aster](/exchanges/aster.md#createorders)
 * [backpack](/exchanges/backpack.md#createorders)
 * [binance](/exchanges/binance.md#createorders)
@@ -1247,8 +1223,8 @@ create a list of trade orders
 * [mexc](/exchanges/mexc.md#createorders)
 * [modetrade](/exchanges/modetrade.md#createorders)
 * [okx](/exchanges/okx.md#createorders)
-* [oxfun](/exchanges/oxfun.md#createorders)
 * [pacifica](/exchanges/pacifica.md#createorders)
+* [paradex](/exchanges/paradex.md#createorders)
 * [woofipro](/exchanges/woofipro.md#createorders)
 
 ---
@@ -1622,6 +1598,7 @@ edit a trade order
 * [deribit](/exchanges/deribit.md#editorder)
 * [derive](/exchanges/derive.md#editorder)
 * [exmo](/exchanges/exmo.md#editorder)
+* [extended](/exchanges/extended.md#editorder)
 * [foxbit](/exchanges/foxbit.md#editorder)
 * [gate](/exchanges/gate.md#editorder)
 * [hibachi](/exchanges/hibachi.md#editorder)
@@ -1631,8 +1608,10 @@ edit a trade order
 * [kucoin](/exchanges/kucoin.md#editorder)
 * [lighter](/exchanges/lighter.md#editorder)
 * [modetrade](/exchanges/modetrade.md#editorder)
+* [mudrex](/exchanges/mudrex.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
+* [paradex](/exchanges/paradex.md#editorder)
 * [phemex](/exchanges/phemex.md#editorder)
 * [poloniex](/exchanges/poloniex.md#editorder)
 * [upbit](/exchanges/upbit.md#editorder)
@@ -1671,7 +1650,6 @@ edit a trade order
 * [gate](/exchanges/gate.md#editorderws)
 * [hyperliquid](/exchanges/hyperliquid.md#editorderws)
 * [okx](/exchanges/okx.md#editorderws)
-* [oxfun](/exchanges/oxfun.md#editorderws)
 * [pacifica](/exchanges/pacifica.md#editorderws)
 
 ---
@@ -1730,8 +1708,8 @@ If set, actions on HIP-3 perps will automatically transfer collateral from valid
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| enabled |  | Yes |  |
-| params |  | Yes |  |
+| enabled | <code>boolean</code> | Yes | whether to enable user dex abstraction |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.type | <code>string</code> | No | 'userDexAbstraction' or 'agentEnableDexAbstraction' default is 'userDexAbstraction' |
 
 ##### Supported exchanges
@@ -1773,6 +1751,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#fetchaccount)
+* [extended](/exchanges/extended.md#fetchaccount)
 
 ---
 
@@ -1819,10 +1798,10 @@ fetch account's market settings. Settings are cached for walletAddress. To refre
 <a name="fetchAccounts" id="fetchaccounts"></a>
 
 ## fetchAccounts
-query for accounts owned by the walletAddress. An Account is needed for all trading methods.
+fetch all the accounts associated with a profile
 
 **Kind**: instance   
-**Returns**: <code>Array</code> - a list of [account structures](https://github.com/ccxt/ccxt/wiki/Manual#accounts)
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 
 | Param | Type | Required | Description |
@@ -1830,10 +1809,8 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchaccounts)
-* [arkham](/exchanges/arkham.md#fetchaccounts)
-* [ascendex](/exchanges/ascendex.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
+* [bitvavo](/exchanges/bitvavo.md#fetchaccounts)
 * [bullish](/exchanges/bullish.md#fetchaccounts)
 * [coinbase](/exchanges/coinbase.md#fetchaccounts)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchaccounts)
@@ -1841,6 +1818,7 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 * [cryptocom](/exchanges/cryptocom.md#fetchaccounts)
 * [deribit](/exchanges/deribit.md#fetchaccounts)
 * [dydx](/exchanges/dydx.md#fetchaccounts)
+* [extended](/exchanges/extended.md#fetchaccounts)
 * [hashkey](/exchanges/hashkey.md#fetchaccounts)
 * [htx](/exchanges/htx.md#fetchaccounts)
 * [kucoin](/exchanges/kucoin.md#fetchaccounts)
@@ -1848,9 +1826,7 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 * [luno](/exchanges/luno.md#fetchaccounts)
 * [mexc](/exchanges/mexc.md#fetchaccounts)
 * [ndax](/exchanges/ndax.md#fetchaccounts)
-* [novadax](/exchanges/novadax.md#fetchaccounts)
 * [okx](/exchanges/okx.md#fetchaccounts)
-* [oxfun](/exchanges/oxfun.md#fetchaccounts)
 * [whitebit](/exchanges/whitebit.md#fetchaccounts)
 * [woo](/exchanges/woo.md#fetchaccounts)
 
@@ -1881,7 +1857,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ## fetchBalance
-query for balance and get the amount of funds available for trading or funds locked in positions
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
@@ -1890,14 +1866,10 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>string</code> | No | account object ID, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
-* [arkham](/exchanges/arkham.md#fetchbalance)
-* [ascendex](/exchanges/ascendex.md#fetchbalance)
 * [aster](/exchanges/aster.md#fetchbalance)
 * [backpack](/exchanges/backpack.md#fetchbalance)
 * [bigone](/exchanges/bigone.md#fetchbalance)
@@ -1934,7 +1906,6 @@ query for balance and get the amount of funds available for trading or funds loc
 * [coincheck](/exchanges/coincheck.md#fetchbalance)
 * [coinex](/exchanges/coinex.md#fetchbalance)
 * [coinmate](/exchanges/coinmate.md#fetchbalance)
-* [coinmetro](/exchanges/coinmetro.md#fetchbalance)
 * [coinone](/exchanges/coinone.md#fetchbalance)
 * [coinsph](/exchanges/coinsph.md#fetchbalance)
 * [coinspot](/exchanges/coinspot.md#fetchbalance)
@@ -1947,6 +1918,7 @@ query for balance and get the amount of funds available for trading or funds loc
 * [digifinex](/exchanges/digifinex.md#fetchbalance)
 * [dydx](/exchanges/dydx.md#fetchbalance)
 * [exmo](/exchanges/exmo.md#fetchbalance)
+* [extended](/exchanges/extended.md#fetchbalance)
 * [foxbit](/exchanges/foxbit.md#fetchbalance)
 * [gate](/exchanges/gate.md#fetchbalance)
 * [gemini](/exchanges/gemini.md#fetchbalance)
@@ -1969,11 +1941,10 @@ query for balance and get the amount of funds available for trading or funds loc
 * [mercado](/exchanges/mercado.md#fetchbalance)
 * [mexc](/exchanges/mexc.md#fetchbalance)
 * [modetrade](/exchanges/modetrade.md#fetchbalance)
+* [mudrex](/exchanges/mudrex.md#fetchbalance)
 * [ndax](/exchanges/ndax.md#fetchbalance)
-* [novadax](/exchanges/novadax.md#fetchbalance)
 * [okx](/exchanges/okx.md#fetchbalance)
 * [onetrading](/exchanges/onetrading.md#fetchbalance)
-* [oxfun](/exchanges/oxfun.md#fetchbalance)
 * [p2b](/exchanges/p2b.md#fetchbalance)
 * [pacifica](/exchanges/pacifica.md#fetchbalance)
 * [paradex](/exchanges/paradex.md#fetchbalance)
@@ -1983,16 +1954,13 @@ query for balance and get the amount of funds available for trading or funds loc
 * [tokocrypto](/exchanges/tokocrypto.md#fetchbalance)
 * [toobit](/exchanges/toobit.md#fetchbalance)
 * [upbit](/exchanges/upbit.md#fetchbalance)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchbalance)
 * [weex](/exchanges/weex.md#fetchbalance)
 * [whitebit](/exchanges/whitebit.md#fetchbalance)
 * [woo](/exchanges/woo.md#fetchbalance)
 * [woofipro](/exchanges/woofipro.md#fetchbalance)
 * [xt](/exchanges/xt.md#fetchbalance)
-* [yobit](/exchanges/yobit.md#fetchbalance)
 * [zaif](/exchanges/zaif.md#fetchbalance)
 * [zebpay](/exchanges/zebpay.md#fetchbalance)
-* [zonda](/exchanges/zonda.md#fetchbalance)
 
 ---
 
@@ -2041,7 +2009,6 @@ fetches the bid and ask price and volume for multiple markets
 * [bitrue](/exchanges/bitrue.md#fetchbidsasks)
 * [bybit](/exchanges/bybit.md#fetchbidsasks)
 * [coinbase](/exchanges/coinbase.md#fetchbidsasks)
-* [coinmetro](/exchanges/coinmetro.md#fetchbidsasks)
 * [kucoinfutures](/exchanges/kucoinfutures.md#fetchbidsasks)
 * [mexc](/exchanges/mexc.md#fetchbidsasks)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchbidsasks)
@@ -2158,7 +2125,6 @@ fetches information on multiple canceled orders made by the user
 * [bullish](/exchanges/bullish.md#fetchcanceledandclosedorders)
 * [bybit](/exchanges/bybit.md#fetchcanceledandclosedorders)
 * [bydfi](/exchanges/bydfi.md#fetchcanceledandclosedorders)
-* [coinmetro](/exchanges/coinmetro.md#fetchcanceledandclosedorders)
 * [deepcoin](/exchanges/deepcoin.md#fetchcanceledandclosedorders)
 * [hashkey](/exchanges/hashkey.md#fetchcanceledandclosedorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledandclosedorders)
@@ -2199,6 +2165,8 @@ fetches information on multiple canceled orders made by the user
 * [deepcoin](/exchanges/deepcoin.md#fetchcanceledorders)
 * [derive](/exchanges/derive.md#fetchcanceledorders)
 * [exmo](/exchanges/exmo.md#fetchcanceledorders)
+* [extended](/exchanges/extended.md#fetchcanceledorders)
+* [htx](/exchanges/htx.md#fetchcanceledorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledorders)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
 * [mexc](/exchanges/mexc.md#fetchcanceledorders)
@@ -2252,8 +2220,6 @@ fetches information on multiple closed orders made by the user
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchclosedorders)
-* [arkham](/exchanges/arkham.md#fetchclosedorders)
-* [ascendex](/exchanges/ascendex.md#fetchclosedorders)
 * [bigone](/exchanges/bigone.md#fetchclosedorders)
 * [binance](/exchanges/binance.md#fetchclosedorders)
 * [bingx](/exchanges/bingx.md#fetchclosedorders)
@@ -2281,6 +2247,7 @@ fetches information on multiple closed orders made by the user
 * [deribit](/exchanges/deribit.md#fetchclosedorders)
 * [derive](/exchanges/derive.md#fetchclosedorders)
 * [dydx](/exchanges/dydx.md#fetchclosedorders)
+* [extended](/exchanges/extended.md#fetchclosedorders)
 * [foxbit](/exchanges/foxbit.md#fetchclosedorders)
 * [gate](/exchanges/gate.md#fetchclosedorders)
 * [hitbtc](/exchanges/hitbtc.md#fetchclosedorders)
@@ -2296,7 +2263,7 @@ fetches information on multiple closed orders made by the user
 * [luno](/exchanges/luno.md#fetchclosedorders)
 * [mexc](/exchanges/mexc.md#fetchclosedorders)
 * [modetrade](/exchanges/modetrade.md#fetchclosedorders)
-* [novadax](/exchanges/novadax.md#fetchclosedorders)
+* [mudrex](/exchanges/mudrex.md#fetchclosedorders)
 * [okx](/exchanges/okx.md#fetchclosedorders)
 * [onetrading](/exchanges/onetrading.md#fetchclosedorders)
 * [p2b](/exchanges/p2b.md#fetchclosedorders)
@@ -2306,7 +2273,6 @@ fetches information on multiple closed orders made by the user
 * [tokocrypto](/exchanges/tokocrypto.md#fetchclosedorders)
 * [toobit](/exchanges/toobit.md#fetchclosedorders)
 * [upbit](/exchanges/upbit.md#fetchclosedorders)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchclosedorders)
 * [weex](/exchanges/weex.md#fetchclosedorders)
 * [whitebit](/exchanges/whitebit.md#fetchclosedorders)
 * [woo](/exchanges/woo.md#fetchclosedorders)
@@ -2626,10 +2592,7 @@ fetches all available currencies on an exchange
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchcurrencies)
 * [apex](/exchanges/apex.md#fetchcurrencies)
-* [arkham](/exchanges/arkham.md#fetchcurrencies)
-* [ascendex](/exchanges/ascendex.md#fetchcurrencies)
 * [aster](/exchanges/aster.md#fetchcurrencies)
 * [backpack](/exchanges/backpack.md#fetchcurrencies)
 * [bigone](/exchanges/bigone.md#fetchcurrencies)
@@ -2652,7 +2615,6 @@ fetches all available currencies on an exchange
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchcurrencies)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchcurrencies)
 * [coinex](/exchanges/coinex.md#fetchcurrencies)
-* [coinmetro](/exchanges/coinmetro.md#fetchcurrencies)
 * [coinone](/exchanges/coinone.md#fetchcurrencies)
 * [coinsph](/exchanges/coinsph.md#fetchcurrencies)
 * [cryptocom](/exchanges/cryptocom.md#fetchcurrencies)
@@ -2662,6 +2624,7 @@ fetches all available currencies on an exchange
 * [derive](/exchanges/derive.md#fetchcurrencies)
 * [digifinex](/exchanges/digifinex.md#fetchcurrencies)
 * [exmo](/exchanges/exmo.md#fetchcurrencies)
+* [extended](/exchanges/extended.md#fetchcurrencies)
 * [gate](/exchanges/gate.md#fetchcurrencies)
 * [gemini](/exchanges/gemini.md#fetchcurrencies)
 * [grvt](/exchanges/grvt.md#fetchcurrencies)
@@ -2681,7 +2644,6 @@ fetches all available currencies on an exchange
 * [ndax](/exchanges/ndax.md#fetchcurrencies)
 * [okx](/exchanges/okx.md#fetchcurrencies)
 * [onetrading](/exchanges/onetrading.md#fetchcurrencies)
-* [oxfun](/exchanges/oxfun.md#fetchcurrencies)
 * [phemex](/exchanges/phemex.md#fetchcurrencies)
 * [poloniex](/exchanges/poloniex.md#fetchcurrencies)
 * [toobit](/exchanges/toobit.md#fetchcurrencies)
@@ -2755,8 +2717,6 @@ fetch the deposit address for a currency associated with this account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdepositaddress)
-* [arkham](/exchanges/arkham.md#fetchdepositaddress)
-* [ascendex](/exchanges/ascendex.md#fetchdepositaddress)
 * [backpack](/exchanges/backpack.md#fetchdepositaddress)
 * [bigone](/exchanges/bigone.md#fetchdepositaddress)
 * [binance](/exchanges/binance.md#fetchdepositaddress)
@@ -2799,19 +2759,15 @@ fetch the deposit address for a currency associated with this account
 * [mexc](/exchanges/mexc.md#fetchdepositaddress)
 * [ndax](/exchanges/ndax.md#fetchdepositaddress)
 * [okx](/exchanges/okx.md#fetchdepositaddress)
-* [oxfun](/exchanges/oxfun.md#fetchdepositaddress)
 * [paymium](/exchanges/paymium.md#fetchdepositaddress)
 * [phemex](/exchanges/phemex.md#fetchdepositaddress)
 * [poloniex](/exchanges/poloniex.md#fetchdepositaddress)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdepositaddress)
 * [toobit](/exchanges/toobit.md#fetchdepositaddress)
 * [upbit](/exchanges/upbit.md#fetchdepositaddress)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchdepositaddress)
 * [whitebit](/exchanges/whitebit.md#fetchdepositaddress)
 * [woo](/exchanges/woo.md#fetchdepositaddress)
 * [xt](/exchanges/xt.md#fetchdepositaddress)
-* [yobit](/exchanges/yobit.md#fetchdepositaddress)
-* [zonda](/exchanges/zonda.md#fetchdepositaddress)
 
 ---
 
@@ -2838,7 +2794,6 @@ fetch deposit addresses for multiple currencies (when available)
 * [indodax](/exchanges/indodax.md#fetchdepositaddresses)
 * [paymium](/exchanges/paymium.md#fetchdepositaddresses)
 * [upbit](/exchanges/upbit.md#fetchdepositaddresses)
-* [zonda](/exchanges/zonda.md#fetchdepositaddresses)
 
 ---
 
@@ -2857,7 +2812,6 @@ fetch the deposit addresses for a currency associated with this account
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchdepositaddressesbynetwork)
 * [bingx](/exchanges/bingx.md#fetchdepositaddressesbynetwork)
 * [bybit](/exchanges/bybit.md#fetchdepositaddressesbynetwork)
 * [cryptocom](/exchanges/cryptocom.md#fetchdepositaddressesbynetwork)
@@ -2954,16 +2908,15 @@ fetch the fee for deposits and withdrawals
 fetch deposit and withdraw fees
 
 **Kind**: instance   
-**Returns**: <code>object</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified currency codes |
+| codes | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | not used by binance fetchDepositWithdrawFees () |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchdepositwithdrawfees)
 * [binance](/exchanges/binance.md#fetchdepositwithdrawfees)
 * [bingx](/exchanges/bingx.md#fetchdepositwithdrawfees)
 * [bitget](/exchanges/bitget.md#fetchdepositwithdrawfees)
@@ -2988,7 +2941,6 @@ fetch deposit and withdraw fees
 * [mexc](/exchanges/mexc.md#fetchdepositwithdrawfees)
 * [okx](/exchanges/okx.md#fetchdepositwithdrawfees)
 * [poloniex](/exchanges/poloniex.md#fetchdepositwithdrawfees)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchdepositwithdrawfees)
 * [whitebit](/exchanges/whitebit.md#fetchdepositwithdrawfees)
 
 ---
@@ -3011,8 +2963,6 @@ fetch all deposits made to an account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdeposits)
-* [arkham](/exchanges/arkham.md#fetchdeposits)
-* [ascendex](/exchanges/ascendex.md#fetchdeposits)
 * [backpack](/exchanges/backpack.md#fetchdeposits)
 * [bigone](/exchanges/bigone.md#fetchdeposits)
 * [binance](/exchanges/binance.md#fetchdeposits)
@@ -3044,6 +2994,7 @@ fetch all deposits made to an account
 * [digifinex](/exchanges/digifinex.md#fetchdeposits)
 * [dydx](/exchanges/dydx.md#fetchdeposits)
 * [exmo](/exchanges/exmo.md#fetchdeposits)
+* [extended](/exchanges/extended.md#fetchdeposits)
 * [foxbit](/exchanges/foxbit.md#fetchdeposits)
 * [gate](/exchanges/gate.md#fetchdeposits)
 * [grvt](/exchanges/grvt.md#fetchdeposits)
@@ -3060,9 +3011,8 @@ fetch all deposits made to an account
 * [mexc](/exchanges/mexc.md#fetchdeposits)
 * [modetrade](/exchanges/modetrade.md#fetchdeposits)
 * [ndax](/exchanges/ndax.md#fetchdeposits)
-* [novadax](/exchanges/novadax.md#fetchdeposits)
 * [okx](/exchanges/okx.md#fetchdeposits)
-* [oxfun](/exchanges/oxfun.md#fetchdeposits)
+* [paradex](/exchanges/paradex.md#fetchdeposits)
 * [phemex](/exchanges/phemex.md#fetchdeposits)
 * [poloniex](/exchanges/poloniex.md#fetchdeposits)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchdeposits)
@@ -3093,7 +3043,6 @@ fetch history of deposits and withdrawals
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchdepositswithdrawals)
-* [ascendex](/exchanges/ascendex.md#fetchdepositswithdrawals)
 * [bitfinex](/exchanges/bitfinex.md#fetchdepositswithdrawals)
 * [bitmex](/exchanges/bitmex.md#fetchdepositswithdrawals)
 * [bitstamp](/exchanges/bitstamp.md#fetchdepositswithdrawals)
@@ -3103,7 +3052,7 @@ fetch history of deposits and withdrawals
 * [cex](/exchanges/cex.md#fetchdepositswithdrawals)
 * [coinbase](/exchanges/coinbase.md#fetchdepositswithdrawals)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchdepositswithdrawals)
-* [exchange](/exchanges/exchange.md#fetchdepositswithdrawals)
+* [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchdepositswithdrawals)
 * [coinmate](/exchanges/coinmate.md#fetchdepositswithdrawals)
 * [dydx](/exchanges/dydx.md#fetchdepositswithdrawals)
 * [exmo](/exchanges/exmo.md#fetchdepositswithdrawals)
@@ -3111,7 +3060,6 @@ fetch history of deposits and withdrawals
 * [hitbtc](/exchanges/hitbtc.md#fetchdepositswithdrawals)
 * [indodax](/exchanges/indodax.md#fetchdepositswithdrawals)
 * [modetrade](/exchanges/modetrade.md#fetchdepositswithdrawals)
-* [novadax](/exchanges/novadax.md#fetchdepositswithdrawals)
 * [poloniex](/exchanges/poloniex.md#fetchdepositswithdrawals)
 * [whitebit](/exchanges/whitebit.md#fetchdepositswithdrawals)
 * [woo](/exchanges/woo.md#fetchdepositswithdrawals)
@@ -3161,8 +3109,6 @@ fetches information on multiple orders made by the user *classic accounts only*
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#fetchfundinghistory)
-* [arkham](/exchanges/arkham.md#fetchfundinghistory)
-* [ascendex](/exchanges/ascendex.md#fetchfundinghistory)
 * [aster](/exchanges/aster.md#fetchfundinghistory)
 * [backpack](/exchanges/backpack.md#fetchfundinghistory)
 * [binance](/exchanges/binance.md#fetchfundinghistory)
@@ -3174,6 +3120,7 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [coinex](/exchanges/coinex.md#fetchfundinghistory)
 * [derive](/exchanges/derive.md#fetchfundinghistory)
 * [digifinex](/exchanges/digifinex.md#fetchfundinghistory)
+* [extended](/exchanges/extended.md#fetchfundinghistory)
 * [gate](/exchanges/gate.md#fetchfundinghistory)
 * [grvt](/exchanges/grvt.md#fetchfundinghistory)
 * [htx](/exchanges/htx.md#fetchfundinghistory)
@@ -3182,8 +3129,8 @@ fetches information on multiple orders made by the user *classic accounts only*
 * [mexc](/exchanges/mexc.md#fetchfundinghistory)
 * [modetrade](/exchanges/modetrade.md#fetchfundinghistory)
 * [okx](/exchanges/okx.md#fetchfundinghistory)
-* [oxfun](/exchanges/oxfun.md#fetchfundinghistory)
 * [pacifica](/exchanges/pacifica.md#fetchfundinghistory)
+* [paradex](/exchanges/paradex.md#fetchfundinghistory)
 * [phemex](/exchanges/phemex.md#fetchfundinghistory)
 * [whitebit](/exchanges/whitebit.md#fetchfundinghistory)
 * [woo](/exchanges/woo.md#fetchfundinghistory)
@@ -3303,7 +3250,6 @@ fetch the current funding rate
 * [mexc](/exchanges/mexc.md#fetchfundingrate)
 * [modetrade](/exchanges/modetrade.md#fetchfundingrate)
 * [okx](/exchanges/okx.md#fetchfundingrate)
-* [oxfun](/exchanges/oxfun.md#fetchfundingrate)
 * [phemex](/exchanges/phemex.md#fetchfundingrate)
 * [whitebit](/exchanges/whitebit.md#fetchfundingrate)
 * [woo](/exchanges/woo.md#fetchfundingrate)
@@ -3353,6 +3299,7 @@ fetches historical funding rate prices
 * [derive](/exchanges/derive.md#fetchfundingratehistory)
 * [digifinex](/exchanges/digifinex.md#fetchfundingratehistory)
 * [dydx](/exchanges/dydx.md#fetchfundingratehistory)
+* [extended](/exchanges/extended.md#fetchfundingratehistory)
 * [gate](/exchanges/gate.md#fetchfundingratehistory)
 * [grvt](/exchanges/grvt.md#fetchfundingratehistory)
 * [hashkey](/exchanges/hashkey.md#fetchfundingratehistory)
@@ -3365,7 +3312,6 @@ fetches historical funding rate prices
 * [mexc](/exchanges/mexc.md#fetchfundingratehistory)
 * [modetrade](/exchanges/modetrade.md#fetchfundingratehistory)
 * [okx](/exchanges/okx.md#fetchfundingratehistory)
-* [oxfun](/exchanges/oxfun.md#fetchfundingratehistory)
 * [pacifica](/exchanges/pacifica.md#fetchfundingratehistory)
 * [paradex](/exchanges/paradex.md#fetchfundingratehistory)
 * [phemex](/exchanges/phemex.md#fetchfundingratehistory)
@@ -3381,19 +3327,18 @@ fetches historical funding rate prices
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ## fetchFundingRates
-fetch the funding rate for multiple markets
+fetch the current funding rate for multiple symbols
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rates structures](https://docs.ccxt.com/?id=funding-rates-structure), indexe by market symbols
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchfundingrates)
 * [aster](/exchanges/aster.md#fetchfundingrates)
 * [binance](/exchanges/binance.md#fetchfundingrates)
 * [bingx](/exchanges/bingx.md#fetchfundingrates)
@@ -3414,7 +3359,6 @@ fetch the funding rate for multiple markets
 * [lighter](/exchanges/lighter.md#fetchfundingrates)
 * [modetrade](/exchanges/modetrade.md#fetchfundingrates)
 * [okx](/exchanges/okx.md#fetchfundingrates)
-* [oxfun](/exchanges/oxfun.md#fetchfundingrates)
 * [pacifica](/exchanges/pacifica.md#fetchfundingrates)
 * [toobit](/exchanges/toobit.md#fetchfundingrates)
 * [weex](/exchanges/weex.md#fetchfundingrates)
@@ -3582,17 +3526,18 @@ fetch the history of changes, actions done by the user or operations that altere
 * [bitmex](/exchanges/bitmex.md#fetchledger)
 * [bitso](/exchanges/bitso.md#fetchledger)
 * [bitstamp](/exchanges/bitstamp.md#fetchledger)
+* [bitvavo](/exchanges/bitvavo.md#fetchledger)
 * [blofin](/exchanges/blofin.md#fetchledger)
 * [bybit](/exchanges/bybit.md#fetchledger)
 * [cex](/exchanges/cex.md#fetchledger)
 * [coinbase](/exchanges/coinbase.md#fetchledger)
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchledger)
-* [coinmetro](/exchanges/coinmetro.md#fetchledger)
 * [cryptocom](/exchanges/cryptocom.md#fetchledger)
 * [deepcoin](/exchanges/deepcoin.md#fetchledger)
 * [delta](/exchanges/delta.md#fetchledger)
 * [digifinex](/exchanges/digifinex.md#fetchledger)
 * [dydx](/exchanges/dydx.md#fetchledger)
+* [extended](/exchanges/extended.md#fetchledger)
 * [foxbit](/exchanges/foxbit.md#fetchledger)
 * [gate](/exchanges/gate.md#fetchledger)
 * [hashkey](/exchanges/hashkey.md#fetchledger)
@@ -3611,7 +3556,6 @@ fetch the history of changes, actions done by the user or operations that altere
 * [woo](/exchanges/woo.md#fetchledger)
 * [woofipro](/exchanges/woofipro.md#fetchledger)
 * [xt](/exchanges/xt.md#fetchledger)
-* [zonda](/exchanges/zonda.md#fetchledger)
 
 ---
 
@@ -3650,7 +3594,6 @@ fetch the set leverage for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchleverage)
 * [bingx](/exchanges/bingx.md#fetchleverage)
 * [bitget](/exchanges/bitget.md#fetchleverage)
 * [blofin](/exchanges/blofin.md#fetchleverage)
@@ -3658,6 +3601,7 @@ fetch the set leverage for a market
 * [bydfi](/exchanges/bydfi.md#fetchleverage)
 * [coinex](/exchanges/coinex.md#fetchleverage)
 * [delta](/exchanges/delta.md#fetchleverage)
+* [extended](/exchanges/extended.md#fetchleverage)
 * [gate](/exchanges/gate.md#fetchleverage)
 * [hashkey](/exchanges/hashkey.md#fetchleverage)
 * [hitbtc](/exchanges/hitbtc.md#fetchleverage)
@@ -3665,6 +3609,7 @@ fetch the set leverage for a market
 * [kucoin](/exchanges/kucoin.md#fetchleverage)
 * [mexc](/exchanges/mexc.md#fetchleverage)
 * [modetrade](/exchanges/modetrade.md#fetchleverage)
+* [mudrex](/exchanges/mudrex.md#fetchleverage)
 * [okx](/exchanges/okx.md#fetchleverage)
 * [pacifica](/exchanges/pacifica.md#fetchleverage)
 * [paradex](/exchanges/paradex.md#fetchleverage)
@@ -3690,10 +3635,10 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 | --- | --- | --- | --- |
 | symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.portfolioMargin | <code>boolean</code> | No | set to true if you would like to fetch the leverage tiers for a portfolio margin account |
+| params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchleveragetiers)
-* [ascendex](/exchanges/ascendex.md#fetchleveragetiers)
 * [binance](/exchanges/binance.md#fetchleveragetiers)
 * [bybit](/exchanges/bybit.md#fetchleveragetiers)
 * [coinex](/exchanges/coinex.md#fetchleveragetiers)
@@ -3704,7 +3649,6 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 * [krakenfutures](/exchanges/krakenfutures.md#fetchleveragetiers)
 * [kucoin](/exchanges/kucoin.md#fetchleveragetiers)
 * [mexc](/exchanges/mexc.md#fetchleveragetiers)
-* [oxfun](/exchanges/oxfun.md#fetchleveragetiers)
 * [phemex](/exchanges/phemex.md#fetchleveragetiers)
 * [xt](/exchanges/xt.md#fetchleveragetiers)
 
@@ -3713,7 +3657,7 @@ retrieve information on the maximum leverage, and maintenance margin for trades 
 <a name="fetchLeverages" id="fetchleverages"></a>
 
 ## fetchLeverages
-fetch the set leverage for all contract markets
+fetch the set leverage for all markets
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a list of [leverage structures](https://docs.ccxt.com/?id=leverage-structure)
@@ -3725,7 +3669,6 @@ fetch the set leverage for all contract markets
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchleverages)
 * [aster](/exchanges/aster.md#fetchleverages)
 * [binance](/exchanges/binance.md#fetchleverages)
 * [bitmex](/exchanges/bitmex.md#fetchleverages)
@@ -3762,7 +3705,6 @@ retrieves the public liquidations of a trading pair
 * [deribit](/exchanges/deribit.md#fetchliquidations)
 * [gate](/exchanges/gate.md#fetchliquidations)
 * [htx](/exchanges/htx.md#fetchliquidations)
-* [paradex](/exchanges/paradex.md#fetchliquidations)
 
 ---
 
@@ -3851,7 +3793,7 @@ fetches the margin mode of a specific symbol
 <a name="fetchMarginModes" id="fetchmarginmodes"></a>
 
 ## fetchMarginModes
-fetches the set margin mode of the user
+fetches margin mode of the user
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a list of [margin mode structures](https://docs.ccxt.com/?id=margin-mode-structure)
@@ -3859,16 +3801,37 @@ fetches the set margin mode of the user
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | a list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | Yes | unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchmarginmodes)
 * [aster](/exchanges/aster.md#fetchmarginmodes)
 * [binance](/exchanges/binance.md#fetchmarginmodes)
 * [grvt](/exchanges/grvt.md#fetchmarginmodes)
 * [hitbtc](/exchanges/hitbtc.md#fetchmarginmodes)
 * [weex](/exchanges/weex.md#fetchmarginmodes)
+
+---
+
+<a name="fetchMarkOHLCV" id="fetchmarkohlcv"></a>
+
+## fetchMarkOHLCV
+fetches historical mark price candlestick data containing the open, high, low, and close price of a market
+
+**Kind**: instance   
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+##### Supported exchanges
+* [mudrex](/exchanges/mudrex.md#fetchmarkohlcv)
 
 ---
 
@@ -3949,7 +3912,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ## fetchMarkets
-retrieves data on all markets for woo
+retrieves data on all markets for alpaca
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -3957,14 +3920,11 @@ retrieves data on all markets for woo
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
-* [arkham](/exchanges/arkham.md#fetchmarkets)
-* [ascendex](/exchanges/ascendex.md#fetchmarkets)
 * [aster](/exchanges/aster.md#fetchmarkets)
 * [backpack](/exchanges/backpack.md#fetchmarkets)
 * [bigone](/exchanges/bigone.md#fetchmarkets)
@@ -3999,7 +3959,6 @@ retrieves data on all markets for woo
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchmarkets)
 * [coinex](/exchanges/coinex.md#fetchmarkets)
 * [coinmate](/exchanges/coinmate.md#fetchmarkets)
-* [coinmetro](/exchanges/coinmetro.md#fetchmarkets)
 * [coinone](/exchanges/coinone.md#fetchmarkets)
 * [coinsph](/exchanges/coinsph.md#fetchmarkets)
 * [cryptocom](/exchanges/cryptocom.md#fetchmarkets)
@@ -4011,6 +3970,7 @@ retrieves data on all markets for woo
 * [digifinex](/exchanges/digifinex.md#fetchmarkets)
 * [dydx](/exchanges/dydx.md#fetchmarkets)
 * [exmo](/exchanges/exmo.md#fetchmarkets)
+* [extended](/exchanges/extended.md#fetchmarkets)
 * [foxbit](/exchanges/foxbit.md#fetchmarkets)
 * [gate](/exchanges/gate.md#fetchmarkets)
 * [gemini](/exchanges/gemini.md#fetchmarkets)
@@ -4033,11 +3993,10 @@ retrieves data on all markets for woo
 * [mercado](/exchanges/mercado.md#fetchmarkets)
 * [mexc](/exchanges/mexc.md#fetchmarkets)
 * [modetrade](/exchanges/modetrade.md#fetchmarkets)
+* [mudrex](/exchanges/mudrex.md#fetchmarkets)
 * [ndax](/exchanges/ndax.md#fetchmarkets)
-* [novadax](/exchanges/novadax.md#fetchmarkets)
 * [okx](/exchanges/okx.md#fetchmarkets)
 * [onetrading](/exchanges/onetrading.md#fetchmarkets)
-* [oxfun](/exchanges/oxfun.md#fetchmarkets)
 * [p2b](/exchanges/p2b.md#fetchmarkets)
 * [pacifica](/exchanges/pacifica.md#fetchmarkets)
 * [paradex](/exchanges/paradex.md#fetchmarkets)
@@ -4046,16 +4005,13 @@ retrieves data on all markets for woo
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmarkets)
 * [toobit](/exchanges/toobit.md#fetchmarkets)
 * [upbit](/exchanges/upbit.md#fetchmarkets)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchmarkets)
 * [weex](/exchanges/weex.md#fetchmarkets)
 * [whitebit](/exchanges/whitebit.md#fetchmarkets)
 * [woo](/exchanges/woo.md#fetchmarkets)
 * [woofipro](/exchanges/woofipro.md#fetchmarkets)
 * [xt](/exchanges/xt.md#fetchmarkets)
-* [yobit](/exchanges/yobit.md#fetchmarkets)
 * [zaif](/exchanges/zaif.md#fetchmarkets)
 * [zebpay](/exchanges/zebpay.md#fetchmarkets)
-* [zonda](/exchanges/zonda.md#fetchmarkets)
 
 ---
 
@@ -4151,6 +4107,7 @@ retrieves the users liquidated positions
 * [bybit](/exchanges/bybit.md#fetchmyliquidations)
 * [deribit](/exchanges/deribit.md#fetchmyliquidations)
 * [gate](/exchanges/gate.md#fetchmyliquidations)
+* [paradex](/exchanges/paradex.md#fetchmyliquidations)
 
 ---
 
@@ -4223,7 +4180,6 @@ fetch all trades made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchmytrades)
 * [apex](/exchanges/apex.md#fetchmytrades)
-* [arkham](/exchanges/arkham.md#fetchmytrades)
 * [aster](/exchanges/aster.md#fetchmytrades)
 * [backpack](/exchanges/backpack.md#fetchmytrades)
 * [bigone](/exchanges/bigone.md#fetchmytrades)
@@ -4257,7 +4213,6 @@ fetch all trades made by the user
 * [coincheck](/exchanges/coincheck.md#fetchmytrades)
 * [coinex](/exchanges/coinex.md#fetchmytrades)
 * [coinmate](/exchanges/coinmate.md#fetchmytrades)
-* [coinmetro](/exchanges/coinmetro.md#fetchmytrades)
 * [coinone](/exchanges/coinone.md#fetchmytrades)
 * [coinsph](/exchanges/coinsph.md#fetchmytrades)
 * [coinspot](/exchanges/coinspot.md#fetchmytrades)
@@ -4268,6 +4223,7 @@ fetch all trades made by the user
 * [derive](/exchanges/derive.md#fetchmytrades)
 * [digifinex](/exchanges/digifinex.md#fetchmytrades)
 * [exmo](/exchanges/exmo.md#fetchmytrades)
+* [extended](/exchanges/extended.md#fetchmytrades)
 * [foxbit](/exchanges/foxbit.md#fetchmytrades)
 * [gate](/exchanges/gate.md#fetchmytrades)
 * [gemini](/exchanges/gemini.md#fetchmytrades)
@@ -4289,11 +4245,10 @@ fetch all trades made by the user
 * [mercado](/exchanges/mercado.md#fetchmytrades)
 * [mexc](/exchanges/mexc.md#fetchmytrades)
 * [modetrade](/exchanges/modetrade.md#fetchmytrades)
+* [mudrex](/exchanges/mudrex.md#fetchmytrades)
 * [ndax](/exchanges/ndax.md#fetchmytrades)
-* [novadax](/exchanges/novadax.md#fetchmytrades)
 * [okx](/exchanges/okx.md#fetchmytrades)
 * [onetrading](/exchanges/onetrading.md#fetchmytrades)
-* [oxfun](/exchanges/oxfun.md#fetchmytrades)
 * [p2b](/exchanges/p2b.md#fetchmytrades)
 * [pacifica](/exchanges/pacifica.md#fetchmytrades)
 * [paradex](/exchanges/paradex.md#fetchmytrades)
@@ -4301,15 +4256,12 @@ fetch all trades made by the user
 * [poloniex](/exchanges/poloniex.md#fetchmytrades)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchmytrades)
 * [toobit](/exchanges/toobit.md#fetchmytrades)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchmytrades)
 * [weex](/exchanges/weex.md#fetchmytrades)
 * [whitebit](/exchanges/whitebit.md#fetchmytrades)
 * [woo](/exchanges/woo.md#fetchmytrades)
 * [woofipro](/exchanges/woofipro.md#fetchmytrades)
 * [xt](/exchanges/xt.md#fetchmytrades)
-* [yobit](/exchanges/yobit.md#fetchmytrades)
 * [zebpay](/exchanges/zebpay.md#fetchmytrades)
-* [zonda](/exchanges/zonda.md#fetchmytrades)
 
 ---
 
@@ -4377,15 +4329,14 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms))) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the alpha api endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
+| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
-* [arkham](/exchanges/arkham.md#fetchohlcv)
-* [ascendex](/exchanges/ascendex.md#fetchohlcv)
 * [aster](/exchanges/aster.md#fetchohlcv)
 * [backpack](/exchanges/backpack.md#fetchohlcv)
 * [bigone](/exchanges/bigone.md#fetchohlcv)
@@ -4415,7 +4366,6 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [coinbaseexchange](/exchanges/coinbaseexchange.md#fetchohlcv)
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchohlcv)
 * [coinex](/exchanges/coinex.md#fetchohlcv)
-* [coinmetro](/exchanges/coinmetro.md#fetchohlcv)
 * [coinsph](/exchanges/coinsph.md#fetchohlcv)
 * [cryptocom](/exchanges/cryptocom.md#fetchohlcv)
 * [deepcoin](/exchanges/deepcoin.md#fetchohlcv)
@@ -4424,11 +4374,13 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [digifinex](/exchanges/digifinex.md#fetchohlcv)
 * [dydx](/exchanges/dydx.md#fetchohlcv)
 * [exmo](/exchanges/exmo.md#fetchohlcv)
+* [extended](/exchanges/extended.md#fetchohlcv)
 * [foxbit](/exchanges/foxbit.md#fetchohlcv)
-* [gateio](/exchanges/gateio.md#fetchohlcv)
+* [gate](/exchanges/gate.md#fetchohlcv)
 * [gemini](/exchanges/gemini.md#fetchohlcv)
 * [grvt](/exchanges/grvt.md#fetchohlcv)
 * [hashkey](/exchanges/hashkey.md#fetchohlcv)
+* [hibachi](/exchanges/hibachi.md#fetchohlcv)
 * [hitbtc](/exchanges/hitbtc.md#fetchohlcv)
 * [hollaex](/exchanges/hollaex.md#fetchohlcv)
 * [htx](/exchanges/htx.md#fetchohlcv)
@@ -4443,11 +4395,10 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [mercado](/exchanges/mercado.md#fetchohlcv)
 * [mexc](/exchanges/mexc.md#fetchohlcv)
 * [modetrade](/exchanges/modetrade.md#fetchohlcv)
+* [mudrex](/exchanges/mudrex.md#fetchohlcv)
 * [ndax](/exchanges/ndax.md#fetchohlcv)
-* [novadax](/exchanges/novadax.md#fetchohlcv)
 * [okx](/exchanges/okx.md#fetchohlcv)
 * [onetrading](/exchanges/onetrading.md#fetchohlcv)
-* [oxfun](/exchanges/oxfun.md#fetchohlcv)
 * [p2b](/exchanges/p2b.md#fetchohlcv)
 * [pacifica](/exchanges/pacifica.md#fetchohlcv)
 * [paradex](/exchanges/paradex.md#fetchohlcv)
@@ -4456,14 +4407,12 @@ fetches historical candlestick data containing the open, high, low, and close pr
 * [tokocrypto](/exchanges/tokocrypto.md#fetchohlcv)
 * [toobit](/exchanges/toobit.md#fetchohlcv)
 * [upbit](/exchanges/upbit.md#fetchohlcv)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchohlcv)
 * [weex](/exchanges/weex.md#fetchohlcv)
 * [whitebit](/exchanges/whitebit.md#fetchohlcv)
 * [woo](/exchanges/woo.md#fetchohlcv)
 * [woofipro](/exchanges/woofipro.md#fetchohlcv)
 * [xt](/exchanges/xt.md#fetchohlcv)
 * [zebpay](/exchanges/zebpay.md#fetchohlcv)
-* [zonda](/exchanges/zonda.md#fetchohlcv)
 
 ---
 
@@ -4556,6 +4505,7 @@ Retrieves the open interest history of a currency
 * [binance](/exchanges/binance.md#fetchopeninteresthistory)
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninteresthistory)
 * [bybit](/exchanges/bybit.md#fetchopeninteresthistory)
+* [extended](/exchanges/extended.md#fetchopeninteresthistory)
 * [htx](/exchanges/htx.md#fetchopeninteresthistory)
 * [kucoin](/exchanges/kucoin.md#fetchopeninteresthistory)
 * [okx](/exchanges/okx.md#fetchopeninteresthistory)
@@ -4577,7 +4527,6 @@ Retrieves the open interest for a list of symbols
 | params | <code>object</code> | No | exchange specific parameters |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#fetchopeninterests)
 * [bitfinex](/exchanges/bitfinex.md#fetchopeninterests)
 * [bitmex](/exchanges/bitmex.md#fetchopeninterests)
 * [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
@@ -4629,18 +4578,15 @@ fetch all unfilled currently open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
-* [arkham](/exchanges/arkham.md#fetchopenorders)
-* [ascendex](/exchanges/ascendex.md#fetchopenorders)
 * [aster](/exchanges/aster.md#fetchopenorders)
 * [backpack](/exchanges/backpack.md#fetchopenorders)
 * [bigone](/exchanges/bigone.md#fetchopenorders)
@@ -4677,7 +4623,6 @@ fetch all unfilled currently open orders
 * [coincheck](/exchanges/coincheck.md#fetchopenorders)
 * [coinex](/exchanges/coinex.md#fetchopenorders)
 * [coinmate](/exchanges/coinmate.md#fetchopenorders)
-* [coinmetro](/exchanges/coinmetro.md#fetchopenorders)
 * [coinone](/exchanges/coinone.md#fetchopenorders)
 * [coinsph](/exchanges/coinsph.md#fetchopenorders)
 * [cryptocom](/exchanges/cryptocom.md#fetchopenorders)
@@ -4689,6 +4634,7 @@ fetch all unfilled currently open orders
 * [digifinex](/exchanges/digifinex.md#fetchopenorders)
 * [dydx](/exchanges/dydx.md#fetchopenorders)
 * [exmo](/exchanges/exmo.md#fetchopenorders)
+* [extended](/exchanges/extended.md#fetchopenorders)
 * [foxbit](/exchanges/foxbit.md#fetchopenorders)
 * [gate](/exchanges/gate.md#fetchopenorders)
 * [gemini](/exchanges/gemini.md#fetchopenorders)
@@ -4711,11 +4657,10 @@ fetch all unfilled currently open orders
 * [mercado](/exchanges/mercado.md#fetchopenorders)
 * [mexc](/exchanges/mexc.md#fetchopenorders)
 * [modetrade](/exchanges/modetrade.md#fetchopenorders)
+* [mudrex](/exchanges/mudrex.md#fetchopenorders)
 * [ndax](/exchanges/ndax.md#fetchopenorders)
-* [novadax](/exchanges/novadax.md#fetchopenorders)
 * [okx](/exchanges/okx.md#fetchopenorders)
 * [onetrading](/exchanges/onetrading.md#fetchopenorders)
-* [oxfun](/exchanges/oxfun.md#fetchopenorders)
 * [p2b](/exchanges/p2b.md#fetchopenorders)
 * [pacifica](/exchanges/pacifica.md#fetchopenorders)
 * [paradex](/exchanges/paradex.md#fetchopenorders)
@@ -4724,16 +4669,13 @@ fetch all unfilled currently open orders
 * [tokocrypto](/exchanges/tokocrypto.md#fetchopenorders)
 * [toobit](/exchanges/toobit.md#fetchopenorders)
 * [upbit](/exchanges/upbit.md#fetchopenorders)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchopenorders)
 * [weex](/exchanges/weex.md#fetchopenorders)
 * [whitebit](/exchanges/whitebit.md#fetchopenorders)
 * [woo](/exchanges/woo.md#fetchopenorders)
 * [woofipro](/exchanges/woofipro.md#fetchopenorders)
 * [xt](/exchanges/xt.md#fetchopenorders)
-* [yobit](/exchanges/yobit.md#fetchopenorders)
 * [zaif](/exchanges/zaif.md#fetchopenorders)
 * [zebpay](/exchanges/zebpay.md#fetchopenorders)
-* [zonda](/exchanges/zonda.md#fetchopenorders)
 
 ---
 
@@ -4844,8 +4786,6 @@ fetches information on an order made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchorder)
 * [apex](/exchanges/apex.md#fetchorder)
-* [arkmm](/exchanges/arkmm.md#fetchorder)
-* [ascendex](/exchanges/ascendex.md#fetchorder)
 * [aster](/exchanges/aster.md#fetchorder)
 * [bigone](/exchanges/bigone.md#fetchorder)
 * [binance](/exchanges/binance.md#fetchorder)
@@ -4876,7 +4816,6 @@ fetches information on an order made by the user
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchorder)
 * [coinex](/exchanges/coinex.md#fetchorder)
 * [coinmate](/exchanges/coinmate.md#fetchorder)
-* [coinmetro](/exchanges/coinmetro.md#fetchorder)
 * [coinone](/exchanges/coinone.md#fetchorder)
 * [coinsph](/exchanges/coinsph.md#fetchorder)
 * [cryptocom](/exchanges/cryptocom.md#fetchorder)
@@ -4885,6 +4824,7 @@ fetches information on an order made by the user
 * [digifinex](/exchanges/digifinex.md#fetchorder)
 * [dydx](/exchanges/dydx.md#fetchorder)
 * [exmo](/exchanges/exmo.md#fetchorder)
+* [extended](/exchanges/extended.md#fetchorder)
 * [foxbit](/exchanges/foxbit.md#fetchorder)
 * [gate](/exchanges/gate.md#fetchorder)
 * [gemini](/exchanges/gemini.md#fetchorder)
@@ -4906,11 +4846,10 @@ fetches information on an order made by the user
 * [mercado](/exchanges/mercado.md#fetchorder)
 * [mexc](/exchanges/mexc.md#fetchorder)
 * [modetrade](/exchanges/modetrade.md#fetchorder)
+* [mudrex](/exchanges/mudrex.md#fetchorder)
 * [ndax](/exchanges/ndax.md#fetchorder)
-* [novadax](/exchanges/novadax.md#fetchorder)
 * [okx](/exchanges/okx.md#fetchorder)
 * [onetrading](/exchanges/onetrading.md#fetchorder)
-* [oxfun](/exchanges/oxfun.md#fetchorder)
 * [pacifica](/exchanges/pacifica.md#fetchorder)
 * [paradex](/exchanges/paradex.md#fetchorder)
 * [phemex](/exchanges/phemex.md#fetchorder)
@@ -4918,13 +4857,11 @@ fetches information on an order made by the user
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorder)
 * [toobit](/exchanges/toobit.md#fetchorder)
 * [upbit](/exchanges/upbit.md#fetchorder)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchorder)
 * [weex](/exchanges/weex.md#fetchorder)
 * [whitebit](/exchanges/whitebit.md#fetchorder)
 * [woo](/exchanges/woo.md#fetchorder)
 * [woofipro](/exchanges/woofipro.md#fetchorder)
 * [xt](/exchanges/xt.md#fetchorder)
-* [yobit](/exchanges/yobit.md#fetchorder)
 * [zebpay](/exchanges/zebpay.md#fetchorder)
 
 ---
@@ -4935,7 +4872,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -4943,13 +4880,11 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
-* [arkham](/exchanges/arkham.md#fetchorderbook)
-* [ascendex](/exchanges/ascendex.md#fetchorderbook)
 * [aster](/exchanges/aster.md#fetchorderbook)
 * [backpack](/exchanges/backpack.md#fetchorderbook)
 * [bigone](/exchanges/bigone.md#fetchorderbook)
@@ -4985,7 +4920,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [coincheck](/exchanges/coincheck.md#fetchorderbook)
 * [coinex](/exchanges/coinex.md#fetchorderbook)
 * [coinmate](/exchanges/coinmate.md#fetchorderbook)
-* [coinmetro](/exchanges/coinmetro.md#fetchorderbook)
 * [coinone](/exchanges/coinone.md#fetchorderbook)
 * [coinsph](/exchanges/coinsph.md#fetchorderbook)
 * [coinspot](/exchanges/coinspot.md#fetchorderbook)
@@ -4997,6 +4931,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [digifinex](/exchanges/digifinex.md#fetchorderbook)
 * [dydx](/exchanges/dydx.md#fetchorderbook)
 * [exmo](/exchanges/exmo.md#fetchorderbook)
+* [extended](/exchanges/extended.md#fetchorderbook)
 * [foxbit](/exchanges/foxbit.md#fetchorderbook)
 * [gate](/exchanges/gate.md#fetchorderbook)
 * [gemini](/exchanges/gemini.md#fetchorderbook)
@@ -5020,10 +4955,8 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [mexc](/exchanges/mexc.md#fetchorderbook)
 * [modetrade](/exchanges/modetrade.md#fetchorderbook)
 * [ndax](/exchanges/ndax.md#fetchorderbook)
-* [novadax](/exchanges/novadax.md#fetchorderbook)
 * [okx](/exchanges/okx.md#fetchorderbook)
 * [onetrading](/exchanges/onetrading.md#fetchorderbook)
-* [oxfun](/exchanges/oxfun.md#fetchorderbook)
 * [p2b](/exchanges/p2b.md#fetchorderbook)
 * [pacifica](/exchanges/pacifica.md#fetchorderbook)
 * [paradex](/exchanges/paradex.md#fetchorderbook)
@@ -5033,16 +4966,13 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorderbook)
 * [toobit](/exchanges/toobit.md#fetchorderbook)
 * [upbit](/exchanges/upbit.md#fetchorderbook)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchorderbook)
 * [weex](/exchanges/weex.md#fetchorderbook)
 * [whitebit](/exchanges/whitebit.md#fetchorderbook)
 * [woo](/exchanges/woo.md#fetchorderbook)
 * [woofipro](/exchanges/woofipro.md#fetchorderbook)
 * [xt](/exchanges/xt.md#fetchorderbook)
-* [yobit](/exchanges/yobit.md#fetchorderbook)
 * [zaif](/exchanges/zaif.md#fetchorderbook)
 * [zebpay](/exchanges/zebpay.md#fetchorderbook)
-* [zonda](/exchanges/zonda.md#fetchorderbook)
 
 ---
 
@@ -5052,7 +4982,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -5087,7 +5017,6 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [hitbtc](/exchanges/hitbtc.md#fetchorderbooks)
 * [hollaex](/exchanges/hollaex.md#fetchorderbooks)
 * [upbit](/exchanges/upbit.md#fetchorderbooks)
-* [yobit](/exchanges/yobit.md#fetchorderbooks)
 
 ---
 
@@ -5151,7 +5080,6 @@ fetch all the trades made from a single order
 * [mexc](/exchanges/mexc.md#fetchordertrades)
 * [modetrade](/exchanges/modetrade.md#fetchordertrades)
 * [ndax](/exchanges/ndax.md#fetchordertrades)
-* [novadax](/exchanges/novadax.md#fetchordertrades)
 * [okx](/exchanges/okx.md#fetchordertrades)
 * [onetrading](/exchanges/onetrading.md#fetchordertrades)
 * [p2b](/exchanges/p2b.md#fetchordertrades)
@@ -5233,6 +5161,7 @@ fetches information on multiple orders made by the user
 * [derive](/exchanges/derive.md#fetchorders)
 * [digifinex](/exchanges/digifinex.md#fetchorders)
 * [dydx](/exchanges/dydx.md#fetchorders)
+* [extended](/exchanges/extended.md#fetchorders)
 * [foxbit](/exchanges/foxbit.md#fetchorders)
 * [gemini](/exchanges/gemini.md#fetchorders)
 * [grvt](/exchanges/grvt.md#fetchorders)
@@ -5246,14 +5175,13 @@ fetches information on multiple orders made by the user
 * [mercado](/exchanges/mercado.md#fetchorders)
 * [mexc](/exchanges/mexc.md#fetchorders)
 * [modetrade](/exchanges/modetrade.md#fetchorders)
+* [mudrex](/exchanges/mudrex.md#fetchorders)
 * [ndax](/exchanges/ndax.md#fetchorders)
-* [novadax](/exchanges/novadax.md#fetchorders)
 * [pacifica](/exchanges/pacifica.md#fetchorders)
 * [paradex](/exchanges/paradex.md#fetchorders)
 * [phemex](/exchanges/phemex.md#fetchorders)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchorders)
 * [toobit](/exchanges/toobit.md#fetchorders)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchorders)
 * [weex](/exchanges/weex.md#fetchorders)
 * [whitebit](/exchanges/whitebit.md#fetchorders)
 * [woo](/exchanges/woo.md#fetchorders)
@@ -5412,10 +5340,8 @@ fetch data on an open position
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchposition)
 * [binance](/exchanges/binance.md#fetchposition)
 * [bingx](/exchanges/bingx.md#fetchposition)
 * [bitget](/exchanges/bitget.md#fetchposition)
@@ -5430,6 +5356,7 @@ fetch data on an open position
 * [deribit](/exchanges/deribit.md#fetchposition)
 * [digifinex](/exchanges/digifinex.md#fetchposition)
 * [dydx](/exchanges/dydx.md#fetchposition)
+* [extended](/exchanges/extended.md#fetchposition)
 * [gate](/exchanges/gate.md#fetchposition)
 * [hitbtc](/exchanges/hitbtc.md#fetchposition)
 * [htx](/exchanges/htx.md#fetchposition)
@@ -5555,15 +5482,11 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchpositions)
 * [apex](/exchanges/apex.md#fetchpositions)
-* [arkkm](/exchanges/arkkm.md#fetchpositions)
-* [ascendex](/exchanges/ascendex.md#fetchpositions)
 * [aster](/exchanges/aster.md#fetchpositions)
 * [backpack](/exchanges/backpack.md#fetchpositions)
 * [binance](/exchanges/binance.md#fetchpositions)
@@ -5587,6 +5510,7 @@ fetch all open positions
 * [derive](/exchanges/derive.md#fetchpositions)
 * [digifinex](/exchanges/digifinex.md#fetchpositions)
 * [dydx](/exchanges/dydx.md#fetchpositions)
+* [extended](/exchanges/extended.md#fetchpositions)
 * [gate](/exchanges/gate.md#fetchpositions)
 * [grvt](/exchanges/grvt.md#fetchpositions)
 * [hashkey](/exchanges/hashkey.md#fetchpositions)
@@ -5600,8 +5524,8 @@ fetch all open positions
 * [lighter](/exchanges/lighter.md#fetchpositions)
 * [mexc](/exchanges/mexc.md#fetchpositions)
 * [modetrade](/exchanges/modetrade.md#fetchpositions)
+* [mudrex](/exchanges/mudrex.md#fetchpositions)
 * [okx](/exchanges/okx.md#fetchpositions)
-* [oxfun](/exchanges/oxfun.md#fetchpositions)
 * [pacifica](/exchanges/pacifica.md#fetchpositions)
 * [paradex](/exchanges/paradex.md#fetchpositions)
 * [phemex](/exchanges/phemex.md#fetchpositions)
@@ -5638,7 +5562,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols tha
 * [bybit](/exchanges/bybit.md#fetchpositionsadlrank)
 * [delta](/exchanges/delta.md#fetchpositionsadlrank)
 * [htx](/exchanges/htx.md#fetchpositionsadlrank)
-* [kucoinfutures](/exchanges/kucoinfutures.md#fetchpositionsadlrank)
+* [kucoin](/exchanges/kucoin.md#fetchpositionsadlrank)
 * [woo](/exchanges/woo.md#fetchpositionsadlrank)
 
 ---
@@ -5691,9 +5615,11 @@ fetches historical positions
 * [blofin](/exchanges/blofin.md#fetchpositionshistory)
 * [bybit](/exchanges/bybit.md#fetchpositionshistory)
 * [bydfi](/exchanges/bydfi.md#fetchpositionshistory)
+* [extended](/exchanges/extended.md#fetchpositionshistory)
 * [gate](/exchanges/gate.md#fetchpositionshistory)
 * [kucoin](/exchanges/kucoin.md#fetchpositionshistory)
 * [mexc](/exchanges/mexc.md#fetchpositionshistory)
+* [mudrex](/exchanges/mudrex.md#fetchpositionshistory)
 * [okx](/exchanges/okx.md#fetchpositionshistory)
 
 ---
@@ -5859,6 +5785,8 @@ the latest known information on the availability of the exchange API
 * [bitfinex](/exchanges/bitfinex.md#fetchstatus)
 * [bitmart](/exchanges/bitmart.md#fetchstatus)
 * [bitrue](/exchanges/bitrue.md#fetchstatus)
+* [bybit](/exchanges/bybit.md#fetchstatus)
+* [coincheck](/exchanges/coincheck.md#fetchstatus)
 * [coinsph](/exchanges/coinsph.md#fetchstatus)
 * [delta](/exchanges/delta.md#fetchstatus)
 * [deribit](/exchanges/deribit.md#fetchstatus)
@@ -5915,13 +5843,11 @@ fetches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
-* [arkham](/exchanges/arkham.md#fetchticker)
-* [ascendex](/exchanges/ascendex.md#fetchticker)
 * [aster](/exchanges/aster.md#fetchticker)
 * [backpack](/exchanges/backpack.md#fetchticker)
 * [bigone](/exchanges/bigone.md#fetchticker)
@@ -5966,6 +5892,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [derive](/exchanges/derive.md#fetchticker)
 * [digifinex](/exchanges/digifinex.md#fetchticker)
 * [exmo](/exchanges/exmo.md#fetchticker)
+* [extended](/exchanges/extended.md#fetchticker)
 * [foxbit](/exchanges/foxbit.md#fetchticker)
 * [gate](/exchanges/gate.md#fetchticker)
 * [gemini](/exchanges/gemini.md#fetchticker)
@@ -5985,11 +5912,10 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [luno](/exchanges/luno.md#fetchticker)
 * [mercado](/exchanges/mercado.md#fetchticker)
 * [mexc](/exchanges/mexc.md#fetchticker)
+* [mudrex](/exchanges/mudrex.md#fetchticker)
 * [ndax](/exchanges/ndax.md#fetchticker)
-* [novadax](/exchanges/novadax.md#fetchticker)
 * [okx](/exchanges/okx.md#fetchticker)
 * [onetrading](/exchanges/onetrading.md#fetchticker)
-* [oxfun](/exchanges/oxfun.md#fetchticker)
 * [p2b](/exchanges/p2b.md#fetchticker)
 * [paradex](/exchanges/paradex.md#fetchticker)
 * [paymium](/exchanges/paymium.md#fetchticker)
@@ -5997,13 +5923,10 @@ fetches a price ticker, a statistical calculation with the information calculate
 * [poloniex](/exchanges/poloniex.md#fetchticker)
 * [tokocrypto](/exchanges/tokocrypto.md#fetchticker)
 * [upbit](/exchanges/upbit.md#fetchticker)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchticker)
 * [whitebit](/exchanges/whitebit.md#fetchticker)
 * [xt](/exchanges/xt.md#fetchticker)
-* [yobit](/exchanges/yobit.md#fetchticker)
 * [zaif](/exchanges/zaif.md#fetchticker)
 * [zebpay](/exchanges/zebpay.md#fetchticker)
-* [zonda](/exchanges/zonda.md#fetchticker)
 
 ---
 
@@ -6048,7 +5971,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchtickers)
 * [apex](/exchanges/apex.md#fetchtickers)
-* [ascendex](/exchanges/ascendex.md#fetchtickers)
 * [aster](/exchanges/aster.md#fetchtickers)
 * [backpack](/exchanges/backpack.md#fetchtickers)
 * [bigone](/exchanges/bigone.md#fetchtickers)
@@ -6078,7 +6000,6 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [coinbaseinternational](/exchanges/coinbaseinternational.md#fetchtickers)
 * [coinex](/exchanges/coinex.md#fetchtickers)
 * [coinmate](/exchanges/coinmate.md#fetchtickers)
-* [coinmetro](/exchanges/coinmetro.md#fetchtickers)
 * [coinone](/exchanges/coinone.md#fetchtickers)
 * [coinsph](/exchanges/coinsph.md#fetchtickers)
 * [coinspot](/exchanges/coinspot.md#fetchtickers)
@@ -6089,6 +6010,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [deribit](/exchanges/deribit.md#fetchtickers)
 * [digifinex](/exchanges/digifinex.md#fetchtickers)
 * [exmo](/exchanges/exmo.md#fetchtickers)
+* [extended](/exchanges/extended.md#fetchtickers)
 * [foxbit](/exchanges/foxbit.md#fetchtickers)
 * [gate](/exchanges/gate.md#fetchtickers)
 * [gemini](/exchanges/gemini.md#fetchtickers)
@@ -6106,10 +6028,9 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [lighter](/exchanges/lighter.md#fetchtickers)
 * [luno](/exchanges/luno.md#fetchtickers)
 * [mexc](/exchanges/mexc.md#fetchtickers)
-* [novadax](/exchanges/novadax.md#fetchtickers)
+* [mudrex](/exchanges/mudrex.md#fetchtickers)
 * [okx](/exchanges/okx.md#fetchtickers)
 * [onetrading](/exchanges/onetrading.md#fetchtickers)
-* [oxfun](/exchanges/oxfun.md#fetchtickers)
 * [p2b](/exchanges/p2b.md#fetchtickers)
 * [pacifica](/exchanges/pacifica.md#fetchtickers)
 * [paradex](/exchanges/paradex.md#fetchtickers)
@@ -6118,11 +6039,9 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtickers)
 * [toobit](/exchanges/toobit.md#fetchtickers)
 * [upbit](/exchanges/upbit.md#fetchtickers)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchtickers)
 * [weex](/exchanges/weex.md#fetchtickers)
 * [whitebit](/exchanges/whitebit.md#fetchtickers)
 * [xt](/exchanges/xt.md#fetchtickers)
-* [yobit](/exchanges/yobit.md#fetchtickers)
 * [zebpay](/exchanges/zebpay.md#fetchtickers)
 
 ---
@@ -6143,8 +6062,6 @@ fetches the current integer timestamp in milliseconds from the exchange server
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchtime)
 * [apex](/exchanges/apex.md#fetchtime)
-* [arkham](/exchanges/arkham.md#fetchtime)
-* [ascendex](/exchanges/ascendex.md#fetchtime)
 * [aster](/exchanges/aster.md#fetchtime)
 * [backpack](/exchanges/backpack.md#fetchtime)
 * [bigone](/exchanges/bigone.md#fetchtime)
@@ -6182,7 +6099,6 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [lighter](/exchanges/lighter.md#fetchtime)
 * [mexc](/exchanges/mexc.md#fetchtime)
 * [modetrade](/exchanges/modetrade.md#fetchtime)
-* [novadax](/exchanges/novadax.md#fetchtime)
 * [okx](/exchanges/okx.md#fetchtime)
 * [onetrading](/exchanges/onetrading.md#fetchtime)
 * [paradex](/exchanges/paradex.md#fetchtime)
@@ -6194,7 +6110,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 * [woo](/exchanges/woo.md#fetchtime)
 * [woofipro](/exchanges/woofipro.md#fetchtime)
 * [xt](/exchanges/xt.md#fetchtime)
-* [zebpayfutures](/exchanges/zebpayfutures.md#fetchtime)
+* [zebpay](/exchanges/zebpay.md#fetchtime)
 
 ---
 
@@ -6213,14 +6129,12 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
+| params.loc | <code>string</code> | No | crypto location, default: us |
+| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocTrades |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
-* [arkham](/exchanges/arkham.md#fetchtrades)
-* [ascendex](/exchanges/ascendex.md#fetchtrades)
 * [aster](/exchanges/aster.md#fetchtrades)
 * [backpack](/exchanges/backpack.md#fetchtrades)
 * [bigone](/exchanges/bigone.md#fetchtrades)
@@ -6255,7 +6169,6 @@ get the list of most recent trades for a particular symbol
 * [coincheck](/exchanges/coincheck.md#fetchtrades)
 * [coinex](/exchanges/coinex.md#fetchtrades)
 * [coinmate](/exchanges/coinmate.md#fetchtrades)
-* [coinmetro](/exchanges/coinmetro.md#fetchtrades)
 * [coinone](/exchanges/coinone.md#fetchtrades)
 * [coinsph](/exchanges/coinsph.md#fetchtrades)
 * [coinspot](/exchanges/coinspot.md#fetchtrades)
@@ -6268,6 +6181,7 @@ get the list of most recent trades for a particular symbol
 * [digifinex](/exchanges/digifinex.md#fetchtrades)
 * [dydx](/exchanges/dydx.md#fetchtrades)
 * [exmo](/exchanges/exmo.md#fetchtrades)
+* [extended](/exchanges/extended.md#fetchtrades)
 * [foxbit](/exchanges/foxbit.md#fetchtrades)
 * [gate](/exchanges/gate.md#fetchtrades)
 * [gemini](/exchanges/gemini.md#fetchtrades)
@@ -6290,9 +6204,7 @@ get the list of most recent trades for a particular symbol
 * [mexc](/exchanges/mexc.md#fetchtrades)
 * [modetrade](/exchanges/modetrade.md#fetchtrades)
 * [ndax](/exchanges/ndax.md#fetchtrades)
-* [novadax](/exchanges/novadax.md#fetchtrades)
 * [okx](/exchanges/okx.md#fetchtrades)
-* [oxfun](/exchanges/oxfun.md#fetchtrades)
 * [p2b](/exchanges/p2b.md#fetchtrades)
 * [pacifica](/exchanges/pacifica.md#fetchtrades)
 * [paradex](/exchanges/paradex.md#fetchtrades)
@@ -6302,16 +6214,13 @@ get the list of most recent trades for a particular symbol
 * [tokocrypto](/exchanges/tokocrypto.md#fetchtrades)
 * [toobit](/exchanges/toobit.md#fetchtrades)
 * [upbit](/exchanges/upbit.md#fetchtrades)
-* [wavesexchange](/exchanges/wavesexchange.md#fetchtrades)
 * [weex](/exchanges/weex.md#fetchtrades)
 * [whitebit](/exchanges/whitebit.md#fetchtrades)
 * [woo](/exchanges/woo.md#fetchtrades)
 * [woofipro](/exchanges/woofipro.md#fetchtrades)
 * [xt](/exchanges/xt.md#fetchtrades)
-* [yobit](/exchanges/yobit.md#fetchtrades)
 * [zaif](/exchanges/zaif.md#fetchtrades)
 * [zebpay](/exchanges/zebpay.md#fetchtrades)
-* [zonda](/exchanges/zonda.md#fetchtrades)
 
 ---
 
@@ -6353,7 +6262,6 @@ fetch the trading fees for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchtradingfee)
 * [aster](/exchanges/aster.md#fetchtradingfee)
 * [binance](/exchanges/binance.md#fetchtradingfee)
 * [bingx](/exchanges/bingx.md#fetchtradingfee)
@@ -6361,12 +6269,14 @@ fetch the trading fees for a market
 * [bitget](/exchanges/bitget.md#fetchtradingfee)
 * [bitmart](/exchanges/bitmart.md#fetchtradingfee)
 * [bitstamp](/exchanges/bitstamp.md#fetchtradingfee)
+* [bitvavo](/exchanges/bitvavo.md#fetchtradingfee)
 * [bybit](/exchanges/bybit.md#fetchtradingfee)
 * [coinex](/exchanges/coinex.md#fetchtradingfee)
 * [coinmate](/exchanges/coinmate.md#fetchtradingfee)
 * [coinsph](/exchanges/coinsph.md#fetchtradingfee)
 * [cryptocom](/exchanges/cryptocom.md#fetchtradingfee)
 * [digifinex](/exchanges/digifinex.md#fetchtradingfee)
+* [extended](/exchanges/extended.md#fetchtradingfee)
 * [gate](/exchanges/gate.md#fetchtradingfee)
 * [hashkey](/exchanges/hashkey.md#fetchtradingfee)
 * [hitbtc](/exchanges/hitbtc.md#fetchtradingfee)
@@ -6380,6 +6290,7 @@ fetch the trading fees for a market
 * [mexc](/exchanges/mexc.md#fetchtradingfee)
 * [okx](/exchanges/okx.md#fetchtradingfee)
 * [pacifica](/exchanges/pacifica.md#fetchtradingfee)
+* [paradex](/exchanges/paradex.md#fetchtradingfee)
 * [upbit](/exchanges/upbit.md#fetchtradingfee)
 * [weex](/exchanges/weex.md#fetchtradingfee)
 * [woo](/exchanges/woo.md#fetchtradingfee)
@@ -6402,8 +6313,6 @@ fetch the trading fees for multiple markets
 | params.subType | <code>string</code> | No | "linear" or "inverse" |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#fetchtradingfees)
-* [ascendex](/exchanges/ascendex.md#fetchtradingfees)
 * [binance](/exchanges/binance.md#fetchtradingfees)
 * [bit2c](/exchanges/bit2c.md#fetchtradingfees)
 * [bitbank](/exchanges/bitbank.md#fetchtradingfees)
@@ -6425,6 +6334,7 @@ fetch the trading fees for multiple markets
 * [cryptomus](/exchanges/cryptomus.md#fetchtradingfees)
 * [deribit](/exchanges/deribit.md#fetchtradingfees)
 * [exmo](/exchanges/exmo.md#fetchtradingfees)
+* [extended](/exchanges/extended.md#fetchtradingfees)
 * [foxbit](/exchanges/foxbit.md#fetchtradingfees)
 * [gate](/exchanges/gate.md#fetchtradingfees)
 * [gemini](/exchanges/gemini.md#fetchtradingfees)
@@ -6436,14 +6346,14 @@ fetch the trading fees for multiple markets
 * [lbank](/exchanges/lbank.md#fetchtradingfees)
 * [modetrade](/exchanges/modetrade.md#fetchtradingfees)
 * [onetrading](/exchanges/onetrading.md#fetchtradingfees)
+* [paradex](/exchanges/paradex.md#fetchtradingfees)
 * [poloniex](/exchanges/poloniex.md#fetchtradingfees)
 * [toobit](/exchanges/toobit.md#fetchtradingfees)
 * [upbit](/exchanges/upbit.md#fetchtradingfees)
 * [whitebit](/exchanges/whitebit.md#fetchtradingfees)
 * [woo](/exchanges/woo.md#fetchtradingfees)
 * [woofipro](/exchanges/woofipro.md#fetchtradingfees)
-* [yobit](/exchanges/yobit.md#fetchtradingfees)
-* [zebpay(futures)](/exchanges/zebpay(futures).md#fetchtradingfees)
+* [zebpay](/exchanges/zebpay.md#fetchtradingfees)
 
 ---
 
@@ -6535,20 +6445,22 @@ please use fetchDepositWithdrawFees instead
 <a name="fetchTransactions" id="fetchtransactions"></a>
 
 ## fetchTransactions
-Fetch all transactions (deposits and withdrawals) made from an account.
+fetch history of deposits, withdrawals, and transfers
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+**Returns**: <code>Array&lt;Transaction&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | code | <code>string</code> | No | unified currency code |
-| since | <code>int</code> | No | the earliest time in ms to fetch withdrawals for |
-| limit | <code>int</code> | No | the maximum number of withdrawal structures to retrieve |
+| since | <code>int</code> | No | the earliest time in ms to fetch transactions for |
+| limit | <code>int</code> | No | the maximum number of transaction structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 ##### Supported exchanges
+* [extended](/exchanges/extended.md#fetchtransactions)
 * [foxbit](/exchanges/foxbit.md#fetchtransactions)
 * [latoken](/exchanges/latoken.md#fetchtransactions)
 * [whitebit](/exchanges/whitebit.md#fetchtransactions)
@@ -6567,10 +6479,11 @@ fetches a transfer
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | id | <code>string</code> | Yes | transfer id |
-| code | <code>string</code> | No | not used by mexc fetchTransfer |
-| params | <code>object</code> | Yes | extra parameters specific to the exchange api endpoint |
+| code | <code>string</code> | No | unified currency code of the currency transferred |
+| params | <code>object</code> | No | extra parameters specific to the bitvavo api endpoint |
 
 ##### Supported exchanges
+* [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
 
 ---
@@ -6600,6 +6513,7 @@ fetch a history of internal transfers made on an account
 * [bitget](/exchanges/bitget.md#fetchtransfers)
 * [bitmart](/exchanges/bitmart.md#fetchtransfers)
 * [bitrue](/exchanges/bitrue.md#fetchtransfers)
+* [bitvavo](/exchanges/bitvavo.md#fetchtransfers)
 * [bullish](/exchanges/bullish.md#fetchtransfers)
 * [bybit](/exchanges/bybit.md#fetchtransfers)
 * [bydfi](/exchanges/bydfi.md#fetchtransfers)
@@ -6608,13 +6522,14 @@ fetch a history of internal transfers made on an account
 * [deribit](/exchanges/deribit.md#fetchtransfers)
 * [digifinex](/exchanges/digifinex.md#fetchtransfers)
 * [dydx](/exchanges/dydx.md#fetchtransfers)
+* [extended](/exchanges/extended.md#fetchtransfers)
 * [grvt](/exchanges/grvt.md#fetchtransfers)
+* [htx](/exchanges/htx.md#fetchtransfers)
 * [kucoin](/exchanges/kucoin.md#fetchtransfers)
 * [latoken](/exchanges/latoken.md#fetchtransfers)
 * [lighter](/exchanges/lighter.md#fetchtransfers)
 * [mexc](/exchanges/mexc.md#fetchtransfers)
 * [okx](/exchanges/okx.md#fetchtransfers)
-* [oxfun](/exchanges/oxfun.md#fetchtransfers)
 * [paradex](/exchanges/paradex.md#fetchtransfers)
 * [phemex](/exchanges/phemex.md#fetchtransfers)
 * [weex](/exchanges/weex.md#fetchtransfers)
@@ -6777,7 +6692,6 @@ fetch all withdrawals made from an account
 
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#fetchwithdrawals)
-* [ascendex](/exchanges/ascendex.md#fetchwithdrawals)
 * [backpack](/exchanges/backpack.md#fetchwithdrawals)
 * [bigone](/exchanges/bigone.md#fetchwithdrawals)
 * [binance](/exchanges/binance.md#fetchwithdrawals)
@@ -6809,9 +6723,10 @@ fetch all withdrawals made from an account
 * [digifinex](/exchanges/digifinex.md#fetchwithdrawals)
 * [dydx](/exchanges/dydx.md#fetchwithdrawals)
 * [exmo](/exchanges/exmo.md#fetchwithdrawals)
+* [extended](/exchanges/extended.md#fetchwithdrawals)
 * [foxbit](/exchanges/foxbit.md#fetchwithdrawals)
 * [gate](/exchanges/gate.md#fetchwithdrawals)
-* [grvrt](/exchanges/grvrt.md#fetchwithdrawals)
+* [grvt](/exchanges/grvt.md#fetchwithdrawals)
 * [hashkey](/exchanges/hashkey.md#fetchwithdrawals)
 * [hibachi](/exchanges/hibachi.md#fetchwithdrawals)
 * [hitbtc](/exchanges/hitbtc.md#fetchwithdrawals)
@@ -6825,9 +6740,7 @@ fetch all withdrawals made from an account
 * [mexc](/exchanges/mexc.md#fetchwithdrawals)
 * [modetrade](/exchanges/modetrade.md#fetchwithdrawals)
 * [ndax](/exchanges/ndax.md#fetchwithdrawals)
-* [novadax](/exchanges/novadax.md#fetchwithdrawals)
 * [okx](/exchanges/okx.md#fetchwithdrawals)
-* [oxfun](/exchanges/oxfun.md#fetchwithdrawals)
 * [paradex](/exchanges/paradex.md#fetchwithdrawals)
 * [phemex](/exchanges/phemex.md#fetchwithdrawals)
 * [poloniex](/exchanges/poloniex.md#fetchwithdrawals)
@@ -6968,9 +6881,9 @@ if the required credentials are available in options, it will pre-load the light
 **Returns**: <code>boolean</code> - true if the signer was loaded, false otherwise
 
 
-| Param |
-| --- |
-| params | 
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
 * [lighter](/exchanges/lighter.md#preloadlighterlibrary)
@@ -7008,13 +6921,10 @@ remove margin from a position
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to remove |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#reducemargin)
-* [ascendex](/exchanges/ascendex.md#reducemargin)
 * [aster](/exchanges/aster.md#reducemargin)
 * [binance](/exchanges/binance.md#reducemargin)
 * [bitget](/exchanges/bitget.md#reducemargin)
@@ -7023,16 +6933,18 @@ remove margin from a position
 * [digifinex](/exchanges/digifinex.md#reducemargin)
 * [exmo](/exchanges/exmo.md#reducemargin)
 * [gate](/exchanges/gate.md#reducemargin)
+* [hashkey](/exchanges/hashkey.md#reducemargin)
 * [hitbtc](/exchanges/hitbtc.md#reducemargin)
 * [hyperliquid](/exchanges/hyperliquid.md#reducemargin)
 * [lighter](/exchanges/lighter.md#reducemargin)
 * [mexc](/exchanges/mexc.md#reducemargin)
+* [mudrex](/exchanges/mudrex.md#reducemargin)
 * [okx](/exchanges/okx.md#reducemargin)
 * [poloniex](/exchanges/poloniex.md#reducemargin)
 * [weex](/exchanges/weex.md#reducemargin)
 * [woo](/exchanges/woo.md#reducemargin)
 * [xt](/exchanges/xt.md#reducemargin)
-* [zebpayfutures](/exchanges/zebpayfutures.md#reducemargin)
+* [zebpay](/exchanges/zebpay.md#reducemargin)
 
 ---
 
@@ -7186,13 +7098,9 @@ set the level of leverage for a market
 | leverage | <code>float</code> | Yes | the rate of leverage |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#setleverage)
 * [apex](/exchanges/apex.md#setleverage)
-* [arkham](/exchanges/arkham.md#setleverage)
-* [ascendex](/exchanges/ascendex.md#setleverage)
 * [aster](/exchanges/aster.md#setleverage)
 * [binance](/exchanges/binance.md#setleverage)
 * [bingx](/exchanges/bingx.md#setleverage)
@@ -7207,6 +7115,7 @@ set the level of leverage for a market
 * [deepcoin](/exchanges/deepcoin.md#setleverage)
 * [delta](/exchanges/delta.md#setleverage)
 * [digifinex](/exchanges/digifinex.md#setleverage)
+* [extended](/exchanges/extended.md#setleverage)
 * [gate](/exchanges/gate.md#setleverage)
 * [grvt](/exchanges/grvt.md#setleverage)
 * [hashkey](/exchanges/hashkey.md#setleverage)
@@ -7218,6 +7127,7 @@ set the level of leverage for a market
 * [lighter](/exchanges/lighter.md#setleverage)
 * [mexc](/exchanges/mexc.md#setleverage)
 * [modetrade](/exchanges/modetrade.md#setleverage)
+* [mudrex](/exchanges/mudrex.md#setleverage)
 * [okx](/exchanges/okx.md#setleverage)
 * [pacifica](/exchanges/pacifica.md#setleverage)
 * [paradex](/exchanges/paradex.md#setleverage)
@@ -7274,7 +7184,6 @@ set margin mode to 'cross' or 'isolated'
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [ascendex](/exchanges/ascendex.md#setmarginmode)
 * [aster](/exchanges/aster.md#setmarginmode)
 * [binance](/exchanges/binance.md#setmarginmode)
 * [bingx](/exchanges/bingx.md#setmarginmode)
@@ -7284,7 +7193,9 @@ set margin mode to 'cross' or 'isolated'
 * [bybit](/exchanges/bybit.md#setmarginmode)
 * [bydfi](/exchanges/bydfi.md#setmarginmode)
 * [coinex](/exchanges/coinex.md#setmarginmode)
+* [delta](/exchanges/delta.md#setmarginmode)
 * [digifinex](/exchanges/digifinex.md#setmarginmode)
+* [hashkey](/exchanges/hashkey.md#setmarginmode)
 * [hyperliquid](/exchanges/hyperliquid.md#setmarginmode)
 * [kucoin](/exchanges/kucoin.md#setmarginmode)
 * [lighter](/exchanges/lighter.md#setmarginmode)
@@ -7390,25 +7301,6 @@ sign in, must be called prior to using other authenticated methods
 * [bullish](/exchanges/bullish.md#signin)
 * [grvt](/exchanges/grvt.md#signin)
 * [ndax](/exchanges/ndax.md#signin)
-* [wavesexchange](/exchanges/wavesexchange.md#signin)
-
----
-
-<a name="signTxEd25519" id="signtxed25519"></a>
-
-## signTxEd25519
-Helper to sign some transaction bytes and return a generic transaction execution request.
-
-**Kind**: instance   
-**Returns**: <code>object</code> - the input transaction bytes and the signed digest
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| tx | <code>object</code> | No | transaction bytes and the signing digest for them |
-
-##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#signtxed25519)
 
 ---
 
@@ -7428,11 +7320,10 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferId | <code>string</code> | No | UUID, which is unique across the platform |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#transfer)
 * [apex](/exchanges/apex.md#transfer)
-* [ascendex](/exchanges/ascendex.md#transfer)
 * [aster](/exchanges/aster.md#transfer)
 * [bigone](/exchanges/bigone.md#transfer)
 * [binance](/exchanges/binance.md#transfer)
@@ -7442,6 +7333,7 @@ transfer currency internally between wallets on the same account
 * [bitmart](/exchanges/bitmart.md#transfer)
 * [bitrue](/exchanges/bitrue.md#transfer)
 * [bitstamp](/exchanges/bitstamp.md#transfer)
+* [bitvavo](/exchanges/bitvavo.md#transfer)
 * [blofin](/exchanges/blofin.md#transfer)
 * [bullish](/exchanges/bullish.md#transfer)
 * [bybit](/exchanges/bybit.md#transfer)
@@ -7453,6 +7345,7 @@ transfer currency internally between wallets on the same account
 * [deribit](/exchanges/deribit.md#transfer)
 * [digifinex](/exchanges/digifinex.md#transfer)
 * [dydx](/exchanges/dydx.md#transfer)
+* [extended](/exchanges/extended.md#transfer)
 * [gate](/exchanges/gate.md#transfer)
 * [grvt](/exchanges/grvt.md#transfer)
 * [hashkey](/exchanges/hashkey.md#transfer)
@@ -7466,9 +7359,8 @@ transfer currency internally between wallets on the same account
 * [latoken](/exchanges/latoken.md#transfer)
 * [lighter](/exchanges/lighter.md#transfer)
 * [mexc](/exchanges/mexc.md#transfer)
-* [novadax](/exchanges/novadax.md#transfer)
+* [mudrex](/exchanges/mudrex.md#transfer)
 * [okx](/exchanges/okx.md#transfer)
-* [oxfun](/exchanges/oxfun.md#transfer)
 * [pacifica](/exchanges/pacifica.md#transfer)
 * [paymium](/exchanges/paymium.md#transfer)
 * [phemex](/exchanges/phemex.md#transfer)
@@ -7477,7 +7369,6 @@ transfer currency internally between wallets on the same account
 * [whitebit](/exchanges/whitebit.md#transfer)
 * [woo](/exchanges/woo.md#transfer)
 * [xt](/exchanges/xt.md#transfer)
-* [zonda](/exchanges/zonda.md#transfer)
 
 ---
 
@@ -7608,6 +7499,7 @@ unWatches the current funding rate for a symbol
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
+* [kucoin](/exchanges/kucoin.md#unwatchfundingrate)
 * [mexc](/exchanges/mexc.md#unwatchfundingrate)
 
 ---
@@ -7630,6 +7522,7 @@ unWatches a mark price for a specific market
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#unwatchmarkprice)
 * [binance](/exchanges/binance.md#unwatchmarkprice)
+* [kucoin](/exchanges/kucoin.md#unwatchmarkprice)
 * [lighter](/exchanges/lighter.md#unwatchmarkprice)
 
 ---
@@ -7751,7 +7644,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 unsubscribe from the orderbook channel
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -7792,7 +7685,7 @@ unsubscribe from the orderbook channel
 unsubscribe from the orderbook channel
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8039,7 +7932,7 @@ verify gift code
 <a name="watchBalance" id="watchbalance"></a>
 
 ## watchBalance
-watch balance and get the amount of funds available for trading or funds locked in orders
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
@@ -8048,11 +7941,9 @@ watch balance and get the amount of funds available for trading or funds locked 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.type | <code>str</code> | No | spot or contract if not provided this.options['defaultType'] is used |
+| params.type | <code>string</code> | No | 'spot' or 'swap', default is 'spot' |
 
 ##### Supported exchanges
-* [arkham](/exchanges/arkham.md#watchbalance)
-* [ascendex](/exchanges/ascendex.md#watchbalance)
 * [aster](/exchanges/aster.md#watchbalance)
 * [binance](/exchanges/binance.md#watchbalance)
 * [bingx](/exchanges/bingx.md#watchbalance)
@@ -8073,6 +7964,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 * [cryptocom](/exchanges/cryptocom.md#watchbalance)
 * [deribit](/exchanges/deribit.md#watchbalance)
 * [exmo](/exchanges/exmo.md#watchbalance)
+* [extended](/exchanges/extended.md#watchbalance)
 * [gate](/exchanges/gate.md#watchbalance)
 * [hashkey](/exchanges/hashkey.md#watchbalance)
 * [hollaex](/exchanges/hollaex.md#watchbalance)
@@ -8085,7 +7977,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 * [modetrade](/exchanges/modetrade.md#watchbalance)
 * [okx](/exchanges/okx.md#watchbalance)
 * [onetrading](/exchanges/onetrading.md#watchbalance)
-* [oxfun](/exchanges/oxfun.md#watchbalance)
 * [phemex](/exchanges/phemex.md#watchbalance)
 * [toobit](/exchanges/toobit.md#watchbalance)
 * [upbit](/exchanges/upbit.md#watchbalance)
@@ -8128,7 +8019,6 @@ watches best bid & ask for symbols
 * [mexc](/exchanges/mexc.md#watchbidsasks)
 * [modetrade](/exchanges/modetrade.md#watchbidsasks)
 * [okx](/exchanges/okx.md#watchbidsasks)
-* [oxfun](/exchanges/oxfun.md#watchbidsasks)
 * [weex](/exchanges/weex.md#watchbidsasks)
 * [woo](/exchanges/woo.md#watchbidsasks)
 * [woofipro](/exchanges/woofipro.md#watchbidsasks)
@@ -8152,6 +8042,8 @@ watch the current funding rate
 ##### Supported exchanges
 * [bitmart](/exchanges/bitmart.md#watchfundingrate)
 * [blofin](/exchanges/blofin.md#watchfundingrate)
+* [extended](/exchanges/extended.md#watchfundingrate)
+* [kucoin](/exchanges/kucoin.md#watchfundingrate)
 * [mexc](/exchanges/mexc.md#watchfundingrate)
 * [okx](/exchanges/okx.md#watchfundingrate)
 * [woo](/exchanges/woo.md#watchfundingrate)
@@ -8243,6 +8135,8 @@ watches a mark price for a specific market
 ##### Supported exchanges
 * [aster](/exchanges/aster.md#watchmarkprice)
 * [binance](/exchanges/binance.md#watchmarkprice)
+* [extended](/exchanges/extended.md#watchmarkprice)
+* [kucoin](/exchanges/kucoin.md#watchmarkprice)
 * [lighter](/exchanges/lighter.md#watchmarkprice)
 * [okx](/exchanges/okx.md#watchmarkprice)
 
@@ -8354,6 +8248,7 @@ watches information on multiple trades made by the user
 * [deribit](/exchanges/deribit.md#watchmytrades)
 * [derive](/exchanges/derive.md#watchmytrades)
 * [exmo](/exchanges/exmo.md#watchmytrades)
+* [extended](/exchanges/extended.md#watchmytrades)
 * [gate](/exchanges/gate.md#watchmytrades)
 * [grvt](/exchanges/grvt.md#watchmytrades)
 * [hashkey](/exchanges/hashkey.md#watchmytrades)
@@ -8418,8 +8313,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchohlcv)
 * [apex](/exchanges/apex.md#watchohlcv)
-* [arkham](/exchanges/arkham.md#watchohlcv)
-* [ascendex](/exchanges/ascendex.md#watchohlcv)
 * [aster](/exchanges/aster.md#watchohlcv)
 * [backpack](/exchanges/backpack.md#watchohlcv)
 * [binance](/exchanges/binance.md#watchohlcv)
@@ -8428,6 +8321,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [bitget](/exchanges/bitget.md#watchohlcv)
 * [bitmart](/exchanges/bitmart.md#watchohlcv)
 * [bitmex](/exchanges/bitmex.md#watchohlcv)
+* [bitrue](/exchanges/bitrue.md#watchohlcv)
 * [bittrade](/exchanges/bittrade.md#watchohlcv)
 * [bitvavo](/exchanges/bitvavo.md#watchohlcv)
 * [blockchaincom](/exchanges/blockchaincom.md#watchohlcv)
@@ -8439,6 +8333,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [deepcoin](/exchanges/deepcoin.md#watchohlcv)
 * [deribit](/exchanges/deribit.md#watchohlcv)
 * [dydx](/exchanges/dydx.md#watchohlcv)
+* [extended](/exchanges/extended.md#watchohlcv)
 * [gate](/exchanges/gate.md#watchohlcv)
 * [gemini](/exchanges/gemini.md#watchohlcv)
 * [grvt](/exchanges/grvt.md#watchohlcv)
@@ -8452,7 +8347,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [ndax](/exchanges/ndax.md#watchohlcv)
 * [okx](/exchanges/okx.md#watchohlcv)
 * [onetrading](/exchanges/onetrading.md#watchohlcv)
-* [oxfun](/exchanges/oxfun.md#watchohlcv)
 * [pacifica](/exchanges/pacifica.md#watchohlcv)
 * [phemex](/exchanges/phemex.md#watchohlcv)
 * [toobit](/exchanges/toobit.md#watchohlcv)
@@ -8491,7 +8385,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 * [deribit](/exchanges/deribit.md#watchohlcvforsymbols)
 * [grvt](/exchanges/grvt.md#watchohlcvforsymbols)
 * [okx](/exchanges/okx.md#watchohlcvforsymbols)
-* [oxfun](/exchanges/oxfun.md#watchohlcvforsymbols)
 * [toobit](/exchanges/toobit.md#watchohlcvforsymbols)
 * [weex](/exchanges/weex.md#watchohlcvforsymbols)
 
@@ -8503,7 +8396,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8515,8 +8408,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchorderbook)
 * [apex](/exchanges/apex.md#watchorderbook)
-* [arkham](/exchanges/arkham.md#watchorderbook)
-* [ascendex](/exchanges/ascendex.md#watchorderbook)
 * [aster](/exchanges/aster.md#watchorderbook)
 * [backpack](/exchanges/backpack.md#watchorderbook)
 * [binance](/exchanges/binance.md#watchorderbook)
@@ -8546,6 +8437,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [derive](/exchanges/derive.md#watchorderbook)
 * [dydx](/exchanges/dydx.md#watchorderbook)
 * [exmo](/exchanges/exmo.md#watchorderbook)
+* [extended](/exchanges/extended.md#watchorderbook)
 * [gate](/exchanges/gate.md#watchorderbook)
 * [gemini](/exchanges/gemini.md#watchorderbook)
 * [grvt](/exchanges/grvt.md#watchorderbook)
@@ -8563,7 +8455,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [ndax](/exchanges/ndax.md#watchorderbook)
 * [okx](/exchanges/okx.md#watchorderbook)
 * [onetrading](/exchanges/onetrading.md#watchorderbook)
-* [oxfun](/exchanges/oxfun.md#watchorderbook)
 * [pacifica](/exchanges/pacifica.md#watchorderbook)
 * [phemex](/exchanges/phemex.md#watchorderbook)
 * [toobit](/exchanges/toobit.md#watchorderbook)
@@ -8581,7 +8472,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -8609,7 +8500,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 * [grvt](/exchanges/grvt.md#watchorderbookforsymbols)
 * [kucoin](/exchanges/kucoin.md#watchorderbookforsymbols)
 * [okx](/exchanges/okx.md#watchorderbookforsymbols)
-* [oxfun](/exchanges/oxfun.md#watchorderbookforsymbols)
 * [toobit](/exchanges/toobit.md#watchorderbookforsymbols)
 * [weex](/exchanges/weex.md#watchorderbookforsymbols)
 
@@ -8634,8 +8524,6 @@ watches information on multiple orders made by the user
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchorders)
 * [apex](/exchanges/apex.md#watchorders)
-* [arkham](/exchanges/arkham.md#watchorders)
-* [ascendex](/exchanges/ascendex.md#watchorders)
 * [aster](/exchanges/aster.md#watchorders)
 * [backpack](/exchanges/backpack.md#watchorders)
 * [binance](/exchanges/binance.md#watchorders)
@@ -8660,6 +8548,7 @@ watches information on multiple orders made by the user
 * [deribit](/exchanges/deribit.md#watchorders)
 * [derive](/exchanges/derive.md#watchorders)
 * [exmo](/exchanges/exmo.md#watchorders)
+* [extended](/exchanges/extended.md#watchorders)
 * [gate](/exchanges/gate.md#watchorders)
 * [grvt](/exchanges/grvt.md#watchorders)
 * [hashkey](/exchanges/hashkey.md#watchorders)
@@ -8672,7 +8561,6 @@ watches information on multiple orders made by the user
 * [modetrade](/exchanges/modetrade.md#watchorders)
 * [okx](/exchanges/okx.md#watchorders)
 * [onetrading](/exchanges/onetrading.md#watchorders)
-* [oxfun](/exchanges/oxfun.md#watchorders)
 * [pacifica](/exchanges/pacifica.md#watchorders)
 * [phemex](/exchanges/phemex.md#watchorders)
 * [toobit](/exchanges/toobit.md#watchorders)
@@ -8745,7 +8633,6 @@ watch all open positions
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#watchpositions)
-* [arkham](/exchanges/arkham.md#watchpositions)
 * [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
 * [binance](/exchanges/binance.md#watchpositions)
@@ -8759,6 +8646,7 @@ watch all open positions
 * [bydfi](/exchanges/bydfi.md#watchpositions)
 * [cryptocom](/exchanges/cryptocom.md#watchpositions)
 * [deepcoin](/exchanges/deepcoin.md#watchpositions)
+* [extended](/exchanges/extended.md#watchpositions)
 * [gate](/exchanges/gate.md#watchpositions)
 * [grvt](/exchanges/grvt.md#watchpositions)
 * [hashkey](/exchanges/hashkey.md#watchpositions)
@@ -8767,7 +8655,6 @@ watch all open positions
 * [kucoin](/exchanges/kucoin.md#watchpositions)
 * [modetrade](/exchanges/modetrade.md#watchpositions)
 * [okx](/exchanges/okx.md#watchpositions)
-* [oxfun](/exchanges/oxfun.md#watchpositions)
 * [toobit](/exchanges/toobit.md#watchpositions)
 * [weex](/exchanges/weex.md#watchpositions)
 * [woo](/exchanges/woo.md#watchpositions)
@@ -8792,7 +8679,6 @@ watches a price ticker, a statistical calculation with the information calculate
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchticker)
 * [apex](/exchanges/apex.md#watchticker)
-* [arkham](/exchanges/arkham.md#watchticker)
 * [aster](/exchanges/aster.md#watchticker)
 * [backpack](/exchanges/backpack.md#watchticker)
 * [binance](/exchanges/binance.md#watchticker)
@@ -8803,6 +8689,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [bitmart](/exchanges/bitmart.md#watchticker)
 * [bitmex](/exchanges/bitmex.md#watchticker)
 * [bitopro](/exchanges/bitopro.md#watchticker)
+* [bitrue](/exchanges/bitrue.md#watchticker)
 * [bittrade](/exchanges/bittrade.md#watchticker)
 * [bitvavo](/exchanges/bitvavo.md#watchticker)
 * [blockchaincom](/exchanges/blockchaincom.md#watchticker)
@@ -8821,7 +8708,7 @@ watches a price ticker, a statistical calculation with the information calculate
 * [exmo](/exchanges/exmo.md#watchticker)
 * [gate](/exchanges/gate.md#watchticker)
 * [grvt](/exchanges/grvt.md#watchticker)
-* [hahskey](/exchanges/hahskey.md#watchticker)
+* [hashkey](/exchanges/hashkey.md#watchticker)
 * [htx](/exchanges/htx.md#watchticker)
 * [hyperliquid](/exchanges/hyperliquid.md#watchticker)
 * [kucoin](/exchanges/kucoin.md#watchticker)
@@ -8832,7 +8719,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [ndax](/exchanges/ndax.md#watchticker)
 * [okx](/exchanges/okx.md#watchticker)
 * [onetrading](/exchanges/onetrading.md#watchticker)
-* [oxfun](/exchanges/oxfun.md#watchticker)
 * [pacifica](/exchanges/pacifica.md#watchticker)
 * [phemex](/exchanges/phemex.md#watchticker)
 * [toobit](/exchanges/toobit.md#watchticker)
@@ -8886,7 +8772,6 @@ watches a price ticker, a statistical calculation with the information calculate
 * [modetrade](/exchanges/modetrade.md#watchtickers)
 * [okx](/exchanges/okx.md#watchtickers)
 * [onetrading](/exchanges/onetrading.md#watchtickers)
-* [oxfun](/exchanges/oxfun.md#watchtickers)
 * [pacifica](/exchanges/pacifica.md#watchtickers)
 * [phemex](/exchanges/phemex.md#watchtickers)
 * [toobit](/exchanges/toobit.md#watchtickers)
@@ -8917,8 +8802,6 @@ watches information on multiple trades made in a market
 ##### Supported exchanges
 * [alpaca](/exchanges/alpaca.md#watchtrades)
 * [apex](/exchanges/apex.md#watchtrades)
-* [arkham](/exchanges/arkham.md#watchtrades)
-* [ascendex](/exchanges/ascendex.md#watchtrades)
 * [aster](/exchanges/aster.md#watchtrades)
 * [backpack](/exchanges/backpack.md#watchtrades)
 * [binance](/exchanges/binance.md#watchtrades)
@@ -8929,6 +8812,7 @@ watches information on multiple trades made in a market
 * [bitmart](/exchanges/bitmart.md#watchtrades)
 * [bitmex](/exchanges/bitmex.md#watchtrades)
 * [bitopro](/exchanges/bitopro.md#watchtrades)
+* [bitrue](/exchanges/bitrue.md#watchtrades)
 * [bitstamp](/exchanges/bitstamp.md#watchtrades)
 * [bittrade](/exchanges/bittrade.md#watchtrades)
 * [bitvavo](/exchanges/bitvavo.md#watchtrades)
@@ -8947,6 +8831,7 @@ watches information on multiple trades made in a market
 * [derive](/exchanges/derive.md#watchtrades)
 * [dydx](/exchanges/dydx.md#watchtrades)
 * [exmo](/exchanges/exmo.md#watchtrades)
+* [extended](/exchanges/extended.md#watchtrades)
 * [gate](/exchanges/gate.md#watchtrades)
 * [gemini](/exchanges/gemini.md#watchtrades)
 * [grvt](/exchanges/grvt.md#watchtrades)
@@ -8963,7 +8848,6 @@ watches information on multiple trades made in a market
 * [modetrade](/exchanges/modetrade.md#watchtrades)
 * [ndax](/exchanges/ndax.md#watchtrades)
 * [okx](/exchanges/okx.md#watchtrades)
-* [oxfun](/exchanges/oxfun.md#watchtrades)
 * [pacifica](/exchanges/pacifica.md#watchtrades)
 * [phemex](/exchanges/phemex.md#watchtrades)
 * [toobit](/exchanges/toobit.md#watchtrades)
@@ -8993,7 +8877,6 @@ get the list of most recent trades for a list of symbols
 
 ##### Supported exchanges
 * [apex](/exchanges/apex.md#watchtradesforsymbols)
-* [ascendex](/exchanges/ascendex.md#watchtradesforsymbols)
 * [aster](/exchanges/aster.md#watchtradesforsymbols)
 * [backpack](/exchanges/backpack.md#watchtradesforsymbols)
 * [binance](/exchanges/binance.md#watchtradesforsymbols)
@@ -9002,7 +8885,7 @@ get the list of most recent trades for a list of symbols
 * [bitmex](/exchanges/bitmex.md#watchtradesforsymbols)
 * [blofin](/exchanges/blofin.md#watchtradesforsymbols)
 * [bybit](/exchanges/bybit.md#watchtradesforsymbols)
-* [coinbase](/exchanges/coinbase.md#watchtradesforsymbols)
+* [coinbaseexchange](/exchanges/coinbaseexchange.md#watchtradesforsymbols)
 * [coinex](/exchanges/coinex.md#watchtradesforsymbols)
 * [cryptocom](/exchanges/cryptocom.md#watchtradesforsymbols)
 * [deribit](/exchanges/deribit.md#watchtradesforsymbols)
@@ -9011,7 +8894,6 @@ get the list of most recent trades for a list of symbols
 * [grvt](/exchanges/grvt.md#watchtradesforsymbols)
 * [kucoin](/exchanges/kucoin.md#watchtradesforsymbols)
 * [okx](/exchanges/okx.md#watchtradesforsymbols)
-* [oxfun](/exchanges/oxfun.md#watchtradesforsymbols)
 * [toobit](/exchanges/toobit.md#watchtradesforsymbols)
 * [upbit](/exchanges/upbit.md#watchtradesforsymbols)
 * [weex](/exchanges/weex.md#watchtradesforsymbols)
@@ -9032,14 +8914,11 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
+| tag | <code>string</code> | Yes | a memo for the transaction |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#withdraw)
 * [alpaca](/exchanges/alpaca.md#withdraw)
-* [arkkm](/exchanges/arkkm.md#withdraw)
 * [aster](/exchanges/aster.md#withdraw)
 * [backpack](/exchanges/backpack.md#withdraw)
 * [bigone](/exchanges/bigone.md#withdraw)
@@ -9073,6 +8952,7 @@ make a withdrawal
 * [digifinex](/exchanges/digifinex.md#withdraw)
 * [dydx](/exchanges/dydx.md#withdraw)
 * [exmo](/exchanges/exmo.md#withdraw)
+* [extended](/exchanges/extended.md#withdraw)
 * [foxbit](/exchanges/foxbit.md#withdraw)
 * [gate](/exchanges/gate.md#withdraw)
 * [gemini](/exchanges/gemini.md#withdraw)
@@ -9093,23 +8973,18 @@ make a withdrawal
 * [mexc](/exchanges/mexc.md#withdraw)
 * [modetrade](/exchanges/modetrade.md#withdraw)
 * [ndax](/exchanges/ndax.md#withdraw)
-* [novadax](/exchanges/novadax.md#withdraw)
 * [okx](/exchanges/okx.md#withdraw)
-* [oxfun](/exchanges/oxfun.md#withdraw)
 * [pacifica](/exchanges/pacifica.md#withdraw)
 * [phemex](/exchanges/phemex.md#withdraw)
 * [poloniex](/exchanges/poloniex.md#withdraw)
 * [tokocrypto](/exchanges/tokocrypto.md#withdraw)
 * [toobit](/exchanges/toobit.md#withdraw)
 * [upbit](/exchanges/upbit.md#withdraw)
-* [wavesexchange](/exchanges/wavesexchange.md#withdraw)
 * [whitebit](/exchanges/whitebit.md#withdraw)
 * [woo](/exchanges/woo.md#withdraw)
 * [woofipro](/exchanges/woofipro.md#withdraw)
 * [xt](/exchanges/xt.md#withdraw)
-* [yobit](/exchanges/yobit.md#withdraw)
 * [zaif](/exchanges/zaif.md#withdraw)
-* [zonda](/exchanges/zonda.md#withdraw)
 
 ---
 

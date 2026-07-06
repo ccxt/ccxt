@@ -131,6 +131,7 @@ interface Exchange {
     contractPrivateGetPositionFundingRecords(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetPositionPositionMode(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderListOpenOrdersSymbol(params?: {}): Promise<implicitReturnType>;
+    contractPrivateGetOrderListOpenOrders(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderListHistoryOrders(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderListOrderDealsV3(params?: {}): Promise<implicitReturnType>;
     contractPrivateGetOrderExternalSymbolExternalOid(params?: {}): Promise<implicitReturnType>;

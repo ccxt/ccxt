@@ -217,7 +217,7 @@ func (this *Hyperliquid) CancelOrderWs(id string, options ...ccxt.CancelOrderWsO
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hyperliquid) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -249,7 +249,7 @@ func (this *Hyperliquid) WatchOrderBook(symbol string, options ...ccxt.WatchOrde
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
 
@@ -276,7 +276,6 @@ func (this *Hyperliquid) UnWatchOrderBook(symbol string, options ...ccxt.UnWatch
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hyperliquid) WatchTicker(symbol string, options ...ccxt.WatchTickerOptions) (ccxt.Ticker, error) {
@@ -304,8 +303,7 @@ func (this *Hyperliquid) WatchTicker(symbol string, options ...ccxt.WatchTickerO
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
- * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
+ * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hyperliquid) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt.Tickers, error) {
@@ -338,7 +336,6 @@ func (this *Hyperliquid) WatchTickers(options ...ccxt.WatchTickersOptions) (ccxt
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.channel] 'webData2' or 'allMids', default is 'webData2'
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Hyperliquid) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, error) {
@@ -592,7 +589,7 @@ func (this *Hyperliquid) UnWatchOHLCV(symbol string, options ...ccxt.UnWatchOHLC
  * @description watch balance and get the amount of funds available for trading or funds locked in orders
  * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.dex] for for hip3 tokens subscription, eg: 'xyz' or 'flx'
+ * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
 func (this *Hyperliquid) WatchBalance(params ...any) (ccxt.Balances, error) {
@@ -626,6 +623,7 @@ func (this *Hyperliquid) UnWatchBalance(params ...any) (any, error) {
  * @param {int} [since] the earliest time in ms to fetch positions for
  * @param {int} [limit] the maximum number of positions to retrieve
  * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {string} [params.dex] for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func (this *Hyperliquid) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {

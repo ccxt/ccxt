@@ -712,94 +712,93 @@ public partial class coinex : Exchange
         //     }
         //
         object data = this.safeList(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        return this.parseCurrencies(data);
+    }
+
+    public override object parseCurrency(object coin)
+    {
+        object asset = this.safeDict(coin, "asset", new Dictionary<string, object>() {});
+        object chains = this.safeList(coin, "chains", new List<object>() {});
+        object currencyId = this.safeString(asset, "ccy");
+        if (isTrue(isEqual(currencyId, null)))
         {
-            object coin = getValue(data, i);
-            object asset = this.safeDict(coin, "asset", new Dictionary<string, object>() {});
-            object chains = this.safeList(coin, "chains", new List<object>() {});
-            object currencyId = this.safeString(asset, "ccy");
-            if (isTrue(isEqual(currencyId, null)))
+            return null;  // coinex returns empty structures for some reason
+        }
+        object code = this.safeCurrencyCode(currencyId);
+        object canDeposit = this.safeBool(asset, "deposit_enabled");
+        object canWithdraw = this.safeBool(asset, "withdraw_enabled");
+        object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
+        object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
+        object networks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        {
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "chain");
+            object networkCode = this.networkIdToCode(networkId, code);
+            if (isTrue(isEqual(networkId, null)))
             {
                 continue;
             }
-            object code = this.safeCurrencyCode(currencyId);
-            object canDeposit = this.safeBool(asset, "deposit_enabled");
-            object canWithdraw = this.safeBool(asset, "withdraw_enabled");
-            object firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
-            object firstPrecisionString = this.parsePrecision(this.safeString(firstChain, "withdrawal_precision"));
-            object networks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "chain");
-                object networkCode = this.networkIdToCode(networkId, code);
-                if (isTrue(isEqual(networkId, null)))
-                {
-                    continue;
-                }
-                object precisionString = this.parsePrecision(this.safeString(chain, "withdrawal_precision"));
-                object feeString = this.safeString(chain, "withdrawal_fee");
-                object minNetworkDepositString = this.safeString(chain, "min_deposit_amount");
-                object minNetworkWithdrawString = this.safeString(chain, "min_withdraw_amount");
-                object canDepositChain = this.safeBool(chain, "deposit_enabled");
-                object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
-                object network = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "name", null },
-                    { "active", isTrue(canDepositChain) && isTrue(canWithdrawChain) },
-                    { "deposit", canDepositChain },
-                    { "withdraw", canWithdrawChain },
-                    { "fee", this.parseNumber(feeString) },
-                    { "precision", this.parseNumber(precisionString) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkDepositString) },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minNetworkWithdrawString) },
-                            { "max", null },
-                        } },
-                    } },
-                    { "info", chain },
-                };
-                ((IDictionary<string,object>)networks)[(string)networkCode] = network;
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
+            object precisionString = this.parsePrecision(this.safeString(chain, "withdrawal_precision"));
+            object feeString = this.safeString(chain, "withdrawal_fee");
+            object minNetworkDepositString = this.safeString(chain, "min_deposit_amount");
+            object minNetworkWithdrawString = this.safeString(chain, "min_withdraw_amount");
+            object canDepositChain = this.safeBool(chain, "deposit_enabled");
+            object canWithdrawChain = this.safeBool(chain, "withdraw_enabled");
+            object network = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "name", null },
-                { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
-                { "deposit", canDeposit },
-                { "withdraw", canWithdraw },
-                { "fee", null },
-                { "precision", this.parseNumber(firstPrecisionString) },
+                { "active", isTrue(canDepositChain) && isTrue(canWithdrawChain) },
+                { "deposit", canDepositChain },
+                { "withdraw", canWithdrawChain },
+                { "fee", this.parseNumber(feeString) },
+                { "precision", this.parseNumber(precisionString) },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.parseNumber(minNetworkDepositString) },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.parseNumber(minNetworkWithdrawString) },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "type", "crypto" },
-                { "info", coin },
-            });
+                { "info", chain },
+            };
+            ((IDictionary<string,object>)networks)[(string)networkCode] = network;
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "name", null },
+            { "active", isTrue(canDeposit) && isTrue(canWithdraw) },
+            { "deposit", canDeposit },
+            { "withdraw", canWithdraw },
+            { "fee", null },
+            { "precision", this.parseNumber(firstPrecisionString) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "type", "crypto" },
+            { "info", coin },
+        });
     }
 
     /**
@@ -1271,7 +1270,7 @@ public partial class coinex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1401,7 +1400,7 @@ public partial class coinex : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         object response = null;
         if (isTrue(getValue(market, "swap")))
@@ -2673,7 +2672,7 @@ public partial class coinex : Exchange
         {
             object entry = getValue(data, i);
             object code = this.safeString(entry, "code");
-            object message = this.safeString(entry, "message");
+            object message = this.safeString(entry, "message", "");
             if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
             {
                 object feedback = add(add(this.id, " "), message);
@@ -3098,7 +3097,7 @@ public partial class coinex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
         }
-        ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+        ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, getValue(currency, "code")); // required for on-chain, not required for inter-user transfer
         object response = await this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters));
         //
         //     {
@@ -3122,7 +3121,7 @@ public partial class coinex : Exchange
         //         "memo": ""
         //     }
         //
-        object coinAddress = this.safeString(depositAddress, "address");
+        object coinAddress = this.safeString(depositAddress, "address", "");
         object parts = ((string)coinAddress).Split(new [] {((string)":")}, StringSplitOptions.None).ToList<object>();
         object address = null;
         object tag = null;
@@ -3595,11 +3594,13 @@ public partial class coinex : Exchange
             object marketId = this.safeString(info, "market");
             market = this.safeMarket(marketId, market, null, "swap");
             object maxNotional = this.safeNumber(tier, "amount");
+            object curr = ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote");
+            object notional = minNotional;
             ((IList<object>)tiers).Add(new Dictionary<string, object>() {
                 { "tier", this.sum(i, 1) },
                 { "symbol", this.safeSymbol(marketId, market, null, "swap") },
-                { "currency", ((bool) isTrue(getValue(market, "linear"))) ? getValue(market, "base") : getValue(market, "quote") },
-                { "minNotional", minNotional },
+                { "currency", curr },
+                { "minNotional", notional },
                 { "maxNotional", maxNotional },
                 { "maintenanceMarginRate", this.safeNumber(tier, "maintenance_margin_rate") },
                 { "maxLeverage", this.safeInteger(tier, "leverage") },
@@ -3740,7 +3741,7 @@ public partial class coinex : Exchange
             { "marginMode", "isolated" },
             { "amount", this.parseNumber(Precise.stringAbs(change)) },
             { "total", this.safeNumber(data, "margin_avbl") },
-            { "code", getValue(market, "quote") },
+            { "code", this.safeString(market, "quote") },
             { "status", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -4060,7 +4061,7 @@ public partial class coinex : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode); // required for on-chain, not required for inter-user transfer
+            ((IDictionary<string,object>)request)["chain"] = this.networkCodeToId(networkCode, getValue(currency, "code")); // required for on-chain, not required for inter-user transfer
         }
         object response = await this.v2PrivatePostAssetsWithdraw(this.extend(request, parameters));
         //
@@ -4291,7 +4292,7 @@ public partial class coinex : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "address", address },
             { "addressTo", address },
             { "addressFrom", null },
@@ -4941,7 +4942,7 @@ public partial class coinex : Exchange
      * @name coinex#fetchDepositWithdrawFees
      * @description fetch the fees for deposits and withdrawals
      * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
-     * @param codes
+     * @param {string[]} [codes] list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
@@ -5061,7 +5062,9 @@ public partial class coinex : Exchange
                 object networkId = this.safeString(entry, "chain");
                 if (isTrue(networkId))
                 {
-                    object networkCode = this.networkIdToCode(networkId, this.safeString(asset, "ccy"));
+                    object currencyId = this.safeString(asset, "ccy");
+                    object feeCode = this.safeCurrencyCode(currencyId, currency);
+                    object networkCode = this.networkIdToCode(networkId, feeCode);
                     ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
                             { "fee", this.safeNumber(entry, "withdrawal_fee") },
@@ -5461,7 +5464,7 @@ public partial class coinex : Exchange
         }
         object code = this.safeString(response, "code");
         object data = this.safeValue(response, "data");
-        object message = this.safeString(response, "message");
+        object message = this.safeString(response, "message", "");
         if (isTrue(isTrue((!isEqual(code, "0"))) || isTrue((isTrue(isTrue(isTrue((!isEqual(message, "Success"))) && isTrue((!isEqual(message, "Succeeded")))) && isTrue((!isEqual(((string)message).ToLower(), "ok")))) && !isTrue(data)))))
         {
             object feedback = add(add(this.id, " "), message);

@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\weex as Exchange;
 
 class weex extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'weex',
@@ -183,7 +182,7 @@ class weex extends Exchange {
                 'withdraw' => false,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936', // todo
+                'logo' => 'https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c', // todo
                 'api' => array(
                     'public' => 'https://api-spot.weex.com',
                     'private' => 'https://api-spot.weex.com',
@@ -491,20 +490,17 @@ class weex extends Exchange {
                     'ETH' => 'ERC20',
                     'POLYGON' => 'POLYGON(MATIC)',
                     'MATIC' => 'POLYGON(MATIC)',
-                    'ARBITRUM' => 'ARBITRUM(ARB)',
-                    'ARB' => 'ARBITRUM(ARB)',
-                    'SOLANA' => 'SOLANA(SOL)',
+                    'ARBONE' => 'ARBITRUM(ARB)',
                     'SOL' => 'SOLANA(SOL)',
                     'OP' => 'OPTIMISM(OP)',
                     'OPTIMISM' => 'OPTIMISM(OP)',
-                    'AVALANCHEC' => 'AVALANCHE_C(AVAX_C)',
                     'AVAXC' => 'AVALANCHE_C(AVAX_C)',
                 ),
                 'networksById' => array(
                     'BEP20(BSC)' => 'BEP20',
                     'ERC20' => 'ERC20',
                     'POLYGON(MATIC)' => 'MATIC',
-                    'ARBITRUM(ARB)' => 'ARB',
+                    'ARBITRUM(ARB)' => 'ARBONE',
                     'SOLANA(SOL)' => 'SOL',
                     'OPTIMISM(OP)' => 'OP',
                     'AVALANCHE_C(AVAX_C)' => 'AVAXC',
@@ -684,7 +680,7 @@ class weex extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         /**
          * the latest known information on the availability of the exchange API
          *
@@ -693,7 +689,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
          */
-        $response = $this->publicGetApiV3Ping ($params);
+        $response = $this->publicGetApiV3Ping($params);
         // reutns an empty $response if the exchange is alive, otherwise will trigger an error
         return array(
             'status' => 'ok',
@@ -704,7 +700,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
@@ -719,9 +715,9 @@ class weex extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTime', null, $params);
         $response = null;
         if ($type !== 'spot') {
-            $response = $this->contractGetCapiV3MarketTime ($params);
+            $response = $this->contractGetCapiV3MarketTime($params);
         } else {
-            $response = $this->publicGetApiV3Time ($params);
+            $response = $this->publicGetApiV3Time($params);
         }
         //
         //     {
@@ -731,7 +727,7 @@ class weex extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -740,7 +736,7 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetApiV3Coins ($params);
+        $response = $this->publicGetApiV3Coins($params);
         //
         //     array(
         //         {
@@ -851,76 +847,75 @@ class weex extends Exchange {
         //         }
         //     )
         //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $this->safe_dict($response, $i);
-            $currencyId = $this->safe_string($currency, 'coin');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($currency, 'name');
-            $networks = array();
-            $chains = $this->safe_list($currency, 'networkList', array());
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $this->safe_dict($chains, $j);
-                $networkId = $this->safe_string($chain, 'network');
-                $networkCode = $this->network_id_to_code($networkId);
-                $networks[$networkCode] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'active' => null,
-                    'deposit' => $this->safe_bool($chain, 'depositEnable'),
-                    'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
-                    'fee' => $this->safe_number($chain, 'withdrawFee'),
-                    'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
-                    'isDefault' => $this->safe_bool($chain, 'isDefault', false),
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $this->safe_number($chain, 'withdrawMin'),
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => $this->safe_number($chain, 'depositDust'),
-                            'max' => null,
-                        ),
-                    ),
-                );
-            }
-            $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networksLength = count($networkKeys);
-            $emptyChains = $networksLength === 0; // non-functional coins
-            $valueForEmpty = $emptyChains ? false : null;
-            $result[$code] = $this->safe_currency_structure(array(
-                'info' => $currency,
-                'code' => $code,
-                'id' => $currencyId,
-                'type' => 'crypto',
-                'name' => $name,
+        return $this->parse_currencies($response);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networks = array();
+        $chains = $this->safe_list($rawCurrency, 'networkList', array());
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $this->safe_dict($chains, $j);
+            $networkId = $this->safe_string($chain, 'network');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'info' => $chain,
+                'id' => $networkId,
+                'network' => $networkCode,
                 'active' => null,
-                'deposit' => $valueForEmpty,
-                'withdraw' => $valueForEmpty,
-                'fee' => null,
-                'precision' => null,
+                'deposit' => $this->safe_bool($chain, 'depositEnable'),
+                'withdraw' => $this->safe_bool($chain, 'withdrawEnable'),
+                'fee' => $this->safe_number($chain, 'withdrawFee'),
+                'precision' => $this->safe_number($chain, 'withdrawIntegerMultiple'),
+                'isDefault' => $this->safe_bool($chain, 'isDefault', false),
                 'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
                     'withdraw' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'withdrawMin'),
                         'max' => null,
                     ),
                     'deposit' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($chain, 'depositDust'),
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
-            ));
+            );
         }
-        return $result;
+        $networkKeys = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkKeys);
+        $emptyChains = $networksLength === 0; // non-functional coins
+        $valueForEmpty = $emptyChains ? false : null;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'type' => 'crypto',
+            'name' => $name,
+            'active' => null,
+            'deposit' => $valueForEmpty,
+            'withdraw' => $valueForEmpty,
+            'fee' => null,
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+        ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for exchagne
          *
@@ -934,8 +929,8 @@ class weex extends Exchange {
             $this->load_time_difference();
         }
         $promises = array(
-            $this->publicGetApiV3ExchangeInfo ($params),
-            $this->contractGetCapiV3MarketExchangeInfo ($params),
+            $this->publicGetApiV3ExchangeInfo($params),
+            $this->contractGetCapiV3MarketExchangeInfo($params),
         );
         list($spotResponse, $contractResponse) = $promises;
         $spotArray = $this->safe_list($spotResponse, 'symbols', array());
@@ -1094,7 +1089,7 @@ class weex extends Exchange {
         ));
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1117,7 +1112,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbolsLength === 1) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if ($marketType === 'spot') {
@@ -1143,7 +1138,7 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->publicGetApiV3MarketTicker24hr ($this->extend($request, $params));
+            $response = $this->publicGetApiV3MarketTicker24hr($this->extend($request, $params));
         } else {
             //
             //     array(
@@ -1164,7 +1159,7 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->contractGetCapiV3MarketTicker24hr ($this->extend($request, $params));
+            $response = $this->contractGetCapiV3MarketTicker24hr($this->extend($request, $params));
         }
         if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array( $response );
@@ -1172,7 +1167,7 @@ class weex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
          *
@@ -1190,9 +1185,9 @@ class weex extends Exchange {
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($marketType === 'spot') {
-            $response = $this->publicGetApiV3MarketTickerBookTicker ($params);
+            $response = $this->publicGetApiV3MarketTickerBookTicker($params);
         } else {
-            $response = $this->contractGetCapiV3MarketTickerBookTicker ($params);
+            $response = $this->contractGetCapiV3MarketTickerBookTicker($params);
         }
         if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array( $response );
@@ -1273,7 +1268,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -1283,7 +1278,7 @@ class weex extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return (default 15, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1295,9 +1290,9 @@ class weex extends Exchange {
         }
         $response = null;
         if ($market['spot']) {
-            $response = $this->publicGetApiV3MarketDepth ($this->extend($request, $params));
+            $response = $this->publicGetApiV3MarketDepth($this->extend($request, $params));
         } else {
-            $response = $this->contractGetCapiV3MarketDepth ($this->extend($request, $params));
+            $response = $this->contractGetCapiV3MarketDepth($this->extend($request, $params));
         }
         //
         //     {
@@ -1321,7 +1316,7 @@ class weex extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1348,7 +1343,7 @@ class weex extends Exchange {
         }
     }
 
-    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_spot_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * helper method for fetchOHLCV
@@ -1368,11 +1363,11 @@ class weex extends Exchange {
             'symbol' => $market['id'],
             'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        $response = $this->publicGetApiV3MarketKlines ($this->extend($request, $params));
+        $response = $this->publicGetApiV3MarketKlines($this->extend($request, $params));
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_contract_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * helper method for fetchOHLCV
@@ -1413,6 +1408,9 @@ class weex extends Exchange {
         $priceType = $this->safe_string_upper($params, 'price');
         $params = $this->omit($params, array( 'historical', 'until', 'price' ));
         $response = null;
+        if ($limit !== null) {
+            $limit = min($limit, 1000); // hardcap threshold
+        }
         if ($historical) {
             if ($priceType !== null) {
                 $request['priceType'] = $priceType;
@@ -1435,17 +1433,17 @@ class weex extends Exchange {
             }
             $request['startTime'] = $startTime;
             $request['endTime'] = $endTime;
-            $response = $this->contractGetCapiV3MarketHistoryKlines ($this->extend($request, $params));
+            $response = $this->contractGetCapiV3MarketHistoryKlines($this->extend($request, $params));
         } else {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
             if ($priceType === 'MARK') {
-                $response = $this->contractGetCapiV3MarketMarkPriceKlines ($this->extend($request, $params));
+                $response = $this->contractGetCapiV3MarketMarkPriceKlines($this->extend($request, $params));
             } elseif ($priceType === 'INDEX') {
-                $response = $this->contractGetCapiV3MarketIndexPriceKlines ($this->extend($request, $params));
+                $response = $this->contractGetCapiV3MarketIndexPriceKlines($this->extend($request, $params));
             } else {
-                $response = $this->contractGetCapiV3MarketKlines ($this->extend($request, $params));
+                $response = $this->contractGetCapiV3MarketKlines($this->extend($request, $params));
             }
         }
         return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
@@ -1462,7 +1460,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1481,13 +1479,13 @@ class weex extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 1000);
         }
         $response = null;
         if ($market['spot']) {
-            $response = $this->publicGetApiV3MarketTrades ($this->extend($request, $params));
+            $response = $this->publicGetApiV3MarketTrades($this->extend($request, $params));
         } else {
-            $response = $this->contractGetCapiV3MarketTrades ($this->extend($request, $params));
+            $response = $this->contractGetCapiV3MarketTrades($this->extend($request, $params));
         }
         //
         //     array(
@@ -1552,8 +1550,11 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($trade, 'time');
         $isBuyer = $this->safe_bool($trade, 'isBuyer');
         $side = $this->safe_string_lower($trade, 'side');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         if ($isBuyer !== null) {
             $side = $isBuyer ? 'buy' : 'sell';
+        } elseif ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
         }
         $isSpot = true;
         if ($market === null) {
@@ -1586,6 +1587,8 @@ class weex extends Exchange {
         $takerOrMaker = null;
         if ($isMaker !== null) {
             $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
         }
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1604,7 +1607,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * retrieves the open interest of a contract trading pair
          *
@@ -1619,7 +1622,7 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractGetCapiV3MarketOpenInterest ($this->extend($request, $params));
+        $response = $this->contractGetCapiV3MarketOpenInterest($this->extend($request, $params));
         return $this->parse_open_interest($response, $market);
     }
 
@@ -1644,7 +1647,7 @@ class weex extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the funding rate for multiple markets
          *
@@ -1664,9 +1667,9 @@ class weex extends Exchange {
         $request = array();
         if ($symbolsLength === 1) {
             $market = $this->get_market_from_symbols($symbols);
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
-        $response = $this->contractGetCapiV3MarketPremiumIndex ($this->extend($request, $params));
+        $response = $this->contractGetCapiV3MarketPremiumIndex($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1718,7 +1721,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -1746,7 +1749,7 @@ class weex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->contractGetCapiV3MarketFundingRate ($this->extend($request, $params));
+        $response = $this->contractGetCapiV3MarketFundingRate($this->extend($request, $params));
         return $this->parse_funding_rate_histories($response, $market, $since, $limit);
     }
 
@@ -1771,7 +1774,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          *
          * @see https://www.weex.com/api-doc/spot/AccountAPI/GetAccountBalance // spot
@@ -1812,7 +1815,7 @@ class weex extends Exchange {
             //         "uid" => 8886281669
             //     }
             //
-            $response = $this->privateGetApiV3Account ($params);
+            $response = $this->privateGetApiV3Account($params);
         } else {
             //
             //     array(
@@ -1825,7 +1828,7 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->contractPrivateGetCapiV3AccountBalance ($params);
+            $response = $this->contractPrivateGetCapiV3AccountBalance($params);
         }
         return $this->parse_balance($response);
     }
@@ -1848,7 +1851,7 @@ class weex extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
@@ -1880,7 +1883,7 @@ class weex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('before', $request, $params);
-        $response = $this->privateGetApiV3AccountTransferRecords ($this->extend($request, $params));
+        $response = $this->privateGetApiV3AccountTransferRecords($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -1923,7 +1926,7 @@ class weex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * Create an order on the exchange
          *
@@ -1950,7 +1953,7 @@ class weex extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * helper method for creating spot orders
          *
@@ -1969,7 +1972,7 @@ class weex extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
-        $response = $this->privatePostApiV3Order ($request);
+        $response = $this->privatePostApiV3Order($request);
         //
         //     {
         //         "symbol" => "DOGEUSDT",
@@ -1981,7 +1984,7 @@ class weex extends Exchange {
         return $this->parse_order($response, $market);
     }
 
-    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2003,7 +2006,7 @@ class weex extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * helper method for creating contract orders
          *
@@ -2037,14 +2040,14 @@ class weex extends Exchange {
         $triggerPrice = $this->safe_string($request, 'triggerPrice');
         $response = null;
         if ($triggerPrice !== null) {
-            $response = $this->contractPrivatePostCapiV3AlgoOrder ($request);
+            $response = $this->contractPrivatePostCapiV3AlgoOrder($request);
         } else {
-            $response = $this->contractPrivatePostCapiV3Order ($request);
+            $response = $this->contractPrivatePostCapiV3Order($request);
         }
         return $this->parse_order($response, $market);
     }
 
-    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_contract_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2160,7 +2163,7 @@ class weex extends Exchange {
         return $this->safe_string($types, $triggerPriceType, $triggerPriceType);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open $order
          *
@@ -2210,18 +2213,18 @@ class weex extends Exchange {
             //         "status" => "CANCELED"
             //     }
             //
-            $response = $this->privateDeleteApiV3Order ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV3Order($this->extend($request, $params));
         } elseif ($trigger) {
-            $response = $this->contractPrivateDeleteCapiV3AlgoOrder ($this->extend($request, $params));
+            $response = $this->contractPrivateDeleteCapiV3AlgoOrder($this->extend($request, $params));
         } else {
-            $response = $this->contractPrivateDeleteCapiV3Order ($this->extend($request, $params));
+            $response = $this->contractPrivateDeleteCapiV3Order($this->extend($request, $params));
         }
         $order = $this->parse_order($response, $market);
         $order['status'] = 'canceled';
         return $order;
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders
          *
@@ -2251,11 +2254,11 @@ class weex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument for spot markets');
             }
-            $response = $this->privateDeleteApiV3OpenOrders ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV3OpenOrders($this->extend($request, $params));
         } elseif ($trigger) {
-            $response = $this->contractPrivateDeleteCapiV3AlgoOpenOrders ($this->extend($request, $params));
+            $response = $this->contractPrivateDeleteCapiV3AlgoOpenOrders($this->extend($request, $params));
         } else {
-            $response = $this->contractPrivateDeleteCapiV3AllOpenOrders ($this->extend($request, $params));
+            $response = $this->contractPrivateDeleteCapiV3AllOpenOrders($this->extend($request, $params));
         }
         $extendedParams = array(
             'status' => 'canceled',
@@ -2263,7 +2266,7 @@ class weex extends Exchange {
         return $this->parse_orders($response, $market, null, null, $extendedParams);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple orders
          *
@@ -2305,9 +2308,9 @@ class weex extends Exchange {
         }
         $response = null;
         if ($isSpot) {
-            $response = $this->privateDeleteApiV3OrderBatch ($this->extend($request, $params));
+            $response = $this->privateDeleteApiV3OrderBatch($this->extend($request, $params));
         } else {
-            $response = $this->contractPrivateDeleteCapiV3BatchOrders ($this->extend($request, $params));
+            $response = $this->contractPrivateDeleteCapiV3BatchOrders($this->extend($request, $params));
         }
         $ordersResponse = $this->safe_list($response, 'orderList', array());
         $extendedParams = array(
@@ -2316,7 +2319,7 @@ class weex extends Exchange {
         return $this->parse_orders($ordersResponse, $market, null, null, $extendedParams);
     }
 
-    public function fetch_order(?string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(?string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2371,14 +2374,14 @@ class weex extends Exchange {
             //         "isWorking" => true
             //     }
             //
-            $response = $this->privateGetApiV3Order ($this->extend($request, $params));
+            $response = $this->privateGetApiV3Order($this->extend($request, $params));
         } else {
-            $response = $this->contractPrivateGetCapiV3Order ($this->extend($request, $params));
+            $response = $this->contractPrivateGetCapiV3Order($this->extend($request, $params));
         }
         return $this->parse_order($response, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/UnfinishedOrders // spot
@@ -2413,7 +2416,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         $response = null;
         if ($isSpot) {
@@ -2437,7 +2440,7 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->privateGetApiV3OpenOrders ($this->extend($request, $params));
+            $response = $this->privateGetApiV3OpenOrders($this->extend($request, $params));
         } else {
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -2480,7 +2483,7 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = $this->contractPrivateGetCapiV3OpenAlgoOrders ($this->extend($request, $params));
+                $response = $this->contractPrivateGetCapiV3OpenAlgoOrders($this->extend($request, $params));
             } else {
                 //
                 //     array(
@@ -2506,7 +2509,7 @@ class weex extends Exchange {
                 //         }
                 //     )
                 //
-                $response = $this->contractPrivateGetCapiV3OpenOrders ($this->extend($request, $params));
+                $response = $this->contractPrivateGetCapiV3OpenOrders($this->extend($request, $params));
             }
         }
         $extendedParams = array(
@@ -2515,7 +2518,7 @@ class weex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit, $extendedParams);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
@@ -2549,7 +2552,7 @@ class weex extends Exchange {
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
@@ -2583,7 +2586,7 @@ class weex extends Exchange {
         return $this->filter_by($orders, 'status', 'canceled');
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple spot orders made by the user
          *
@@ -2618,10 +2621,10 @@ class weex extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, $maxLimit);
+            $request['limit'] = min($limit, $maxLimit);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->privateGetApiV3AllOrders ($this->extend($request, $params));
+        $response = $this->privateGetApiV3AllOrders($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2645,7 +2648,7 @@ class weex extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed and canceled orders made by the user
          *
@@ -2678,7 +2681,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2687,7 +2690,7 @@ class weex extends Exchange {
             $request['limit'] = $limit;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->contractPrivateGetCapiV3OrderHistory ($this->extend($request, $params));
+        $response = $this->contractPrivateGetCapiV3OrderHistory($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -2913,7 +2916,7 @@ class weex extends Exchange {
         throw new InvalidOrder($feedback);
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all the trades made from a single order
          *
@@ -2934,7 +2937,7 @@ class weex extends Exchange {
         return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
          * @see https://www.weex.com/api-doc/spot/orderApi/TransactionDetails // spot
@@ -2968,7 +2971,7 @@ class weex extends Exchange {
         }
         $request = array();
         if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
+            $request['symbol'] = $this->safe_string($market, 'id');
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -2994,7 +2997,7 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->privateGetApiV3MyTrades ($this->extend($request, $params));
+            $response = $this->privateGetApiV3MyTrades($this->extend($request, $params));
         } else {
             //
             //     array(
@@ -3016,12 +3019,12 @@ class weex extends Exchange {
             //         }
             //     )
             //
-            $response = $this->contractPrivateGetCapiV3UserTrades ($this->extend($request, $params));
+            $response = $this->contractPrivateGetCapiV3UserTrades($this->extend($request, $params));
         }
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch the history of changes, actions done by the user or operations that altered the balance of the user
          *
@@ -3066,7 +3069,7 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $contractResponse = $this->contractPrivatePostCapiV3AccountIncome ($this->extend($request, $params));
+            $contractResponse = $this->contractPrivatePostCapiV3AccountIncome($this->extend($request, $params));
             $items = $this->safe_list($contractResponse, 'items', array());
         } elseif ($accountType === 'funding') {
             if ($since !== null) {
@@ -3076,7 +3079,7 @@ class weex extends Exchange {
                 $request['pageSize'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-            $fundingResponse = $this->privatePostApiV3AccountFundingBills ($this->extend($request, $params));
+            $fundingResponse = $this->privatePostApiV3AccountFundingBills($this->extend($request, $params));
             $items = $this->safe_list($fundingResponse, 'items', array());
         } else {
             if ($since !== null) {
@@ -3086,7 +3089,7 @@ class weex extends Exchange {
                 $request['limit'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('before', $request, $params);
-            $items = $this->privatePostApiV3AccountBills ($this->extend($request, $params));
+            $items = $this->privatePostApiV3AccountBills($this->extend($request, $params));
         }
         return $this->parse_ledger($items, $currency, $since, $limit);
     }
@@ -3192,7 +3195,7 @@ class weex extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -3204,11 +3207,11 @@ class weex extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition ($params);
+        $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
         return $this->parse_positions($response, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch data on an open position
          *
@@ -3222,7 +3225,7 @@ class weex extends Exchange {
         return $this->safe_dict($positions, 0);
     }
 
-    public function fetch_positions_for_symbol(string $symbol, $params = array ()): array {
+    public function fetch_positions_for_symbol(string $symbol, $params = array()): array {
         /**
          * fetch open positions for a single $market
          *
@@ -3238,8 +3241,8 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivateGetCapiV3AccountPositionSinglePosition ($this->extend($request, $params));
-        return $this->parse_positions($response, [ $market['symbol'] ]);
+        $response = $this->contractPrivateGetCapiV3AccountPositionSinglePosition($this->extend($request, $params));
+        return $this->parse_positions($response, array( $market['symbol'] ));
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -3311,7 +3314,7 @@ class weex extends Exchange {
         if ($errorMessage !== null) {
             $this->handle_order_or_position_error($errorCode, $errorMessage, $position);
         }
-        $marketId = $this->safe_string($position, 'symbol');
+        $marketId = $this->safe_string_2($position, 'symbol', 'coinId'); // coinId might be used in testnet => https://github.com/ccxt/ccxt/issues/28576#issuecomment-4439400273
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $timestamp = $this->safe_integer($position, 'createdTime');
         $marginType = $this->safe_string_2($position, 'marginType', 'marginMode');
@@ -3326,20 +3329,23 @@ class weex extends Exchange {
         } elseif ($separatedMode === 'SEPARATED') {
             $hedged = true;
         }
+        $notional = $this->safe_string($position, 'openValue');
+        $size = $this->safe_string($position, 'size');
+        $entryPrice = Precise::string_div($notional, $size);
         return $this->safe_position(array(
             'symbol' => $market['symbol'],
             'id' => $this->safe_string_2($position, 'id', 'positionId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'contracts' => $this->safe_number($position, 'size'),
+            'contracts' => $this->parse_number($size),
             'contractSize' => null,
             'side' => $this->safe_string_lower($position, 'side'),
-            'notional' => $this->safe_number($position, 'openValue'),
+            'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->safe_number($position, 'unrealizePnl'),
             'realizedPnl' => null,
             'collateral' => null,
-            'entryPrice' => null,
+            'entryPrice' => $this->parse_number($entryPrice),
             'markPrice' => null,
             'liquidationPrice' => $this->safe_number($position, 'liquidatePrice'),
             'marginMode' => $marginMode,
@@ -3354,11 +3360,11 @@ class weex extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
             'percentage' => null,
-            'info' => null,
+            'info' => $position,
         ));
     }
 
-    public function close_all_positions($params = array ()): array {
+    public function close_all_positions($params = array()): array {
         /**
          * closes all open positions for a market type
          *
@@ -3368,7 +3374,7 @@ class weex extends Exchange {
          * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         $this->load_markets();
-        $response = $this->contractPrivatePostCapiV3ClosePositions ($params);
+        $response = $this->contractPrivatePostCapiV3ClosePositions($params);
         //
         //     array(
         //         {
@@ -3382,7 +3388,7 @@ class weex extends Exchange {
         return $this->parse_positions($response);
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): array {
         /**
          * closes open positions for a $market
          *
@@ -3398,12 +3404,12 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivatePostCapiV3ClosePositions ($this->extend($request, $params));
+        $response = $this->contractPrivatePostCapiV3ClosePositions($this->extend($request, $params));
         $orders = $this->parse_orders($response, $market);
         return $this->safe_dict($orders, 0);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          *
          * @see https://www.weex.com/api-doc/contract/Account_API/GetCommissionRate // contract
@@ -3422,7 +3428,7 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivateGetCapiV3AccountCommissionRate ($this->extend($request, $params));
+        $response = $this->contractPrivateGetCapiV3AccountCommissionRate($this->extend($request, $params));
         //
         //     {
         //         "symbol" => "DOGEUSDT",
@@ -3453,7 +3459,7 @@ class weex extends Exchange {
         );
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of a specific $symbol
          *
@@ -3468,7 +3474,7 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig ($this->extend($request, $params));
+        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params));
         //
         //     array(
         //         {
@@ -3485,7 +3491,7 @@ class weex extends Exchange {
         return $this->parse_margin_mode($marginMode, $market);
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): array {
         /**
          * fetches margin modes the $symbols, with $symbols=null all markets are returned
          *
@@ -3497,7 +3503,7 @@ class weex extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig ($params);
+        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
         return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
     }
 
@@ -3519,7 +3525,7 @@ class weex extends Exchange {
         return $this->safe_string($marginTypes, $marginType, $marginType);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
@@ -3539,7 +3545,7 @@ class weex extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $this->encode_margin_mode($marginMode),
         );
-        return $this->contractPrivatePostCapiV3AccountMarginType ($this->extend($request, $params));
+        return $this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params));
     }
 
     public function encode_margin_mode(?string $marginMode) {
@@ -3554,7 +3560,7 @@ class weex extends Exchange {
         return $result;
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
@@ -3569,12 +3575,12 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig ($this->extend($request, $params));
+        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params));
         $marginMode = $this->safe_dict($response, 0, array());
         return $this->parse_leverage($marginMode, $market);
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverages(?array $symbols = null, $params = array()): array {
         /**
          * fetch the set leverage for all markets
          *
@@ -3586,7 +3592,7 @@ class weex extends Exchange {
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig ($params);
+        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
         return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
     }
 
@@ -3610,7 +3616,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -3654,10 +3660,10 @@ class weex extends Exchange {
                 $request['crossLeverage'] = $leverage;
             }
         }
-        return $this->contractPrivatePostCapiV3AccountLeverage ($this->extend($request, $params));
+        return $this->contractPrivatePostCapiV3AccountLeverage($this->extend($request, $params));
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         /**
          * fetchs the position mode, hedged or one way
          *
@@ -3672,7 +3678,7 @@ class weex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig ($this->extend($request, $params));
+        $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($this->extend($request, $params));
         $entry = $this->safe_dict($response, 0, array());
         $separatedType = $this->safe_string($entry, 'separatedType');
         return array(
@@ -3681,7 +3687,7 @@ class weex extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
          * set $hedged to true or false for a $market
          *
@@ -3709,10 +3715,10 @@ class weex extends Exchange {
             'marginType' => $this->encode_margin_mode($marginMode),
             'separatedType' => $separatedType,
         );
-        return $this->contractPrivatePostCapiV3AccountMarginType ($this->extend($request, $params));
+        return $this->contractPrivatePostCapiV3AccountMarginType($this->extend($request, $params));
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
         $this->load_markets();
         $isolatedPositionId = $this->safe_string_n($params, array( 'positionId', 'id', 'isolatedPositionId' ));
         if ($isolatedPositionId === null) {
@@ -3726,7 +3732,7 @@ class weex extends Exchange {
             'type' => $type,
         );
         $parsedType = ($type === 1) ? 'add' : 'reduce';
-        $response = $this->contractPrivatePostCapiV3AccountPositionMargin ($this->extend($request, $params));
+        $response = $this->contractPrivatePostCapiV3AccountPositionMargin($this->extend($request, $params));
         return $this->extend($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $parsedType,
@@ -3746,19 +3752,19 @@ class weex extends Exchange {
         $timestamp = $this->safe_integer($data, 'requestTime');
         return array(
             'info' => $data,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => null,
             'marginMode' => 'isolated',
             'amount' => null,
             'total' => null,
-            'code' => $market['settle'],
+            'code' => $this->safe_string($market, 'settle'),
             'status' => $status,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         );
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * remove margin from a position
          *
@@ -3773,7 +3779,7 @@ class weex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 2, $params);
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * add margin
          *
@@ -3788,7 +3794,7 @@ class weex extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 1, $params);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $isBatch = (mb_strpos($path, 'batch') !== false);

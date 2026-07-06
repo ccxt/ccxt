@@ -11,11 +11,10 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class backpack extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'backpack',
@@ -146,7 +145,7 @@ class backpack extends Exchange {
                 '1M' => '1month',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f',
+                'logo' => 'https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985',
                 'api' => array(
                     'public' => 'https://api.backpack.exchange',
                     'private' => 'https://api.backpack.exchange',
@@ -499,7 +498,7 @@ class backpack extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -509,7 +508,7 @@ class backpack extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetApiV1Assets ($params));
+            $response = Async\await($this->publicGetApiV1Assets($params));
             //
             //     array(
             //         {
@@ -533,76 +532,75 @@ class backpack extends Exchange {
             //         ...
             //     )
             //
-            $result = array();
-            for ($i = 0; $i < count($response); $i++) {
-                $currecy = $response[$i];
-                $currencyId = $this->safe_string($currecy, 'symbol');
-                $code = $this->safe_currency_code($currencyId);
-                $networks = $this->safe_list($currecy, 'tokens', array());
-                $parsedNetworks = array();
-                for ($j = 0; $j < count($networks); $j++) {
-                    $network = $networks[$j];
-                    $networkId = $this->safe_string($network, 'blockchain');
-                    $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
-                    $networkCode = $this->network_id_to_code($networkIdLowerCase);
-                    $parsedNetworks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'limits' => array(
-                            'withdraw' => array(
-                                'min' => $this->safe_number($network, 'minimumWithdrawal'),
-                                'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
-                            ),
-                            'deposit' => array(
-                                'min' => $this->safe_number($network, 'minimumDeposit'),
-                                'max' => null,
-                            ),
-                        ),
-                        'active' => null,
-                        'deposit' => $this->safe_bool($network, 'depositEnabled'),
-                        'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
-                        'fee' => $this->safe_number($network, 'withdrawalFee'),
-                        'precision' => null,
-                        'info' => $network,
-                    );
-                }
-                $active = null;
-                $deposit = null;
-                $withdraw = null;
-                if ($this->is_empty($parsedNetworks)) { // if $networks are not provided
-                    $active = false;
-                    $deposit = false;
-                    $withdraw = false;
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => 'crypto', // todo check if it is always crypto
-                    'name' => $this->safe_string($currecy, 'displayName'),
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => null,
-                    'limits' => array(
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $parsedNetworks,
-                    'info' => $currecy,
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($response);
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'symbol');
+        $code = $this->safe_currency_code($currencyId);
+        $networks = $this->safe_list($rawCurrency, 'tokens', array());
+        $parsedNetworks = array();
+        for ($j = 0; $j < count($networks); $j++) {
+            $network = $networks[$j];
+            $networkId = $this->safe_string($network, 'blockchain');
+            $networkIdLowerCase = $this->safe_string_lower($network, 'blockchain');
+            $networkCode = $this->network_id_to_code($networkIdLowerCase, $code);
+            $parsedNetworks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($network, 'minimumWithdrawal'),
+                        'max' => $this->parse_number($this->omit_zero($this->safe_string($network, 'maximumWithdrawal'))),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($network, 'minimumDeposit'),
+                        'max' => null,
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($network, 'depositEnabled'),
+                'withdraw' => $this->safe_bool($network, 'withdrawEnabled'),
+                'fee' => $this->safe_number($network, 'withdrawalFee'),
+                'precision' => null,
+                'info' => $network,
+            );
+        }
+        $active = null;
+        $deposit = null;
+        $withdraw = null;
+        if ($this->is_empty($parsedNetworks)) { // if $networks are not provided
+            $active = false;
+            $deposit = false;
+            $withdraw = false;
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $currencyId,
+            'code' => $code,
+            'precision' => null,
+            'type' => 'crypto', // todo check if it is always crypto
+            'name' => $this->safe_string($rawCurrency, 'displayName'),
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => null,
+            'limits' => array(
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => $parsedNetworks,
+            'info' => $rawCurrency,
+        ));
+    }
+
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for bitbank
@@ -615,9 +613,9 @@ class backpack extends Exchange {
             if ($this->options['adjustForTimeDifference']) {
                 Async\await($this->load_time_difference());
             }
-            $response = Async\await($this->publicGetApiV1Markets ($params));
+            $response = Async\await($this->publicGetApiV1Markets($params));
             return $this->parse_markets($response);
-        }) ();
+        })();
     }
 
     public function parse_market(array $market): array {
@@ -724,6 +722,7 @@ class backpack extends Exchange {
         $maxQuantity = $this->safe_number($quantityFilter, 'maxQuantity');
         $minQuantity = $this->safe_number($quantityFilter, 'minQuantity');
         $amountPrecision = $this->safe_number($quantityFilter, 'stepSize');
+        $type = null;
         $typeOfMarket = $this->parse_market_type($this->safe_string($market, 'marketType'));
         $linear = null;
         $inverse = null;
@@ -808,7 +807,7 @@ class backpack extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
@@ -821,13 +820,13 @@ class backpack extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array();
-            $response = Async\await($this->publicGetApiV1Tickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1Tickers($this->extend($request, $params)));
             $tickers = $this->parse_tickers($response);
             return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -843,9 +842,9 @@ class backpack extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetApiV1Ticker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1Ticker($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -902,7 +901,7 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -919,17 +918,17 @@ class backpack extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetApiV1Depth ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1Depth($this->extend($request, $params)));
             //
             //     {
-            //         "asks" => [
+            //         "asks" => array(
             //             ["118318.3","0.00633"],
             //             ["118567.2","0.08450"]
-            //         ],
-            //         "bids" => [
+            //         ),
+            //         "bids" => array(
             //             ["1.0","0.38647"],
             //             ["12.9","1.00000"]
-            //         ],
+            //         ),
             //         "lastUpdateId":"1504999670",
             //         "timestamp":1753102447307501
             //     }
@@ -939,10 +938,10 @@ class backpack extends Exchange {
             $orderbook = $this->parse_order_book($response, $symbol, $timestamp);
             $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
             return $orderbook;
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -985,9 +984,9 @@ class backpack extends Exchange {
                 $request['priceType'] = $this->capitalize($price);
                 $params = $this->omit($params, 'price');
             }
-            $response = Async\await($this->publicGetApiV1Klines ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1Klines($this->extend($request, $params)));
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1017,7 +1016,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -1036,10 +1035,10 @@ class backpack extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetApiV1MarkPrices ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1MarkPrices($this->extend($request, $params)));
             $data = $this->safe_dict($response, 0, array());
             return $this->parse_funding_rate($data, $market);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -1078,7 +1077,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Retrieves the open $interest of a derivative trading pair
@@ -1097,10 +1096,10 @@ class backpack extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetApiV1OpenInterest ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1OpenInterest($this->extend($request, $params)));
             $interest = $this->safe_dict($response, 0, array());
             return $this->parse_open_interest($interest, $market);
-        }) ();
+        })();
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -1116,7 +1115,7 @@ class backpack extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $openInterest = $this->safe_number($interest, 'openInterest');
         return $this->safe_open_interest(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'openInterestAmount' => null,
             'openInterestValue' => $openInterest,
             'timestamp' => $timestamp,
@@ -1125,7 +1124,7 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical funding $rate prices
@@ -1147,9 +1146,9 @@ class backpack extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000); // api maximum 1000
+                $request['limit'] = min($limit, 1000); // api maximum 1000
             }
-            $response = Async\await($this->publicGetApiV1FundingRates ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiV1FundingRates($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1174,10 +1173,10 @@ class backpack extends Exchange {
             }
             $sorted = $this->sort_by($rates, 'timestamp');
             return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1198,20 +1197,20 @@ class backpack extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 1000); // api maximum 1000
+                $request['limit'] = min($limit, 1000); // api maximum 1000
             }
             $response = null;
             $offset = $this->safe_integer($params, 'offset');
             if ($offset !== null) {
-                $response = Async\await($this->publicGetApiV1TradesHistory ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetApiV1TradesHistory($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetApiV1Trades ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetApiV1Trades($this->extend($request, $params)));
             }
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1248,9 +1247,9 @@ class backpack extends Exchange {
             if ($fillType === null) {
                 $request['fillType'] = 'User'; // default
             }
-            $response = Async\await($this->privateGetWapiV1HistoryFills ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWapiV1HistoryFills($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1286,10 +1285,17 @@ class backpack extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'quantity');
-        $isMaker = $this->safe_bool($trade, 'isMaker');
-        $takerOrMaker = $isMaker ? 'maker' : 'taker';
-        $orderId = $this->safe_string($trade, 'orderId');
+        $isBuyerMaker = $this->safe_bool($trade, 'isBuyerMaker');
         $side = $this->parse_order_side($this->safe_string($trade, 'side'));
+        $isMaker = $this->safe_bool($trade, 'isMaker');
+        $takerOrMaker = null;
+        if ($isMaker !== null) {
+            $takerOrMaker = $isMaker ? 'maker' : 'taker';
+        } elseif ($isBuyerMaker !== null) {
+            $takerOrMaker = 'taker';
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+        }
+        $orderId = $this->safe_string($trade, 'orderId');
         $fee = null;
         $feeAmount = $this->safe_string($trade, 'fee');
         $timestamp = $this->safe_integer($trade, 'timestamp');
@@ -1323,7 +1329,7 @@ class backpack extends Exchange {
         ), $market);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -1333,7 +1339,7 @@ class backpack extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            $response = Async\await($this->publicGetApiV1Status ($params));
+            $response = Async\await($this->publicGetApiV1Status($params));
             //
             //     {
             //         "message":null,
@@ -1348,10 +1354,10 @@ class backpack extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1361,15 +1367,15 @@ class backpack extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetApiV1Time ($params));
+            $response = Async\await($this->publicGetApiV1Time($params));
             //
             //     1753131712992
             //
             return $this->safe_integer($response, 0, $this->milliseconds());
-        }) ();
+        })();
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1380,9 +1386,9 @@ class backpack extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetApiV1Capital ($params));
+            $response = Async\await($this->privateGetApiV1Capital($params));
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1412,7 +1418,7 @@ class backpack extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1444,12 +1450,12 @@ class backpack extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $response = Async\await($this->privateGetWapiV1CapitalDeposits ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWapiV1CapitalDeposits($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1480,12 +1486,12 @@ class backpack extends Exchange {
             if ($until !== null) {
                 $request['to'] = $until;
             }
-            $response = Async\await($this->privateGetWapiV1CapitalWithdrawals ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWapiV1CapitalWithdrawals($this->extend($request, $params)));
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1511,14 +1517,14 @@ class backpack extends Exchange {
                 $request['clientId'] = $tag; // memo or $tag
             }
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
-            $networkId = $this->network_code_to_id($networkCode);
+            $networkId = $this->network_code_to_id($networkCode, $currency['code']);
             if ($networkId === null) {
                 throw new BadRequest($this->id . ' withdraw() requires a network parameter');
             }
             $request['blockchain'] = $networkId;
-            $response = Async\await($this->privatePostWapiV1CapitalWithdrawals ($this->extend($request, $query)));
+            $response = Async\await($this->privatePostWapiV1CapitalWithdrawals($this->extend($request, $query)));
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_transaction($transaction, ?array $currency = null): array {
@@ -1602,7 +1608,7 @@ class backpack extends Exchange {
         $timestamp = $this->parse8601($this->safe_string($transaction, 'createdAt'));
         $amount = $this->safe_number($transaction, 'quantity');
         $networkId = $this->safe_string_lower_2($transaction, 'source', 'blockchain');
-        $network = $this->network_id_to_code($networkId);
+        $network = $this->network_id_to_code($networkId, $code);
         $addressTo = $this->safe_string($transaction, 'toAddress');
         $addressFrom = $this->safe_string($transaction, 'fromAddress');
         $tag = $this->safe_string($transaction, 'platformMemo');
@@ -1653,7 +1659,7 @@ class backpack extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1673,11 +1679,11 @@ class backpack extends Exchange {
             }
             $currency = $this->currency($code);
             $request = array(
-                'blockchain' => $this->network_code_to_id($networkCode),
+                'blockchain' => $this->network_code_to_id($networkCode, $currency['code']),
             );
-            $response = Async\await($this->privateGetWapiV1CapitalDepositAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWapiV1CapitalDepositAddress($this->extend($request, $params)));
             return $this->parse_deposit_address($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -1698,7 +1704,7 @@ class backpack extends Exchange {
         );
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): PromiseInterface {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -1733,12 +1739,12 @@ class backpack extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
-            $response = Async\await($this->privatePostApiV1Order ($orderRequest));
+            $response = Async\await($this->privatePostApiV1Order($orderRequest));
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
@@ -1763,12 +1769,12 @@ class backpack extends Exchange {
                 $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
                 $ordersRequests[] = $orderRequest;
             }
-            $response = Async\await($this->privatePostApiV1Orders ($ordersRequests));
+            $response = Async\await($this->privatePostApiV1Orders($ordersRequests));
             return $this->parse_orders($response);
-        }) ();
+        })();
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1852,7 +1858,7 @@ class backpack extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1872,12 +1878,12 @@ class backpack extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetApiV1Orders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1Orders($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetch an open order by it's $id
@@ -1898,12 +1904,12 @@ class backpack extends Exchange {
                 'symbol' => $market['id'],
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetApiV1Order ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetApiV1Order($this->extend($request, $params)));
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1924,12 +1930,12 @@ class backpack extends Exchange {
                 'orderId' => $id,
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateDeleteApiV1Order ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteApiV1Order($this->extend($request, $params)));
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -1948,12 +1954,12 @@ class backpack extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateDeleteApiV1Orders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteApiV1Orders($this->extend($request, $params)));
             return $this->parse_orders($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1976,9 +1982,9 @@ class backpack extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetWapiV1HistoryOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWapiV1HistoryOrders($this->extend($request, $params)));
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2144,7 +2150,7 @@ class backpack extends Exchange {
         return $this->safe_string($sides, $side, $side);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -2156,14 +2162,14 @@ class backpack extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetApiV1Position ($params));
+            $response = Async\await($this->privateGetApiV1Position($params));
             $positions = $this->parse_positions($response);
             if ($this->is_empty($symbols)) {
                 return $positions;
             }
             $symbols = $this->market_symbols($symbols);
             return $this->filter_by_array_positions($positions, 'symbol', $symbols, false);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2252,7 +2258,7 @@ class backpack extends Exchange {
         ));
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches the history of funding payments
@@ -2276,9 +2282,9 @@ class backpack extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetWapiV1HistoryFunding ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWapiV1HistoryFunding($this->extend($request, $params)));
             return $this->parse_incomes($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_income($income, ?array $market = null) {
@@ -2314,7 +2320,7 @@ class backpack extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $path;
         $url = $this->urls['api'][$api];
         $sortedParams = (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) ? $params : $this->keysort($params);

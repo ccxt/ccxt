@@ -22,7 +22,7 @@ public partial class pacifica : Exchange
                 { "spot", false },
                 { "margin", false },
                 { "swap", true },
-                { "future", true },
+                { "future", false },
                 { "option", false },
                 { "addMargin", false },
                 { "borrowCrossMargin", false },
@@ -127,7 +127,7 @@ public partial class pacifica : Exchange
             } },
             { "hostname", "pacifica.fi" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4" },
+                { "logo", "https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },
@@ -884,7 +884,7 @@ public partial class pacifica : Exchange
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1065,60 +1065,58 @@ public partial class pacifica : Exchange
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit);
-        } else
+        }
+        object tf = this.safeString(this.timeframes, timeframe, timeframe);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+            { "interval", tf },
+            { "start_time", since },
+        };
+        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+        request = ((IList<object>)requestparametersVariable)[0];
+        parameters = ((IList<object>)requestparametersVariable)[1];
+        object nowMillis = this.milliseconds();
+        object until = this.safeInteger(request, "end_time");
+        if (isTrue(isEqual(until, null)))
         {
-            object tf = this.safeString(this.timeframes, timeframe, timeframe);
-            object request = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
-                { "interval", tf },
-                { "start_time", since },
-            };
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
-            request = ((IList<object>)requestparametersVariable)[0];
-            parameters = ((IList<object>)requestparametersVariable)[1];
-            object nowMillis = this.milliseconds();
-            object until = this.safeInteger(request, "end_time");
+            if (isTrue(!isEqual(limit, null)))
+            {
+                until = subtract(add(since, (multiply(limit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
+            }
             if (isTrue(isEqual(until, null)))
             {
-                if (isTrue(!isEqual(limit, null)))
-                {
-                    until = subtract(add(since, (multiply(limit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
-                }
-                if (isTrue(isEqual(until, null)))
-                {
-                    until = subtract(add(since, (multiply(defaultMaxLimit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
-                }
-                if (isTrue(isGreaterThan(until, nowMillis)))
-                {
-                    until = nowMillis;
-                }
-                ((IDictionary<string,object>)request)["end_time"] = until;
+                until = subtract(add(since, (multiply(defaultMaxLimit, (multiply(this.parseTimeframe(tf), 1000))))), 1);
             }
-            object response = await this.publicGetKline(this.extend(request, parameters));
-            //
-            // {
-            //   "success": true,
-            //   "data": [
-            //     {
-            //       "t": 1748954160000,
-            //       "T": 1748954220000,
-            //       "s": "BTC",
-            //       "i": "1m",
-            //       "o": "105376",
-            //       "c": "105376",
-            //       "h": "105376",
-            //       "l": "105376",
-            //       "v": "0.00022",
-            //       "n": 2
-            //     }
-            //   ],
-            //   "error": null,
-            //   "code": null
-            // }
-            //
-            object candles = this.safeList(response, "data", new List<object>() {});
-            return this.parseOHLCVs(candles, market, timeframe, since, limit);
+            if (isTrue(isGreaterThan(until, nowMillis)))
+            {
+                until = nowMillis;
+            }
+            ((IDictionary<string,object>)request)["end_time"] = until;
         }
+        object response = await this.publicGetKline(this.extend(request, parameters));
+        //
+        // {
+        //   "success": true,
+        //   "data": [
+        //     {
+        //       "t": 1748954160000,
+        //       "T": 1748954220000,
+        //       "s": "BTC",
+        //       "i": "1m",
+        //       "o": "105376",
+        //       "c": "105376",
+        //       "h": "105376",
+        //       "l": "105376",
+        //       "v": "0.00022",
+        //       "n": 2
+        //     }
+        //   ],
+        //   "error": null,
+        //   "code": null
+        // }
+        //
+        object candles = this.safeList(response, "data", new List<object>() {});
+        return this.parseOHLCVs(candles, market, timeframe, since, limit);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1226,7 +1224,7 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)request)["account"] = userAddress;
         if (isTrue(!isEqual(symbol, null)))
         {
-            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "id");
         }
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1976,7 +1974,7 @@ public partial class pacifica : Exchange
         object priceNormalized = this.priceToPrecision(symbol, price);
         object amountNormalized = this.amountToPrecision(symbol, amount);
         object sigPayload = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
+            { "symbol", this.safeString(market, "id") },
             { "price", priceNormalized },
             { "amount", amountNormalized },
         };
@@ -3550,7 +3548,7 @@ public partial class pacifica : Exchange
 
     public virtual object sortJsonKeys(object value)
     {
-        if (isTrue((value is IDictionary<string, object>)))
+        if (isTrue(this.isDictionary(value)))
         {
             object result = new Dictionary<string, object>() {};
             object keys = new List<object>(((IDictionary<string,object>)value).Keys);

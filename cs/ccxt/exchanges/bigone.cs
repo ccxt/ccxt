@@ -434,92 +434,91 @@ public partial class bigone : Exchange
         // }
         //
         object currenciesData = this.safeList(data, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesData)); postFixIncrement(ref i))
+        return this.parseCurrencies(currenciesData);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(id);
+        object name = this.safeString(rawCurrency, "name");
+        object networks = new Dictionary<string, object>() {};
+        object chains = this.safeList(rawCurrency, "binding_gateways", new List<object>() {});
+        object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(currenciesData, i);
-            object id = this.safeString(currency, "symbol");
-            object code = this.safeCurrencyCode(id);
-            object name = this.safeString(currency, "name");
-            object networks = new Dictionary<string, object>() {};
-            object chains = this.safeList(currency, "binding_gateways", new List<object>() {});
-            object currencyMaxPrecision = this.parsePrecision(this.safeString2(currency, "withdrawal_scale", "scale"));
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
-            {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "gateway_name");
-                object networkCode = this.networkIdToCode(networkId);
-                object deposit = this.safeBool(chain, "is_deposit_enabled");
-                object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
-                object minDepositAmount = this.safeString(chain, "min_deposit_amount");
-                object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
-                object withdrawalFee = this.safeString(chain, "withdrawal_fee");
-                object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "margin", null },
-                    { "deposit", deposit },
-                    { "withdraw", withdraw },
-                    { "active", null },
-                    { "fee", this.parseNumber(withdrawalFee) },
-                    { "precision", this.parseNumber(precision) },
-                    { "limits", new Dictionary<string, object>() {
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", minDepositAmount },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", minWithdrawalAmount },
-                            { "max", null },
-                        } },
-                    } },
-                    { "info", chain },
-                };
-            }
-            object chainLength = getArrayLength(chains);
-            object type = null;
-            if (isTrue(this.safeBool(currency, "is_fiat")))
-            {
-                type = "fiat";
-            } else if (isTrue(isEqual(chainLength, 0)))
-            {
-                if (isTrue(this.isLeveragedCurrency(id)))
-                {
-                    type = "leveraged";
-                } else
-                {
-                    type = "other";
-                }
-            } else
-            {
-                type = "crypto";
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", name },
-                { "type", type },
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "gateway_name");
+            object networkCode = this.networkIdToCode(networkId, code);
+            object deposit = this.safeBool(chain, "is_deposit_enabled");
+            object withdraw = this.safeBool(chain, "is_withdrawal_enabled");
+            object minDepositAmount = this.safeString(chain, "min_deposit_amount");
+            object minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
+            object withdrawalFee = this.safeString(chain, "withdrawal_fee");
+            object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
+                { "margin", null },
+                { "deposit", deposit },
+                { "withdraw", withdraw },
                 { "active", null },
-                { "deposit", null },
-                { "withdraw", null },
-                { "fee", null },
-                { "precision", this.parseNumber(currencyMaxPrecision) },
+                { "fee", this.parseNumber(withdrawalFee) },
+                { "precision", this.parseNumber(precision) },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", minDepositAmount },
                         { "max", null },
                     } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", minWithdrawalAmount },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-            });
+                { "info", chain },
+            };
         }
-        return result;
+        object chainLength = getArrayLength(chains);
+        object type = null;
+        if (isTrue(this.safeBool(rawCurrency, "is_fiat")))
+        {
+            type = "fiat";
+        } else if (isTrue(isEqual(chainLength, 0)))
+        {
+            if (isTrue(this.isLeveragedCurrency(id)))
+            {
+                type = "leveraged";
+            } else
+            {
+                type = "other";
+            }
+        } else
+        {
+            type = "crypto";
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "name", name },
+            { "type", type },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", this.parseNumber(currencyMaxPrecision) },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -946,7 +945,7 @@ public partial class bigone : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1184,27 +1183,30 @@ public partial class bigone : Exchange
         object takerFeeCost = this.safeString(trade, "taker_fee");
         if (isTrue(!isEqual(makerFeeCost, null)))
         {
+            object makerCode = makerCurrencyCode;
             if (isTrue(!isEqual(takerFeeCost, null)))
             {
+                object takerCode = takerCurrencyCode;
                 ((IDictionary<string,object>)result)["fees"] = new List<object>() {new Dictionary<string, object>() {
     { "cost", makerFeeCost },
-    { "currency", makerCurrencyCode },
+    { "currency", makerCode },
 }, new Dictionary<string, object>() {
     { "cost", takerFeeCost },
-    { "currency", takerCurrencyCode },
+    { "currency", takerCode },
 }};
             } else
             {
                 ((IDictionary<string,object>)result)["fee"] = new Dictionary<string, object>() {
                     { "cost", makerFeeCost },
-                    { "currency", makerCurrencyCode },
+                    { "currency", makerCode },
                 };
             }
         } else if (isTrue(!isEqual(takerFeeCost, null)))
         {
+            object takerCode2 = takerCurrencyCode;
             ((IDictionary<string,object>)result)["fee"] = new Dictionary<string, object>() {
                 { "cost", takerFeeCost },
-                { "currency", takerCurrencyCode },
+                { "currency", takerCode2 },
             };
         } else
         {
@@ -2042,7 +2044,7 @@ public partial class bigone : Exchange
         return new Dictionary<string, object>() {
             { "info", response },
             { "currency", code },
-            { "network", this.networkIdToCode(selectedNetworkId) },
+            { "network", this.networkIdToCode(selectedNetworkId, code) },
             { "address", address },
             { "tag", tag },
         };
@@ -2366,7 +2368,7 @@ public partial class bigone : Exchange
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
-            ((IDictionary<string,object>)request)["gateway_name"] = this.networkCodeToId(networkCode);
+            ((IDictionary<string,object>)request)["gateway_name"] = this.networkCodeToId(networkCode, getValue(currency, "code"));
         }
         // requires write permission on the wallet
         object response = await this.privatePostWithdrawals(this.extend(request, parameters));

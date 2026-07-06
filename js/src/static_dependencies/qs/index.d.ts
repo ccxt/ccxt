@@ -10,10 +10,10 @@ export namespace formats {
     export { RFC1738 };
     export { RFC3986 };
 }
-import parse from "./parse.js";
-import stringify from "./stringify.js";
-import defaultFormat from "./formats.js";
-import { formatters } from "./formats.js";
-import { RFC1738 } from "./formats.js";
-import { RFC3986 } from "./formats.js";
+import parse from './parse.js';
+import stringify from './stringify.js';
+import defaultFormat from './formats.js';
+import { formatters } from './formats.js';
+import { RFC1738 } from './formats.js';
+import { RFC3986 } from './formats.js';
 export { parse, stringify };

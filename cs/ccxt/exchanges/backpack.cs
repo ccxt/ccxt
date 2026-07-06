@@ -136,7 +136,7 @@ public partial class backpack : Exchange
                 { "1M", "1month" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/cc04c278-679f-4554-9f72-930dd632b80f" },
+                { "logo", "https://github.com/user-attachments/assets/7f682234-3eb1-48ab-a5ec-250a3227c985" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.backpack.exchange" },
                     { "private", "https://api.backpack.exchange" },
@@ -522,75 +522,74 @@ public partial class backpack : Exchange
         //         ...
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object currencyId = this.safeString(rawCurrency, "symbol");
+        object code = this.safeCurrencyCode(currencyId);
+        object networks = this.safeList(rawCurrency, "tokens", new List<object>() {});
+        object parsedNetworks = new Dictionary<string, object>() {};
+        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
-            object currecy = getValue(response, i);
-            object currencyId = this.safeString(currecy, "symbol");
-            object code = this.safeCurrencyCode(currencyId);
-            object networks = this.safeList(currecy, "tokens", new List<object>() {});
-            object parsedNetworks = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
-            {
-                object network = getValue(networks, j);
-                object networkId = this.safeString(network, "blockchain");
-                object networkIdLowerCase = this.safeStringLower(network, "blockchain");
-                object networkCode = this.networkIdToCode(networkIdLowerCase);
-                ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "minimumWithdrawal") },
-                            { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.safeNumber(network, "minimumDeposit") },
-                            { "max", null },
-                        } },
-                    } },
-                    { "active", null },
-                    { "deposit", this.safeBool(network, "depositEnabled") },
-                    { "withdraw", this.safeBool(network, "withdrawEnabled") },
-                    { "fee", this.safeNumber(network, "withdrawalFee") },
-                    { "precision", null },
-                    { "info", network },
-                };
-            }
-            object active = null;
-            object deposit = null;
-            object withdraw = null;
-            if (isTrue(this.isEmpty(parsedNetworks)))
-            {
-                active = false;
-                deposit = false;
-                withdraw = false;
-            }
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", currencyId },
-                { "code", code },
-                { "precision", null },
-                { "type", "crypto" },
-                { "name", this.safeString(currecy, "displayName") },
-                { "active", active },
-                { "deposit", deposit },
-                { "withdraw", withdraw },
-                { "fee", null },
+            object network = getValue(networks, j);
+            object networkId = this.safeString(network, "blockchain");
+            object networkIdLowerCase = this.safeStringLower(network, "blockchain");
+            object networkCode = this.networkIdToCode(networkIdLowerCase, code);
+            ((IDictionary<string,object>)parsedNetworks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "limits", new Dictionary<string, object>() {
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
+                        { "min", this.safeNumber(network, "minimumWithdrawal") },
+                        { "max", this.parseNumber(this.omitZero(this.safeString(network, "maximumWithdrawal"))) },
+                    } },
+                    { "deposit", new Dictionary<string, object>() {
+                        { "min", this.safeNumber(network, "minimumDeposit") },
                         { "max", null },
                     } },
                 } },
-                { "networks", parsedNetworks },
-                { "info", currecy },
-            });
+                { "active", null },
+                { "deposit", this.safeBool(network, "depositEnabled") },
+                { "withdraw", this.safeBool(network, "withdrawEnabled") },
+                { "fee", this.safeNumber(network, "withdrawalFee") },
+                { "precision", null },
+                { "info", network },
+            };
         }
-        return result;
+        object active = null;
+        object deposit = null;
+        object withdraw = null;
+        if (isTrue(this.isEmpty(parsedNetworks)))
+        {
+            active = false;
+            deposit = false;
+            withdraw = false;
+        }
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", currencyId },
+            { "code", code },
+            { "precision", null },
+            { "type", "crypto" },
+            { "name", this.safeString(rawCurrency, "displayName") },
+            { "active", active },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", null },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", parsedNetworks },
+            { "info", rawCurrency },
+        });
     }
 
     /**
@@ -1115,7 +1114,7 @@ public partial class backpack : Exchange
         object timestamp = this.safeInteger(interest, "timestamp");
         object openInterest = this.safeNumber(interest, "openInterest");
         return this.safeOpenInterest(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "openInterestAmount", null },
             { "openInterestValue", openInterest },
             { "timestamp", timestamp },
@@ -1297,10 +1296,19 @@ public partial class backpack : Exchange
         market = this.safeMarket(marketId, market);
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "quantity");
-        object isMaker = this.safeBool(trade, "isMaker");
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
-        object orderId = this.safeString(trade, "orderId");
+        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         object side = this.parseOrderSide(this.safeString(trade, "side"));
+        object isMaker = this.safeBool(trade, "isMaker");
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(isMaker, null)))
+        {
+            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        } else if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
+        }
+        object orderId = this.safeString(trade, "orderId");
         object fee = null;
         object feeAmount = this.safeString(trade, "fee");
         object timestamp = this.safeInteger(trade, "timestamp");
@@ -1541,7 +1549,7 @@ public partial class backpack : Exchange
         var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
         var networkCode = ((IList<object>) networkCodequeryVariable)[0];
         var query = ((IList<object>) networkCodequeryVariable)[1];
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         if (isTrue(isEqual(networkId, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw() requires a network parameter")) ;
@@ -1633,7 +1641,7 @@ public partial class backpack : Exchange
         object timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         object amount = this.safeNumber(transaction, "quantity");
         object networkId = this.safeStringLower2(transaction, "source", "blockchain");
-        object network = this.networkIdToCode(networkId);
+        object network = this.networkIdToCode(networkId, code);
         object addressTo = this.safeString(transaction, "toAddress");
         object addressFrom = this.safeString(transaction, "fromAddress");
         object tag = this.safeString(transaction, "platformMemo");
@@ -1710,7 +1718,7 @@ public partial class backpack : Exchange
         }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
-            { "blockchain", this.networkCodeToId(networkCode) },
+            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters));
         return this.parseDepositAddress(response, currency);

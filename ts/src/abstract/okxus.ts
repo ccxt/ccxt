@@ -353,6 +353,7 @@ interface okx {
     privatePostAccountSetAutoEarn (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetSettleCurrency (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSetTradingConfig (params?: {}): Promise<implicitReturnType>;
+    privatePostAccountDemoAdjustBalance (params?: {}): Promise<implicitReturnType>;
     privatePostAssetSubaccountTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubaccountSetLoanAllocation (params?: {}): Promise<implicitReturnType>;
     privatePostUsersSubaccountCreateSubaccount (params?: {}): Promise<implicitReturnType>;

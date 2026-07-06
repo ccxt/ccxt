@@ -2,7 +2,7 @@
 
 import assert from 'assert';
 import { Exchange } from '../../ccxt.js';
-import { Str } from '../base/types.js';
+import type { Bool, Dict, List, Str, Strings } from '../base/types.js';
 
 import {
     // errors
@@ -96,6 +96,7 @@ class testMainClass {
             dump ('[TEST_FAILURE]'); // tell run-tests.js this is failure
             throw e;
         }
+        return true;
     }
 
     async initInner (exchangeId, symbolArgv, methodArgv) {
@@ -132,7 +133,8 @@ class testMainClass {
             exitScript (0);
         }
         await this.importFiles (exchange);
-        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        // ensure test files are found & filled
+        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded');
         this.expandSettings (exchange);
         this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbolArgv);
@@ -162,6 +164,7 @@ class testMainClass {
     async importFiles (exchange: Exchange) {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
+        properties.push ('afterConstruct');
         if (isSync ()) {
             this.testFiles = getTestFilesSync (properties, this.wsTests);
         } else {
@@ -211,7 +214,7 @@ class testMainClass {
                 const key = settingKeys[i];
                 if (exchangeSettings[key]) {
                     let finalValue = undefined;
-                    if (typeof exchangeSettings[key] === 'object') {
+                    if (exchange.isDictionary (exchangeSettings[key])) {
                         const existing = getExchangeProp (exchange, key, {});
                         finalValue = exchange.deepExtend (existing, exchangeSettings[key]);
                     } else {
@@ -270,11 +273,11 @@ class testMainClass {
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isProxyTest = (methodName === this.proxyTestFileName);
+        const isConstructorTest = (methodName === 'afterConstruct');
         const isFeatureTest = (methodName === 'features');
-        // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
-        let skipMessage = undefined;
+        let skipMessage: Str = undefined;
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
-        if (typeof skippedPropertiesForMethod === 'string') {
+          if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
         } else if (isLoadMarkets && this.wsTests) {
             skipMessage = '[INFO] SKIPPING_LOADMARKETS_FOR_WS';
@@ -395,8 +398,8 @@ class testMainClass {
                     if (i === maxRetries - 1) {
                         const isOnMaintenance = (e instanceof OnMaintenance);
                         const isExchangeNotAvailable = (e instanceof ExchangeNotAvailable);
-                        let shouldFail = undefined;
-                        let retSuccess = undefined;
+                        let shouldFail: Bool = undefined;
+                        let retSuccess: Bool = undefined;
                         if (isLoadMarkets) {
                             // if "loadMarkets" does not succeed, we must return "false" to caller method, to stop tests continual
                             retSuccess = false;
@@ -470,6 +473,7 @@ class testMainClass {
         const primarySymbol = symbols[0];
         let tests = {
             'features': [],
+            'afterConstruct': [],
             'fetchCurrencies': [],
             'fetchTicker': [ primarySymbol ],
             'fetchTickers': [ primarySymbol ],
@@ -518,7 +522,7 @@ class testMainClass {
 
     async runTests (exchange: any, tests: any, isPublicTest:boolean) {
         const testNames = Object.keys (tests);
-        const promises = [];
+        const promises: List = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testArgs = tests[testName];
@@ -528,7 +532,7 @@ class testMainClass {
         // promises.push (testThrottle ());
         const results = await Promise.all (promises);
         // now count which test-methods retuned `false` from "testSafe" and dump that info below
-        const failedMethods = [];
+        const failedMethods: string[] = [];
         for (let i = 0; i < testNames.length; i++) {
             const testName = testNames[i];
             const testReturnedValue = results[i];
@@ -558,7 +562,7 @@ class testMainClass {
     }
 
     getTestSymbol (exchange, isSpot, symbols) {
-        let symbol = undefined;
+        let symbol: Str = undefined;
         const preferredSpotSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSpotSymbol');
         const preferredSwapSymbol = exchange.safeString (this.skippedSettingsForExchange, 'preferredSwapSymbol');
         if (isSpot && preferredSpotSymbol) {
@@ -580,7 +584,7 @@ class testMainClass {
         return symbol;
     }
 
-    getExchangeCode (exchange, codes = undefined) {
+    getExchangeCode (exchange, codes: Strings = undefined) {
         if (codes === undefined) {
             codes = [ 'BTC', 'ETH', 'XRP', 'LTC', 'BCH', 'EOS', 'BNB', 'BSV', 'USDT' ];
         }
@@ -663,10 +667,14 @@ class testMainClass {
         const swapSymbols = [
             // linear
             'BTC/USDT:USDT',
+            'BTC/USD:USDT',
             'BTC/USDC:USDC',
+            'BTC/USD:USDC',
             'BTC/USD:USD',
             'ETH/USDT:USDT',
+            'ETH/USD:USDT',
             'ETH/USDC:USDC',
+            'ETH/USD:USDC',
             'ETH/USD:USD',
             // inverse
             'BTC/USD:BTC',
@@ -691,7 +699,7 @@ class testMainClass {
         // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
         if (symbol === undefined) {
             const activeMarkets = exchange.filterBy (currentTypeMarkets, 'active', true);
-            const activeSymbols = [];
+            const activeSymbols: string[] = [];
             for (let i = 0; i < activeMarkets.length; i++) {
                 activeSymbols.push (activeMarkets[i]['symbol']);
             }
@@ -702,7 +710,7 @@ class testMainClass {
             const valuesLength = values.length;
             if (valuesLength > 0) {
                 const first = values[0];
-                if (first !== undefined) {
+                if (first) {
                     symbol = first['symbol'];
                 }
             }
@@ -711,8 +719,8 @@ class testMainClass {
     }
 
     async testExchange (exchange, providedSymbol = undefined) {
-        let spotSymbols = undefined;
-        let swapSymbols = undefined;
+        let spotSymbols: Strings = undefined;
+        let swapSymbols: Strings = undefined;
         if (providedSymbol !== undefined) {
             const market = exchange.market (providedSymbol);
             if (market['spot']) {
@@ -723,13 +731,22 @@ class testMainClass {
         } else {
             if (exchange.has['spot']) {
                 const primarySymbol = this.getValidSymbol (exchange, true);
-                const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
-                spotSymbols = [ primarySymbol, secondarySymbol ];
+                if (primarySymbol !== undefined) {
+                    const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
+                    spotSymbols = [ primarySymbol, secondarySymbol ];
+                }
             }
             if (exchange.has['swap']) {
                 const primarySymbol = this.getValidSymbol (exchange, false);
-                const secondarySymbol = primarySymbol.replace ('BTC', 'ETH'); // this should work any exchange
-                swapSymbols = [ primarySymbol, secondarySymbol ];
+                // some exchanges advertise has['swap']=true via describe() but
+                // the live market list contains no swap entries (e.g. bequant
+                // inherits hitbtc swap support but exposes only spot pairs).
+                // getValidSymbol returns undefined in that case — skip swap
+                // tests rather than crashing on `undefined.replace(...)`.
+                if (primarySymbol !== undefined) {
+                    const secondarySymbol = primarySymbol.replaceAll ('BTC', 'ETH'); // this should work any exchange
+                    swapSymbols = [ primarySymbol, secondarySymbol ];
+                }
             }
         }
         if (spotSymbols !== undefined) {
@@ -796,6 +813,7 @@ class testMainClass {
             'fetchTransactions': [ code ],
             'fetchDeposits': [ code ],
             'fetchWithdrawals': [ code ],
+            'fetchTransfers': [ code ],
             'fetchBorrowInterest': [ code, symbol ],
             // 'addMargin': [ ],
             // 'reduceMargin': [ ],
@@ -869,19 +887,19 @@ class testMainClass {
         }
         // try proxy several times
         const maxRetries = 3;
-        let exception = undefined;
+        let exceptionMessageString: Str = undefined;
         for (let j = 0; j < maxRetries; j++) {
             try {
                 await this.testMethod (proxyTestName, exchange, [], true);
                 return true; // if successfull, then end the test
             } catch (e) {
-                exception = e;
+                exceptionMessageString = exceptionMessage (e);
                 await exchange.sleep (j * 1000);
             }
         }
         // if exception was set, then throw it
-        if (exception !== undefined) {
-            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
+        if (exceptionMessageString !== undefined) {
+            const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessageString;
             // temporary comment the below, because c# transpilation failure
             // throw new Exchange Error (errorMessage.toString ());
             dump ('[TEST_WARNING]' + errorMessage);
@@ -928,6 +946,7 @@ class testMainClass {
         if (this.sandbox || getExchangeProp (exchange, 'sandbox')) {
             exchange.setSandboxMode (true);
         }
+        this.testHasProps (exchange);
         // because of python-async, we need proper `.close()` handling
         try {
             const result = await this.loadExchange (exchange);
@@ -954,7 +973,20 @@ class testMainClass {
         return true; // required in c#
     }
 
-    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key = undefined) {
+    testHasProps (exchange: Exchange) {
+        const watchOrderBookSkips = this.getSkips (exchange, 'watchOrderBook');
+        const fetchOrderBookSkips = this.getSkips (exchange, 'fetchOrderBook');
+        // ensure with hardcoded list of required methods
+        if (this.wsTests && !exchange.safeBool (exchange.has, 'watchOrderBook', false) && typeof watchOrderBookSkips !== 'string') {
+            dump ('[TEST_FAILURE] Method "watchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript (1);
+        } else if (!this.wsTests && !exchange.safeBool (exchange.has, 'fetchOrderBook', false) && typeof fetchOrderBookSkips !== 'string') {
+            dump ('[TEST_FAILURE] Method "fetchOrderBook" is not set in "has", please check the "has" property of exchange');
+            exitScript (1);
+        }
+    }
+
+    assertStaticError (cond:boolean, message: string, calculatedOutput, storedOutput, key: Str = undefined) {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
         //  -----------------------------------------------------------------------------
@@ -1050,7 +1082,7 @@ class testMainClass {
         return result;
     }
 
-    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+    assertNewAndStoredOutputInner (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey: Str = undefined) {
         if (isNullValue (newOutput) && isNullValue (storedOutput)) {
             return true;
             // c# requirement
@@ -1066,7 +1098,7 @@ class testMainClass {
             newOutput = jsonParse (newOutput);
         }
 
-        if ((typeof storedOutput === 'object') && (typeof newOutput === 'object')) {
+        if (exchange.isDictionary (storedOutput) && exchange.isDictionary (newOutput)) {
             const storedOutputKeys = Object.keys (storedOutput);
             const newOutputKeys = Object.keys (newOutput);
             const storedKeysLength = storedOutputKeys.length;
@@ -1085,7 +1117,7 @@ class testMainClass {
                 const newValue = newOutput[key];
                 this.assertNewAndStoredOutput (exchange, skipKeys, newValue, storedValue, strictTypeCheck, key);
             }
-        } else if (Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
+        } else if ((storedOutput !== undefined) && Array.isArray (storedOutput) && (Array.isArray (newOutput))) {
             const storedArrayLength = storedOutput.length;
             const newArrayLength = newOutput.length;
             this.assertStaticError (storedArrayLength === newArrayLength, 'output length mismatch', storedOutput, newOutput);
@@ -1113,6 +1145,22 @@ class testMainClass {
                 const isComputedUndefined = (sanitizedNewOutput === undefined);
                 const isStoredUndefined = (sanitizedStoredOutput === undefined);
                 const shouldBeSame = (isComputedBool === isStoredBool) && (isComputedString === isStoredString) && (isComputedUndefined === isStoredUndefined);
+                if (!shouldBeSame && (this.lang === 'PY') && !isComputedBool && !isStoredBool && !isComputedUndefined && !isStoredUndefined) {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    let isNumber = false;
+                    try {
+                        exchange.parseToNumeric (newOutputString);
+                        exchange.parseToNumeric (storedOutputString);
+                        isNumber = true;
+                    } catch (e) {
+                        isNumber = false;
+                    }
+                    if (isNumber) {
+                        this.assertStaticError (exchange.parseToNumeric (newOutputString) === exchange.parseToNumeric (storedOutputString), messageError, storedOutput, newOutput, assertingKey);
+                        return true;
+                    }
+                }
                 this.assertStaticError (shouldBeSame, 'output type mismatch', storedOutput, newOutput, assertingKey);
                 const isBoolean = isComputedBool || isStoredBool;
                 const isString = isComputedString || isStoredString;
@@ -1141,8 +1189,8 @@ class testMainClass {
                     }
                 } else {
                     if (this.lang === "C#") { // tmp fix, stil failing with the "1.0" != "1" error
-                        const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput);
-                        const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput);
+                        const stringifiedNewOutput = exchange.numberToString (sanitizedNewOutput) as string;
+                        const stringifiedStoredOutput = exchange.numberToString (sanitizedStoredOutput) as string;
                         this.assertStaticError (stringifiedNewOutput.toString () === stringifiedStoredOutput.toString (), messageError, storedOutput, newOutput, assertingKey);
                     } else {
                         const numericNewOutput =  exchange.parseToNumeric (newOutputString);
@@ -1155,7 +1203,7 @@ class testMainClass {
         return true; // c# requ
     }
 
-    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey = undefined) {
+    assertNewAndStoredOutput (exchange: Exchange, skipKeys: string[], newOutput, storedOutput, strictTypeCheck = true, assertingKey: Str = undefined) {
         let res = true;
         try {
             res = this.assertNewAndStoredOutputInner (exchange, skipKeys, newOutput, storedOutput, strictTypeCheck, assertingKey);
@@ -1170,7 +1218,7 @@ class testMainClass {
     }
 
     varToString (obj:any = undefined) {
-        let newString = undefined;
+        let newString: Str = undefined;
         if (obj === undefined) {
             newString = 'undefined';
         } else if (isNullValue (obj)) {
@@ -1241,7 +1289,7 @@ class testMainClass {
         if (input === undefined) {
             return undefined;
         }
-        const newInput = [];
+        const newInput: List = [];
         for (let i = 0; i < input.length; i++) {
             const current = input[i];
             if (isNullValue (current)) {
@@ -1254,8 +1302,8 @@ class testMainClass {
     }
 
     async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
-        let output = undefined;
-        let requestUrl = undefined;
+        let output: Str = undefined;
+        let requestUrl: Str = undefined;
         if (this.info) {
             dump ('[INFO] STATIC REQUEST TEST:', method, ':', data['description']);
         }
@@ -1276,7 +1324,7 @@ class testMainClass {
         }
         try {
             const callOutput = exchange.safeValue (data, 'output');
-            this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl, callOutput, output);
+            this.assertStaticRequestOutput (exchange, type, skipKeys, data['url'], requestUrl as string, callOutput, output);
         }
         catch (e) {
             this.requestTestsFailed = true;
@@ -1313,17 +1361,16 @@ class testMainClass {
     initOfflineExchange (exchangeName: string) {
         const markets = this.loadMarketsFromFile (exchangeName);
         const currencies = this.loadCurrenciesFromFile (exchangeName);
-        let wasmExecPath = undefined;
-        let libraryPath = undefined;
+        let wasmExecPath: Str = undefined;
+        let libraryPath: Str = undefined;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
         // const ligherWasmPath = getRootDir () + 'ts/src/test/static/binaries/lighter.wasm';
         // const binaryPath = getRootDir () + '/ts/src/test/static/binaries/lighter-signer-linux-amd64.so';
         // const librarypath = (this.lang === 'JS') ? ligherWasmPath : binaryPath;
-        // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
         const basePath = getRootDir () + 'ts/src/test/static/binaries/';
         if (exchangeName === 'lighter') {
             if (this.lang === 'JS') {
-                wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
+                wasmExecPath = basePath + 'wasm_exec.js';
                 libraryPath = basePath + 'lighter.wasm';
             } else {
                 if (isWindows ()) {
@@ -1348,6 +1395,7 @@ class testMainClass {
             "currencies":currencies,
             "enableRateLimit":false,
             "rateLimit":1,
+            // we add "proxy" 2 times to intentionally trigger InvalidProxySettings
             "httpProxy":"http://fake:8080",
             "httpsProxy":"http://fake:8080",
             "apiKey":"key",
@@ -1399,22 +1447,22 @@ class testMainClass {
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
         if (!exchange.isEmptyString (apiKey)) {
             // c# to string requirement
-            exchange.apiKey = apiKey.toString ();
+            exchange.apiKey = (apiKey as string).toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
         if (!exchange.isEmptyString (secret)) {
             // c# to string requirement
-            exchange.secret = secret.toString ();
+            exchange.secret = (secret as string).toString ();
         }
         const privateKey = exchange.safeString (exchangeData, 'privateKey');
         if (!exchange.isEmptyString (privateKey)) {
             // c# to string requirement
-            exchange.privateKey = privateKey.toString ();
+            exchange.privateKey = (privateKey as string).toString ();
         }
         const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
         if (!exchange.isEmptyString (walletAddress)) {
             // c# to string requirement
-            exchange.walletAddress = walletAddress.toString ();
+            exchange.walletAddress = (walletAddress as string).toString ();
         }
         const accounts = exchange.safeList (exchangeData, 'accounts');
         if (accounts) {
@@ -1453,9 +1501,13 @@ class testMainClass {
                 if (isDisabledGo && (this.lang === 'GO')) {
                     continue;
                 }
+                const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
+                if (isDisabledJava && (this.lang === 'java')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testRequestStatically (exchange, method, result, type, skipKeys);
+                await this.testRequestStatically (exchange, method, result, type as string, skipKeys);
                 // reset options
                 exchange.options = exchange.convertToSafeDictionary (exchange.deepExtend (oldExchangeOptions, {}));
                 // exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
@@ -1473,22 +1525,22 @@ class testMainClass {
         const apiKey = exchange.safeString (exchangeData, 'apiKey');
         if (!exchange.isEmptyString (apiKey)) {
             // c# to string requirement
-            exchange.apiKey = apiKey.toString ();
+            exchange.apiKey = (apiKey as string).toString ();
         }
         const secret = exchange.safeString (exchangeData, 'secret');
         if (!exchange.isEmptyString (secret)) {
             // c# to string requirement
-            exchange.secret = secret.toString ();
+            exchange.secret = (secret as string).toString ();
         }
         const privateKey = exchange.safeString (exchangeData, 'privateKey');
         if (!exchange.isEmptyString (privateKey)) {
             // c# to string requirement
-            exchange.privateKey = privateKey.toString ();
+            exchange.privateKey = (privateKey as string).toString ();
         }
         const walletAddress = exchange.safeString (exchangeData, 'walletAddress');
         if (!exchange.isEmptyString (walletAddress)) {
             // c# to string requirement
-            exchange.walletAddress = walletAddress.toString ();
+            exchange.walletAddress = (walletAddress as string).toString ();
         }
         const methods = exchange.safeValue (exchangeData, 'methods', {});
         const options = exchange.safeValue (exchangeData, 'options', {});
@@ -1523,6 +1575,10 @@ class testMainClass {
 
                 const isDisabledGO = exchange.safeBool (result, 'disabledGO', false);
                 if (isDisabledGO && (this.lang === 'GO')) {
+                    continue;
+                }
+                const isDisabledJava = exchange.safeBool (result, 'disabledJava', false);
+                if (isDisabledJava && (this.lang === 'java')) {
                     continue;
                 }
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
@@ -1576,6 +1632,11 @@ class testMainClass {
             dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in go');
             return true;
         }
+        const isDisabledJava = exchange.safeBool (exchangeData, 'disabledJava', false);
+        if (isDisabledJava && (this.lang === 'java')) {
+            dump ('[TEST_WARNING] Exchange ' + exchangeName + ' is disabled in java');
+            return true;
+        }
         return false;
     }
 
@@ -1592,7 +1653,7 @@ class testMainClass {
         }
         const exchanges = Object.keys (staticData);
         const exchange = initExchange ('Exchange', {}); // tmp to do the calculations until we have the ast-transpiler transpiling this code
-        const promises = [];
+        const promises: List = [];
         let sum = 0;
         if (targetExchange) {
             dump ("[INFO:MAIN] Exchange to test: " + targetExchange);
@@ -1668,7 +1729,6 @@ class testMainClass {
             this.testCoinbaseinternational (),
             this.testCoinbaseAdvanced (),
             this.testWoofiPro (),
-            this.testOxfun (),
             this.testXT (),
             this.testParadex (),
             this.testHashkey (),
@@ -1691,7 +1751,7 @@ class testMainClass {
         const spotId = 'x-TKT5PX2F';
         const swapId = 'x-cvBPrNm9';
         const inverseSwapId = 'x-xcKtGhcu';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1701,13 +1761,13 @@ class testMainClass {
         const spotIdString = spotId.toString ();
         assert (clientOrderId.startsWith (spotIdString), 'binance - spot clientOrderId: ' + clientOrderId + ' does not start with spotId' + spotIdString);
 
-        let swapOrderRequest = undefined;
+        let swapOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             swapOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
-        let swapInverseOrderRequest = undefined;
+        let swapInverseOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1721,7 +1781,7 @@ class testMainClass {
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (inverseSwapId), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + inverseSwapId);
         // linear swap conditional order
-        let swapAlgoOrderRequest = undefined;
+        let swapAlgoOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 0.002, 102000, { 'triggerPrice': 101000 });
             const checkOrderRequest = this.urlencodedToDict (exchange.last_request_body);
@@ -1733,7 +1793,7 @@ class testMainClass {
         } catch (e) {
             swapAlgoOrderRequest = this.urlencodedToDict (exchange.last_request_body);
         }
-        let createOrdersRequest = undefined;
+        let createOrdersRequest: Dict = {};
         try {
             const orders = [
                 {
@@ -1769,7 +1829,7 @@ class testMainClass {
     async testOkx () {
         const exchange = this.initOfflineExchange ('okx');
         const id = '6b9ad766b55dBCDE';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1780,7 +1840,7 @@ class testMainClass {
         assert (clientOrderId.startsWith (idString), 'okx - spot clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
         const spotTag = spotOrderRequest[0]['tag'];
         assert (spotTag === id, 'okx - id: ' + id + ' different from spot tag: ' + spotTag);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1800,7 +1860,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('cryptocom');
         const id = 'CCXT';
         await exchange.loadMarkets ();
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1816,7 +1876,7 @@ class testMainClass {
 
     async testBybit () {
         const exchange = this.initOfflineExchange ('bybit');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['brokerId'] === id, 'id not in options');
         try {
@@ -1835,7 +1895,7 @@ class testMainClass {
     async testKucoin () {
         const exchange = this.initOfflineExchange ('kucoin');
         exchange.options['uta'] = false; // prevents fetching account mode inside createOrder
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const spotId =  exchange.options['partner']['spot']['id'];
         const spotKey =  exchange.options['partner']['spot']['key'];
         assert (spotId === 'ccxt', 'kucoin - id: ' + spotId + ' not in options');
@@ -1879,7 +1939,7 @@ class testMainClass {
 
     async testKucoinfutures () {
         const exchange = this.initOfflineExchange ('kucoinfutures');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'ccxtfutures';
         const futureId = exchange.options['partner']['future']['id'];
         const futureKey = exchange.options['partner']['future']['key'];
@@ -1907,7 +1967,7 @@ class testMainClass {
 
     async testBitget () {
         const exchange = this.initOfflineExchange ('bitget');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'p4sve';
         assert (exchange.options['broker'] === id, 'bitget - id: ' + id + ' not in options');
         try {
@@ -1924,7 +1984,7 @@ class testMainClass {
 
     async testMexc () {
         const exchange = this.initOfflineExchange ('mexc');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'mexc - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
@@ -1944,7 +2004,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('htx');
         // spot test
         const id = 'AA03022abc';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1954,13 +2014,13 @@ class testMainClass {
         const idString = id.toString ();
         assert (clientOrderId.startsWith (idString), 'htx - spot clientOrderId ' + clientOrderId + ' does not start with id: ' + idString);
         // swap test
-        let swapOrderRequest = undefined;
+        let swapOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
             swapOrderRequest = jsonParse (exchange.last_request_body);
         }
-        let swapInverseOrderRequest = undefined;
+        let swapInverseOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USD:BTC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1980,7 +2040,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('woo');
         // spot test
         const id = 'bc830de7-50f3-460b-9ee0-f430f83f9dad';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -1990,7 +2050,7 @@ class testMainClass {
         const idString = id.toString ();
         assert (brokerId.startsWith (idString), 'woo - broker_id: ' + brokerId + ' does not start with id: ' + idString);
         // swap test
-        let stopOrderRequest = undefined;
+        let stopOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000, { 'stopPrice': 30000 });
         } catch (e) {
@@ -2006,7 +2066,7 @@ class testMainClass {
 
     async testBitmart () {
         const exchange = this.initOfflineExchange ('bitmart');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'CCXTxBitmart000';
         assert (exchange.options['brokerId'] === id, 'bitmart - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
@@ -2026,7 +2086,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('coinex');
         const id = 'x-167673045';
         assert (exchange.options['brokerId'] === id, 'coinex - id: ' + id + ' not in options');
-        let spotOrderRequest = undefined;
+        let spotOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2043,7 +2103,7 @@ class testMainClass {
 
     async testBingx () {
         const exchange = this.initOfflineExchange ('bingx');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'bingx - id: ' + id + ' not in options');
         try {
@@ -2062,7 +2122,7 @@ class testMainClass {
     async testPhemex () {
         const exchange = this.initOfflineExchange ('phemex');
         const id = 'CCXT123456';
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2080,7 +2140,7 @@ class testMainClass {
     async testBlofin () {
         const exchange = this.initOfflineExchange ('blofin');
         const id = 'ec6dd3a7dd982d0b';
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('LTC/USDT:USDT', 'market', 'buy', 1);
         } catch (e) {
@@ -2117,7 +2177,7 @@ class testMainClass {
         exchange.options['portfolio'] = 'random';
         const id = 'nfqkvdjp';
         assert (exchange.options['brokerId'] === id, 'id not in options');
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2135,7 +2195,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('coinbase');
         const id = 'ccxt';
         assert (exchange.options['brokerId'] === id, 'id not in options');
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2150,11 +2210,14 @@ class testMainClass {
     }
 
     async testWoofiPro () {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange ('woofipro');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXT';
         await exchange.loadMarkets ();
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2168,28 +2231,10 @@ class testMainClass {
         return true;
     }
 
-    async testOxfun () {
-        const exchange = this.initOfflineExchange ('oxfun');
-        exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
-        const id = 1000;
-        await exchange.loadMarkets ();
-        let request = undefined;
-        try {
-            await exchange.createOrder ('BTC/USD:OX', 'limit', 'buy', 1, 20000);
-        } catch (e) {
-            request = jsonParse (exchange.last_request_body);
-        }
-        const orders = request['orders'];
-        const first = orders[0];
-        const brokerId = first['source'];
-        assert (brokerId === id, 'oxfun - id: ' + id.toString () + ' different from  broker_id: ' + brokerId.toString ());
-        return true;
-    }
-
     async testXT () {
         const exchange = this.initOfflineExchange ('xt');
         const id = 'CCXT';
-        let spotOrderRequest = undefined;
+        let spotOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2197,7 +2242,7 @@ class testMainClass {
         }
         const spotMedia = spotOrderRequest['media'];
         assert (spotMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + spotMedia);
-        let swapOrderRequest = undefined;
+        let swapOrderRequest: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT:USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2212,13 +2257,16 @@ class testMainClass {
     }
 
     async testParadex () {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange ('paradex');
         exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
         exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
         exchange.options['authToken'] = 'token';
         exchange.options['systemConfig'] =
         { "starknet_gateway_url":"https://potc-testnet-sepolia.starknet.io", "starknet_fullnode_rpc_url":"https://pathfinder.api.testnet.paradex.trade/rpc/v0_7", "starknet_chain_id":"PRIVATE_SN_POTC_SEPOLIA", "block_explorer_url":"https://voyager.testnet.paradex.trade/", "paraclear_address":"0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6", "paraclear_decimals":8, "paraclear_account_proxy_hash":"0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9", "paraclear_account_hash":"0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e", "oracle_address":"0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f", "bridged_tokens":[ { "name":"TEST USDC", "symbol":"USDC", "decimals":6, "l1_token_address":"0x29A873159D5e14AcBd63913D4A7E2df04570c666", "l1_bridge_address":"0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C", "l2_token_address":"0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e", "l2_bridge_address":"0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" } ], "l1_core_contract_address":"0x582CC5d9b509391232cd544cDF9da036e55833Af", "l1_operator_address":"0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB", "l1_chain_id":"11155111", "liquidation_fee":"0.2" };
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = 'CCXT';
         assert (exchange.options['broker'] === id, 'paradex - id: ' + id + ' not in options');
         await exchange.loadMarkets ();
@@ -2236,7 +2284,7 @@ class testMainClass {
 
     async testHashkey () {
         const exchange = this.initOfflineExchange ('hashkey');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = "10000700011";
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -2253,7 +2301,7 @@ class testMainClass {
 
     async testCryptomus () {
         const exchange = this.initOfflineExchange ('cryptomus');
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'sell', 1, 20000);
         } catch (e) {
@@ -2268,10 +2316,13 @@ class testMainClass {
     }
 
     async testDerive () {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange ('derive');
         const id = '0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749';
         assert (exchange.options['id'] === id, 'derive - id: ' + id + ' not in options');
-        let request = undefined;
+        let request: Dict = {};
         try {
             const params = {
                 'subaccount_id': 1234,
@@ -2292,11 +2343,14 @@ class testMainClass {
     }
 
     async testModeTrade () {
+        if (this.lang === 'java') {
+            return false;
+        }
         const exchange = this.initOfflineExchange ('modetrade');
         exchange.secret = 'secretsecretsecretsecretsecretsecretsecrets';
         const id = 'CCXTMODE';
         await exchange.loadMarkets ();
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
@@ -2314,7 +2368,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('backpack');
         exchange.apiKey = "Jcj3vxDMAIrx0G5YYfydzS/le/owoQ+VSS164zC1RXo=";
         exchange.secret = "sRkC124Iazob0QYvaFj9dm63MXEVY48lDNt+/GVDVAU=";
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = '1400';
         try {
             await exchange.createOrder ('ETH/USDC', 'limit', 'buy', 1, 5000);
@@ -2331,7 +2385,7 @@ class testMainClass {
 
     async testToobit () {
         const exchange = this.initOfflineExchange ('toobit');
-        let reqHeaders = undefined;
+        let reqHeaders: Dict = {};
         const id = '177321641268789';
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
@@ -2350,7 +2404,7 @@ class testMainClass {
         const exchange = this.initOfflineExchange ('weex');
         const id = 'b-WEEX111125';
         assert (exchange.options['partner'] === id, 'weex - id: ' + id + ' not in options');
-        let request = undefined;
+        let request: Dict = {};
         try {
             await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
         } catch (e) {

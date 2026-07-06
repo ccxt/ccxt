@@ -160,7 +160,7 @@ func (this *Poloniex) FetchTickers(options ...FetchTickersOptions) (Tickers, err
  * @method
  * @name poloniex#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+ * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -677,7 +677,7 @@ func (this *Poloniex) FetchTradingFees(params ...any) (TradingFees, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Poloniex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 

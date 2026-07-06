@@ -61,7 +61,6 @@ class binanceus(binance):
                 'watchPositions': False,
             },
             'options': {
-                'fetchCurrencies': False,
                 'quoteOrderQty': False,
                 'defaultType': 'spot',
                 'fetchMarkets': {

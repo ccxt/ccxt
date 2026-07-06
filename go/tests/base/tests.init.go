@@ -9,8 +9,8 @@ func BaseTestsInit() <-chan any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 
-		retRes634 := (<-TestLanguageSpecific())
-		PanicOnError(retRes634)
+		retRes654 := (<-TestLanguageSpecific())
+		PanicOnError(retRes654)
 		TestConstants()
 		TestAfterConstructor()
 		TestAggregate()
@@ -45,6 +45,7 @@ func BaseTestsInit() <-chan any {
 		TestInArray()
 		TestFilterBy()
 		TestHandleMethods()
+		TestNetworkMethods()
 		TestRemoveRepeatedElementsFromArray()
 		TestIsEmpty()
 		TestBinaryConcat()
@@ -60,20 +61,26 @@ func BaseTestsInit() <-chan any {
 		TestArraysConcat()
 		TestUuid()
 
-		retRes1124 := (<-TestSetMarketsFromExchange())
-		PanicOnError(retRes1124)
+		retRes1154 := (<-TestSetMarketsFromExchange())
+		PanicOnError(retRes1154)
 		TestEthMethods()
 		TestKeysort()
 		TestImplodeParams()
 		TestUnique()
 		TestUrlencodeNested()
 
-		retRes1184 := (<-TestSleep())
-		PanicOnError(retRes1184)
+		retRes1214 := (<-TestSleep())
+		PanicOnError(retRes1214)
+
+		retRes1224 := (<-TestFetchHistory())
+		PanicOnError(retRes1224)
 		TestIo()
 		TestIsJsonEncodedObject()
 		TestEncodeDecode()
+
+		ch <- true
 		return nil
+
 	}()
 	return ch
 }

@@ -1,8 +1,5 @@
-- [Symbols](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 
 include './ccxt.php';
 include 'Console/Table.php';
@@ -83,5 +80,5 @@ if (count ($argv) > 1) {
 
 }
 
-?> 
+?>
 ```

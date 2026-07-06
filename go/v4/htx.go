@@ -60,7 +60,7 @@ func (this *HtxCore) Describe() any {
 			"fetchBorrowInterest":            true,
 			"fetchBorrowRateHistories":       nil,
 			"fetchBorrowRateHistory":         nil,
-			"fetchCanceledOrders":            nil,
+			"fetchCanceledOrders":            true,
 			"fetchClosedOrder":               nil,
 			"fetchClosedOrders":              true,
 			"fetchCrossBorrowRate":           false,
@@ -124,7 +124,7 @@ func (this *HtxCore) Describe() any {
 			"fetchTransactionFee":            nil,
 			"fetchTransactionFees":           nil,
 			"fetchTransactions":              nil,
-			"fetchTransfers":                 nil,
+			"fetchTransfers":                 true,
 			"fetchWithdrawAddresses":         true,
 			"fetchWithdrawal":                nil,
 			"fetchWithdrawals":               true,
@@ -179,7 +179,7 @@ func (this *HtxCore) Describe() any {
 			},
 			"www": "https://www.huobi.com",
 			"referral": map[string]any{
-				"url":      "https://www.htx.com.vc/invite/en-us/1h?invite_code=6rmm2223",
+				"url":      "https://www.htx.com/invite/en-us/1h?invite_code=6rmm2223",
 				"discount": 0.15,
 			},
 			"doc":  []any{"https://huobiapi.github.io/docs/spot/v1/en/", "https://huobiapi.github.io/docs/dm/v1/en/", "https://huobiapi.github.io/docs/coin_margined_swap/v1/en/", "https://huobiapi.github.io/docs/usdt_swap/v1/en/", "https://www.huobi.com/en-us/opend/newApiPages/"},
@@ -412,6 +412,7 @@ func (this *HtxCore) Describe() any {
 						"v1/cross-margin/loan-orders":              1,
 						"v1/cross-margin/accounts/balance":         1,
 						"v2/account/repayment":                     5,
+						"v5/account/universal_transfer_records":    4,
 						"v1/stable-coin/quote":                     1,
 						"v1/stable_coin/exchange_rate":             1,
 						"v2/etp/transactions":                      5,
@@ -532,7 +533,6 @@ func (this *HtxCore) Describe() any {
 						"linear-swap-api/v1/swap_index":                         1,
 						"linear-swap-api/v1/swap_query_elements":                1,
 						"linear-swap-api/v1/swap_price_limit":                   1,
-						"linear-swap-api/v1/swap_open_interest":                 1,
 						"linear-swap-ex/market/depth":                           1,
 						"linear-swap-ex/market/bbo":                             1,
 						"linear-swap-ex/market/history/kline":                   1,
@@ -542,7 +542,6 @@ func (this *HtxCore) Describe() any {
 						"v2/linear-swap-ex/market/detail/batch_merged":          1,
 						"linear-swap-ex/market/trade":                           1,
 						"linear-swap-ex/market/history/trade":                   1,
-						"linear-swap-api/v1/swap_risk_info":                     1,
 						"swap-api/v1/linear-swap-api/v1/swap_insurance_fund":    1,
 						"linear-swap-api/v1/swap_adjustfactor":                  1,
 						"linear-swap-api/v1/swap_cross_adjustfactor":            1,
@@ -550,280 +549,177 @@ func (this *HtxCore) Describe() any {
 						"linear-swap-api/v1/swap_ladder_margin":                 1,
 						"linear-swap-api/v1/swap_cross_ladder_margin":           1,
 						"linear-swap-api/v1/swap_api_state":                     1,
-						"linear-swap-api/v1/swap_cross_transfer_state":          1,
-						"linear-swap-api/v1/swap_cross_trade_state":             1,
 						"linear-swap-api/v1/swap_elite_account_ratio":           1,
 						"linear-swap-api/v1/swap_elite_position_ratio":          1,
-						"linear-swap-api/v1/swap_liquidation_orders":            1,
 						"linear-swap-api/v1/swap_settlement_records":            1,
-						"linear-swap-api/v1/swap_funding_rate":                  1,
-						"linear-swap-api/v1/swap_batch_funding_rate":            1,
-						"linear-swap-api/v1/swap_historical_funding_rate":       1,
 						"linear-swap-api/v3/swap_liquidation_orders":            1,
 						"index/market/history/linear_swap_premium_index_kline":  1,
 						"index/market/history/linear_swap_estimated_rate_kline": 1,
 						"index/market/history/linear_swap_basis":                1,
 						"linear-swap-api/v1/swap_estimated_settlement_price":    1,
+						"v5/market/funding_rate":                                0.125,
+						"v5/market/funding_rate_history":                        0.125,
+						"v5/market/open_interest":                               0.125,
+						"v5/market/liquidation_orders":                          0.125,
+						"v5/market/settlement_history":                          0.125,
+						"v5/market/elite_account_ratio":                         0.125,
+						"v5/market/elite_position_ratio":                        0.125,
+						"v5/market/estimated_settlement_price":                  0.125,
+						"v5/market/price_limit":                                 0.125,
 					},
 				},
 				"private": map[string]any{
 					"get": map[string]any{
-						"api/v1/contract_sub_auth_list":                        1,
-						"api/v1/contract_api_trading_status":                   1,
-						"swap-api/v1/swap_sub_auth_list":                       1,
-						"swap-api/v1/swap_api_trading_status":                  1,
-						"linear-swap-api/v1/swap_sub_auth_list":                1,
-						"linear-swap-api/v1/swap_api_trading_status":           1,
-						"linear-swap-api/v1/swap_cross_position_side":          1,
-						"linear-swap-api/v1/swap_position_side":                1,
-						"linear-swap-api/v3/unified_account_info":              1,
-						"linear-swap-api/v3/fix_position_margin_change_record": 1,
-						"linear-swap-api/v3/swap_unified_account_type":         1,
-						"linear-swap-api/v3/linear_swap_overview_account_info": 1,
-						"v5/account/balance":                                   1,
-						"v5/account/asset_mode":                                1,
-						"v5/trade/position/opens":                              1,
-						"v5/trade/order/opens":                                 1,
-						"v5/trade/order/details":                               1,
-						"v5/trade/order/history":                               1,
-						"v5/trade/order":                                       1,
-						"v5/position/lever":                                    1,
-						"v5/position/mode":                                     1,
-						"v5/position/risk/limit":                               1,
-						"v5/position/risk/limit_tier":                          1,
-						"v5/market/risk/limit":                                 1,
-						"v5/market/assets_deduction_currency":                  1,
-						"v5/market/multi_assets_margin":                        1,
+						"api/v1/contract_sub_auth_list":       1,
+						"api/v1/contract_api_trading_status":  1,
+						"swap-api/v1/swap_sub_auth_list":      1,
+						"swap-api/v1/swap_api_trading_status": 1,
+						"v5/account/asset_mode":               0.20834,
+						"v5/account/balance":                  0.20834,
+						"v5/account/bills":                    0.20834,
+						"v5/account/fee_deduction_currency":   0.20834,
+						"v5/trade/position/opens":             0.41679,
+						"v5/trade/order/opens":                0.41679,
+						"v5/trade/order/details":              0.41679,
+						"v5/trade/order/history":              0.41679,
+						"v5/trade/order":                      0.41679,
+						"v5/position/lever":                   0.20834,
+						"v5/position/mode":                    0.20834,
+						"v5/position/risk/limit":              0.20834,
+						"v5/position/risk/limit_tier":         0.20834,
+						"v5/market/risk/limit":                0.125,
+						"v5/market/assets_deduction_currency": 0.125,
+						"v5/market/multi_assets_margin":       0.125,
+						"v5/algo/order/opens":                 0.41679,
+						"v5/algo/order":                       0.41679,
+						"v5/algo/order/history":               0.41679,
 					},
 					"post": map[string]any{
-						"api/v1/contract_balance_valuation":                      1,
-						"api/v1/contract_account_info":                           1,
-						"api/v1/contract_position_info":                          1,
-						"api/v1/contract_sub_auth":                               1,
-						"api/v1/contract_sub_account_list":                       1,
-						"api/v1/contract_sub_account_info_list":                  1,
-						"api/v1/contract_sub_account_info":                       1,
-						"api/v1/contract_sub_position_info":                      1,
-						"api/v1/contract_financial_record":                       1,
-						"api/v1/contract_financial_record_exact":                 1,
-						"api/v1/contract_user_settlement_records":                1,
-						"api/v1/contract_order_limit":                            1,
-						"api/v1/contract_fee":                                    1,
-						"api/v1/contract_transfer_limit":                         1,
-						"api/v1/contract_position_limit":                         1,
-						"api/v1/contract_account_position_info":                  1,
-						"api/v1/contract_master_sub_transfer":                    1,
-						"api/v1/contract_master_sub_transfer_record":             1,
-						"api/v1/contract_available_level_rate":                   1,
-						"api/v3/contract_financial_record":                       1,
-						"api/v3/contract_financial_record_exact":                 1,
-						"api/v1/contract-cancel-after":                           1,
-						"api/v1/contract_order":                                  1,
-						"api/v1/contract_batchorder":                             1,
-						"api/v1/contract_cancel":                                 1,
-						"api/v1/contract_cancelall":                              1,
-						"api/v1/contract_switch_lever_rate":                      30,
-						"api/v1/lightning_close_position":                        1,
-						"api/v1/contract_order_info":                             1,
-						"api/v1/contract_order_detail":                           1,
-						"api/v1/contract_openorders":                             1,
-						"api/v1/contract_hisorders":                              1,
-						"api/v1/contract_hisorders_exact":                        1,
-						"api/v1/contract_matchresults":                           1,
-						"api/v1/contract_matchresults_exact":                     1,
-						"api/v3/contract_hisorders":                              1,
-						"api/v3/contract_hisorders_exact":                        1,
-						"api/v3/contract_matchresults":                           1,
-						"api/v3/contract_matchresults_exact":                     1,
-						"api/v1/contract_trigger_order":                          1,
-						"api/v1/contract_trigger_cancel":                         1,
-						"api/v1/contract_trigger_cancelall":                      1,
-						"api/v1/contract_trigger_openorders":                     1,
-						"api/v1/contract_trigger_hisorders":                      1,
-						"api/v1/contract_tpsl_order":                             1,
-						"api/v1/contract_tpsl_cancel":                            1,
-						"api/v1/contract_tpsl_cancelall":                         1,
-						"api/v1/contract_tpsl_openorders":                        1,
-						"api/v1/contract_tpsl_hisorders":                         1,
-						"api/v1/contract_relation_tpsl_order":                    1,
-						"api/v1/contract_track_order":                            1,
-						"api/v1/contract_track_cancel":                           1,
-						"api/v1/contract_track_cancelall":                        1,
-						"api/v1/contract_track_openorders":                       1,
-						"api/v1/contract_track_hisorders":                        1,
-						"swap-api/v1/swap_balance_valuation":                     1,
-						"swap-api/v1/swap_account_info":                          1,
-						"swap-api/v1/swap_position_info":                         1,
-						"swap-api/v1/swap_account_position_info":                 1,
-						"swap-api/v1/swap_sub_auth":                              1,
-						"swap-api/v1/swap_sub_account_list":                      1,
-						"swap-api/v1/swap_sub_account_info_list":                 1,
-						"swap-api/v1/swap_sub_account_info":                      1,
-						"swap-api/v1/swap_sub_position_info":                     1,
-						"swap-api/v1/swap_financial_record":                      1,
-						"swap-api/v1/swap_financial_record_exact":                1,
-						"swap-api/v1/swap_user_settlement_records":               1,
-						"swap-api/v1/swap_available_level_rate":                  1,
-						"swap-api/v1/swap_order_limit":                           1,
-						"swap-api/v1/swap_fee":                                   1,
-						"swap-api/v1/swap_transfer_limit":                        1,
-						"swap-api/v1/swap_position_limit":                        1,
-						"swap-api/v1/swap_master_sub_transfer":                   1,
-						"swap-api/v1/swap_master_sub_transfer_record":            1,
-						"swap-api/v3/swap_financial_record":                      1,
-						"swap-api/v3/swap_financial_record_exact":                1,
-						"swap-api/v1/swap-cancel-after":                          1,
-						"swap-api/v1/swap_order":                                 1,
-						"swap-api/v1/swap_batchorder":                            1,
-						"swap-api/v1/swap_cancel":                                1,
-						"swap-api/v1/swap_cancelall":                             1,
-						"swap-api/v1/swap_lightning_close_position":              1,
-						"swap-api/v1/swap_switch_lever_rate":                     30,
-						"swap-api/v1/swap_order_info":                            1,
-						"swap-api/v1/swap_order_detail":                          1,
-						"swap-api/v1/swap_openorders":                            1,
-						"swap-api/v1/swap_hisorders":                             1,
-						"swap-api/v1/swap_hisorders_exact":                       1,
-						"swap-api/v1/swap_matchresults":                          1,
-						"swap-api/v1/swap_matchresults_exact":                    1,
-						"swap-api/v3/swap_matchresults":                          1,
-						"swap-api/v3/swap_matchresults_exact":                    1,
-						"swap-api/v3/swap_hisorders":                             1,
-						"swap-api/v3/swap_hisorders_exact":                       1,
-						"swap-api/v1/swap_trigger_order":                         1,
-						"swap-api/v1/swap_trigger_cancel":                        1,
-						"swap-api/v1/swap_trigger_cancelall":                     1,
-						"swap-api/v1/swap_trigger_openorders":                    1,
-						"swap-api/v1/swap_trigger_hisorders":                     1,
-						"swap-api/v1/swap_tpsl_order":                            1,
-						"swap-api/v1/swap_tpsl_cancel":                           1,
-						"swap-api/v1/swap_tpsl_cancelall":                        1,
-						"swap-api/v1/swap_tpsl_openorders":                       1,
-						"swap-api/v1/swap_tpsl_hisorders":                        1,
-						"swap-api/v1/swap_relation_tpsl_order":                   1,
-						"swap-api/v1/swap_track_order":                           1,
-						"swap-api/v1/swap_track_cancel":                          1,
-						"swap-api/v1/swap_track_cancelall":                       1,
-						"swap-api/v1/swap_track_openorders":                      1,
-						"swap-api/v1/swap_track_hisorders":                       1,
-						"linear-swap-api/v1/swap_lever_position_limit":           1,
-						"linear-swap-api/v1/swap_cross_lever_position_limit":     1,
-						"linear-swap-api/v1/swap_balance_valuation":              1,
-						"linear-swap-api/v1/swap_account_info":                   1,
-						"linear-swap-api/v1/swap_cross_account_info":             1,
-						"linear-swap-api/v1/swap_position_info":                  1,
-						"linear-swap-api/v1/swap_cross_position_info":            1,
-						"linear-swap-api/v1/swap_account_position_info":          1,
-						"linear-swap-api/v1/swap_cross_account_position_info":    1,
-						"linear-swap-api/v1/swap_sub_auth":                       1,
-						"linear-swap-api/v1/swap_sub_account_list":               1,
-						"linear-swap-api/v1/swap_cross_sub_account_list":         1,
-						"linear-swap-api/v1/swap_sub_account_info_list":          1,
-						"linear-swap-api/v1/swap_cross_sub_account_info_list":    1,
-						"linear-swap-api/v1/swap_sub_account_info":               1,
-						"linear-swap-api/v1/swap_cross_sub_account_info":         1,
-						"linear-swap-api/v1/swap_sub_position_info":              1,
-						"linear-swap-api/v1/swap_cross_sub_position_info":        1,
-						"linear-swap-api/v1/swap_financial_record":               1,
-						"linear-swap-api/v1/swap_financial_record_exact":         1,
-						"linear-swap-api/v1/swap_user_settlement_records":        1,
-						"linear-swap-api/v1/swap_cross_user_settlement_records":  1,
-						"linear-swap-api/v1/swap_available_level_rate":           1,
-						"linear-swap-api/v1/swap_cross_available_level_rate":     1,
-						"linear-swap-api/v1/swap_order_limit":                    1,
-						"linear-swap-api/v1/swap_fee":                            1,
-						"linear-swap-api/v1/swap_transfer_limit":                 1,
-						"linear-swap-api/v1/swap_cross_transfer_limit":           1,
-						"linear-swap-api/v1/swap_position_limit":                 1,
-						"linear-swap-api/v1/swap_cross_position_limit":           1,
-						"linear-swap-api/v1/swap_master_sub_transfer":            1,
-						"linear-swap-api/v1/swap_master_sub_transfer_record":     1,
-						"linear-swap-api/v1/swap_transfer_inner":                 1,
-						"linear-swap-api/v3/swap_financial_record":               1,
-						"linear-swap-api/v3/swap_financial_record_exact":         1,
-						"linear-swap-api/v1/swap_order":                          1,
-						"linear-swap-api/v1/swap_cross_order":                    1,
-						"linear-swap-api/v1/swap_batchorder":                     1,
-						"linear-swap-api/v1/swap_cross_batchorder":               1,
-						"linear-swap-api/v1/swap_cancel":                         1,
-						"linear-swap-api/v1/swap_cross_cancel":                   1,
-						"linear-swap-api/v1/swap_cancelall":                      1,
-						"linear-swap-api/v1/swap_cross_cancelall":                1,
-						"linear-swap-api/v1/swap_switch_lever_rate":              30,
-						"linear-swap-api/v1/swap_cross_switch_lever_rate":        30,
-						"linear-swap-api/v1/swap_lightning_close_position":       1,
-						"linear-swap-api/v1/swap_cross_lightning_close_position": 1,
-						"linear-swap-api/v1/swap_order_info":                     1,
-						"linear-swap-api/v1/swap_cross_order_info":               1,
-						"linear-swap-api/v1/swap_order_detail":                   1,
-						"linear-swap-api/v1/swap_cross_order_detail":             1,
-						"linear-swap-api/v1/swap_openorders":                     1,
-						"linear-swap-api/v1/swap_cross_openorders":               1,
-						"linear-swap-api/v1/swap_hisorders":                      1,
-						"linear-swap-api/v1/swap_cross_hisorders":                1,
-						"linear-swap-api/v1/swap_hisorders_exact":                1,
-						"linear-swap-api/v1/swap_cross_hisorders_exact":          1,
-						"linear-swap-api/v1/swap_matchresults":                   1,
-						"linear-swap-api/v1/swap_cross_matchresults":             1,
-						"linear-swap-api/v1/swap_matchresults_exact":             1,
-						"linear-swap-api/v1/swap_cross_matchresults_exact":       1,
-						"linear-swap-api/v1/linear-cancel-after":                 1,
-						"linear-swap-api/v1/swap_switch_position_mode":           1,
-						"linear-swap-api/v1/swap_cross_switch_position_mode":     1,
-						"linear-swap-api/v3/swap_matchresults":                   1,
-						"linear-swap-api/v3/swap_cross_matchresults":             1,
-						"linear-swap-api/v3/swap_matchresults_exact":             1,
-						"linear-swap-api/v3/swap_cross_matchresults_exact":       1,
-						"linear-swap-api/v3/swap_hisorders":                      1,
-						"linear-swap-api/v3/swap_cross_hisorders":                1,
-						"linear-swap-api/v3/swap_hisorders_exact":                1,
-						"linear-swap-api/v3/swap_cross_hisorders_exact":          1,
-						"linear-swap-api/v3/fix_position_margin_change":          1,
-						"linear-swap-api/v3/swap_switch_account_type":            1,
-						"linear-swap-api/v3/linear_swap_fee_switch":              1,
-						"linear-swap-api/v1/swap_trigger_order":                  1,
-						"linear-swap-api/v1/swap_cross_trigger_order":            1,
-						"linear-swap-api/v1/swap_trigger_cancel":                 1,
-						"linear-swap-api/v1/swap_cross_trigger_cancel":           1,
-						"linear-swap-api/v1/swap_trigger_cancelall":              1,
-						"linear-swap-api/v1/swap_cross_trigger_cancelall":        1,
-						"linear-swap-api/v1/swap_trigger_openorders":             1,
-						"linear-swap-api/v1/swap_cross_trigger_openorders":       1,
-						"linear-swap-api/v1/swap_trigger_hisorders":              1,
-						"linear-swap-api/v1/swap_cross_trigger_hisorders":        1,
-						"linear-swap-api/v1/swap_tpsl_order":                     1,
-						"linear-swap-api/v1/swap_cross_tpsl_order":               1,
-						"linear-swap-api/v1/swap_tpsl_cancel":                    1,
-						"linear-swap-api/v1/swap_cross_tpsl_cancel":              1,
-						"linear-swap-api/v1/swap_tpsl_cancelall":                 1,
-						"linear-swap-api/v1/swap_cross_tpsl_cancelall":           1,
-						"linear-swap-api/v1/swap_tpsl_openorders":                1,
-						"linear-swap-api/v1/swap_cross_tpsl_openorders":          1,
-						"linear-swap-api/v1/swap_tpsl_hisorders":                 1,
-						"linear-swap-api/v1/swap_cross_tpsl_hisorders":           1,
-						"linear-swap-api/v1/swap_relation_tpsl_order":            1,
-						"linear-swap-api/v1/swap_cross_relation_tpsl_order":      1,
-						"linear-swap-api/v1/swap_track_order":                    1,
-						"linear-swap-api/v1/swap_cross_track_order":              1,
-						"linear-swap-api/v1/swap_track_cancel":                   1,
-						"linear-swap-api/v1/swap_cross_track_cancel":             1,
-						"linear-swap-api/v1/swap_track_cancelall":                1,
-						"linear-swap-api/v1/swap_cross_track_cancelall":          1,
-						"linear-swap-api/v1/swap_track_openorders":               1,
-						"linear-swap-api/v1/swap_cross_track_openorders":         1,
-						"linear-swap-api/v1/swap_track_hisorders":                1,
-						"linear-swap-api/v1/swap_cross_track_hisorders":          1,
-						"v5/account/asset_mode":                                  1,
-						"v5/trade/order":                                         1,
-						"v5/trade/batch_orders":                                  1,
-						"v5/trade/cancel_order":                                  1,
-						"v5/trade/cancel_batch_orders":                           1,
-						"v5/trade/cancel_all_orders":                             1,
-						"v5/trade/position":                                      1,
-						"v5/trade/position_all":                                  1,
-						"v5/position/lever":                                      1,
-						"v5/position/mode":                                       1,
-						"v5/account/fee_deduction_currency":                      1,
+						"api/v1/contract_balance_valuation":           1,
+						"api/v1/contract_account_info":                1,
+						"api/v1/contract_position_info":               1,
+						"api/v1/contract_sub_auth":                    1,
+						"api/v1/contract_sub_account_list":            1,
+						"api/v1/contract_sub_account_info_list":       1,
+						"api/v1/contract_sub_account_info":            1,
+						"api/v1/contract_sub_position_info":           1,
+						"api/v1/contract_financial_record":            1,
+						"api/v1/contract_financial_record_exact":      1,
+						"api/v1/contract_user_settlement_records":     1,
+						"api/v1/contract_order_limit":                 1,
+						"api/v1/contract_fee":                         1,
+						"api/v1/contract_transfer_limit":              1,
+						"api/v1/contract_position_limit":              1,
+						"api/v1/contract_account_position_info":       1,
+						"api/v1/contract_master_sub_transfer":         1,
+						"api/v1/contract_master_sub_transfer_record":  1,
+						"api/v1/contract_available_level_rate":        1,
+						"api/v3/contract_financial_record":            1,
+						"api/v3/contract_financial_record_exact":      1,
+						"api/v1/contract-cancel-after":                1,
+						"api/v1/contract_order":                       1,
+						"api/v1/contract_batchorder":                  1,
+						"api/v1/contract_cancel":                      1,
+						"api/v1/contract_cancelall":                   1,
+						"api/v1/contract_switch_lever_rate":           30,
+						"api/v1/lightning_close_position":             1,
+						"api/v1/contract_order_info":                  1,
+						"api/v1/contract_order_detail":                1,
+						"api/v1/contract_openorders":                  1,
+						"api/v1/contract_hisorders":                   1,
+						"api/v1/contract_hisorders_exact":             1,
+						"api/v1/contract_matchresults":                1,
+						"api/v1/contract_matchresults_exact":          1,
+						"api/v3/contract_hisorders":                   1,
+						"api/v3/contract_hisorders_exact":             1,
+						"api/v3/contract_matchresults":                1,
+						"api/v3/contract_matchresults_exact":          1,
+						"api/v1/contract_trigger_order":               1,
+						"api/v1/contract_trigger_cancel":              1,
+						"api/v1/contract_trigger_cancelall":           1,
+						"api/v1/contract_trigger_openorders":          1,
+						"api/v1/contract_trigger_hisorders":           1,
+						"api/v1/contract_tpsl_order":                  1,
+						"api/v1/contract_tpsl_cancel":                 1,
+						"api/v1/contract_tpsl_cancelall":              1,
+						"api/v1/contract_tpsl_openorders":             1,
+						"api/v1/contract_tpsl_hisorders":              1,
+						"api/v1/contract_relation_tpsl_order":         1,
+						"api/v1/contract_track_order":                 1,
+						"api/v1/contract_track_cancel":                1,
+						"api/v1/contract_track_cancelall":             1,
+						"api/v1/contract_track_openorders":            1,
+						"api/v1/contract_track_hisorders":             1,
+						"swap-api/v1/swap_balance_valuation":          1,
+						"swap-api/v1/swap_account_info":               1,
+						"swap-api/v1/swap_position_info":              1,
+						"swap-api/v1/swap_account_position_info":      1,
+						"swap-api/v1/swap_sub_auth":                   1,
+						"swap-api/v1/swap_sub_account_list":           1,
+						"swap-api/v1/swap_sub_account_info_list":      1,
+						"swap-api/v1/swap_sub_account_info":           1,
+						"swap-api/v1/swap_sub_position_info":          1,
+						"swap-api/v1/swap_financial_record":           1,
+						"swap-api/v1/swap_financial_record_exact":     1,
+						"swap-api/v1/swap_user_settlement_records":    1,
+						"swap-api/v1/swap_available_level_rate":       1,
+						"swap-api/v1/swap_order_limit":                1,
+						"swap-api/v1/swap_fee":                        1,
+						"swap-api/v1/swap_transfer_limit":             1,
+						"swap-api/v1/swap_position_limit":             1,
+						"swap-api/v1/swap_master_sub_transfer":        1,
+						"swap-api/v1/swap_master_sub_transfer_record": 1,
+						"swap-api/v3/swap_financial_record":           1,
+						"swap-api/v3/swap_financial_record_exact":     1,
+						"swap-api/v1/swap-cancel-after":               1,
+						"swap-api/v1/swap_order":                      1,
+						"swap-api/v1/swap_batchorder":                 1,
+						"swap-api/v1/swap_cancel":                     1,
+						"swap-api/v1/swap_cancelall":                  1,
+						"swap-api/v1/swap_lightning_close_position":   1,
+						"swap-api/v1/swap_switch_lever_rate":          30,
+						"swap-api/v1/swap_order_info":                 1,
+						"swap-api/v1/swap_order_detail":               1,
+						"swap-api/v1/swap_openorders":                 1,
+						"swap-api/v1/swap_hisorders":                  1,
+						"swap-api/v1/swap_hisorders_exact":            1,
+						"swap-api/v1/swap_matchresults":               1,
+						"swap-api/v1/swap_matchresults_exact":         1,
+						"swap-api/v3/swap_matchresults":               1,
+						"swap-api/v3/swap_matchresults_exact":         1,
+						"swap-api/v3/swap_hisorders":                  1,
+						"swap-api/v3/swap_hisorders_exact":            1,
+						"swap-api/v1/swap_trigger_order":              1,
+						"swap-api/v1/swap_trigger_cancel":             1,
+						"swap-api/v1/swap_trigger_cancelall":          1,
+						"swap-api/v1/swap_trigger_openorders":         1,
+						"swap-api/v1/swap_trigger_hisorders":          1,
+						"swap-api/v1/swap_tpsl_order":                 1,
+						"swap-api/v1/swap_tpsl_cancel":                1,
+						"swap-api/v1/swap_tpsl_cancelall":             1,
+						"swap-api/v1/swap_tpsl_openorders":            1,
+						"swap-api/v1/swap_tpsl_hisorders":             1,
+						"swap-api/v1/swap_relation_tpsl_order":        1,
+						"swap-api/v1/swap_track_order":                1,
+						"swap-api/v1/swap_track_cancel":               1,
+						"swap-api/v1/swap_track_cancelall":            1,
+						"swap-api/v1/swap_track_openorders":           1,
+						"swap-api/v1/swap_track_hisorders":            1,
+						"v5/account/asset_mode":                       100,
+						"v5/trade/order":                              0.41679,
+						"v5/trade/batch_orders":                       0.41679,
+						"v5/trade/cancel_order":                       0.41679,
+						"v5/trade/cancel_batch_orders":                0.41679,
+						"v5/trade/cancel_all_orders":                  0.41679,
+						"v5/trade/cancel-after":                       0.41679,
+						"v5/trade/position":                           0.41679,
+						"v5/trade/position_all":                       0.41679,
+						"v5/position/lever":                           0.20834,
+						"v5/position/mode":                            0.20834,
+						"v5/position/margin":                          0.20834,
+						"v5/account/fee_deduction_currency":           0.20834,
+						"v5/algo/order":                               0.41679,
+						"v5/algo/cancel_orders":                       0.41679,
 					},
 				},
 			},
@@ -1110,6 +1006,9 @@ func (this *HtxCore) Describe() any {
 				"XDC":       "XDC",
 				"XPLA":      "XPLA",
 			},
+			"networksById": map[string]any{
+				"MATIC": "MATIC",
+			},
 			"fetchOrdersByStatesMethod":         "spot_private_get_v1_order_orders",
 			"createMarketBuyOrderRequiresPrice": true,
 			"language":                          "en-US",
@@ -1132,6 +1031,9 @@ func (this *HtxCore) Describe() any {
 				"grid-trading":    "grid-trading",
 				"deposit-earning": "deposit-earning",
 				"otc-options":     "otc-options",
+				"linear-swap":     "swap",
+				"swap":            "swap",
+				"futures":         "future",
 			},
 			"typesByAccount": map[string]any{
 				"pro":     "spot",
@@ -1266,21 +1168,21 @@ func (this *HtxCore) Describe() any {
 				},
 				"fetchOpenOrders": map[string]any{
 					"marginMode": true,
-					"trigger":    false,
-					"trailing":   false,
+					"trigger":    true,
+					"trailing":   true,
 					"limit":      50,
 				},
 				"fetchOrders": map[string]any{
 					"marginMode": true,
-					"trigger":    false,
-					"trailing":   false,
+					"trigger":    true,
+					"trailing":   true,
 					"limit":      50,
 					"daysBack":   90,
 				},
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       true,
-					"trigger":          false,
-					"trailing":         false,
+					"trigger":          true,
+					"trailing":         true,
 					"untilDays":        2,
 					"limit":            50,
 					"daysBack":         90,
@@ -1330,9 +1232,11 @@ func (this *HtxCore) FetchStatus(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14198 := (<-this.LoadMarkets())
-		PanicOnError(retRes14198)
+			retRes132112 := (<-this.LoadMarkets())
+			PanicOnError(retRes132112)
+		}
 		var marketType any = nil
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchStatus", nil, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
@@ -1651,9 +1555,11 @@ func (this *HtxCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16978 := (<-this.LoadMarkets())
-		PanicOnError(retRes16978)
+			retRes160112 := (<-this.LoadMarkets())
+			PanicOnError(retRes160112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"symbols": GetValue(market, "id"),
@@ -1697,9 +1603,11 @@ func (this *HtxCore) FetchTradingLimits(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17278 := (<-this.LoadMarkets())
-		PanicOnError(retRes17278)
+			retRes163312 := (<-this.LoadMarkets())
+			PanicOnError(retRes163312)
+		}
 		if IsTrue(IsEqual(symbols, nil)) {
 			symbols = this.Symbols
 		}
@@ -1815,8 +1723,8 @@ func (this *HtxCore) FetchMarkets(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(GetValue(this.Options, "adjustForTimeDifference")) {
 
-			retRes181612 := (<-this.LoadTimeDifference())
-			PanicOnError(retRes181612)
+			retRes172312 := (<-this.LoadTimeDifference())
+			PanicOnError(retRes172312)
 		}
 		var types any = nil
 		typesparamsVariable := this.HandleOptionAndParams(params, "fetchMarkets", "types", map[string]any{})
@@ -2330,9 +2238,11 @@ func (this *HtxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22968 := (<-this.LoadMarkets())
-		PanicOnError(retRes22968)
+			retRes220412 := (<-this.LoadMarkets())
+			PanicOnError(retRes220412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		var response any = nil
@@ -2436,9 +2346,11 @@ func (this *HtxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes23798 := (<-this.LoadMarkets())
-		PanicOnError(retRes23798)
+			retRes228912 := (<-this.LoadMarkets())
+			PanicOnError(retRes228912)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var first any = this.SafeString(symbols, 0)
 		var market any = nil
@@ -2574,9 +2486,11 @@ func (this *HtxCore) FetchLastPrices(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes24908 := (<-this.LoadMarkets())
-		PanicOnError(retRes24908)
+			retRes240212 := (<-this.LoadMarkets())
+			PanicOnError(retRes240212)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = this.GetMarketFromSymbols(symbols)
 		var typeVar any = nil
@@ -2642,7 +2556,7 @@ func (this *HtxCore) ParseLastPrice(entry any, optionalArgs ...any) any {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *HtxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any {
 	ch := make(chan any)
@@ -2653,9 +2567,11 @@ func (this *HtxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes26128 := (<-this.LoadMarkets())
-		PanicOnError(retRes26128)
+			retRes252612 := (<-this.LoadMarkets())
+			PanicOnError(retRes252612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"type": "step0",
@@ -2818,17 +2734,42 @@ func (this *HtxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//         "trade_partition":"USDT"
 	//     }
 	//
+	// linear swap fetchMyTrades
+	//
+	//     {
+	//         "id": "1513834754679549965",
+	//         "contract_code": "BTC-USDT",
+	//         "order_id": "1513834754585190400",
+	//         "trade_id": "152022944",
+	//         "side": "sell",
+	//         "position_side": "long",
+	//         "order_type": "1",
+	//         "margin_mode": "cross",
+	//         "type": "market",
+	//         "role": "TAKER",
+	//         "trade_price": "62688.2",
+	//         "trade_volume": "2",
+	//         "trade_turnover": "125.3764",
+	//         "created_time": "1780967931197",
+	//         "updated_time": "1780967931197",
+	//         "order_source": "api",
+	//         "fee_currency": "USDT",
+	//         "trade_fee": "0.07522584",
+	//         "deduction_price": "",
+	//         "profit": "-0.3656",
+	//         "contract_type": "swap"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString2(trade, "contract_code", "symbol")
 	market = this.SafeMarket(marketId, market)
 	var symbol any = GetValue(market, "symbol")
-	var timestamp any = this.SafeInteger2(trade, "ts", "created-at")
-	timestamp = this.SafeInteger2(trade, "created_at", "create_date", timestamp)
+	var timestamp any = this.SafeIntegerN(trade, []any{"ts", "created-at", "created_at", "create_date", "created_time"})
 	var order any = this.SafeString2(trade, "order-id", "order_id")
-	var side any = this.SafeString(trade, "direction")
+	var side any = this.SafeString2(trade, "direction", "side")
 	var typeVar any = this.SafeString(trade, "type")
-	if IsTrue(!IsEqual(typeVar, nil)) {
+	if IsTrue(IsTrue((!IsEqual(typeVar, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(typeVar, "-"), 0)))) {
 		var typeParts any = Split(typeVar, "-")
 		side = GetValue(typeParts, 0)
 		typeVar = GetValue(typeParts, 1)
@@ -2843,7 +2784,7 @@ func (this *HtxCore) ParseTrade(trade any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(feeCost, nil)) {
 		feeCost = Precise.StringNeg(this.SafeString(trade, "trade_fee"))
 	}
-	var feeCurrencyId any = this.SafeString2(trade, "fee-currency", "fee_asset")
+	var feeCurrencyId any = this.SafeStringN(trade, []any{"fee-currency", "fee_asset", "fee_currency"})
 	var feeCurrency any = this.SafeCurrencyCode(feeCurrencyId)
 	var filledPoints any = this.SafeString(trade, "filled-points")
 	if IsTrue(!IsEqual(filledPoints, nil)) {
@@ -2925,9 +2866,9 @@ func (this *HtxCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 			panic(NotSupported(Add(this.Id, " fetchOrderTrades() is only supported for spot markets")))
 		}
 
-		retRes286115 := (<-this.FetchSpotOrderTrades(id, symbol, since, limit, params))
-		PanicOnError(retRes286115)
-		ch <- retRes286115
+		retRes280115 := (<-this.FetchSpotOrderTrades(id, symbol, since, limit, params))
+		PanicOnError(retRes280115)
+		ch <- retRes280115
 		return nil
 
 	}()
@@ -2960,9 +2901,11 @@ func (this *HtxCore) FetchSpotOrderTrades(id any, optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28788 := (<-this.LoadMarkets())
-		PanicOnError(retRes28788)
+			retRes281912 := (<-this.LoadMarkets())
+			PanicOnError(retRes281912)
+		}
 		var request any = map[string]any{
 			"order-id": id,
 		}
@@ -2980,16 +2923,15 @@ func (this *HtxCore) FetchSpotOrderTrades(id any, optionalArgs ...any) <-chan an
 /**
  * @method
  * @name htx#fetchMyTrades
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-match-results-via-multiple-fields-new
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-match-results-via-multiple-fields-new
- * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
  * @description fetch all trades made by the user
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195898804f0
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#search-match-results
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
  * @param {int} [limit] the maximum number of trades structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] the latest time in ms to fetch trades for
- * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
@@ -3005,18 +2947,20 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes29028 := (<-this.LoadMarkets())
-		PanicOnError(retRes29028)
+			retRes284412 := (<-this.LoadMarkets())
+			PanicOnError(retRes284412)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes290619 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-			PanicOnError(retRes290619)
-			ch <- retRes290619
+			retRes284919 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+			PanicOnError(retRes284919)
+			ch <- retRes284919
 			return nil
 		}
 		var market any = nil
@@ -3050,35 +2994,28 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 			}
-			AddElementToObject(request, "contract", GetValue(market, "id"))
-			AddElementToObject(request, "trade_type", 0) // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
 			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "start_time", since) // a date within 120 days from today
+				AddElementToObject(request, "start_time", since)
 			}
 			requestparamsVariable := this.HandleUntilOption("end_time", request, params)
 			request = GetValue(requestparamsVariable, 0)
 			params = GetValue(requestparamsVariable, 1)
-			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "page_size", limit) // default 100, max 500
-			}
-			if IsTrue(GetValue(market, "linear")) {
-				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("fetchMyTrades", params)
-				marginMode = GetValue(marginModeparamsVariable, 0)
-				params = GetValue(marginModeparamsVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV3SwapMatchresultsExact(this.Extend(request, params)))
-					PanicOnError(response)
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact(this.Extend(request, params)))
-					PanicOnError(response)
+			if IsTrue(this.SafeBool(market, "linear")) {
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
+				if IsTrue(!IsEqual(limit, nil)) {
+					AddElementToObject(request, "limit", limit) // default 100, max 500
 				}
-			} else if IsTrue(GetValue(market, "inverse")) {
+
+				response = (<-this.ContractPrivateGetV5TradeOrderDetails(this.Extend(request, params)))
+				PanicOnError(response)
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(!IsEqual(limit, nil)) {
+					AddElementToObject(request, "page_size", limit) // default 100, max 500
+				}
+				AddElementToObject(request, "contract", this.SafeString(market, "id"))
+				AddElementToObject(request, "trade_type", 0) // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
 				if IsTrue(IsEqual(marketType, "future")) {
-					AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+					AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 
 					response = (<-this.ContractPrivatePostApiV3ContractMatchresultsExact(this.Extend(request, params)))
 					PanicOnError(response)
@@ -3157,6 +3094,39 @@ func (this *HtxCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		//         "ts": 1604372202243
 		//     }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "id": "1513834754679549965",
+		//                 "contract_code": "BTC-USDT",
+		//                 "order_id": "1513834754585190400",
+		//                 "trade_id": "152022944",
+		//                 "side": "sell",
+		//                 "position_side": "long",
+		//                 "order_type": "1",
+		//                 "margin_mode": "cross",
+		//                 "type": "market",
+		//                 "role": "TAKER",
+		//                 "trade_price": "62688.2",
+		//                 "trade_volume": "2",
+		//                 "trade_turnover": "125.3764",
+		//                 "created_time": "1780967931197",
+		//                 "updated_time": "1780967931197",
+		//                 "order_source": "api",
+		//                 "fee_currency": "USDT",
+		//                 "trade_fee": "0.07522584",
+		//                 "deduction_price": "",
+		//                 "profit": "-0.3656",
+		//                 "contract_type": "swap"
+		//             }
+		//         ],
+		//         "ts": 1781066959396
+		//     }
+		//
 		var trades any = this.SafeValue(response, "data")
 		if !IsTrue(IsArray(trades)) {
 			trades = this.SafeValue(trades, "trades")
@@ -3194,9 +3164,11 @@ func (this *HtxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes30708 := (<-this.LoadMarkets())
-		PanicOnError(retRes30708)
+			retRes304312 := (<-this.LoadMarkets())
+			PanicOnError(retRes304312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -3321,18 +3293,20 @@ func (this *HtxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes31778 := (<-this.LoadMarkets())
-		PanicOnError(retRes31778)
+			retRes315212 := (<-this.LoadMarkets())
+			PanicOnError(retRes315212)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes318119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
-			PanicOnError(retRes318119)
-			ch <- retRes318119
+			retRes315719 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 1000))
+			PanicOnError(retRes315719)
+			ch <- retRes315719
 			return nil
 		}
 		var market any = this.Market(symbol)
@@ -3504,9 +3478,11 @@ func (this *HtxCore) FetchAccounts(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes33158 := (<-this.LoadMarkets())
-		PanicOnError(retRes33158)
+			retRes329212 := (<-this.LoadMarkets())
+			PanicOnError(retRes329212)
+		}
 
 		response := (<-this.SpotPrivateGetV1AccountAccounts(params))
 		PanicOnError(response)
@@ -3592,7 +3568,7 @@ func (this *HtxCore) FetchAccountIdByType(typeVar any, optionalArgs ...any) <-ch
 		for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
 			var account any = GetValue(accounts, i)
 			var info any = this.SafeValue(account, "info")
-			var subtype any = this.SafeString(info, "subtype", nil)
+			var subtype any = this.SafeString(info, "subtype")
 			var typeFromAccount any = this.SafeString(account, "type")
 			if IsTrue(IsEqual(typeVar, "margin")) {
 				if IsTrue(IsEqual(subtype, marketId)) {
@@ -3670,80 +3646,84 @@ func (this *HtxCore) FetchCurrencies(optionalArgs ...any) <-chan any {
 		//    }
 		//
 		var data any = this.SafeList(response, "data", []any{})
-		var result any = map[string]any{}
-		AddElementToObject(this.Options, "networkChainIdsByNames", map[string]any{})
 		AddElementToObject(this.Options, "networkNamesByChainIds", map[string]any{})
-		for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-			var entry any = GetValue(data, i)
-			var currencyId any = this.SafeString(entry, "currency")
-			var code any = this.SafeCurrencyCode(currencyId)
-			var assetType any = this.SafeString(entry, "assetType")
-			var typeVar any = Ternary(IsTrue(IsEqual(assetType, "1")), "crypto", "fiat")
-			AddElementToObject(GetValue(this.Options, "networkChainIdsByNames"), code, map[string]any{})
-			var chains any = this.SafeList(entry, "chains", []any{})
-			var networks any = map[string]any{}
-			for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
-				var chainEntry any = GetValue(chains, j)
-				var uniqueChainId any = this.SafeString(chainEntry, "chain")             // i.e. usdterc20, trc20usdt ...
-				var title any = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-				AddElementToObject(GetValue(GetValue(this.Options, "networkChainIdsByNames"), code), title, uniqueChainId)
-				AddElementToObject(GetValue(this.Options, "networkNamesByChainIds"), uniqueChainId, title)
-				var networkCode any = this.NetworkIdToCode(uniqueChainId)
-				AddElementToObject(networks, networkCode, map[string]any{
-					"info":    chainEntry,
-					"id":      uniqueChainId,
-					"network": networkCode,
-					"limits": map[string]any{
-						"deposit": map[string]any{
-							"min": this.SafeNumber(chainEntry, "minDepositAmt"),
-							"max": nil,
-						},
-						"withdraw": map[string]any{
-							"min": this.SafeNumber(chainEntry, "minWithdrawAmt"),
-							"max": this.SafeNumber(chainEntry, "maxWithdrawAmt"),
-						},
-					},
-					"active":    nil,
-					"deposit":   IsEqual(this.SafeString(chainEntry, "depositStatus"), "allowed"),
-					"withdraw":  IsEqual(this.SafeString(chainEntry, "withdrawStatus"), "allowed"),
-					"fee":       this.SafeNumber(chainEntry, "transactFeeWithdraw"),
-					"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chainEntry, "withdrawPrecision"))),
-				})
-			}
-			AddElementToObject(result, code, this.SafeCurrencyStructure(map[string]any{
-				"info":     entry,
-				"code":     code,
-				"id":       currencyId,
-				"active":   IsEqual(this.SafeString(entry, "instStatus"), "normal"),
-				"deposit":  nil,
-				"withdraw": nil,
-				"fee":      nil,
-				"name":     nil,
-				"type":     typeVar,
-				"limits": map[string]any{
-					"amount": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"withdraw": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-					"deposit": map[string]any{
-						"min": nil,
-						"max": nil,
-					},
-				},
-				"precision": nil,
-				"networks":  networks,
-			}))
-		}
+		AddElementToObject(this.Options, "networkChainIdsByNames", map[string]any{})
 
-		ch <- result
+		ch <- this.ParseCurrencies(data)
 		return nil
 
 	}()
 	return ch
+}
+func (this *HtxCore) ParseCurrency(rawCurrency any) any {
+	if !IsTrue((InOp(this.Options, "networkNamesByChainIds"))) {
+		AddElementToObject(this.Options, "networkNamesByChainIds", map[string]any{})
+	}
+	if !IsTrue((InOp(this.Options, "networkChainIdsByNames"))) {
+		AddElementToObject(this.Options, "networkChainIdsByNames", map[string]any{})
+	}
+	var currencyId any = this.SafeString(rawCurrency, "currency")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var assetType any = this.SafeString(rawCurrency, "assetType")
+	var typeVar any = Ternary(IsTrue((IsEqual(assetType, "1"))), "crypto", "fiat")
+	AddElementToObject(GetValue(this.Options, "networkChainIdsByNames"), code, map[string]any{})
+	var chains any = this.SafeList(rawCurrency, "chains", []any{})
+	var networks any = map[string]any{}
+	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
+		var chainEntry any = GetValue(chains, j)
+		var uniqueChainId any = this.SafeString(chainEntry, "chain")             // i.e. usdterc20, trc20usdt ...
+		var title any = this.SafeString2(chainEntry, "baseChain", "displayName") // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
+		AddElementToObject(GetValue(GetValue(this.Options, "networkChainIdsByNames"), code), title, uniqueChainId)
+		AddElementToObject(GetValue(this.Options, "networkNamesByChainIds"), uniqueChainId, title)
+		var networkCode any = this.NetworkIdToCode(uniqueChainId, code)
+		AddElementToObject(networks, networkCode, map[string]any{
+			"info":    chainEntry,
+			"id":      uniqueChainId,
+			"network": networkCode,
+			"limits": map[string]any{
+				"deposit": map[string]any{
+					"min": this.SafeNumber(chainEntry, "minDepositAmt"),
+					"max": nil,
+				},
+				"withdraw": map[string]any{
+					"min": this.SafeNumber(chainEntry, "minWithdrawAmt"),
+					"max": this.SafeNumber(chainEntry, "maxWithdrawAmt"),
+				},
+			},
+			"active":    nil,
+			"deposit":   IsEqual(this.SafeString(chainEntry, "depositStatus"), "allowed"),
+			"withdraw":  IsEqual(this.SafeString(chainEntry, "withdrawStatus"), "allowed"),
+			"fee":       this.SafeNumber(chainEntry, "transactFeeWithdraw"),
+			"precision": this.ParseNumber(this.ParsePrecision(this.SafeString(chainEntry, "withdrawPrecision"))),
+		})
+	}
+	return this.SafeCurrencyStructure(map[string]any{
+		"info":     rawCurrency,
+		"code":     code,
+		"id":       currencyId,
+		"active":   IsEqual(this.SafeString(rawCurrency, "instStatus"), "normal"),
+		"deposit":  nil,
+		"withdraw": nil,
+		"fee":      nil,
+		"name":     nil,
+		"type":     typeVar,
+		"limits": map[string]any{
+			"amount": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"withdraw": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+			"deposit": map[string]any{
+				"min": nil,
+				"max": nil,
+			},
+		},
+		"precision": nil,
+		"networks":  networks,
+	})
 }
 func (this *HtxCore) NetworkIdToCode(optionalArgs ...any) any {
 	// here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
@@ -3757,13 +3737,16 @@ func (this *HtxCore) NetworkIdToCode(optionalArgs ...any) any {
 		panic(ExchangeError(Add(this.Id, " networkIdToCode() - markets need to be loaded at first")))
 	}
 	var networkTitle any = this.SafeValue(GetValue(this.Options, "networkNamesByChainIds"), networkId, networkId)
-	return this.Exchange.NetworkIdToCode(networkTitle)
+	return this.Exchange.NetworkIdToCode(networkTitle, currencyCode)
 }
 func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	currencyCode := GetArg(optionalArgs, 0, nil)
 	_ = currencyCode
+	if IsTrue(IsEqual(networkCode, nil)) {
+		return nil
+	}
 	if IsTrue(IsEqual(currencyCode, nil)) {
-		panic(ArgumentsRequired(Add(this.Id, " networkCodeToId() requires a currencyCode argument")))
+		return this.Exchange.NetworkCodeToId(networkCode)
 	}
 	var keys any = ObjectKeys(GetValue(this.Options, "networkChainIdsByNames"))
 	var keysLength any = GetArrayLength(keys)
@@ -3774,7 +3757,7 @@ func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	if IsTrue(InOp(uniqueNetworkIds, networkCode)) {
 		return GetValue(uniqueNetworkIds, networkCode)
 	} else {
-		var networkTitle any = this.Exchange.NetworkCodeToId(networkCode)
+		var networkTitle any = this.Exchange.NetworkCodeToId(networkCode, currencyCode)
 		return this.SafeValue(uniqueNetworkIds, networkTitle, networkTitle)
 	}
 }
@@ -3785,15 +3768,12 @@ func (this *HtxCore) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-account-balance-of-a-specific-account
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4b429-7773-11ed-9966-0242ac110003
- * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000074-77b7-11ed-9966-0242ac110003
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-asset-valuation
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-account-information
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-account-information
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-account-information
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588469969
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.subType] linear or future
- * @param {bool} [params.uta] provide this parameter if you have a recent account with unified cross+isolated margin account
+ * @param {string} [params.type] spot, margin, future or swap
+ * @param {string} [params.subType] linear or inverse
  * @param {bool} [params.multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -3804,28 +3784,34 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes35618 := (<-this.LoadMarkets())
-		PanicOnError(retRes35618)
+			retRes354512 := (<-this.LoadMarkets())
+			PanicOnError(retRes354512)
+		}
+		var isUnifiedAccount any = nil
+		isUnifiedAccountparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
+		isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
+		params = GetValue(isUnifiedAccountparamsVariable, 1)
+		if IsTrue(isUnifiedAccount) {
+			panic(NotSupported(Add(this.Id, " fetchBalance() unified account has been deprecated on htx")))
+		}
 		var typeVar any = nil
 		typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 		typeVar = GetValue(typeVarparamsVariable, 0)
 		params = GetValue(typeVarparamsVariable, 1)
 		var subType any = nil
-		var isUnifiedAccount any = nil
 		var isMultiAssetMode any = nil
 		subTypeparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "defaultSubType", "subType", "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
-		isUnifiedAccountparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "unified", "uta", false)
-		isUnifiedAccount = GetValue(isUnifiedAccountparamsVariable, 0)
-		params = GetValue(isUnifiedAccountparamsVariable, 1)
 		isMultiAssetModeparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "multiAssetMode", false)
 		isMultiAssetMode = GetValue(isMultiAssetModeparamsVariable, 0)
 		params = GetValue(isMultiAssetModeparamsVariable, 1)
 		var request any = map[string]any{}
 		var spot any = (IsEqual(typeVar, "spot"))
 		var future any = (IsEqual(typeVar, "future"))
+		var swap any = (IsEqual(typeVar, "swap"))
 		var inverse any = (IsEqual(subType, "inverse"))
 		var linear any = (IsEqual(subType, "linear"))
 		var marginMode any = nil
@@ -3836,7 +3822,7 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		var cross any = (IsEqual(marginMode, "cross"))
 		var margin any = IsTrue((IsEqual(typeVar, "margin"))) || IsTrue((IsTrue(spot) && IsTrue((IsTrue(cross) || IsTrue(isolated)))))
 		var response any = nil
-		if IsTrue(isMultiAssetMode) {
+		if IsTrue(IsTrue(isMultiAssetMode) || IsTrue((IsTrue(linear) && IsTrue((IsTrue(swap) || IsTrue(future)))))) {
 
 			response = (<-this.ContractPrivateGetV5AccountBalance(this.Extend(request, params)))
 			PanicOnError(response)
@@ -3853,28 +3839,14 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 				}
 			} else {
 
-				retRes359116 := (<-this.LoadAccounts())
-				PanicOnError(retRes359116)
+				retRes358016 := (<-this.LoadAccounts())
+				PanicOnError(retRes358016)
 
 				accountId := (<-this.FetchAccountIdByType(typeVar, nil, nil, params))
 				PanicOnError(accountId)
 				AddElementToObject(request, "account-id", accountId)
 
 				response = (<-this.SpotPrivateGetV1AccountAccountsAccountIdBalance(this.Extend(request, params)))
-				PanicOnError(response)
-			}
-		} else if IsTrue(isUnifiedAccount) {
-
-			response = (<-this.ContractPrivateGetLinearSwapApiV3UnifiedAccountInfo(this.Extend(request, params)))
-			PanicOnError(response)
-		} else if IsTrue(linear) {
-			if IsTrue(isolated) {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapAccountInfo(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossAccountInfo(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else if IsTrue(inverse) {
@@ -3989,63 +3961,7 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		//         "ts": 1637644827566
 		//     }
 		//
-		// linear cross futures and linear cross swap
-		//
-		//     {
-		//         "status": "ok",
-		//         "data": [
-		//             {
-		//                 "futures_contract_detail": [
-		//                     {
-		//                         "symbol": "ETH",
-		//                         "contract_code": "ETH-USDT-220325",
-		//                         "margin_position": 0,
-		//                         "margin_frozen": 0,
-		//                         "margin_available": 200.000000000000000000,
-		//                         "profit_unreal": 0E-18,
-		//                         "liquidation_price": null,
-		//                         "lever_rate": 5,
-		//                         "adjust_factor": 0.060000000000000000,
-		//                         "contract_type": "quarter",
-		//                         "pair": "ETH-USDT",
-		//                         "business_type": "futures"
-		//                     },
-		//                 ],
-		//                 "margin_mode": "cross",
-		//                 "margin_account": "USDT",
-		//                 "margin_asset": "USDT",
-		//                 "margin_balance": 49.874186030200000000,
-		//                 "money_in": 50,
-		//                 "money_out": 0,
-		//                 "margin_static": 49.872786030200000000,
-		//                 "margin_position": 6.180000000000000000,
-		//                 "margin_frozen": 6.000000000000000000,
-		//                 "profit_unreal": 0.001400000000000000,
-		//                 "withdraw_available": 37.6927860302,
-		//                 "risk_rate": 271.984050521072796934,
-		//                 "new_risk_rate": 0.001858676950514399,
-		//                 "contract_detail": [
-		//                     {
-		//                         "symbol": "MANA",
-		//                         "contract_code": "MANA-USDT",
-		//                         "margin_position": 0,
-		//                         "margin_frozen": 0,
-		//                         "margin_available": 200.000000000000000000,
-		//                         "profit_unreal": 0E-18,
-		//                         "liquidation_price": null,
-		//                         "lever_rate": 5,
-		//                         "adjust_factor": 0.100000000000000000,
-		//                         "contract_type": "swap",
-		//                         "pair": "MANA-USDT",
-		//                         "business_type": "swap"
-		//                     },
-		//                 ]
-		//             }
-		//         ],
-		//         "ts": 1640915104870
-		//     }
-		//
-		// multi asset mode
+		// linear swap and multi asset mode
 		//
 		//     {
 		//         "code": 200,
@@ -4085,18 +4001,20 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		//         "ts": 1770293281344
 		//     }
 		//
+		var finalResponse any = response
 		var result any = map[string]any{
-			"info": response,
+			"info": finalResponse,
 		}
 		var data any = this.SafeValue(response, "data")
-		if IsTrue(isMultiAssetMode) {
+		if IsTrue(IsTrue(isMultiAssetMode) || IsTrue((IsTrue(linear) && IsTrue((IsTrue(swap) || IsTrue(future)))))) {
 			var details any = this.SafeList(data, "details", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(details)); i++ {
 				var balance any = GetValue(details, i)
 				var currencyId any = this.SafeString(balance, "currency")
 				var code any = this.SafeCurrencyCode(currencyId)
 				var account any = this.Account()
-				AddElementToObject(account, "free", this.SafeString(balance, "withdraw_available"))
+				AddElementToObject(account, "free", this.SafeString(balance, "available_margin"))
+				AddElementToObject(account, "total", this.SafeString(balance, "equity"))
 				AddElementToObject(result, code, account)
 			}
 			result = this.SafeBalance(result)
@@ -4125,64 +4043,6 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
 				}
 				result = this.SafeBalance(result)
 			}
-		} else if IsTrue(isUnifiedAccount) {
-			for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-				var entry any = GetValue(data, i)
-				var marginAsset any = this.SafeString(entry, "margin_asset")
-				var currencyCode any = this.SafeCurrencyCode(marginAsset)
-				if IsTrue(isolated) {
-					var isolated_swap any = this.SafeValue(entry, "isolated_swap", map[string]any{})
-					for j := 0; IsLessThan(j, GetArrayLength(isolated_swap)); j++ {
-						var balance any = GetValue(isolated_swap, j)
-						var marketId any = this.SafeString(balance, "contract_code")
-						var subBalance any = map[string]any{
-							"code": currencyCode,
-							"free": this.SafeNumber(balance, "margin_available"),
-						}
-						var symbol any = this.SafeSymbol(marketId)
-						AddElementToObject(result, symbol, subBalance)
-						result = this.SafeBalance(result)
-					}
-				} else {
-					var account any = this.Account()
-					AddElementToObject(account, "free", this.SafeString(entry, "margin_static"))
-					AddElementToObject(account, "used", this.SafeString(entry, "margin_frozen"))
-					AddElementToObject(result, currencyCode, account)
-					result = this.SafeBalance(result)
-				}
-			}
-		} else if IsTrue(linear) {
-			var first any = this.SafeValue(data, 0, map[string]any{})
-			if IsTrue(isolated) {
-				for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-					var balance any = GetValue(data, i)
-					var marketId any = this.SafeString2(balance, "contract_code", "margin_account")
-					var market any = this.SafeMarket(marketId)
-					var currencyId any = this.SafeString(balance, "margin_asset")
-					var currency any = this.SafeCurrency(currencyId)
-					var code any = this.SafeString(market, "settle", GetValue(currency, "code"))
-					// the exchange outputs positions for delisted markets
-					// https://www.huobi.com/support/en-us/detail/74882968522337
-					// we skip it if the market was delisted
-					if IsTrue(!IsEqual(code, nil)) {
-						var account any = this.Account()
-						AddElementToObject(account, "free", this.SafeString(balance, "margin_balance"))
-						AddElementToObject(account, "used", this.SafeString(balance, "margin_frozen"))
-						var accountsByCode any = map[string]any{}
-						AddElementToObject(accountsByCode, code, account)
-						var symbol any = GetValue(market, "symbol")
-						AddElementToObject(result, symbol, this.SafeBalance(accountsByCode))
-					}
-				}
-			} else {
-				var account any = this.Account()
-				AddElementToObject(account, "free", this.SafeString(first, "withdraw_available"))
-				AddElementToObject(account, "total", this.SafeString(first, "margin_balance"))
-				var currencyId any = this.SafeString2(first, "margin_asset", "symbol")
-				var code any = this.SafeCurrencyCode(currencyId)
-				AddElementToObject(result, code, account)
-				result = this.SafeBalance(result)
-			}
 		} else if IsTrue(inverse) {
 			for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 				var balance any = GetValue(data, i)
@@ -4209,13 +4069,17 @@ func (this *HtxCore) FetchBalance(optionalArgs ...any) <-chan any {
  * @description fetches information on an order made by the user
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order-based-on-client-order-id
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-the-order-detail-of-an-order
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-information-of-an-order
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-information-of-order
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-196a8401f83
  * @see https://huobiapi.github.io/docs/dm/v1/en/#get-information-of-an-order
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-information-of-an-order
  * @param {string} id order id
- * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {bool} [params.trigger] *linear only* set to true if you want to fetch a trigger order
+ * @param {bool} [params.stopLossTakeProfit] *linear only* set to true if you want to fetch a stop-loss take-profit order
+ * @param {bool} [params.stopLoss] *linear only* set to true if you want to fetch a stop-loss order
+ * @param {bool} [params.takeProfit] *linear only* set to true if you want to fetch a take-profit order
+ * @param {bool} [params.trailing] *linear only* set to true if you want to fetch a trailing order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
@@ -4227,9 +4091,11 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes39358 := (<-this.LoadMarkets())
-		PanicOnError(retRes39358)
+			retRes380912 := (<-this.LoadMarkets())
+			PanicOnError(retRes380912)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4256,39 +4122,67 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 				PanicOnError(response)
 			}
 		} else {
-			if IsTrue(IsEqual(symbol, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
-			}
-			var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
+			var trigger any = this.SafeBool2(params, "stop", "trigger")
+			var stopLossTakeProfit any = this.SafeBool(params, "stopLossTakeProfit")
+			var stopLoss any = this.SafeBool(params, "stopLoss")
+			var takeProfit any = this.SafeBool(params, "takeProfit")
+			var trailing any = this.SafeBool(params, "trailing")
+			var isAlgo any = (IsTrue(IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLoss)) || IsTrue(takeProfit)) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing))
+			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
+			var clientOrderId any = this.SafeStringN(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 			if IsTrue(IsEqual(clientOrderId, nil)) {
-				AddElementToObject(request, "order_id", id)
+				if IsTrue(isAlgo) {
+					AddElementToObject(request, "algo_id", id)
+				} else {
+					AddElementToObject(request, "order_id", id)
+				}
 			} else {
-				AddElementToObject(request, "client_order_id", clientOrderId)
-				params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
+				if IsTrue(isAlgo) {
+					AddElementToObject(request, "algo_client_order_id", clientOrderId)
+				} else {
+					AddElementToObject(request, "client_order_id", clientOrderId)
+				}
+				params = this.Omit(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 			}
-			AddElementToObject(request, "contract_code", GetValue(market, "id"))
-			if IsTrue(GetValue(market, "linear")) {
-				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrder", params)
-				marginMode = GetValue(marginModeparamsVariable, 0)
-				params = GetValue(marginModeparamsVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
+				if IsTrue(isAlgo) {
+					if IsTrue(trigger) {
+						AddElementToObject(request, "type", "trigger")
+					} else if IsTrue(trailing) {
+						AddElementToObject(request, "type", "trailing_stop")
+					} else if IsTrue(stopLossTakeProfit) {
+						AddElementToObject(request, "type", "tpsl")
+					} else if IsTrue(stopLoss) {
+						AddElementToObject(request, "type", "sl")
+					} else if IsTrue(takeProfit) {
+						AddElementToObject(request, "type", "tp")
+					}
 
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapOrderInfo(this.Extend(request, params)))
+					response = (<-this.ContractPrivateGetV5AlgoOrder(this.Extend(request, params)))
 					PanicOnError(response)
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
+				} else {
+					if IsTrue(IsEqual(symbol, nil)) {
+						panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
+					}
+					AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
+					var marginMode any = nil
+					marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOrder", params)
+					marginMode = GetValue(marginModeparamsVariable, 0)
+					params = GetValue(marginModeparamsVariable, 1)
+					marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
+					AddElementToObject(request, "margin_mode", marginMode)
 
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossOrderInfo(this.Extend(request, params)))
+					response = (<-this.ContractPrivateGetV5TradeOrder(this.Extend(request, params)))
 					PanicOnError(response)
 				}
-			} else if IsTrue(GetValue(market, "inverse")) {
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
 				if IsTrue(IsEqual(marketType, "future")) {
-					AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+					AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 
 					response = (<-this.ContractPrivatePostApiV1ContractOrderInfo(this.Extend(request, params)))
 					PanicOnError(response)
 				} else if IsTrue(IsEqual(marketType, "swap")) {
+					AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapOrderInfo(this.Extend(request, params)))
 					PanicOnError(response)
@@ -4321,113 +4215,87 @@ func (this *HtxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		//         }
 		//     }
 		//
-		// linear swap cross margin
+		// linear swap
 		//
 		//     {
-		//         "status":"ok",
-		//         "data":[
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": {
+		//             "id": "1513828877079584768",
+		//             "side": "buy",
+		//             "type": "limit",
+		//             "price": "50000",
+		//             "volume": "1",
+		//             "state": "new",
+		//             "profit": null,
+		//             "contract_code": "BTC-USDT",
+		//             "position_side": "long",
+		//             "price_match": null,
+		//             "order_id": "1513828877079584768",
+		//             "client_order_id": "1513828877079584768",
+		//             "margin_mode": "cross",
+		//             "lever_rate": 20,
+		//             "order_source": "api",
+		//             "reduce_only": false,
+		//             "time_in_force": "gtc",
+		//             "tp_trigger_price": "",
+		//             "tp_order_price": "",
+		//             "tp_type": "0",
+		//             "tp_trigger_price_type": "",
+		//             "sl_trigger_price": "",
+		//             "sl_order_price": "",
+		//             "sl_type": "0",
+		//             "sl_trigger_price_type": "",
+		//             "trade_avg_price": "0",
+		//             "trade_volume": "0",
+		//             "trade_turnover": "0",
+		//             "fee_currency": "",
+		//             "fee": "0",
+		//             "price_protect": false,
+		//             "real_profit": null,
+		//             "contract_type": "swap",
+		//             "created_time": "1780966529876",
+		//             "updated_time": "1780966572409",
+		//             "cancel_reason": null,
+		//             "self_match_prevent": "cancel_taker"
+		//         },
+		//         "ts": 1780966573200
+		//     }
+		//
+		// linear swap algo
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
 		//             {
-		//                 "business_type":"swap",
-		//                 "contract_type":"swap",
-		//                 "pair":"BTC-USDT",
-		//                 "symbol":"BTC",
-		//                 "contract_code":"BTC-USDT",
-		//                 "volume":1,
-		//                 "price":3000,
-		//                 "order_price_type":"limit",
-		//                 "order_type":1,
-		//                 "direction":"buy",
-		//                 "offset":"open",
-		//                 "lever_rate":1,
-		//                 "order_id":924912513206878210,
-		//                 "client_order_id":null,
-		//                 "created_at":1640557927189,
-		//                 "trade_volume":0,
-		//                 "trade_turnover":0,
-		//                 "fee":0,
-		//                 "trade_avg_price":null,
-		//                 "margin_frozen":3.000000000000000000,
-		//                 "profit":0,
-		//                 "status":3,
-		//                 "order_source":"api",
-		//                 "order_id_str":"924912513206878210",
-		//                 "fee_asset":"USDT",
-		//                 "liquidation_type":"0",
-		//                 "canceled_at":0,
-		//                 "margin_asset":"USDT",
-		//                 "margin_account":"USDT",
-		//                 "margin_mode":"cross",
-		//                 "is_tpsl":0,
-		//                 "real_profit":0
+		//                 "id": "162320614",
+		//                 "volume": "2",
+		//                 "type": "tp",
+		//                 "state": "active",
+		//                 "side": "sell",
+		//                 "algo_id": "1513832307038027776",
+		//                 "contract_code": "BTC-USDT",
+		//                 "position_side": "long",
+		//                 "margin_mode": "cross",
+		//                 "created_time": "1780967347642",
+		//                 "updated_time": "1780967347848",
+		//                 "order_source": "api",
+		//                 "tp_trigger_price": "101000",
+		//                 "tp_order_price": "0",
+		//                 "tp_type": "market",
+		//                 "tp_trigger_price_type": "last"
 		//             }
 		//         ],
-		//         "ts":1640557982556
+		//         "ts": 1780967407144
 		//     }
 		//
-		// linear swap isolated margin detail
-		//
-		//     {
-		//         "status": "ok",
-		//         "data": {
-		//             "symbol": "BTC",
-		//             "contract_code": "BTC-USDT",
-		//             "instrument_price": 0,
-		//             "final_interest": 0,
-		//             "adjust_value": 0,
-		//             "lever_rate": 10,
-		//             "direction": "sell",
-		//             "offset": "open",
-		//             "volume": 1.000000000000000000,
-		//             "price": 13059.800000000000000000,
-		//             "created_at": 1603703614712,
-		//             "canceled_at": 0,
-		//             "order_source": "api",
-		//             "order_price_type": "opponent",
-		//             "margin_frozen": 0,
-		//             "profit": 0,
-		//             "trades": [
-		//                 {
-		//                     "trade_id": 131560927,
-		//                     "trade_price": 13059.800000000000000000,
-		//                     "trade_volume": 1.000000000000000000,
-		//                     "trade_turnover": 13.059800000000000000,
-		//                     "trade_fee": -0.005223920000000000,
-		//                     "created_at": 1603703614715,
-		//                     "role": "taker",
-		//                     "fee_asset": "USDT",
-		//                     "profit": 0,
-		//                     "real_profit": 0,
-		//                     "id": "131560927-770334322963152896-1"
-		//                 }
-		//             ],
-		//             "total_page": 1,
-		//             "current_page": 1,
-		//             "total_size": 1,
-		//             "liquidation_type": "0",
-		//             "fee_asset": "USDT",
-		//             "fee": -0.005223920000000000,
-		//             "order_id": 770334322963152896,
-		//             "order_id_str": "770334322963152896",
-		//             "client_order_id": 57012021045,
-		//             "order_type": "1",
-		//             "status": 6,
-		//             "trade_avg_price": 13059.800000000000000000,
-		//             "trade_turnover": 13.059800000000000000,
-		//             "trade_volume": 1.000000000000000000,
-		//             "margin_asset": "USDT",
-		//             "margin_mode": "isolated",
-		//             "margin_account": "BTC-USDT",
-		//             "real_profit": 0,
-		//             "is_tpsl": 0
-		//         },
-		//         "ts": 1603703678477
-		//     }
 		var order any = this.SafeValue(response, "data")
 		if IsTrue(IsArray(order)) {
 			order = this.SafeValue(order, 0)
 		}
 
-		ch <- this.ParseOrder(order)
+		ch <- this.ParseOrder(order, market)
 		return nil
 
 	}()
@@ -4467,9 +4335,11 @@ func (this *HtxCore) FetchSpotOrdersByStates(states any, optionalArgs ...any) <-
 				panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
 			}
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41548 := (<-this.LoadMarkets())
-		PanicOnError(retRes41548)
+			retRes403212 := (<-this.LoadMarkets())
+			PanicOnError(retRes403212)
+		}
 		var market any = nil
 		var request any = map[string]any{
 			"states": states,
@@ -4546,9 +4416,9 @@ func (this *HtxCore) FetchSpotOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes422215 := (<-this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
-		PanicOnError(retRes422215)
-		ch <- retRes422215
+		retRes410115 := (<-this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, params))
+		PanicOnError(retRes410115)
+		ch <- retRes410115
 		return nil
 
 	}()
@@ -4568,9 +4438,9 @@ func (this *HtxCore) FetchClosedSpotOrders(optionalArgs ...any) <-chan any {
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 
-		retRes422615 := (<-this.FetchSpotOrdersByStates("filled,partial-canceled,canceled", symbol, since, limit, params))
-		PanicOnError(retRes422615)
-		ch <- retRes422615
+		retRes410515 := (<-this.FetchSpotOrdersByStates("filled", symbol, since, limit, params))
+		PanicOnError(retRes410515)
+		ch <- retRes410515
 		return nil
 
 	}()
@@ -4592,79 +4462,63 @@ func (this *HtxCore) FetchContractOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchContractOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42338 := (<-this.LoadMarkets())
-		PanicOnError(retRes42338)
-		var market any = this.Market(symbol)
-		var request any = map[string]any{
-			"trade_type": 0,
-			"status":     "0",
+			retRes411312 := (<-this.LoadMarkets())
+			PanicOnError(retRes411312)
 		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{}
 		var response any = nil
 		var trigger any = this.SafeBool2(params, "stop", "trigger")
 		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+		var stopLoss any = this.SafeBool(params, "stopLoss")
+		var takeProfit any = this.SafeBool(params, "takeProfit")
 		var trailing any = this.SafeBool(params, "trailing", false)
-		params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger"})
-		if IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing)) {
-			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "page_size", limit)
-			}
-			AddElementToObject(request, "contract_code", GetValue(market, "id"))
-			AddElementToObject(request, "create_date", 90)
-		} else {
-			if IsTrue(!IsEqual(since, nil)) {
-				AddElementToObject(request, "start_time", since) // max 90 days back
-			}
-			AddElementToObject(request, "contract", GetValue(market, "id"))
-			AddElementToObject(request, "type", 1) // 1:All Orders,2:Order in Finished Status
+		var isAlgo any = (IsTrue(IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLoss)) || IsTrue(takeProfit)) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing))
+		params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start_time", since)
 		}
 		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
 		request = GetValue(requestparamsVariable, 0)
 		params = GetValue(requestparamsVariable, 1)
 		if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(!IsEqual(limit, nil)) {
+				AddElementToObject(request, "limit", limit)
+			}
 			var marginMode any = nil
 			marginModeparamsVariable := this.HandleMarginModeAndParams("fetchContractOrders", params)
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-			if IsTrue(IsEqual(marginMode, "isolated")) {
+			AddElementToObject(request, "margin_mode", marginMode)
+			AddElementToObject(request, "contract_code", GetValue(market, "id"))
+			if IsTrue(isAlgo) {
 				if IsTrue(trigger) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTriggerHisorders(this.Extend(request, params)))
-					PanicOnError(response)
-				} else if IsTrue(stopLossTakeProfit) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTpslHisorders(this.Extend(request, params)))
-					PanicOnError(response)
+					AddElementToObject(request, "type", "trigger")
 				} else if IsTrue(trailing) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTrackHisorders(this.Extend(request, params)))
-					PanicOnError(response)
-				} else {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV3SwapHisorders(this.Extend(request, params)))
-					PanicOnError(response)
-				}
-			} else if IsTrue(IsEqual(marginMode, "cross")) {
-				if IsTrue(trigger) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTriggerHisorders(this.Extend(request, params)))
-					PanicOnError(response)
+					AddElementToObject(request, "type", "trailing_stop")
 				} else if IsTrue(stopLossTakeProfit) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTpslHisorders(this.Extend(request, params)))
-					PanicOnError(response)
-				} else if IsTrue(trailing) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTrackHisorders(this.Extend(request, params)))
-					PanicOnError(response)
-				} else {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV3SwapCrossHisorders(this.Extend(request, params)))
-					PanicOnError(response)
+					AddElementToObject(request, "type", "tpsl")
+				} else if IsTrue(stopLoss) {
+					AddElementToObject(request, "type", "sl")
+				} else if IsTrue(takeProfit) {
+					AddElementToObject(request, "type", "tp")
 				}
+
+				response = (<-this.ContractPrivateGetV5AlgoOrderHistory(this.Extend(request, params)))
+				PanicOnError(response)
+			} else {
+
+				response = (<-this.ContractPrivateGetV5TradeOrderHistory(this.Extend(request, params)))
+				PanicOnError(response)
 			}
 		} else if IsTrue(GetValue(market, "inverse")) {
+			AddElementToObject(request, "contract", GetValue(market, "id"))
+			AddElementToObject(request, "type", 1)       // 1:All Orders,2:Order in Finished Status
+			AddElementToObject(request, "trade_type", 0) // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+			AddElementToObject(request, "status", "0")   // support multiple query separated by ',',such as '3,4,5', 0: all. 3. Have submitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
 			if IsTrue(GetValue(market, "swap")) {
 				if IsTrue(trigger) {
 
@@ -4704,148 +4558,6 @@ func (this *HtxCore) FetchContractOrders(optionalArgs ...any) <-chan any {
 				}
 			}
 		}
-		//
-		// future and swap
-		//
-		//     {
-		//         "code": 200,
-		//         "msg": "ok",
-		//         "data": [
-		//             {
-		//                 "direction": "buy",
-		//                 "offset": "open",
-		//                 "volume": 1.000000000000000000,
-		//                 "price": 25000.000000000000000000,
-		//                 "profit": 0E-18,
-		//                 "pair": "BTC-USDT",
-		//                 "query_id": 47403349100,
-		//                 "order_id": 1103683465337593856,
-		//                 "contract_code": "BTC-USDT-230505",
-		//                 "symbol": "BTC",
-		//                 "lever_rate": 5,
-		//                 "create_date": 1683180243577,
-		//                 "order_source": "web",
-		//                 "canceled_source": "web",
-		//                 "order_price_type": 1,
-		//                 "order_type": 1,
-		//                 "margin_frozen": 0E-18,
-		//                 "trade_volume": 0E-18,
-		//                 "trade_turnover": 0E-18,
-		//                 "fee": 0E-18,
-		//                 "trade_avg_price": 0,
-		//                 "status": 7,
-		//                 "order_id_str": "1103683465337593856",
-		//                 "fee_asset": "USDT",
-		//                 "fee_amount": 0,
-		//                 "fee_quote_amount": 0,
-		//                 "liquidation_type": "0",
-		//                 "margin_asset": "USDT",
-		//                 "margin_mode": "cross",
-		//                 "margin_account": "USDT",
-		//                 "update_time": 1683180352034,
-		//                 "is_tpsl": 0,
-		//                 "real_profit": 0,
-		//                 "trade_partition": "USDT",
-		//                 "reduce_only": 0,
-		//                 "contract_type": "this_week",
-		//                 "business_type": "futures"
-		//             }
-		//         ],
-		//         "ts": 1683239909141
-		//     }
-		//
-		// trigger
-		//
-		//     {
-		//         "status": "ok",
-		//         "data": {
-		//             "orders": [
-		//                 {
-		//                     "contract_type": "swap",
-		//                     "business_type": "swap",
-		//                     "pair": "BTC-USDT",
-		//                     "symbol": "BTC",
-		//                     "contract_code": "BTC-USDT",
-		//                     "trigger_type": "le",
-		//                     "volume": 1.000000000000000000,
-		//                     "order_type": 1,
-		//                     "direction": "buy",
-		//                     "offset": "open",
-		//                     "lever_rate": 1,
-		//                     "order_id": 1103670703588327424,
-		//                     "order_id_str": "1103670703588327424",
-		//                     "relation_order_id": "-1",
-		//                     "order_price_type": "limit",
-		//                     "status": 6,
-		//                     "order_source": "web",
-		//                     "trigger_price": 25000.000000000000000000,
-		//                     "triggered_price": null,
-		//                     "order_price": 24000.000000000000000000,
-		//                     "created_at": 1683177200945,
-		//                     "triggered_at": null,
-		//                     "order_insert_at": 0,
-		//                     "canceled_at": 1683179075234,
-		//                     "fail_code": null,
-		//                     "fail_reason": null,
-		//                     "margin_mode": "cross",
-		//                     "margin_account": "USDT",
-		//                     "update_time": 1683179075958,
-		//                     "trade_partition": "USDT",
-		//                     "reduce_only": 0
-		//                 },
-		//             ],
-		//             "total_page": 1,
-		//             "current_page": 1,
-		//             "total_size": 2
-		//         },
-		//         "ts": 1683239702792
-		//     }
-		//
-		// stop-loss and take-profit
-		//
-		//     {
-		//         "status": "ok",
-		//         "data": {
-		//             "orders": [
-		//                 {
-		//                     "contract_type": "swap",
-		//                     "business_type": "swap",
-		//                     "pair": "BTC-USDT",
-		//                     "symbol": "BTC",
-		//                     "contract_code": "BTC-USDT",
-		//                     "margin_mode": "cross",
-		//                     "margin_account": "USDT",
-		//                     "volume": 1.000000000000000000,
-		//                     "order_type": 1,
-		//                     "tpsl_order_type": "sl",
-		//                     "direction": "sell",
-		//                     "order_id": 1103680386844839936,
-		//                     "order_id_str": "1103680386844839936",
-		//                     "order_source": "web",
-		//                     "trigger_type": "le",
-		//                     "trigger_price": 25000.000000000000000000,
-		//                     "created_at": 1683179509613,
-		//                     "order_price_type": "market",
-		//                     "status": 11,
-		//                     "source_order_id": null,
-		//                     "relation_tpsl_order_id": "-1",
-		//                     "canceled_at": 0,
-		//                     "fail_code": null,
-		//                     "fail_reason": null,
-		//                     "triggered_price": null,
-		//                     "relation_order_id": "-1",
-		//                     "update_time": 1683179968231,
-		//                     "order_price": 0E-18,
-		//                     "trade_partition": "USDT"
-		//                 },
-		//             ],
-		//             "total_page": 1,
-		//             "current_page": 1,
-		//             "total_size": 2
-		//         },
-		//         "ts": 1683229230233
-		//     }
-		//
 		var orders any = this.SafeValue(response, "data")
 		if !IsTrue(IsArray(orders)) {
 			orders = this.SafeValue(orders, "orders", []any{})
@@ -4870,13 +4582,35 @@ func (this *HtxCore) FetchClosedContractOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
-		var request any = map[string]any{
-			"status": "5,6,7",
+		if IsTrue(IsEqual(symbol, nil)) {
+			panic(ArgumentsRequired(Add(this.Id, " fetchClosedContractOrders() requires a symbol argument")))
+		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes426812 := (<-this.LoadMarkets())
+			PanicOnError(retRes426812)
+		}
+		var request any = map[string]any{}
+		var market any = this.Market(symbol)
+		if IsTrue(GetValue(market, "linear")) {
+			var trigger any = this.SafeBool2(params, "stop", "trigger")
+			var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+			var stopLoss any = this.SafeBool(params, "stopLoss")
+			var takeProfit any = this.SafeBool(params, "takeProfit")
+			var trailing any = this.SafeBool(params, "trailing", false)
+			var isAlgo any = (IsTrue(IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLoss)) || IsTrue(takeProfit)) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing))
+			if IsTrue(isAlgo) {
+				AddElementToObject(request, "states", "effective")
+			} else {
+				AddElementToObject(request, "states", "filled")
+			}
+		} else {
+			AddElementToObject(request, "status", "6")
 		}
 
-		retRes446715 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
-		PanicOnError(retRes446715)
-		ch <- retRes446715
+		retRes428715 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
+		PanicOnError(retRes428715)
+		ch <- retRes428715
 		return nil
 
 	}()
@@ -4886,21 +4620,23 @@ func (this *HtxCore) FetchClosedContractOrders(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name htx#fetchOrders
+ * @description fetches information on multiple orders made by the user
  * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
  * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
- * @description fetches information on multiple orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
- * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
  * @param {int} [params.until] the latest time in ms to fetch entries for
- * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+ * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
+ * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+ * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss and take-profit orders
+ * @param {bool} [params.stopLoss] *contract only* set to true if you want to fetch stop loss orders
+ * @param {bool} [params.takeProfit] *contract only* set to true if you want to fetch take profit orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
@@ -4916,9 +4652,11 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44918 := (<-this.LoadMarkets())
-		PanicOnError(retRes44918)
+			retRes431412 := (<-this.LoadMarkets())
+			PanicOnError(retRes431412)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -4933,15 +4671,107 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(contract) {
 
-			retRes450319 := (<-this.FetchContractOrders(symbol, since, limit, params))
-			PanicOnError(retRes450319)
-			ch <- retRes450319
+			retRes432719 := (<-this.FetchContractOrders(symbol, since, limit, params))
+			PanicOnError(retRes432719)
+			ch <- retRes432719
 			return nil
 		} else {
 
-			retRes450519 := (<-this.FetchSpotOrders(symbol, since, limit, params))
-			PanicOnError(retRes450519)
-			ch <- retRes450519
+			retRes432919 := (<-this.FetchSpotOrders(symbol, since, limit, params))
+			PanicOnError(retRes432919)
+			ch <- retRes432919
+			return nil
+		}
+
+	}()
+	return ch
+}
+
+/**
+ * @method
+ * @name htx#fetchCanceledOrders
+ * @description fetches information on multiple canceled orders made by the user
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
+ * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
+ * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
+ * @param {string} symbol unified market symbol of the market orders were made in
+ * @param {int} [since] the earliest time in ms to fetch orders for
+ * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *HtxCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		symbol := GetArg(optionalArgs, 0, nil)
+		_ = symbol
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes435312 := (<-this.LoadMarkets())
+			PanicOnError(retRes435312)
+		}
+		var paginate any = false
+		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchCanceledOrders", "paginate")
+		paginate = GetValue(paginateparamsVariable, 0)
+		params = GetValue(paginateparamsVariable, 1)
+		if IsTrue(paginate) {
+
+			retRes435819 := (<-this.FetchPaginatedCallDynamic("fetchCanceledOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes435819)
+			ch <- retRes435819
+			return nil
+		}
+		var market any = nil
+		if IsTrue(!IsEqual(symbol, nil)) {
+			market = this.Market(symbol)
+		}
+		var marketType any = nil
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchCanceledOrders", market, params)
+		marketType = GetValue(marketTypeparamsVariable, 0)
+		params = GetValue(marketTypeparamsVariable, 1)
+		if IsTrue(IsEqual(marketType, "spot")) {
+
+			retRes436719 := (<-this.FetchSpotOrdersByStates("partial-canceled,canceled", symbol, since, limit, params))
+			PanicOnError(retRes436719)
+			ch <- retRes436719
+			return nil
+		} else {
+			if IsTrue(IsEqual(symbol, nil)) {
+				panic(ArgumentsRequired(Add(Add(Add(this.Id, " fetchCanceledOrders() requires a symbol argument for "), marketType), " orders")))
+			}
+			var request any = map[string]any{}
+			if IsTrue(this.SafeBool(market, "linear")) {
+				var trigger any = this.SafeBool2(params, "stop", "trigger")
+				var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+				var stopLoss any = this.SafeBool(params, "stopLoss")
+				var takeProfit any = this.SafeBool(params, "takeProfit")
+				var trailing any = this.SafeBool(params, "trailing", false)
+				var isAlgo any = (IsTrue(IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLoss)) || IsTrue(takeProfit)) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing))
+				if IsTrue(isAlgo) {
+					AddElementToObject(request, "states", "canceled")
+				} else {
+					AddElementToObject(request, "states", "partially_canceled,canceled")
+				}
+			} else {
+				AddElementToObject(request, "status", "5,7") // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
+			}
+
+			retRes438819 := (<-this.FetchContractOrders(symbol, since, limit, this.Extend(request, params)))
+			PanicOnError(retRes438819)
+			ch <- retRes438819
 			return nil
 		}
 
@@ -4952,13 +4782,13 @@ func (this *HtxCore) FetchOrders(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name htx#fetchClosedOrders
+ * @description fetches information on multiple closed orders made by the user
  * @see https://huobiapi.github.io/docs/spot/v1/en/#search-past-orders
  * @see https://huobiapi.github.io/docs/spot/v1/en/#search-historical-orders-within-48-hours
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-get-history-orders-new
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-get-history-orders-new
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589bc57bc
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b979b0aa2
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-history-orders-new
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-history-orders-via-multiple-fields-new
- * @description fetches information on multiple closed orders made by the user
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -4980,18 +4810,20 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45288 := (<-this.LoadMarkets())
-		PanicOnError(retRes45288)
+			retRes441212 := (<-this.LoadMarkets())
+			PanicOnError(retRes441212)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes453219 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
-			PanicOnError(retRes453219)
-			ch <- retRes453219
+			retRes441719 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params, 100))
+			PanicOnError(retRes441719)
+			ch <- retRes441719
 			return nil
 		}
 		var market any = nil
@@ -5004,15 +4836,15 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		params = GetValue(marketTypeparamsVariable, 1)
 		if IsTrue(IsEqual(marketType, "spot")) {
 
-			retRes454119 := (<-this.FetchClosedSpotOrders(symbol, since, limit, params))
-			PanicOnError(retRes454119)
-			ch <- retRes454119
+			retRes442619 := (<-this.FetchClosedSpotOrders(symbol, since, limit, params))
+			PanicOnError(retRes442619)
+			ch <- retRes442619
 			return nil
 		} else {
 
-			retRes454319 := (<-this.FetchClosedContractOrders(symbol, since, limit, params))
-			PanicOnError(retRes454319)
-			ch <- retRes454319
+			retRes442819 := (<-this.FetchClosedContractOrders(symbol, since, limit, params))
+			PanicOnError(retRes442819)
+			ch <- retRes442819
 			return nil
 		}
 
@@ -5023,17 +4855,19 @@ func (this *HtxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 /**
  * @method
  * @name htx#fetchOpenOrders
- * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-current-unfilled-order-acquisition
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-current-unfilled-order-acquisition
  * @description fetch all unfilled currently open orders
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#get-all-open-orders
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19589587da5
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b9754d736
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch open orders for
  * @param {int} [limit] the maximum number of open order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {bool} [params.trigger] *contract only* if the orders are trigger trigger orders or not
  * @param {bool} [params.stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
- * @param {boolean} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
+ * @param {bool} [params.stopLoss] *linear swap contract only* if the orders are stop-loss orders
+ * @param {bool} [params.takeProfit] *linear swap contract only* if the orders are take-profit orders
+ * @param {bool} [params.trailing] *contract only* set to true if you want to fetch trailing stop orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
@@ -5049,9 +4883,11 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45648 := (<-this.LoadMarkets())
-		PanicOnError(retRes45648)
+			retRes445212 := (<-this.LoadMarkets())
+			PanicOnError(retRes445212)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -5065,18 +4901,19 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchOpenOrders", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
 		params = GetValue(subTypeparamsVariable, 1)
+		var isLinear any = (IsEqual(subType, "linear"))
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 			// todo replace with fetchAccountIdByType
 			var accountId any = this.SafeString(params, "account-id")
 			if IsTrue(IsEqual(accountId, nil)) {
 				// pick the first account
 
-				retRes458316 := (<-this.LoadAccounts())
-				PanicOnError(retRes458316)
+				retRes447316 := (<-this.LoadAccounts())
+				PanicOnError(retRes447316)
 				for i := 0; IsLessThan(i, GetArrayLength(this.Accounts)); i++ {
 					var account any = GetValue(this.Accounts, i)
 					if IsTrue(IsEqual(this.SafeString(account, "type"), "spot")) {
@@ -5098,57 +4935,41 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		} else {
 			if IsTrue(!IsEqual(symbol, nil)) {
 				// throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			}
 			if IsTrue(!IsEqual(limit, nil)) {
-				AddElementToObject(request, "page_size", limit)
+				if IsTrue(isLinear) {
+					AddElementToObject(request, "limit", limit)
+				} else {
+					AddElementToObject(request, "page_size", limit)
+				}
 			}
 			var trigger any = this.SafeBool2(params, "stop", "trigger")
-			var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+			var stopLossTakeProfit any = this.SafeBool(params, "stopLossTakeProfit")
+			var stopLoss any = this.SafeBool(params, "stopLoss")
+			var takeProfit any = this.SafeBool(params, "takeProfit")
 			var trailing any = this.SafeBool(params, "trailing", false)
-			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger"})
-			if IsTrue(IsEqual(subType, "linear")) {
-				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("fetchOpenOrders", params)
-				marginMode = GetValue(marginModeparamsVariable, 0)
-				params = GetValue(marginModeparamsVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
+			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
+			if IsTrue(isLinear) {
+				if IsTrue(IsTrue(IsTrue(IsTrue(IsTrue(trigger) || IsTrue(trailing)) || IsTrue(stopLossTakeProfit)) || IsTrue(stopLoss)) || IsTrue(takeProfit)) {
 					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTriggerOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTpslOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
+						AddElementToObject(request, "type", "trigger")
 					} else if IsTrue(trailing) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTrackOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
-					}
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTriggerOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
+						AddElementToObject(request, "type", "trailing_stop")
 					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTpslOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(trailing) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTrackOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossOpenorders(this.Extend(request, params)))
-						PanicOnError(response)
+						AddElementToObject(request, "type", "tpsl")
+					} else if IsTrue(stopLoss) {
+						AddElementToObject(request, "type", "sl")
+					} else if IsTrue(takeProfit) {
+						AddElementToObject(request, "type", "tp")
 					}
+
+					response = (<-this.ContractPrivateGetV5AlgoOrderOpens(this.Extend(request, params)))
+					PanicOnError(response)
+				} else {
+
+					response = (<-this.ContractPrivateGetV5TradeOrderOpens(this.Extend(request, params)))
+					PanicOnError(response)
 				}
 			} else if IsTrue(IsEqual(subType, "inverse")) {
 				if IsTrue(IsEqual(marketType, "swap")) {
@@ -5375,6 +5196,82 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		//         "ts": 1704242440106
 		//     }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "id": "1512509978516443136",
+		//                 "side": "buy",
+		//                 "type": "limit",
+		//                 "price": "30",
+		//                 "volume": "1",
+		//                 "state": "new",
+		//                 "profit": null,
+		//                 "contract_code": "LTC-USDT",
+		//                 "position_side": "long",
+		//                 "price_match": null,
+		//                 "order_id": "1512509978516443136",
+		//                 "client_order_id": "1512509978516443136",
+		//                 "margin_mode": "isolated",
+		//                 "lever_rate": 10,
+		//                 "order_source": "api",
+		//                 "reduce_only": false,
+		//                 "time_in_force": "gtc",
+		//                 "tp_trigger_price": "",
+		//                 "tp_order_price": "",
+		//                 "tp_type": "0",
+		//                 "tp_trigger_price_type": "",
+		//                 "sl_trigger_price": "",
+		//                 "sl_order_price": "",
+		//                 "sl_type": "0",
+		//                 "sl_trigger_price_type": "",
+		//                 "trade_avg_price": "0",
+		//                 "trade_volume": "0",
+		//                 "trade_turnover": "0",
+		//                 "fee_currency": "",
+		//                 "fee": "0",
+		//                 "price_protect": false,
+		//                 "contract_type": "swap",
+		//                 "created_time": "1780652079954",
+		//                 "updated_time": "1780652079954",
+		//                 "cancel_reason": null,
+		//                 "self_match_prevent": "cancel_taker"
+		//             }
+		//         ],
+		//         "ts": 1780652167077
+		//     }
+		//
+		// linear swap algo
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "id": "162173672",
+		//                 "volume": "1",
+		//                 "type": "tp",
+		//                 "state": "active",
+		//                 "side": "sell",
+		//                 "algo_id": "1512871666507657216",
+		//                 "contract_code": "BTC-USDT",
+		//                 "position_side": "long",
+		//                 "margin_mode": "cross",
+		//                 "created_time": "1780738313091",
+		//                 "updated_time": "1780738313187",
+		//                 "order_source": "api",
+		//                 "tp_trigger_price": "101000",
+		//                 "tp_order_price": "0",
+		//                 "tp_type": "market",
+		//                 "tp_trigger_price_type": "last"
+		//             }
+		//         ],
+		//         "ts": 1780739390596
+		//     }
+		//
 		var orders any = this.SafeValue(response, "data")
 		if !IsTrue(IsArray(orders)) {
 			orders = this.SafeValue(orders, "orders", []any{})
@@ -5388,20 +5285,24 @@ func (this *HtxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 }
 func (this *HtxCore) ParseOrderStatus(status any) any {
 	var statuses any = map[string]any{
-		"partial-filled":   "open",
-		"partial-canceled": "canceled",
-		"filled":           "closed",
-		"canceled":         "canceled",
-		"submitted":        "open",
-		"created":          "open",
-		"1":                "open",
-		"2":                "open",
-		"3":                "open",
-		"4":                "open",
-		"5":                "canceled",
-		"6":                "closed",
-		"7":                "canceled",
-		"11":               "canceling",
+		"partial-filled":     "open",
+		"partial-canceled":   "canceled",
+		"filled":             "closed",
+		"canceled":           "canceled",
+		"submitted":          "open",
+		"created":            "open",
+		"1":                  "open",
+		"2":                  "open",
+		"3":                  "open",
+		"4":                  "open",
+		"5":                  "canceled",
+		"6":                  "closed",
+		"7":                  "canceled",
+		"11":                 "canceling",
+		"active":             "open",
+		"new":                "open",
+		"partially_filled":   "open",
+		"partially_canceled": "canceled",
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -5443,103 +5344,18 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//         "canceled-at":  0
 	//     }
 	//
-	// linear swap cross margin createOrder
+	// linear swap createOrder, closePosition
 	//
 	//     {
-	//         "order_id":924660854912552960,
-	//         "order_id_str":"924660854912552960"
+	//         "order_id": "1512501029504577536",
+	//         "client_order_id": "1512501029504577536"
 	//     }
 	//
-	// contracts fetchOrder
+	// linear swap algo createOrder
 	//
 	//     {
-	//         "business_type":"swap",
-	//         "contract_type":"swap",
-	//         "pair":"BTC-USDT",
-	//         "symbol":"BTC",
-	//         "contract_code":"BTC-USDT",
-	//         "volume":1,
-	//         "price":3000,
-	//         "order_price_type":"limit",
-	//         "order_type":1,
-	//         "direction":"buy",
-	//         "offset":"open",
-	//         "lever_rate":1,
-	//         "order_id":924912513206878210,
-	//         "client_order_id":null,
-	//         "created_at":1640557927189,
-	//         "trade_volume":0,
-	//         "trade_turnover":0,
-	//         "fee":0,
-	//         "trade_avg_price":null,
-	//         "margin_frozen":3.000000000000000000,
-	//         "profit":0,
-	//         "status":3,
-	//         "order_source":"api",
-	//         "order_id_str":"924912513206878210",
-	//         "fee_asset":"USDT",
-	//         "liquidation_type":"0",
-	//         "canceled_at":0,
-	//         "margin_asset":"USDT",
-	//         "margin_account":"USDT",
-	//         "margin_mode":"cross",
-	//         "is_tpsl":0,
-	//         "real_profit":0
-	//     }
-	//
-	// contracts fetchOrder detailed
-	//
-	//     {
-	//         "symbol": "BTC",
-	//         "contract_code": "BTC-USDT",
-	//         "instrument_price": 0,
-	//         "final_interest": 0,
-	//         "adjust_value": 0,
-	//         "lever_rate": 10,
-	//         "direction": "sell",
-	//         "offset": "open",
-	//         "volume": 1.000000000000000000,
-	//         "price": 13059.800000000000000000,
-	//         "created_at": 1603703614712,
-	//         "canceled_at": 0,
-	//         "order_source": "api",
-	//         "order_price_type": "opponent",
-	//         "margin_frozen": 0,
-	//         "profit": 0,
-	//         "trades": [
-	//             {
-	//                 "trade_id": 131560927,
-	//                 "trade_price": 13059.800000000000000000,
-	//                 "trade_volume": 1.000000000000000000,
-	//                 "trade_turnover": 13.059800000000000000,
-	//                 "trade_fee": -0.005223920000000000,
-	//                 "created_at": 1603703614715,
-	//                 "role": "taker",
-	//                 "fee_asset": "USDT",
-	//                 "profit": 0,
-	//                 "real_profit": 0,
-	//                 "id": "131560927-770334322963152896-1"
-	//             }
-	//         ],
-	//         "total_page": 1,
-	//         "current_page": 1,
-	//         "total_size": 1,
-	//         "liquidation_type": "0",
-	//         "fee_asset": "USDT",
-	//         "fee": -0.005223920000000000,
-	//         "order_id": 770334322963152896,
-	//         "order_id_str": "770334322963152896",
-	//         "client_order_id": 57012021045,
-	//         "order_type": "1",
-	//         "status": 6,
-	//         "trade_avg_price": 13059.800000000000000000,
-	//         "trade_turnover": 13.059800000000000000,
-	//         "trade_volume": 1.000000000000000000,
-	//         "margin_asset": "USDT",
-	//         "margin_mode": "isolated",
-	//         "margin_account": "BTC-USDT",
-	//         "real_profit": 0,
-	//         "is_tpsl": 0
+	//         "algo_id": "1512871666507657216",
+	//         "algo_client_order_id": null
 	//     }
 	//
 	// future and swap: fetchOrders
@@ -5581,160 +5397,6 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//         "business_type": "futures" // only in cross-margin (inverse & linear)
 	//     }
 	//
-	// trigger: fetchOpenOrders
-	//
-	//     {
-	//         "contract_type": "swap",
-	//         "business_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "symbol": "BTC",
-	//         "contract_code": "BTC-USDT",
-	//         "trigger_type": "le",
-	//         "volume": 1.000000000000000000,
-	//         "order_type": 1,
-	//         "direction": "buy",
-	//         "offset": "open",
-	//         "lever_rate": 1,
-	//         "order_id": 1103670703588327424,
-	//         "order_id_str": "1103670703588327424",
-	//         "order_source": "web",
-	//         "trigger_price": 25000.000000000000000000,
-	//         "order_price": 24000.000000000000000000,
-	//         "created_at": 1683177200945,
-	//         "order_price_type": "limit",
-	//         "status": 2,
-	//         "margin_mode": "cross",
-	//         "margin_account": "USDT",
-	//         "trade_partition": "USDT",
-	//         "reduce_only": 0
-	//     }
-	//
-	// stop-loss and take-profit: fetchOpenOrders
-	//
-	//     {
-	//         "contract_type": "swap",
-	//         "business_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "symbol": "BTC",
-	//         "contract_code": "BTC-USDT",
-	//         "margin_mode": "cross",
-	//         "margin_account": "USDT",
-	//         "volume": 1.000000000000000000,
-	//         "order_type": 1,
-	//         "direction": "sell",
-	//         "order_id": 1103680386844839936,
-	//         "order_id_str": "1103680386844839936",
-	//         "order_source": "web",
-	//         "trigger_type": "le",
-	//         "trigger_price": 25000.000000000000000000,
-	//         "order_price": 0E-18,
-	//         "created_at": 1683179509613,
-	//         "order_price_type": "market",
-	//         "status": 2,
-	//         "tpsl_order_type": "sl",
-	//         "source_order_id": null,
-	//         "relation_tpsl_order_id": "-1",
-	//         "trade_partition": "USDT"
-	//     }
-	//
-	// trailing: fetchOpenOrders
-	//
-	//     {
-	//         "contract_type": "swap",
-	//         "business_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "symbol": "BTC",
-	//         "contract_code": "BTC-USDT",
-	//         "volume": 1.000000000000000000,
-	//         "order_type": 1,
-	//         "direction": "sell",
-	//         "offset": "close",
-	//         "lever_rate": 1,
-	//         "order_id": 1192021437253877761,
-	//         "order_id_str": "1192021437253877761",
-	//         "order_source": "api",
-	//         "created_at": 1704241657328,
-	//         "order_price_type": "formula_price",
-	//         "status": 2,
-	//         "callback_rate": 0.050000000000000000,
-	//         "active_price": 50000.000000000000000000,
-	//         "is_active": 0,
-	//         "margin_mode": "cross",
-	//         "margin_account": "USDT",
-	//         "trade_partition": "USDT",
-	//         "reduce_only": 1
-	//     }
-	//
-	// trigger: fetchOrders
-	//
-	//     {
-	//         "contract_type": "swap",
-	//         "business_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "symbol": "BTC",
-	//         "contract_code": "BTC-USDT",
-	//         "trigger_type": "le",
-	//         "volume": 1.000000000000000000,
-	//         "order_type": 1,
-	//         "direction": "buy",
-	//         "offset": "open",
-	//         "lever_rate": 1,
-	//         "order_id": 1103670703588327424,
-	//         "order_id_str": "1103670703588327424",
-	//         "relation_order_id": "-1",
-	//         "order_price_type": "limit",
-	//         "status": 6,
-	//         "order_source": "web",
-	//         "trigger_price": 25000.000000000000000000,
-	//         "triggered_price": null,
-	//         "order_price": 24000.000000000000000000,
-	//         "created_at": 1683177200945,
-	//         "triggered_at": null,
-	//         "order_insert_at": 0,
-	//         "canceled_at": 1683179075234,
-	//         "fail_code": null,
-	//         "fail_reason": null,
-	//         "margin_mode": "cross",
-	//         "margin_account": "USDT",
-	//         "update_time": 1683179075958,
-	//         "trade_partition": "USDT",
-	//         "reduce_only": 0
-	//     }
-	//
-	// stop-loss and take-profit: fetchOrders
-	//
-	//     {
-	//         "contract_type": "swap",
-	//         "business_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "symbol": "BTC",
-	//         "contract_code": "BTC-USDT",
-	//         "margin_mode": "cross",
-	//         "margin_account": "USDT",
-	//         "volume": 1.000000000000000000,
-	//         "order_type": 1,
-	//         "tpsl_order_type": "sl",
-	//         "direction": "sell",
-	//         "order_id": 1103680386844839936,
-	//         "order_id_str": "1103680386844839936",
-	//         "order_source": "web",
-	//         "trigger_type": "le",
-	//         "trigger_price": 25000.000000000000000000,
-	//         "created_at": 1683179509613,
-	//         "order_price_type": "market",
-	//         "status": 11,
-	//         "source_order_id": null,
-	//         "relation_tpsl_order_id": "-1",
-	//         "canceled_at": 0,
-	//         "fail_code": null,
-	//         "fail_reason": null,
-	//         "triggered_price": null,
-	//         "relation_order_id": "-1",
-	//         "update_time": 1683179968231,
-	//         "order_price": 0E-18,
-	//         "trade_partition": "USDT"
-	//     }
-	//
 	// spot: createOrders
 	//
 	//     [
@@ -5764,28 +5426,130 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	//         }
 	//     ]
 	//
+	// linear swap fetchOpenOrders, fetchOrder, fetchOrders
+	//
+	//     {
+	//         "id": "1512509978516443136",
+	//         "side": "buy",
+	//         "type": "limit",
+	//         "price": "30",
+	//         "volume": "1",
+	//         "state": "new",
+	//         "profit": null,
+	//         "contract_code": "LTC-USDT",
+	//         "position_side": "long",
+	//         "price_match": null,
+	//         "order_id": "1512509978516443136",
+	//         "client_order_id": "1512509978516443136",
+	//         "margin_mode": "isolated",
+	//         "lever_rate": 10,
+	//         "order_source": "api",
+	//         "reduce_only": false,
+	//         "time_in_force": "gtc",
+	//         "tp_trigger_price": "",
+	//         "tp_order_price": "",
+	//         "tp_type": "0",
+	//         "tp_trigger_price_type": "",
+	//         "sl_trigger_price": "",
+	//         "sl_order_price": "",
+	//         "sl_type": "0",
+	//         "sl_trigger_price_type": "",
+	//         "trade_avg_price": "0",
+	//         "trade_volume": "0",
+	//         "trade_turnover": "0",
+	//         "fee_currency": "",
+	//         "fee": "0",
+	//         "price_protect": false,
+	//         "real_profit": null,
+	//         "contract_type": "swap",
+	//         "created_time": "1780652079954",
+	//         "updated_time": "1780652079954",
+	//         "cancel_reason": null,
+	//         "self_match_prevent": "cancel_taker"
+	//     }
+	//
+	// linear swap algo fetchOpenOrders, fetchOrder, fetchOrders
+	//
+	//     {
+	//         "id": "162173672",
+	//         "volume": "1",
+	//         "type": "tp",
+	//         "state": "active",
+	//         "side": "sell",
+	//         "algo_id": "1512871666507657216",
+	//         "contract_code": "BTC-USDT",
+	//         "position_side": "long",
+	//         "margin_mode": "cross",
+	//         "created_time": "1780738313091",
+	//         "updated_time": "1780738313187",
+	//         "order_source": "api",
+	//         "tp_trigger_price": "101000",
+	//         "tp_order_price": "0",
+	//         "tp_type": "market",
+	//         "tp_trigger_price_type": "last"
+	//     }
+	//
+	// linear swap trailing fetchOpenOrders, fetchOrder, fetchOrders
+	//
+	//     {
+	//         "id": "1163773",
+	//         "volume": "1",
+	//         "type": "trailing_stop",
+	//         "state": "active",
+	//         "side": "sell",
+	//         "algo_id": "1512889773167009792",
+	//         "contract_code": "BTC-USDT",
+	//         "position_side": "long",
+	//         "margin_mode": "cross",
+	//         "created_time": "1780742630055",
+	//         "updated_time": "1780742630223",
+	//         "order_source": "api",
+	//         "active_price": "90000",
+	//         "callback_rate": "0.05",
+	//         "reduce_only": true,
+	//         "order_price_type": "formula_price"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
+	var marketId any = this.SafeString2(order, "contract_code", "symbol")
+	market = this.SafeMarket(marketId, market)
 	var rejectedCreateOrders any = this.SafeString2(order, "err_code", "err-code")
 	var status any = this.ParseOrderStatus(this.SafeString2(order, "state", "status"))
 	if IsTrue(!IsEqual(rejectedCreateOrders, nil)) {
 		status = "rejected"
 	}
-	var id any = this.SafeStringN(order, []any{"id", "order_id_str", "order-id"})
-	var side any = this.SafeString(order, "direction")
-	var typeVar any = this.SafeString(order, "order_price_type")
-	if IsTrue(InOp(order, "type")) {
-		var orderType any = Split(GetValue(order, "type"), "-")
-		side = GetValue(orderType, 0)
-		typeVar = GetValue(orderType, 1)
+	var id any = this.SafeStringN(order, []any{"algo_id", "id", "order_id_str", "order-id", "order_id"})
+	var side any = this.SafeString2(order, "direction", "side")
+	var contractCode any = this.SafeString(order, "contract_code")
+	var isLinearOrder any = IsTrue(IsTrue(IsTrue((!IsEqual(contractCode, nil))) && IsTrue((!IsEqual(market, nil)))) && IsTrue(GetValue(market, "linear"))) && !IsTrue(GetValue(market, "spot"))
+	var typeVar any = nil
+	if IsTrue(isLinearOrder) {
+		typeVar = this.SafeString(order, "type")
+		if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(typeVar, nil))) || IsTrue((IsEqual(typeVar, "tp")))) || IsTrue((IsEqual(typeVar, "sl")))) || IsTrue((IsEqual(typeVar, "tpsl")))) {
+			typeVar = this.SafeStringN(order, []any{"tp_type", "sl_type"})
+		}
+		if IsTrue(IsEqual(typeVar, "0")) {
+			typeVar = nil
+		}
+	} else {
+		typeVar = this.SafeString(order, "order_price_type")
+		var rawType any = this.SafeString(order, "type")
+		if IsTrue(!IsEqual(rawType, nil)) {
+			if IsTrue(IsGreaterThanOrEqual(GetIndexOf(rawType, "-"), 0)) {
+				var orderType any = Split(rawType, "-")
+				side = GetValue(orderType, 0)
+				typeVar = GetValue(orderType, 1)
+			} else if IsTrue(IsEqual(typeVar, nil)) {
+				typeVar = rawType
+			}
+		}
 	}
-	var marketId any = this.SafeString2(order, "contract_code", "symbol")
-	market = this.SafeMarket(marketId, market)
-	var timestamp any = this.SafeIntegerN(order, []any{"created_at", "created-at", "create_date"})
-	var clientOrderId any = this.SafeString2(order, "client_order_id", Add("client-or", "der-id")) // transpiler regex trick for php issue
+	var timestamp any = this.SafeIntegerN(order, []any{"created_at", "created-at", "create_date", "created_time"})
+	var clientOrderId any = this.SafeStringN(order, []any{"client_order_id", Add("client-or", "der-id"), "algo_client_order_id"}) // transpiler regex trick for php issue
 	var cost any = nil
 	var amount any = nil
-	if IsTrue(IsTrue((!IsEqual(typeVar, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(typeVar, "market"), 0)))) {
+	if IsTrue(IsTrue(IsTrue((!IsEqual(typeVar, nil))) && IsTrue((IsGreaterThanOrEqual(GetIndexOf(typeVar, "market"), 0)))) && IsTrue((!IsTrue(isLinearOrder)))) {
 		cost = this.SafeString(order, "field-cash-amount")
 	} else {
 		amount = this.SafeString2(order, "volume", "amount")
@@ -5796,9 +5560,9 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCost any = this.SafeString2(order, "filled-fees", "field-fees") // typo in their API, filled feeSide
 	feeCost = this.SafeString(order, "fee", feeCost)
 	var fee any = nil
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	if IsTrue(IsTrue(IsTrue((!IsEqual(feeCost, nil))) && IsTrue((!IsEqual(feeCost, "0")))) && IsTrue((!IsEqual(feeCost, "0.0")))) {
 		var feeCurrency any = nil
-		var feeCurrencyId any = this.SafeString(order, "fee_asset")
+		var feeCurrencyId any = this.SafeString2(order, "fee_asset", "fee_currency")
 		if IsTrue(!IsEqual(feeCurrencyId, nil)) {
 			feeCurrency = this.SafeCurrencyCode(feeCurrencyId)
 		} else {
@@ -5811,10 +5575,14 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var average any = this.SafeString(order, "trade_avg_price")
 	var trades any = this.SafeValue(order, "trades")
-	var reduceOnlyInteger any = this.SafeInteger(order, "reduce_only")
 	var reduceOnly any = nil
-	if IsTrue(!IsEqual(reduceOnlyInteger, nil)) {
-		reduceOnly = Ternary(IsTrue((IsEqual(reduceOnlyInteger, 0))), false, true)
+	if IsTrue(isLinearOrder) {
+		reduceOnly = this.SafeBool(order, "reduce_only")
+	} else {
+		var reduceOnlyInteger any = this.SafeInteger(order, "reduce_only")
+		if IsTrue(!IsEqual(reduceOnlyInteger, nil)) {
+			reduceOnly = Ternary(IsTrue((IsEqual(reduceOnlyInteger, 0))), false, true)
+		}
 	}
 	return this.SafeOrder(map[string]any{
 		"info":               order,
@@ -5825,11 +5593,13 @@ func (this *HtxCore) ParseOrder(order any, optionalArgs ...any) any {
 		"lastTradeTimestamp": nil,
 		"symbol":             GetValue(market, "symbol"),
 		"type":               typeVar,
-		"timeInForce":        nil,
+		"timeInForce":        this.SafeStringUpper(order, "time_in_force"),
 		"postOnly":           nil,
 		"side":               side,
 		"price":              price,
 		"triggerPrice":       this.SafeString2(order, "stop-price", "trigger_price"),
+		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
+		"takeProfitPrice":    this.SafeString2(order, "tp_trigger_price", "tp_order_price"),
 		"average":            average,
 		"cost":               cost,
 		"amount":             amount,
@@ -5859,18 +5629,20 @@ func (this *HtxCore) CreateMarketBuyOrderWithCost(symbol any, cost any, optional
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53218 := (<-this.LoadMarkets())
-		PanicOnError(retRes53218)
+			retRes516012 := (<-this.LoadMarkets())
+			PanicOnError(retRes516012)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "spot")) {
 			panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() supports spot orders only")))
 		}
 		AddElementToObject(params, "createMarketBuyOrderRequiresPrice", false)
 
-		retRes532715 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
-		PanicOnError(retRes532715)
-		ch <- retRes532715
+		retRes516715 := (<-this.CreateOrder(symbol, "market", "buy", cost, nil, params))
+		PanicOnError(retRes516715)
+		ch <- retRes516715
 		return nil
 
 	}()
@@ -5913,9 +5685,9 @@ func (this *HtxCore) CreateTrailingPercentOrder(symbol any, typeVar any, side an
 		AddElementToObject(params, "trailingPercent", trailingPercent)
 		AddElementToObject(params, "trailingTriggerPrice", trailingTriggerPrice)
 
-		retRes535315 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
-		PanicOnError(retRes535315)
-		ch <- retRes535315
+		retRes519315 := (<-this.CreateOrder(symbol, typeVar, side, amount, price, params))
+		PanicOnError(retRes519315)
+		ch <- retRes519315
 		return nil
 
 	}()
@@ -5946,12 +5718,14 @@ func (this *HtxCore) CreateSpotOrderRequest(symbol any, typeVar any, side any, a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53728 := (<-this.LoadMarkets())
-		PanicOnError(retRes53728)
+			retRes521312 := (<-this.LoadMarkets())
+			PanicOnError(retRes521312)
+		}
 
-		retRes53738 := (<-this.LoadAccounts())
-		PanicOnError(retRes53738)
+		retRes52158 := (<-this.LoadAccounts())
+		PanicOnError(retRes52158)
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params)
@@ -6071,6 +5845,14 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 	 * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
 	 * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
 	 * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
+	 * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+	 * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+	 * @param {float} [params.takeProfit.price] take profit order price take profit orders
+	 * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+	 * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+	 * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+	 * @param {float} [params.stopLoss.price] stop loss order price for stop loss orders
+	 * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
 	 * @returns {object} request to be sent to the exchange
 	 */
 	price := GetArg(optionalArgs, 0, nil)
@@ -6081,7 +5863,6 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 	var request any = map[string]any{
 		"contract_code": GetValue(market, "id"),
 		"volume":        this.AmountToPrecision(symbol, amount),
-		"direction":     side,
 	}
 	var postOnly any = nil
 	postOnlyparamsVariable := this.HandlePostOnly(IsEqual(typeVar, "market"), IsEqual(typeVar, "post_only"), params)
@@ -6090,11 +5871,71 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 	if IsTrue(postOnly) {
 		typeVar = "post_only"
 	}
-	var timeInForce any = this.SafeString(params, "timeInForce", "GTC")
-	if IsTrue(IsEqual(timeInForce, "FOK")) {
-		typeVar = "fok"
-	} else if IsTrue(IsEqual(timeInForce, "IOC")) {
-		typeVar = "ioc"
+	var subType any = nil
+	subTypeparamsVariable := this.HandleSubTypeAndParams("createOrder", market, params)
+	subType = GetValue(subTypeparamsVariable, 0)
+	params = GetValue(subTypeparamsVariable, 1)
+	var isLinear any = (IsEqual(subType, "linear"))
+	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
+	var hedged any = this.SafeBool(params, "hedged", false)
+	var timeInForce any = this.SafeStringLower2(params, "timeInForce", "time_in_force", "gtc")
+	if IsTrue(isLinear) {
+		var marginMode any = nil
+		marginModeparamsVariable := this.HandleMarginModeAndParams("createOrder", params, "cross")
+		marginMode = GetValue(marginModeparamsVariable, 0)
+		params = GetValue(marginModeparamsVariable, 1)
+		AddElementToObject(request, "margin_mode", marginMode)
+		AddElementToObject(request, "side", side)
+		if IsTrue(!IsEqual(timeInForce, nil)) {
+			AddElementToObject(request, "time_in_force", ToLower(timeInForce))
+		}
+		var stopLoss any = this.SafeDict(params, "stopLoss")
+		var takeProfit any = this.SafeDict(params, "takeProfit")
+		var stopLossTriggerPriceAttached any = this.SafeNumber(stopLoss, "triggerPrice")
+		var stopLossOrderPrice any = this.SafeNumber(stopLoss, "price")
+		var stopLossType any = this.SafeString(stopLoss, "type")
+		var takeProfitTriggerPriceAttached any = this.SafeNumber(takeProfit, "triggerPrice")
+		var takeProfitOrderPrice any = this.SafeNumber(takeProfit, "price")
+		var takeProfitType any = this.SafeString(takeProfit, "type")
+		// on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
+		if IsTrue(!IsEqual(stopLoss, nil)) {
+			if IsTrue(!IsEqual(stopLossTriggerPriceAttached, nil)) {
+				AddElementToObject(request, "sl_trigger_price", this.PriceToPrecision(symbol, stopLossTriggerPriceAttached))
+			}
+			if IsTrue(!IsEqual(stopLossOrderPrice, nil)) {
+				AddElementToObject(request, "sl_order_price", this.PriceToPrecision(symbol, stopLossOrderPrice))
+			}
+			if IsTrue(!IsEqual(stopLossType, nil)) {
+				AddElementToObject(request, "sl_type", stopLossType)
+			}
+			params = this.Omit(params, "stopLoss")
+		}
+		if IsTrue(!IsEqual(takeProfit, nil)) {
+			if IsTrue(!IsEqual(takeProfitTriggerPriceAttached, nil)) {
+				AddElementToObject(request, "tp_trigger_price", this.PriceToPrecision(symbol, takeProfitTriggerPriceAttached))
+			}
+			if IsTrue(!IsEqual(takeProfitOrderPrice, nil)) {
+				AddElementToObject(request, "tp_order_price", this.PriceToPrecision(symbol, takeProfitOrderPrice))
+			}
+			if IsTrue(!IsEqual(takeProfitType, nil)) {
+				AddElementToObject(request, "tp_type", takeProfitType)
+			}
+			params = this.Omit(params, "takeProfit")
+		}
+	} else {
+		if IsTrue(hedged) {
+			if IsTrue(reduceOnly) {
+				AddElementToObject(request, "offset", "close")
+			} else {
+				AddElementToObject(request, "offset", "open")
+			}
+		}
+		if IsTrue(IsEqual(timeInForce, "fok")) {
+			typeVar = "fok"
+		} else if IsTrue(IsEqual(timeInForce, "ioc")) {
+			typeVar = "ioc"
+		}
+		AddElementToObject(request, "direction", side)
 	}
 	var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
 	var stopLossTriggerPrice any = this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price")
@@ -6105,22 +5946,44 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 	var isTrigger any = !IsEqual(triggerPrice, nil)
 	var isStopLossTriggerOrder any = !IsEqual(stopLossTriggerPrice, nil)
 	var isTakeProfitTriggerOrder any = !IsEqual(takeProfitTriggerPrice, nil)
+	var clientOrderId any = this.SafeIntegerN(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
+	if IsTrue(IsTrue(isLinear) && IsTrue((IsTrue(IsTrue(IsTrue(isTrailingPercentOrder) || IsTrue(isTrigger)) || IsTrue(isStopLossTriggerOrder)) || IsTrue(isTakeProfitTriggerOrder)))) {
+		if IsTrue(!IsEqual(clientOrderId, nil)) {
+			AddElementToObject(request, "algo_client_order_id", clientOrderId)
+			params = this.Omit(params, []any{"clientOrderId", "client_order_id"})
+		}
+	}
 	if IsTrue(isTrigger) {
-		var triggerType any = this.SafeString2(params, "triggerType", "trigger_type", "le")
-		AddElementToObject(request, "trigger_type", triggerType)
 		AddElementToObject(request, "trigger_price", this.PriceToPrecision(symbol, triggerPrice))
-		if IsTrue(!IsEqual(price, nil)) {
-			AddElementToObject(request, "order_price", this.PriceToPrecision(symbol, price))
+		if IsTrue(isLinear) {
+			AddElementToObject(request, "type", "trigger")
+			if IsTrue(!IsEqual(price, nil)) {
+				AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
+			}
+		} else {
+			var triggerType any = this.SafeString2(params, "triggerType", "trigger_type", "le")
+			AddElementToObject(request, "trigger_type", triggerType)
+			if IsTrue(!IsEqual(price, nil)) {
+				AddElementToObject(request, "order_price", this.PriceToPrecision(symbol, price))
+			}
 		}
 	} else if IsTrue(IsTrue(isStopLossTriggerOrder) || IsTrue(isTakeProfitTriggerOrder)) {
 		if IsTrue(isStopLossTriggerOrder) {
-			AddElementToObject(request, "sl_order_price_type", typeVar)
+			if !IsTrue(isLinear) {
+				AddElementToObject(request, "sl_order_price_type", typeVar)
+			} else {
+				AddElementToObject(request, "type", "sl")
+			}
 			AddElementToObject(request, "sl_trigger_price", this.PriceToPrecision(symbol, stopLossTriggerPrice))
 			if IsTrue(!IsEqual(price, nil)) {
 				AddElementToObject(request, "sl_order_price", this.PriceToPrecision(symbol, price))
 			}
 		} else {
-			AddElementToObject(request, "tp_order_price_type", typeVar)
+			if !IsTrue(isLinear) {
+				AddElementToObject(request, "tp_order_price_type", typeVar)
+			} else {
+				AddElementToObject(request, "type", "tp")
+			}
 			AddElementToObject(request, "tp_trigger_price", this.PriceToPrecision(symbol, takeProfitTriggerPrice))
 			if IsTrue(!IsEqual(price, nil)) {
 				AddElementToObject(request, "tp_order_price", this.PriceToPrecision(symbol, price))
@@ -6129,10 +5992,12 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 	} else if IsTrue(isTrailingPercentOrder) {
 		var trailingPercentString any = Precise.StringDiv(trailingPercent, "100")
 		AddElementToObject(request, "callback_rate", this.ParseToNumeric(trailingPercentString))
-		AddElementToObject(request, "active_price", trailingTriggerPrice)
 		AddElementToObject(request, "order_price_type", this.SafeString(params, "order_price_type", "formula_price"))
+		AddElementToObject(request, "active_price", trailingTriggerPrice)
+		if IsTrue(isLinear) {
+			AddElementToObject(request, "type", "trailing_stop")
+		}
 	} else {
-		var clientOrderId any = this.SafeInteger2(params, "client_order_id", "clientOrderId")
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
 			params = this.Omit(params, []any{"clientOrderId"})
@@ -6143,22 +6008,19 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
 			}
 		}
 	}
-	var reduceOnly any = this.SafeBool2(params, "reduceOnly", "reduce_only", false)
 	if IsTrue(!IsTrue(isStopLossTriggerOrder) && !IsTrue(isTakeProfitTriggerOrder)) {
 		if IsTrue(reduceOnly) {
 			AddElementToObject(request, "reduce_only", 1)
 		}
-		AddElementToObject(request, "lever_rate", this.SafeIntegerN(params, []any{"leverRate", "lever_rate", "leverage"}, 1))
-		if !IsTrue(isTrailingPercentOrder) {
-			AddElementToObject(request, "order_price_type", typeVar)
-		}
-	}
-	var hedged any = this.SafeBool(params, "hedged", false)
-	if IsTrue(hedged) {
-		if IsTrue(reduceOnly) {
-			AddElementToObject(request, "offset", "close")
+		if IsTrue(isLinear) {
+			if !IsTrue(isTrailingPercentOrder) {
+				AddElementToObject(request, "type", typeVar)
+			}
 		} else {
-			AddElementToObject(request, "offset", "open")
+			if !IsTrue(isTrailingPercentOrder) {
+				AddElementToObject(request, "order_price_type", typeVar)
+			}
+			AddElementToObject(request, "lever_rate", this.SafeIntegerN(params, []any{"leverRate", "lever_rate", "leverage"}, 1))
 		}
 	}
 	var broker any = this.SafeValue(this.Options, "broker", map[string]any{})
@@ -6172,17 +6034,15 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
  * @method
  * @name htx#createOrder
  * @description create a trade order
- * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                   // spot, margin
- * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order        // coin-m swap
- * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order   // coin-m swap trigger
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-an-order           // usdt-m swap cross
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-trigger-order      // usdt-m swap cross trigger
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-an-order        // usdt-m swap isolated
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-trigger-order   // usdt-m swap isolated trigger
+ * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-new-order                       // spot, margin
+ * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-an-order            // coin-m swap
+ * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-trigger-order       // coin-m swap trigger
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19588768fe7 // usdt-m swap cross and isolated
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b933812c9 // usdt-m swap cross and isolated trigger and trailing orders
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-set-a-take-profit-and-stop-loss-order-for-an-existing-position
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-set-a-take-profit-and-stop-loss-order-for-an-existing-position
- * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                        // coin-m futures
- * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                   // coin-m futures contract trigger
+ * @see https://huobiapi.github.io/docs/dm/v1/en/#place-an-order                            // coin-m futures
+ * @see https://huobiapi.github.io/docs/dm/v1/en/#place-trigger-order                       // coin-m futures contract trigger
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -6202,6 +6062,16 @@ func (this *HtxCore) CreateContractOrderRequest(symbol any, typeVar any, side an
  * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
  * @param {float} [params.trailingTriggerPrice] *contract only* the price to trigger a trailing order, default uses the price argument
  * @param {bool} [params.hedged] *contract only* true for hedged mode, false for one way mode, default is false
+ * @param {string} [params.marginMode] linear swap supports 'cross' and 'isolated', 'cross' is the default
+ * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
+ * @param {object} [params.takeProfit] *takeProfit object in params, linear swap only* containing the triggerPrice at which the attached take profit order will be triggered
+ * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
+ * @param {float} [params.takeProfit.price] take profit price for take profit orders
+ * @param {string} [params.takeProfit.type] market is the default, limit, optimal_5, optimal_10, optimal_20
+ * @param {object} [params.stopLoss] *stopLoss object in params, linear swap only* containing the triggerPrice at which the attached stop loss order will be triggered
+ * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
+ * @param {float} [params.stopLoss.price] stop loss price for stop loss orders
+ * @param {string} [params.stopLoss.type] market is the default, limit, optimal_5, optimal_10, optimal_20
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
@@ -6213,9 +6083,11 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes56178 := (<-this.LoadMarkets())
-		PanicOnError(retRes56178)
+			retRes555212 := (<-this.LoadMarkets())
+			PanicOnError(retRes555212)
+		}
 		var market any = this.Market(symbol)
 		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "trigger_price"})
 		var stopLossTriggerPrice any = this.SafeNumber2(params, "stopLossPrice", "sl_trigger_price")
@@ -6239,47 +6111,14 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		} else {
 			var contractRequest any = this.CreateContractOrderRequest(symbol, typeVar, side, amount, price, params)
 			if IsTrue(GetValue(market, "linear")) {
-				var marginMode any = nil
-				marginModecontractRequestVariable := this.HandleMarginModeAndParams("createOrder", contractRequest)
-				marginMode = GetValue(marginModecontractRequestVariable, 0)
-				contractRequest = GetValue(marginModecontractRequestVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-					if IsTrue(isTrigger) {
+				if IsTrue(IsTrue(IsTrue(IsTrue(isTrigger) || IsTrue(isStopLossTriggerOrder)) || IsTrue(isTakeProfitTriggerOrder)) || IsTrue(isTrailingPercentOrder)) {
 
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTriggerOrder(contractRequest))
-						PanicOnError(response)
-					} else if IsTrue(IsTrue(isStopLossTriggerOrder) || IsTrue(isTakeProfitTriggerOrder)) {
+					response = (<-this.ContractPrivatePostV5AlgoOrder(contractRequest))
+					PanicOnError(response)
+				} else {
 
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTpslOrder(contractRequest))
-						PanicOnError(response)
-					} else if IsTrue(isTrailingPercentOrder) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTrackOrder(contractRequest))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapOrder(contractRequest))
-						PanicOnError(response)
-					}
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-					if IsTrue(isTrigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTriggerOrder(contractRequest))
-						PanicOnError(response)
-					} else if IsTrue(IsTrue(isStopLossTriggerOrder) || IsTrue(isTakeProfitTriggerOrder)) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTpslOrder(contractRequest))
-						PanicOnError(response)
-					} else if IsTrue(isTrailingPercentOrder) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTrackOrder(contractRequest))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossOrder(contractRequest))
-						PanicOnError(response)
-					}
+					response = (<-this.ContractPrivatePostV5TradeOrder(contractRequest))
+					PanicOnError(response)
 				}
 			} else if IsTrue(GetValue(market, "inverse")) {
 				var offset any = this.SafeString(params, "offset")
@@ -6341,6 +6180,32 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 		//         "ts": 1640497927185
 		//     }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": {
+		//             "order_id": "1512501029504577536",
+		//             "client_order_id": "1512501029504577536"
+		//         },
+		//         "ts": 1780649946353
+		//     }
+		//
+		// linear swap algo
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "algo_id": "1512871666507657216",
+		//                 "algo_client_order_id": null
+		//             }
+		//         ],
+		//         "ts": 1780738313102
+		//     }
+		//
 		// stop-loss and take-profit
 		//
 		//     {
@@ -6380,6 +6245,21 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
 				"average":            nil,
 			}, market)
 			return nil
+		} else if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(IsTrue(IsTrue(IsTrue(isTrigger) || IsTrue(isTrailingPercentOrder)) || IsTrue(isStopLossTriggerOrder)) || IsTrue(isTakeProfitTriggerOrder)) {
+				data = this.SafeList(response, "data", []any{})
+				result = this.SafeDict(data, 0, map[string]any{})
+			} else {
+				result = this.SafeDict(response, "data", map[string]any{})
+			}
+
+			ch <- this.Extend(this.ParseOrder(result, market), map[string]any{
+				"type":   typeVar,
+				"side":   side,
+				"price":  price,
+				"amount": amount,
+			})
+			return nil
 		} else if IsTrue(isStopLossTriggerOrder) {
 			data = this.SafeValue(response, "data", map[string]any{})
 			result = this.SafeValue(data, "sl_order", map[string]any{})
@@ -6404,8 +6284,7 @@ func (this *HtxCore) CreateOrder(symbol any, typeVar any, side any, amount any, 
  * @see https://huobiapi.github.io/docs/spot/v1/en/#place-a-batch-of-orders
  * @see https://huobiapi.github.io/docs/dm/v1/en/#place-a-batch-of-orders
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-a-batch-of-orders
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-a-batch-of-orders
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-a-batch-of-orders
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958935dae1
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -6417,9 +6296,11 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57688 := (<-this.LoadMarkets())
-		PanicOnError(retRes57688)
+			retRes572412 := (<-this.LoadMarkets())
+			PanicOnError(retRes572412)
+		}
 		var ordersRequests any = []any{}
 		var symbol any = nil
 		var market any = nil
@@ -6464,29 +6345,22 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		}
 		var request any = map[string]any{}
 		var response any = nil
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(this.SafeBool(market, "spot")) {
 
 			response = (<-this.PrivatePostOrderBatchOrders(ordersRequests))
 			PanicOnError(response)
 		} else {
-			AddElementToObject(request, "orders_data", ordersRequests)
-			if IsTrue(GetValue(market, "linear")) {
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapBatchorder(request))
-					PanicOnError(response)
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-
-					response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossBatchorder(request))
-					PanicOnError(response)
-				}
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+				response = (<-this.ContractPrivatePostV5TradeBatchOrders(ordersRequests))
+				PanicOnError(response)
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				AddElementToObject(request, "orders_data", ordersRequests)
+				if IsTrue(this.SafeBool(market, "swap")) {
 
 					response = (<-this.ContractPrivatePostSwapApiV1SwapBatchorder(request))
 					PanicOnError(response)
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 
 					response = (<-this.ContractPrivatePostApiV1ContractBatchorder(request))
 					PanicOnError(response)
@@ -6534,14 +6408,42 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
 		//         "ts": 1699688256671
 		//     }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "code": 200,
+		//                 "message": "Success",
+		//                 "order_id": "1513217421638275072",
+		//                 "client_order_id": "1513217421638275072"
+		//             },
+		//             {
+		//                 "code": 200,
+		//                 "message": "Success",
+		//                 "order_id": "1513217421638275073",
+		//                 "client_order_id": "1513217421638275073"
+		//             }
+		//         ],
+		//         "ts": 1780820747555
+		//     }
+		//
+		//
 		var result any = nil
-		if IsTrue(GetValue(market, "spot")) {
+		if IsTrue(this.SafeBool(market, "spot")) {
 			result = this.SafeValue(response, "data", []any{})
 		} else {
-			var data any = this.SafeValue(response, "data", map[string]any{})
-			var success any = this.SafeValue(data, "success", []any{})
-			var errors any = this.SafeValue(data, "errors", []any{})
-			result = this.ArrayConcat(success, errors)
+			var data any = this.SafeValue(response, "data")
+			if IsTrue(IsArray(data)) {
+				result = data
+			} else {
+				var batchData any = this.SafeValue(response, "data", map[string]any{})
+				var success any = this.SafeValue(batchData, "success", []any{})
+				var errors any = this.SafeValue(batchData, "errors", []any{})
+				result = this.ArrayConcat(success, errors)
+			}
 		}
 
 		ch <- this.ParseOrders(result, market)
@@ -6555,12 +6457,16 @@ func (this *HtxCore) CreateOrders(orders any, optionalArgs ...any) <-chan any {
  * @method
  * @name htx#cancelOrder
  * @description cancels an open order
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958947efe6
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b935d4997
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] *contract only* if the order is a trigger trigger order or not
- * @param {boolean} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
- * @param {boolean} [params.trailing] *contract only* set to true if you want to cancel a trailing order
+ * @param {bool} [params.trigger] *contract only* if the order is a trigger trigger order or not
+ * @param {bool} [params.stopLossTakeProfit] *contract only* if the order is a stop-loss or take-profit order
+ * @param {bool} [params.stopLoss] *contract only* if the order is a stop-loss order
+ * @param {bool} [params.takeProfit] *contract only* if the order is a take-profit order
+ * @param {bool} [params.trailing] *contract only* set to true if you want to cancel a trailing order
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
@@ -6572,9 +6478,11 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58968 := (<-this.LoadMarkets())
-		PanicOnError(retRes58968)
+			retRes588112 := (<-this.LoadMarkets())
+			PanicOnError(retRes588112)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6583,7 +6491,16 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		marketTypeparamsVariable := this.HandleMarketTypeAndParams("cancelOrder", market, params)
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
+		var subType any = nil
+		subTypeparamsVariable := this.HandleSubTypeAndParams("cancelOrder", market, params)
+		subType = GetValue(subTypeparamsVariable, 0)
+		params = GetValue(subTypeparamsVariable, 1)
+		var isLinear any = (IsEqual(subType, "linear"))
 		var request any = map[string]any{}
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		var stopLossTakeProfit any = this.SafeBoolN(params, []any{"stopLossTakeProfit", "stopLoss", "takeProfit"})
+		var trailing any = this.SafeBool(params, "trailing", false)
+		params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			var clientOrderId any = this.SafeString2(params, "client-order-id", "clientOrderId")
@@ -6603,67 +6520,43 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 			}
-			var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
-			if IsTrue(IsEqual(clientOrderId, nil)) {
-				AddElementToObject(request, "order_id", id)
-			} else {
-				AddElementToObject(request, "client_order_id", clientOrderId)
-				params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
-			}
-			if IsTrue(GetValue(market, "future")) {
-				AddElementToObject(request, "symbol", GetValue(market, "settleId"))
-			} else {
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
-			}
-			var trigger any = this.SafeBool2(params, "stop", "trigger")
-			var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
-			var trailing any = this.SafeBool(params, "trailing", false)
-			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger"})
-			if IsTrue(GetValue(market, "linear")) {
-				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrder", params)
-				marginMode = GetValue(marginModeparamsVariable, 0)
-				params = GetValue(marginModeparamsVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTpslCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(trailing) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTrackCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					}
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(trailing) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTrackCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					}
+			var clientOrderId any = this.SafeStringN(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
+			if !IsTrue((IsTrue(isLinear) && IsTrue((IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing))))) {
+				if IsTrue(IsEqual(clientOrderId, nil)) {
+					AddElementToObject(request, "order_id", id)
+				} else {
+					AddElementToObject(request, "client_order_id", clientOrderId)
+					params = this.Omit(params, []any{"client_order_id", "clientOrderId"})
 				}
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+			}
+			if IsTrue(this.SafeBool(market, "future")) {
+				AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
+			} else {
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
+			}
+			if IsTrue(isLinear) {
+				if IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing)) {
+					var requestItem any = map[string]any{
+						"contract_code": this.SafeString(market, "id"),
+					}
+					if IsTrue(IsEqual(clientOrderId, nil)) {
+						AddElementToObject(requestItem, "algo_id", id)
+						params = this.Omit(params, "algo_id")
+					} else {
+						AddElementToObject(requestItem, "algo_client_order_id", clientOrderId)
+						params = this.Omit(params, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
+					}
+					var requestBody any = []any{this.Extend(requestItem, params)}
+
+					response = (<-this.ContractPrivatePostV5AlgoCancelOrders(requestBody))
+					PanicOnError(response)
+				} else {
+
+					response = (<-this.ContractPrivatePostV5TradeCancelOrder(this.Extend(request, params)))
+					PanicOnError(response)
+				}
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancel(this.Extend(request, params)))
@@ -6681,7 +6574,7 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 						response = (<-this.ContractPrivatePostSwapApiV1SwapCancel(this.Extend(request, params)))
 						PanicOnError(response)
 					}
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostApiV1ContractTriggerCancel(this.Extend(request, params)))
@@ -6704,7 +6597,6 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 				panic(NotSupported(Add(Add(Add(this.Id, " cancelOrder() does not support "), marketType), " markets")))
 			}
 		}
-
 		//
 		// spot
 		//
@@ -6724,7 +6616,47 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		//         "ts": 1640504486089
 		//     }
 		//
-		ch <- this.Extend(this.ParseOrder(response, market), map[string]any{
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "data": {
+		//             "client_order_id": "1512509978516443136",
+		//             "order_id": "1512509978516443136"
+		//         },
+		//         "message": "Success",
+		//         "ts": 1780653244729
+		//     }
+		//
+		// linear swap algo
+		//
+		//     {
+		//         "code": 200,
+		//         "data": [
+		//             {
+		//                 "algo_client_order_id": "1329854623927160832",
+		//                 "code": 200,
+		//                 "message": "Success",
+		//                 "algo_id": "1329854623927160832"
+		//             },
+		//         ],
+		//         "message": "Success",
+		//         "ts": 1737103890390
+		//     }
+		//
+		var result any = nil
+		if IsTrue(isLinear) {
+			if IsTrue(IsTrue(IsTrue(trigger) || IsTrue(stopLossTakeProfit)) || IsTrue(trailing)) {
+				var data any = this.SafeList(response, "data", []any{})
+				result = this.SafeDict(data, 0, map[string]any{})
+			} else {
+				result = this.SafeDict(response, "data", map[string]any{})
+			}
+		} else {
+			result = response
+		}
+
+		ch <- this.Extend(this.ParseOrder(result, market), map[string]any{
 			"id":     id,
 			"status": "canceled",
 		})
@@ -6738,6 +6670,7 @@ func (this *HtxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
  * @method
  * @name htx#cancelOrders
  * @description cancel multiple orders
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894d0de8
  * @param {string[]} ids order ids
  * @param {string} symbol unified market symbol, default is undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6754,9 +6687,11 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes60348 := (<-this.LoadMarkets())
-		PanicOnError(retRes60348)
+			retRes605812 := (<-this.LoadMarkets())
+			PanicOnError(retRes605812)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -6766,6 +6701,9 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		marketType = GetValue(marketTypeparamsVariable, 0)
 		params = GetValue(marketTypeparamsVariable, 1)
 		var request any = map[string]any{}
+		var trigger any = this.SafeBool2(params, "stop", "trigger")
+		var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
+		params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trigger"})
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			var clientOrderIds any = this.SafeValue2(params, "client-order-id", "clientOrderId")
@@ -6791,59 +6729,36 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 			}
-			var clientOrderIds any = this.SafeString2(params, "client_order_id", "clientOrderId")
-			clientOrderIds = this.SafeString2(params, "client_order_ids", "clientOrderIds", clientOrderIds)
-			if IsTrue(IsEqual(clientOrderIds, nil)) {
-				AddElementToObject(request, "order_id", Join(ids, ","))
-			} else {
-				AddElementToObject(request, "client_order_id", clientOrderIds)
-				params = this.Omit(params, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
+			var clientOrderIds any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+			clientOrderIds = this.SafeValue2(params, "client_order_ids", "clientOrderIds", clientOrderIds)
+			params = this.Omit(params, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
+			if !IsTrue(this.SafeBool(market, "linear")) {
+				if IsTrue(IsEqual(clientOrderIds, nil)) {
+					AddElementToObject(request, "order_id", Join(ids, ","))
+				} else {
+					AddElementToObject(request, "client_order_id", clientOrderIds)
+				}
 			}
-			if IsTrue(GetValue(market, "future")) {
-				AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+			if IsTrue(this.SafeBool(market, "future")) {
+				AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 			} else {
-				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			}
-			var trigger any = this.SafeBool2(params, "stop", "trigger")
-			var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
-			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trigger"})
-			if IsTrue(GetValue(market, "linear")) {
-				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("cancelOrders", params)
-				marginMode = GetValue(marginModeparamsVariable, 0)
-				params = GetValue(marginModeparamsVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTriggerCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTpslCancel(this.Extend(request, params)))
-						PanicOnError(response)
+			if IsTrue(this.SafeBool(market, "linear")) {
+				if IsTrue(IsEqual(clientOrderIds, nil)) {
+					AddElementToObject(request, "order_id", ids)
+				} else {
+					if IsTrue(IsString(clientOrderIds)) {
+						AddElementToObject(request, "client_order_id", Split(clientOrderIds, ","))
 					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					}
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancel(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossCancel(this.Extend(request, params)))
-						PanicOnError(response)
+						AddElementToObject(request, "client_order_id", clientOrderIds)
 					}
 				}
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+
+				response = (<-this.ContractPrivatePostV5TradeCancelBatchOrders(this.Extend(request, params)))
+				PanicOnError(response)
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancel(this.Extend(request, params)))
@@ -6857,7 +6772,7 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 						response = (<-this.ContractPrivatePostSwapApiV1SwapCancel(this.Extend(request, params)))
 						PanicOnError(response)
 					}
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostApiV1ContractTriggerCancel(this.Extend(request, params)))
@@ -6927,6 +6842,33 @@ func (this *HtxCore) CancelOrders(ids any, optionalArgs ...any) <-chan any {
 		//         "ts": 1604367997451
 		//     }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "code": 200,
+		//                 "message": "Success",
+		//                 "order_id": "1513217421638275072",
+		//                 "client_order_id": "1513217421638275072"
+		//             },
+		//             {
+		//                 "code": 200,
+		//                 "message": "Success",
+		//                 "order_id": "1513217421638275073",
+		//                 "client_order_id": "1513217421638275073"
+		//             }
+		//         ],
+		//         "ts": 1780822053167
+		//     }
+		//
+		if IsTrue(IsTrue(IsTrue(this.SafeBool(market, "linear")) && !IsTrue(trigger)) && !IsTrue(stopLossTakeProfit)) {
+
+			ch <- this.ParseCancelOrders(response)
+			return nil
+		}
 		var data any = this.SafeDict(response, "data")
 
 		ch <- this.ParseCancelOrders(data)
@@ -6964,6 +6906,28 @@ func (this *HtxCore) ParseCancelOrders(orders any) any {
 	//        "successes": "1258075374411399168,1258075393254871040"
 	//    }
 	//
+	// linear swap
+	//
+	//     {
+	//         "code": 200,
+	//         "message": "Success",
+	//         "data": [
+	//             {
+	//                 "code": 200,
+	//                 "message": "Success",
+	//                 "order_id": "1513217421638275072",
+	//                 "client_order_id": "1513217421638275072"
+	//             },
+	//             {
+	//                 "code": 200,
+	//                 "message": "Success",
+	//                 "order_id": "1513217421638275073",
+	//                 "client_order_id": "1513217421638275073"
+	//             }
+	//         ],
+	//         "ts": 1780822053167
+	//     }
+	//
 	var successes any = this.SafeString(orders, "successes")
 	var success any = nil
 	if IsTrue(!IsEqual(successes, nil)) {
@@ -6972,7 +6936,17 @@ func (this *HtxCore) ParseCancelOrders(orders any) any {
 		success = this.SafeList(orders, "success", []any{})
 	}
 	var failed any = this.SafeList2(orders, "errors", "failed", []any{})
+	var data any = this.SafeList(orders, "data", []any{})
 	var result any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+		var order any = GetValue(data, i)
+		AppendToArray(&result, this.SafeOrder(map[string]any{
+			"info":          order,
+			"id":            this.SafeString(order, "order_id"),
+			"status":        "canceled",
+			"clientOrderId": this.SafeString(order, "client_order_id"),
+		}))
+	}
 	for i := 0; IsLessThan(i, GetArrayLength(success)); i++ {
 		var order any = GetValue(success, i)
 		AppendToArray(&result, this.SafeOrder(map[string]any{
@@ -6997,6 +6971,7 @@ func (this *HtxCore) ParseCancelOrders(orders any) any {
  * @method
  * @name htx#cancelAllOrders
  * @description cancel all open orders
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195894f0cf6
  * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] *contract only* if the orders are trigger trigger orders or not
@@ -7013,9 +6988,11 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes62588 := (<-this.LoadMarkets())
-		PanicOnError(retRes62588)
+			retRes633412 := (<-this.LoadMarkets())
+			PanicOnError(retRes633412)
+		}
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
@@ -7028,7 +7005,7 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "spot")) {
 			if IsTrue(!IsEqual(symbol, nil)) {
-				AddElementToObject(request, "symbol", GetValue(market, "id"))
+				AddElementToObject(request, "symbol", this.SafeString(market, "id"))
 			}
 
 			response = (<-this.SpotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.Extend(request, params)))
@@ -7053,59 +7030,20 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			if IsTrue(IsEqual(symbol, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
 			}
-			if IsTrue(GetValue(market, "future")) {
-				AddElementToObject(request, "symbol", GetValue(market, "settleId"))
+			if IsTrue(this.SafeBool(market, "future")) {
+				AddElementToObject(request, "symbol", this.SafeString(market, "settleId"))
 			}
-			AddElementToObject(request, "contract_code", GetValue(market, "id"))
+			AddElementToObject(request, "contract_code", this.SafeString(market, "id"))
 			var trigger any = this.SafeBool2(params, "stop", "trigger")
 			var stopLossTakeProfit any = this.SafeValue(params, "stopLossTakeProfit")
 			var trailing any = this.SafeBool(params, "trailing", false)
 			params = this.Omit(params, []any{"stop", "stopLossTakeProfit", "trailing", "trigger"})
-			if IsTrue(GetValue(market, "linear")) {
-				var marginMode any = nil
-				marginModeparamsVariable := this.HandleMarginModeAndParams("cancelAllOrders", params)
-				marginMode = GetValue(marginModeparamsVariable, 0)
-				params = GetValue(marginModeparamsVariable, 1)
-				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-					if IsTrue(trigger) {
+			if IsTrue(this.SafeBool(market, "linear")) {
 
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTriggerCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTpslCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(trailing) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapTrackCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					}
-				} else if IsTrue(IsEqual(marginMode, "cross")) {
-					if IsTrue(trigger) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTriggerCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(stopLossTakeProfit) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTpslCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					} else if IsTrue(trailing) {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossTrackCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					} else {
-
-						response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossCancelall(this.Extend(request, params)))
-						PanicOnError(response)
-					}
-				}
-			} else if IsTrue(GetValue(market, "inverse")) {
-				if IsTrue(GetValue(market, "swap")) {
+				response = (<-this.ContractPrivatePostV5TradeCancelAllOrders(this.Extend(request, params)))
+				PanicOnError(response)
+			} else if IsTrue(this.SafeBool(market, "inverse")) {
+				if IsTrue(this.SafeBool(market, "swap")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostSwapApiV1SwapTriggerCancelall(this.Extend(request, params)))
@@ -7123,7 +7061,7 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 						response = (<-this.ContractPrivatePostSwapApiV1SwapCancelall(this.Extend(request, params)))
 						PanicOnError(response)
 					}
-				} else if IsTrue(GetValue(market, "future")) {
+				} else if IsTrue(this.SafeBool(market, "future")) {
 					if IsTrue(trigger) {
 
 						response = (<-this.ContractPrivatePostApiV1ContractTriggerCancelall(this.Extend(request, params)))
@@ -7155,6 +7093,11 @@ func (this *HtxCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 			//         "ts": "1683435723755"
 			//     }
 			//
+			if IsTrue(IsTrue(this.SafeBool(market, "linear")) && IsTrue((IsTrue(!IsTrue(trigger) && !IsTrue(trailing)) && !IsTrue(stopLossTakeProfit)))) {
+
+				ch <- this.ParseCancelOrders(response)
+				return nil
+			}
 			var data any = this.SafeDict(response, "data")
 
 			ch <- this.ParseCancelOrders(data)
@@ -7181,9 +7124,11 @@ func (this *HtxCore) CancelAllOrdersAfter(timeout any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes63888 := (<-this.LoadMarkets())
-		PanicOnError(retRes63888)
+			retRes646112 := (<-this.LoadMarkets())
+			PanicOnError(retRes646112)
+		}
 		var request any = map[string]any{
 			"timeout": Ternary(IsTrue((IsGreaterThan(timeout, 0))), this.ParseToInt(Divide(timeout, 1000)), 0),
 		}
@@ -7230,7 +7175,7 @@ func (this *HtxCore) ParseDepositAddress(depositAddress any, optionalArgs ...any
 		"currency": code,
 		"address":  address,
 		"tag":      tag,
-		"network":  this.NetworkIdToCode(networkId),
+		"network":  this.NetworkIdToCode(networkId, code),
 		"note":     note,
 		"info":     depositAddress,
 	}
@@ -7252,9 +7197,11 @@ func (this *HtxCore) FetchDepositAddressesByNetwork(code any, optionalArgs ...an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64438 := (<-this.LoadMarkets())
-		PanicOnError(retRes64438)
+			retRes651812 := (<-this.LoadMarkets())
+			PanicOnError(retRes651812)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -7301,9 +7248,11 @@ func (this *HtxCore) FetchDepositAddress(code any, optionalArgs ...any) <-chan a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64778 := (<-this.LoadMarkets())
-		PanicOnError(retRes64778)
+			retRes655412 := (<-this.LoadMarkets())
+			PanicOnError(retRes655412)
+		}
 		var currency any = this.Currency(code)
 		networkCodeparamsOmitedVariable := this.HandleNetworkCodeAndParams(params)
 		networkCode := GetValue(networkCodeparamsOmitedVariable, 0)
@@ -7330,9 +7279,11 @@ func (this *HtxCore) FetchWithdrawAddresses(code any, optionalArgs ...any) <-cha
 		_ = networkCode
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64868 := (<-this.LoadMarkets())
-		PanicOnError(retRes64868)
+			retRes656512 := (<-this.LoadMarkets())
+			PanicOnError(retRes656512)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -7400,9 +7351,11 @@ func (this *HtxCore) FetchDeposits(optionalArgs ...any) <-chan any {
 		if IsTrue(IsTrue(IsEqual(limit, nil)) || IsTrue(IsGreaterThan(limit, 100))) {
 			limit = 100
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes65358 := (<-this.LoadMarkets())
-		PanicOnError(retRes65358)
+			retRes661612 := (<-this.LoadMarkets())
+			PanicOnError(retRes661612)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -7482,9 +7435,11 @@ func (this *HtxCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
 		if IsTrue(IsTrue(IsEqual(limit, nil)) || IsTrue(IsGreaterThan(limit, 100))) {
 			limit = 100
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes65968 := (<-this.LoadMarkets())
-		PanicOnError(retRes65968)
+			retRes667912 := (<-this.LoadMarkets())
+			PanicOnError(retRes667912)
+		}
 		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
@@ -7610,7 +7565,7 @@ func (this *HtxCore) ParseTransaction(transaction any, optionalArgs ...any) any 
 		"txid":        txHash,
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-		"network":     this.NetworkIdToCode(networkId),
+		"network":     this.NetworkIdToCode(networkId, code),
 		"address":     this.SafeString(transaction, "address"),
 		"addressTo":   nil,
 		"addressFrom": nil,
@@ -7677,9 +7632,11 @@ func (this *HtxCore) Withdraw(code any, amount any, address any, optionalArgs ..
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes67758 := (<-this.LoadMarkets())
-		PanicOnError(retRes67758)
+			retRes686012 := (<-this.LoadMarkets())
+			PanicOnError(retRes686012)
+		}
 		this.CheckAddress(address)
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
@@ -7746,20 +7703,52 @@ func (this *HtxCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//         "status": "ok"
 	//     }
 	//
+	// fetchTransfers
+	//
+	//     {
+	//         "id": 12345,
+	//         "transfer_id": "12345",
+	//         "amount": "10",
+	//         "currency": "USDT",
+	//         "status": "success",
+	//         "from_account_type": "spot",
+	//         "to_account_type": "margin",
+	//         "from_asset_type": "",
+	//         "to_asset_type": "ETHUSDT",
+	//         "transfer_time": 1770357494000
+	//     }
+	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var id any = this.SafeString(transfer, "data")
-	var code any = this.SafeCurrencyCode(nil, currency)
+	var accountsById any = this.SafeDict(this.Options, "accountsById", map[string]any{})
+	var id any = this.SafeString2(transfer, "transfer_id", "data")
+	var currencyId any = this.SafeString(transfer, "currency")
+	var code any = this.SafeCurrencyCode(currencyId, currency)
+	var amount any = this.SafeNumber(transfer, "amount")
+	var timestamp any = this.SafeInteger(transfer, "transfer_time")
+	var fromAccountRaw any = this.SafeString(transfer, "from_account_type")
+	var toAccountRaw any = this.SafeString(transfer, "to_account_type")
+	var fromAccount any = this.SafeString(accountsById, fromAccountRaw, fromAccountRaw)
+	var toAccount any = this.SafeString(accountsById, toAccountRaw, toAccountRaw)
+	var statusRaw any = this.SafeString(transfer, "status")
+	var status any = nil
+	if IsTrue(IsEqual(statusRaw, "success")) {
+		status = "ok"
+	} else if IsTrue(IsEqual(statusRaw, "pending")) {
+		status = "pending"
+	} else if IsTrue(IsEqual(statusRaw, "failed")) {
+		status = "failed"
+	}
 	return map[string]any{
 		"info":        transfer,
 		"id":          id,
-		"timestamp":   nil,
-		"datetime":    nil,
+		"timestamp":   timestamp,
+		"datetime":    this.Iso8601(timestamp),
 		"currency":    code,
-		"amount":      nil,
-		"fromAccount": nil,
-		"toAccount":   nil,
-		"status":      nil,
+		"amount":      amount,
+		"fromAccount": fromAccount,
+		"toAccount":   toAccount,
+		"status":      status,
 	}
 }
 
@@ -7790,9 +7779,11 @@ func (this *HtxCore) Transfer(code any, amount any, fromAccount any, toAccount a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes68688 := (<-this.LoadMarkets())
-		PanicOnError(retRes68688)
+			retRes698712 := (<-this.LoadMarkets())
+			PanicOnError(retRes698712)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -7882,6 +7873,88 @@ func (this *HtxCore) Transfer(code any, amount any, fromAccount any, toAccount a
 
 /**
  * @method
+ * @name htx#fetchTransfers
+ * @description fetch a history of internal transfers made on an account
+ * @see https://www.huobi.com/en-us/opend/newApiPages/
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for
+ * @param {int} [limit] the maximum number of transfer structures to retrieve
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.status] transfer status: 'success', 'pending', 'failed'
+ * @param {int} [params.from] the starting ID for pagination
+ * @param {string} [params.direct] pagination direction: 'prev' or 'next', default 'next'
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
+ */
+func (this *HtxCore) FetchTransfers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
+		defer close(ch)
+		defer ReturnPanicError(ch)
+		code := GetArg(optionalArgs, 0, nil)
+		_ = code
+		since := GetArg(optionalArgs, 1, nil)
+		_ = since
+		limit := GetArg(optionalArgs, 2, nil)
+		_ = limit
+		params := GetArg(optionalArgs, 3, map[string]any{})
+		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
+
+			retRes707412 := (<-this.LoadMarkets())
+			PanicOnError(retRes707412)
+		}
+		var currency any = nil
+		var request any = map[string]any{}
+		if IsTrue(!IsEqual(code, nil)) {
+			currency = this.Currency(code)
+			AddElementToObject(request, "currency", GetValue(currency, "id"))
+		}
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start_time", since)
+		}
+		var until any = this.SafeInteger(params, "until")
+		if IsTrue(!IsEqual(until, nil)) {
+			params = this.Omit(params, "until")
+			AddElementToObject(request, "end_time", until)
+		}
+		if IsTrue(!IsEqual(limit, nil)) {
+			AddElementToObject(request, "limit", limit)
+		}
+
+		response := (<-this.SpotPrivateGetV5AccountUniversalTransferRecords(this.Extend(request, params)))
+		PanicOnError(response)
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "id": 12345,
+		//                 "transfer_id": "12345",
+		//                 "amount": "10",
+		//                 "currency": "USDT",
+		//                 "status": "success",
+		//                 "from_account_type": "spot",
+		//                 "to_account_type": "margin",
+		//                 "from_asset_type": "",
+		//                 "to_asset_type": "ETHUSDT",
+		//                 "transfer_time": 1770357494000
+		//             }
+		//         ]
+		//     }
+		//
+		var data any = this.SafeList(response, "data", []any{})
+
+		ch <- this.ParseTransfers(data, currency, since, limit)
+		return nil
+
+	}()
+	return ch
+}
+
+/**
+ * @method
  * @name htx#fetchIsolatedBorrowRates
  * @description fetch the borrow interest rates of all currencies
  * @see https://huobiapi.github.io/docs/spot/v1/en/#get-loan-interest-rate-and-quota-isolated
@@ -7895,9 +7968,11 @@ func (this *HtxCore) FetchIsolatedBorrowRates(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes69468 := (<-this.LoadMarkets())
-		PanicOnError(retRes69468)
+			retRes712812 := (<-this.LoadMarkets())
+			PanicOnError(retRes712812)
+		}
 
 		response := (<-this.SpotPrivateGetV1MarginLoanInfo(params))
 		PanicOnError(response)
@@ -7987,14 +8062,15 @@ func (this *HtxCore) ParseIsolatedBorrowRate(info any, optionalArgs ...any) any 
 /**
  * @method
  * @name htx#fetchFundingRateHistory
+ * @description fetches historical funding rate prices
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97ea5941
  * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-funding-rate
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-funding-rate
- * @description fetches historical funding rate prices
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
- * @param {int} [since] not used by huobi, but filtered internally by ccxt
- * @param {int} [limit] not used by huobi, but filtered internally by ccxt
+ * @param {int} [since] the earliest time in ms to fetch funding rate history for
+ * @param {int} [limit] the maximum number of structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+ * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
@@ -8019,22 +8095,33 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes704519 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
-			PanicOnError(retRes704519)
-			ch <- retRes704519
+			retRes722919 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "current_page", "page_index", 1, 50))
+			PanicOnError(retRes722919)
+			ch <- retRes722919
 			return nil
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes70478 := (<-this.LoadMarkets())
-		PanicOnError(retRes70478)
+			retRes723212 := (<-this.LoadMarkets())
+			PanicOnError(retRes723212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"contract_code": GetValue(market, "id"),
 		}
-		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
+		if IsTrue(GetValue(market, "linear")) {
+			if IsTrue(!IsEqual(limit, nil)) {
+				AddElementToObject(request, "limit", limit)
+			}
+			if IsTrue(!IsEqual(since, nil)) {
+				AddElementToObject(request, "start_time", since)
+			}
 		} else {
-			AddElementToObject(request, "page_size", 50) // max
+			if IsTrue(!IsEqual(limit, nil)) {
+				AddElementToObject(request, "page_size", limit)
+			} else {
+				AddElementToObject(request, "page_size", 50) // max
+			}
 		}
 		var response any = nil
 		if IsTrue(GetValue(market, "inverse")) {
@@ -8043,50 +8130,44 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		} else if IsTrue(GetValue(market, "linear")) {
 
-			response = (<-this.ContractPublicGetLinearSwapApiV1SwapHistoricalFundingRate(this.Extend(request, params)))
+			response = (<-this.ContractPublicGetV5MarketFundingRateHistory(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchFundingRateHistory() supports inverse and linear swaps only")))
 		}
-		//
-		// {
-		//     "status": "ok",
-		//     "data": {
-		//         "total_page": 62,
-		//         "current_page": 1,
-		//         "total_size": 1237,
-		//         "data": [
-		//             {
-		//                 "avg_premium_index": "-0.000208064395065541",
-		//                 "funding_rate": "0.000100000000000000",
-		//                 "realized_rate": "0.000100000000000000",
-		//                 "funding_time": "1638921600000",
-		//                 "contract_code": "BTC-USDT",
-		//                 "symbol": "BTC",
-		//                 "fee_asset": "USDT"
-		//             },
-		//         ]
-		//     },
-		//     "ts": 1638939294277
-		// }
-		//
 		var data any = this.SafeValue(response, "data")
-		var cursor any = this.SafeValue(data, "current_page")
-		var result any = this.SafeValue(data, "data", []any{})
 		var rates any = []any{}
-		for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
-			var entry any = GetValue(result, i)
-			AddElementToObject(entry, "current_page", cursor)
-			var marketId any = this.SafeString(entry, "contract_code")
-			var symbolInner any = this.SafeSymbol(marketId)
-			var timestamp any = this.SafeInteger(entry, "funding_time")
-			AppendToArray(&rates, map[string]any{
-				"info":        entry,
-				"symbol":      symbolInner,
-				"fundingRate": this.SafeNumber(entry, "funding_rate"),
-				"timestamp":   timestamp,
-				"datetime":    this.Iso8601(timestamp),
-			})
+		if IsTrue(GetValue(market, "linear")) {
+			for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
+				var entry any = GetValue(data, i)
+				var marketId any = this.SafeString(entry, "contract_code")
+				var symbolInner any = this.SafeSymbol(marketId, market)
+				var timestamp any = this.SafeInteger(entry, "funding_time")
+				AppendToArray(&rates, map[string]any{
+					"info":        entry,
+					"symbol":      symbolInner,
+					"fundingRate": this.SafeNumber(entry, "funding_rate"),
+					"timestamp":   timestamp,
+					"datetime":    this.Iso8601(timestamp),
+				})
+			}
+		} else {
+			var cursor any = this.SafeValue(data, "current_page")
+			var result any = this.SafeValue(data, "data", []any{})
+			for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
+				var entry any = GetValue(result, i)
+				AddElementToObject(entry, "current_page", cursor)
+				var marketId any = this.SafeString(entry, "contract_code")
+				var symbolInner any = this.SafeSymbol(marketId)
+				var timestamp any = this.SafeInteger(entry, "funding_time")
+				AppendToArray(&rates, map[string]any{
+					"info":        entry,
+					"symbol":      symbolInner,
+					"fundingRate": this.SafeNumber(entry, "funding_rate"),
+					"timestamp":   timestamp,
+					"datetime":    this.Iso8601(timestamp),
+				})
+			}
 		}
 		var sorted any = this.SortBy(rates, "timestamp")
 
@@ -8098,19 +8179,28 @@ func (this *HtxCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 }
 func (this *HtxCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
-	// {
-	//      "status": "ok",
-	//      "data": {
-	//         "estimated_rate": "0.000100000000000000",
+	// inverse swap
+	//
+	//     {
+	//         "estimated_rate": null,
 	//         "funding_rate": "0.000100000000000000",
-	//         "contract_code": "BCH-USD",
-	//         "symbol": "BCH",
-	//         "fee_asset": "BCH",
-	//         "funding_time": "1639094400000",
-	//         "next_funding_time": "1639123200000"
-	//     },
-	//     "ts": 1639085854775
-	// }
+	//         "contract_code": "BTC-USD",
+	//         "symbol": "BTC",
+	//         "fee_asset": "BTC",
+	//         "funding_time": "1781280000000",
+	//         "next_funding_time": null
+	//     }
+	//
+	// linear swap
+	//
+	//     {
+	//         "contract_code": "BTC-USDT",
+	//         "funding_rate": "0.000083024939363172",
+	//         "funding_time": "1781251200000",
+	//         "next_funding_time": "1781280000000",
+	//         "min_funding_rate": "-0.003750000000000000",
+	//         "max_funding_rate": "0.003750000000000000"
+	//     }
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
@@ -8159,7 +8249,7 @@ func (this *HtxCore) ParseFundingInterval(interval any) any {
  * @name htx#fetchFundingRate
  * @description fetch the current funding rate
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-funding-rate
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-funding-rate
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97d0c0bf
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -8171,9 +8261,11 @@ func (this *HtxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes71778 := (<-this.LoadMarkets())
-		PanicOnError(retRes71778)
+			retRes741312 := (<-this.LoadMarkets())
+			PanicOnError(retRes741312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"contract_code": GetValue(market, "id"),
@@ -8185,27 +8277,18 @@ func (this *HtxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
 			PanicOnError(response)
 		} else if IsTrue(GetValue(market, "linear")) {
 
-			response = (<-this.ContractPublicGetLinearSwapApiV1SwapFundingRate(this.Extend(request, params)))
+			response = (<-this.ContractPublicGetV5MarketFundingRate(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 			panic(NotSupported(Add(this.Id, " fetchFundingRate() supports inverse and linear swaps only")))
 		}
-		//
-		// {
-		//     "status": "ok",
-		//     "data": {
-		//         "estimated_rate": "0.000100000000000000",
-		//         "funding_rate": "0.000100000000000000",
-		//         "contract_code": "BTC-USDT",
-		//         "symbol": "BTC",
-		//         "fee_asset": "USDT",
-		//         "funding_time": "1603699200000",
-		//         "next_funding_time": "1603728000000"
-		//     },
-		//     "ts": 1603696494714
-		// }
-		//
-		var result any = this.SafeValue(response, "data", map[string]any{})
+		var result any = nil
+		if IsTrue(GetValue(market, "linear")) {
+			var data any = this.SafeList(response, "data", []any{})
+			result = this.SafeDict(data, 0, map[string]any{})
+		} else {
+			result = this.SafeValue(response, "data", map[string]any{})
+		}
 
 		ch <- this.ParseFundingRate(result, market)
 		return nil
@@ -8218,7 +8301,6 @@ func (this *HtxCore) FetchFundingRate(symbol any, optionalArgs ...any) <-chan an
  * @method
  * @name htx#fetchFundingRates
  * @description fetch the funding rate for multiple markets
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-a-batch-of-funding-rate
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-a-batch-of-funding-rate
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -8233,9 +8315,11 @@ func (this *HtxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes72208 := (<-this.LoadMarkets())
-		PanicOnError(retRes72208)
+			retRes748012 := (<-this.LoadMarkets())
+			PanicOnError(retRes748012)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var defaultSubType any = this.SafeString(this.Options, "defaultSubType", "linear")
 		var subType any = nil
@@ -8251,9 +8335,7 @@ func (this *HtxCore) FetchFundingRates(optionalArgs ...any) <-chan any {
 		var request any = map[string]any{}
 		var response any = nil
 		if IsTrue(IsEqual(subType, "linear")) {
-
-			response = (<-this.ContractPublicGetLinearSwapApiV1SwapBatchFundingRate(this.Extend(request, params)))
-			PanicOnError(response)
+			panic(NotSupported(Add(this.Id, " fetchFundingRates() not support this market type")))
 		} else if IsTrue(IsEqual(subType, "inverse")) {
 
 			response = (<-this.ContractPublicGetSwapApiV1SwapBatchFundingRate(this.Extend(request, params)))
@@ -8316,9 +8398,11 @@ func (this *HtxCore) FetchBorrowInterest(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 4, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes72788 := (<-this.LoadMarkets())
-		PanicOnError(retRes72788)
+			retRes754012 := (<-this.LoadMarkets())
+			PanicOnError(retRes754012)
+		}
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchBorrowInterest", params)
 		marginMode = GetValue(marginModeparamsVariable, 0)
@@ -8457,7 +8541,13 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
 	var url any = "/"
-	var query any = this.Omit(params, this.ExtractParams(path))
+	var isArrayParams any = IsArray(params)
+	var query any = nil
+	if IsTrue(isArrayParams) {
+		query = map[string]any{}
+	} else {
+		query = this.Omit(params, this.ExtractParams(path))
+	}
 	if IsTrue(IsString(api)) {
 		// signing implementation for the old endpoints
 		if IsTrue(IsTrue((IsEqual(api, "public"))) || IsTrue((IsEqual(api, "private")))) {
@@ -8481,14 +8571,21 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			var sortedRequest any = this.Keysort(request)
 			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirment
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
-			var payload any = Join([]any{method, this.Hostname, url, auth}, "\n") // eslint-disable-line quotes
+			var content any = []any{method, this.Hostname, url, auth}
+			var payload any = Join(content, "\n") // eslint-disable-line quotes
 			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 				"Signature": signature,
 			})))
 			url = Add(url, Add("?", auth))
 			if IsTrue(IsEqual(method, "POST")) {
-				body = this.Json(query)
+				var bodyRequest any = nil
+				if IsTrue(isArrayParams) {
+					bodyRequest = params
+				} else {
+					bodyRequest = query
+				}
+				body = this.Json(bodyRequest)
 				headers = map[string]any{
 					"Content-Type": "application/json",
 				}
@@ -8531,17 +8628,19 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			if IsTrue(IsEqual(method, "POST")) {
 				var options any = this.SafeValue(this.Options, "broker", map[string]any{})
 				var id any = this.SafeString(options, "id", "AA03022abc")
-				if IsTrue(IsTrue(IsEqual(GetIndexOf(path, "cancel"), OpNeg(1))) && IsTrue(EndsWith(path, "order"))) {
-					// swap order placement
-					var channelCode any = this.SafeString(params, "channel_code")
-					if IsTrue(IsEqual(channelCode, nil)) {
-						AddElementToObject(params, "channel_code", id)
-					}
-				} else if IsTrue(EndsWith(path, "orders/place")) {
-					// spot order placement
-					var clientOrderId any = this.SafeString(params, "client-order-id")
-					if IsTrue(IsEqual(clientOrderId, nil)) {
-						AddElementToObject(params, "client-order-id", Add(id, this.Uuid()))
+				if !IsTrue(isArrayParams) {
+					if IsTrue(IsTrue(IsEqual(GetIndexOf(path, "cancel"), OpNeg(1))) && IsTrue(EndsWith(path, "order"))) {
+						// swap order placement
+						var channelCode any = this.SafeString(params, "channel_code")
+						if IsTrue(IsEqual(channelCode, nil)) {
+							AddElementToObject(params, "channel_code", id)
+						}
+					} else if IsTrue(EndsWith(path, "orders/place")) {
+						// spot order placement
+						var clientOrderId any = this.SafeString(params, "client-order-id")
+						if IsTrue(IsEqual(clientOrderId, nil)) {
+							AddElementToObject(params, "client-order-id", Add(id, this.Uuid()))
+						}
 					}
 				}
 			}
@@ -8560,15 +8659,22 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			}
 			var auth any = Replace(this.Urlencode(request, true), "%2c", "%2C") // in c# it manually needs to be uppercased
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
-			var payload any = Join([]any{method, hostname, url, auth}, "\n") // eslint-disable-line quotes
+			var content2 any = []any{method, hostname, url, auth}
+			var payload any = Join(content2, "\n") // eslint-disable-line quotes
 			var signature any = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 				"Signature": signature,
 			})))
 			url = Add(url, Add("?", auth))
 			if IsTrue(IsEqual(method, "POST")) {
-				body = this.Json(query)
-				if IsTrue(IsEqual(GetArrayLength(body), 2)) {
+				var bodyRequest any = nil
+				if IsTrue(isArrayParams) {
+					bodyRequest = params
+				} else {
+					bodyRequest = query
+				}
+				body = this.Json(bodyRequest)
+				if IsTrue(!IsTrue(isArrayParams) && IsTrue((IsEqual(GetLength(body), 2)))) {
 					body = "{}"
 				}
 				headers = map[string]any{
@@ -8580,8 +8686,9 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 				}
 			}
 		}
+		var finalHostname any = hostname // java req
 		url = Add(this.ImplodeParams(GetValue(GetValue(this.Urls, "api"), typeVar), map[string]any{
-			"hostname": hostname,
+			"hostname": finalHostname,
 		}), url)
 	}
 	return map[string]any{
@@ -8634,13 +8741,14 @@ func (this *HtxCore) HandleErrors(httpCode any, reason any, url any, method any,
  * @method
  * @name htx#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-account-financial-records-via-multiple-fields-new   // linear swaps
- * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                          // coin-m futures
- * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new          // coin-m swaps
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b930b8bee                         // linear swaps
+ * @see https://huobiapi.github.io/docs/dm/v1/en/#query-financial-records-via-multiple-fields-new                   // coin-m futures
+ * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-financial-records-via-multiple-fields-new   // coin-m swaps
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] the latest time in ms to fetch entries for
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
@@ -8656,59 +8764,47 @@ func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes75768 := (<-this.LoadMarkets())
-		PanicOnError(retRes75768)
+			retRes786412 := (<-this.LoadMarkets())
+			PanicOnError(retRes786412)
+		}
 		var market any = this.Market(symbol)
-		marketTypequeryVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
-		marketType := GetValue(marketTypequeryVariable, 0)
-		query := GetValue(marketTypequeryVariable, 1)
+		var marketType any = nil
+		marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchFundingHistory", market, params)
+		marketType = GetValue(marketTypeparamsVariable, 0)
+		params = GetValue(marketTypeparamsVariable, 1)
 		var request any = map[string]any{
 			"type": "30,31",
 		}
+		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
 		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_date", since)
+			if IsTrue(GetValue(market, "linear")) {
+				AddElementToObject(request, "start_time", since)
+			} else {
+				AddElementToObject(request, "start_date", since)
+			}
 		}
 		var response any = nil
 		if IsTrue(IsEqual(marketType, "swap")) {
-			AddElementToObject(request, "contract", GetValue(market, "id"))
 			if IsTrue(GetValue(market, "linear")) {
-				//
-				//    {
-				//        "status": "ok",
-				//        "data": {
-				//           "financial_record": [
-				//               {
-				//                   "id": "1320088022",
-				//                   "type": "30",
-				//                   "amount": "0.004732510000000000",
-				//                   "ts": "1641168019321",
-				//                   "contract_code": "BTC-USDT",
-				//                   "asset": "USDT",
-				//                   "margin_account": "BTC-USDT",
-				//                   "face_margin_account": ''
-				//               },
-				//           ],
-				//           "remain_size": "0",
-				//           "next_id": null
-				//        },
-				//        "ts": "1641189898425"
-				//    }
-				//
 				var marginMode any = nil
 				marginModeparamsVariable := this.HandleMarginModeAndParams("fetchFundingHistory", params)
 				marginMode = GetValue(marginModeparamsVariable, 0)
 				params = GetValue(marginModeparamsVariable, 1)
 				marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-				if IsTrue(IsEqual(marginMode, "isolated")) {
-					AddElementToObject(request, "mar_acct", GetValue(market, "id"))
-				} else {
-					AddElementToObject(request, "mar_acct", GetValue(market, "quoteId"))
+				AddElementToObject(request, "margin_mode", marginMode)
+				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				if IsTrue(!IsEqual(limit, nil)) {
+					AddElementToObject(request, "limit", limit)
 				}
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV3SwapFinancialRecordExact(this.Extend(request, query)))
+				response = (<-this.ContractPrivateGetV5AccountBills(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
+				AddElementToObject(request, "contract", GetValue(market, "id"))
 				//
 				//     {
 				//         "code": 200,
@@ -8730,13 +8826,13 @@ func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 				//     }
 				//
 
-				response = (<-this.ContractPrivatePostSwapApiV3SwapFinancialRecordExact(this.Extend(request, query)))
+				response = (<-this.ContractPrivatePostSwapApiV3SwapFinancialRecordExact(this.Extend(request, params)))
 				PanicOnError(response)
 			}
 		} else {
 			AddElementToObject(request, "symbol", GetValue(market, "id"))
 
-			response = (<-this.ContractPrivatePostApiV3ContractFinancialRecordExact(this.Extend(request, query)))
+			response = (<-this.ContractPrivatePostApiV3ContractFinancialRecordExact(this.Extend(request, params)))
 			PanicOnError(response)
 		}
 		var data any = this.SafeList(response, "data", []any{})
@@ -8752,13 +8848,13 @@ func (this *HtxCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
  * @method
  * @name htx#setLeverage
  * @description set the level of leverage for a market
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-leverage
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-leverage
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959439f997
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#switch-leverage
  * @see https://huobiapi.github.io/docs/dm/v1/en/#switch-leverage  // Coin-m futures
  * @param {float} leverage the rate of leverage
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
  * @returns {object} response from the exchange
  */
 func (this *HtxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
@@ -8773,9 +8869,11 @@ func (this *HtxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76688 := (<-this.LoadMarkets())
-		PanicOnError(retRes76688)
+			retRes796012 := (<-this.LoadMarkets())
+			PanicOnError(retRes796012)
+		}
 		var market any = this.Market(symbol)
 		marketTypequeryVariable := this.HandleMarketTypeAndParams("setLeverage", market, params)
 		marketType := GetValue(marketTypequeryVariable, 0)
@@ -8795,17 +8893,10 @@ func (this *HtxCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any {
 			marginMode = GetValue(marginModeparamsVariable, 0)
 			params = GetValue(marginModeparamsVariable, 1)
 			marginMode = Ternary(IsTrue((IsEqual(marginMode, nil))), "cross", marginMode)
-			if IsTrue(IsEqual(marginMode, "isolated")) {
+			AddElementToObject(request, "margin_mode", marginMode)
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapSwitchLeverRate(this.Extend(request, query)))
-				PanicOnError(response)
-			} else if IsTrue(IsEqual(marginMode, "cross")) {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossSwitchLeverRate(this.Extend(request, query)))
-				PanicOnError(response)
-			} else {
-				panic(NotSupported(Add(this.Id, " setLeverage() not support this market type")))
-			}
+			response = (<-this.ContractPrivatePostV5PositionLever(this.Extend(request, query)))
+			PanicOnError(response)
 		} else {
 			if IsTrue(IsEqual(marketType, "future")) {
 
@@ -8837,14 +8928,26 @@ func (this *HtxCore) ParseIncome(income any, optionalArgs ...any) any {
 	//       "contract_code": "BTC-USD"
 	//     }
 	//
+	// linear swap
+	//
+	//     {
+	//         "id": "2194774775",
+	//         "type": "30",
+	//         "currency": "USDT",
+	//         "amount": "0.000433432461821856",
+	//         "contract_code": "BTC-USDT",
+	//         "margin_mode": "cross",
+	//         "created_time": "1780963213165"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString(income, "contract_code")
 	var symbol any = this.SafeSymbol(marketId, market)
 	var amount any = this.SafeNumber(income, "amount")
-	var timestamp any = this.SafeInteger(income, "ts")
+	var timestamp any = this.SafeInteger2(income, "ts", "created_time")
 	var id any = this.SafeString(income, "id")
-	var currencyId any = this.SafeString2(income, "symbol", "asset")
+	var currencyId any = this.SafeStringN(income, []any{"symbol", "asset", "currency"})
 	var code any = this.SafeCurrencyCode(currencyId)
 	return map[string]any{
 		"info":      income,
@@ -8888,6 +8991,33 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 	//        "margin_static": "24.965720070000000000"
 	//    }
 	//
+	// linear swap
+	//
+	//     {
+	//         "contract_code": "BTC-USDT",
+	//         "position_side": "long",
+	//         "direction": "buy",
+	//         "margin_mode": "cross",
+	//         "open_avg_price": "63204.5",
+	//         "volume": "1",
+	//         "available": "1",
+	//         "lever_rate": 20,
+	//         "adl_risk_percent": 3,
+	//         "liquidation_price": "-110163.844268282697306843",
+	//         "margin": "3.158275",
+	//         "initial_margin": "3.158275",
+	//         "maintenance_margin": "0.2147627",
+	//         "profit_unreal": "-0.039",
+	//         "profit_rate": "-0.0123",
+	//         "margin_rate": "0.0012",
+	//         "mark_price": "63165.5",
+	//         "last_price": "63163.3",
+	//         "margin_currency": "USDT",
+	//         "contract_type": "swap",
+	//         "created_time": "1780903703234",
+	//         "updated_time": "1780903703234"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	market = this.SafeMarket(this.SafeString(position, "contract_code"))
@@ -8895,10 +9025,11 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 	var contracts any = this.SafeString(position, "volume")
 	var contractSize any = this.SafeValue(market, "contractSize")
 	var contractSizeString any = this.NumberToString(contractSize)
-	var entryPrice any = this.SafeNumber(position, "cost_open")
-	var initialMargin any = this.SafeString(position, "position_margin")
+	var entryPrice any = this.SafeNumber2(position, "cost_open", "open_avg_price")
+	var initialMargin any = this.SafeString2(position, "position_margin", "initial_margin")
 	var rawSide any = this.SafeString(position, "direction")
-	var side any = Ternary(IsTrue((IsEqual(rawSide, "buy"))), "long", "short")
+	var rawPositionSide any = Ternary(IsTrue((IsEqual(rawSide, "buy"))), "long", "short")
+	var side any = this.SafeString(position, "position_side", rawPositionSide)
 	var unrealizedProfit any = this.SafeNumber(position, "profit_unreal")
 	var marginMode any = this.SafeString(position, "margin_mode")
 	var leverage any = this.SafeString(position, "lever_rate")
@@ -8913,12 +9044,27 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 		marginMode = "cross"
 	}
 	var intialMarginPercentage any = Precise.StringDiv(initialMargin, notional)
-	var collateral any = this.SafeString(position, "margin_balance")
-	var liquidationPrice any = this.SafeNumber(position, "liquidation_price")
+	var collateral any = this.SafeString2(position, "margin_balance", "margin")
 	var adjustmentFactor any = this.SafeString(position, "adjust_factor")
-	var maintenanceMarginPercentage any = Precise.StringDiv(adjustmentFactor, leverage)
-	var maintenanceMargin any = Precise.StringMul(maintenanceMarginPercentage, notional)
-	var marginRatio any = Precise.StringDiv(maintenanceMargin, collateral)
+	var maintenanceMarginLinear any = this.SafeString(position, "maintenance_margin")
+	var marginRatioLinear any = this.SafeString(position, "margin_rate")
+	var maintenanceMarginPercentage any = nil
+	var maintenanceMargin any = nil
+	var marginRatio any = nil
+	var maintenanceMarginPercentageResult any = nil
+	if IsTrue(IsEqual(maintenanceMarginLinear, nil)) {
+		maintenanceMarginPercentage = Precise.StringDiv(adjustmentFactor, leverage)
+		maintenanceMargin = Precise.StringMul(maintenanceMarginPercentage, notional)
+		maintenanceMarginPercentageResult = this.ParseNumber(maintenanceMarginPercentage)
+	} else {
+		maintenanceMargin = maintenanceMarginLinear
+	}
+	if IsTrue(IsEqual(marginRatioLinear, nil)) {
+		marginRatio = Precise.StringDiv(maintenanceMargin, collateral)
+	} else {
+		marginRatio = marginRatioLinear
+	}
+	var timestamp any = this.SafeInteger(position, "created_time")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -8933,18 +9079,18 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
 		"percentage":                  this.ParseNumber(percentage),
 		"marginMode":                  marginMode,
 		"notional":                    this.ParseNumber(notional),
-		"markPrice":                   nil,
-		"lastPrice":                   nil,
-		"liquidationPrice":            liquidationPrice,
+		"markPrice":                   this.SafeNumber(position, "mark_price"),
+		"lastPrice":                   this.ParseNumber(lastPrice),
+		"liquidationPrice":            this.SafeNumber(position, "liquidation_price"),
 		"initialMargin":               this.ParseNumber(initialMargin),
 		"initialMarginPercentage":     this.ParseNumber(intialMarginPercentage),
 		"maintenanceMargin":           this.ParseNumber(maintenanceMargin),
-		"maintenanceMarginPercentage": this.ParseNumber(maintenanceMarginPercentage),
+		"maintenanceMarginPercentage": maintenanceMarginPercentageResult,
 		"marginRatio":                 this.ParseNumber(marginRatio),
-		"timestamp":                   nil,
-		"datetime":                    nil,
+		"timestamp":                   timestamp,
+		"datetime":                    this.Iso8601(timestamp),
 		"hedged":                      nil,
-		"lastUpdateTimestamp":         nil,
+		"lastUpdateTimestamp":         this.SafeInteger(position, "updated_time"),
 		"stopLossPrice":               nil,
 		"takeProfitPrice":             nil,
 	})
@@ -8954,8 +9100,7 @@ func (this *HtxCore) ParsePosition(position any, optionalArgs ...any) any {
  * @method
  * @name htx#fetchPositions
  * @description fetch all open positions
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-user-39-s-position-information
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-user-s-position-information
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-user-s-position-information
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-user-s-position-information
  * @param {string[]} [symbols] list of unified market symbols
@@ -8974,9 +9119,11 @@ func (this *HtxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes78678 := (<-this.LoadMarkets())
-		PanicOnError(retRes78678)
+			retRes821112 := (<-this.LoadMarkets())
+			PanicOnError(retRes821112)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -8986,10 +9133,6 @@ func (this *HtxCore) FetchPositions(optionalArgs ...any) <-chan any {
 				market = this.Market(first)
 			}
 		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPositions", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositions", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
@@ -9003,17 +9146,9 @@ func (this *HtxCore) FetchPositions(optionalArgs ...any) <-chan any {
 		}
 		var response any = nil
 		if IsTrue(IsEqual(subType, "linear")) {
-			if IsTrue(IsEqual(marginMode, "isolated")) {
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapPositionInfo(params))
-				PanicOnError(response)
-			} else if IsTrue(IsEqual(marginMode, "cross")) {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params))
-				PanicOnError(response)
-			} else {
-				panic(NotSupported(Add(this.Id, " fetchPositions() not support this market type")))
-			}
+			response = (<-this.ContractPrivateGetV5TradePositionOpens(params))
+			PanicOnError(response)
 		} else {
 			if IsTrue(IsEqual(marketType, "future")) {
 
@@ -9050,8 +9185,7 @@ func (this *HtxCore) FetchPositions(optionalArgs ...any) <-chan any {
  * @method
  * @name htx#fetchPosition
  * @description fetch data on a single open contract trade position
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-query-assets-and-positions
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-query-assets-and-positions
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-assets-and-positions
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-assets-and-positions
  * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
@@ -9065,9 +9199,11 @@ func (this *HtxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes80088 := (<-this.LoadMarkets())
-		PanicOnError(retRes80088)
+			retRes835112 := (<-this.LoadMarkets())
+			PanicOnError(retRes835112)
+		}
 		var market any = this.Market(symbol)
 		var marginMode any = nil
 		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPosition", params)
@@ -9081,24 +9217,16 @@ func (this *HtxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsTrue(GetValue(market, "future")) && IsTrue(GetValue(market, "inverse"))) {
 			AddElementToObject(request, "symbol", GetValue(market, "settleId"))
 		} else {
-			if IsTrue(IsEqual(marginMode, "cross")) {
+			if IsTrue(!IsTrue(GetValue(market, "linear")) && IsTrue((IsEqual(marginMode, "cross")))) {
 				AddElementToObject(request, "margin_account", "USDT") // only allowed value
 			}
 			AddElementToObject(request, "contract_code", GetValue(market, "id"))
 		}
 		var response any = nil
 		if IsTrue(GetValue(market, "linear")) {
-			if IsTrue(IsEqual(marginMode, "isolated")) {
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapAccountPositionInfo(this.Extend(request, query)))
-				PanicOnError(response)
-			} else if IsTrue(IsEqual(marginMode, "cross")) {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossAccountPositionInfo(this.Extend(request, query)))
-				PanicOnError(response)
-			} else {
-				panic(NotSupported(Add(this.Id, " fetchPosition() not support this market type")))
-			}
+			response = (<-this.ContractPrivateGetV5TradePositionOpens(this.Extend(request, query)))
+			PanicOnError(response)
 		} else {
 			if IsTrue(IsEqual(marketType, "future")) {
 
@@ -9113,6 +9241,12 @@ func (this *HtxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 			}
 		}
 		var data any = this.SafeValue(response, "data")
+		if IsTrue(GetValue(market, "linear")) {
+			var linearPosition any = this.SafeDict(data, 0, map[string]any{})
+
+			ch <- this.ParsePosition(linearPosition, market)
+			return nil
+		}
 		var account any = nil
 		if IsTrue(IsEqual(marginMode, "cross")) {
 			account = data
@@ -9134,7 +9268,7 @@ func (this *HtxCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
 			position = this.SafeValue(positions, 0)
 		}
 		var timestamp any = this.SafeInteger(response, "ts")
-		var parsed any = this.ParsePosition(this.Extend(position, omitted))
+		var parsed any = this.ParsePosition(this.Extend(position, omitted), market)
 		AddElementToObject(parsed, "timestamp", timestamp)
 		AddElementToObject(parsed, "datetime", this.Iso8601(timestamp))
 
@@ -9231,18 +9365,20 @@ func (this *HtxCore) FetchLedger(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes83298 := (<-this.LoadMarkets())
-		PanicOnError(retRes83298)
+			retRes858812 := (<-this.LoadMarkets())
+			PanicOnError(retRes858812)
+		}
 		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes833319 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
-			PanicOnError(retRes833319)
-			ch <- retRes833319
+			retRes859319 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params, 500))
+			PanicOnError(retRes859319)
+			ch <- retRes859319
 			return nil
 		}
 
@@ -9326,9 +9462,11 @@ func (this *HtxCore) FetchLeverageTiers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes84048 := (<-this.LoadMarkets())
-		PanicOnError(retRes84048)
+			retRes866512 := (<-this.LoadMarkets())
+			PanicOnError(retRes866512)
+		}
 
 		response := (<-this.ContractPublicGetLinearSwapApiV1SwapAdjustfactor(params))
 		PanicOnError(response)
@@ -9430,9 +9568,11 @@ func (this *HtxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <
 		if IsTrue(IsTrue(IsTrue(IsTrue(!IsEqual(timeframe, "1h")) && IsTrue(!IsEqual(timeframe, "4h"))) && IsTrue(!IsEqual(timeframe, "12h"))) && IsTrue(!IsEqual(timeframe, "1d"))) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes84868 := (<-this.LoadMarkets())
-		PanicOnError(retRes84868)
+			retRes874912 := (<-this.LoadMarkets())
+			PanicOnError(retRes874912)
+		}
 		var timeframes any = map[string]any{
 			"1h":  "60min",
 			"4h":  "4hour",
@@ -9547,7 +9687,6 @@ func (this *HtxCore) FetchOpenInterestHistory(symbol any, optionalArgs ...any) <
  * @description Retrieves the open interest for a list of symbols
  * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
  * @param {string[]} [symbols] a list of unified CCXT market symbols
  * @param {object} [params] exchange specific parameters
  * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -9561,9 +9700,11 @@ func (this *HtxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes85968 := (<-this.LoadMarkets())
-		PanicOnError(retRes85968)
+			retRes886012 := (<-this.LoadMarkets())
+			PanicOnError(retRes886012)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -9592,10 +9733,7 @@ func (this *HtxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
 			response = (<-this.ContractPublicGetSwapApiV1SwapOpenInterest(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
-			AddElementToObject(request, "contract_type", "swap")
-
-			response = (<-this.ContractPublicGetLinearSwapApiV1SwapOpenInterest(this.Extend(request, params)))
-			PanicOnError(response)
+			panic(NotSupported(Add(this.Id, " fetchOpenInterests() does not currently support linear markets")))
 		}
 		var data any = this.SafeList(response, "data", []any{})
 
@@ -9612,7 +9750,7 @@ func (this *HtxCore) FetchOpenInterests(optionalArgs ...any) <-chan any {
  * @description Retrieves the open interest of a currency
  * @see https://huobiapi.github.io/docs/dm/v1/en/#get-contract-open-interest-information
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-swap-open-interest-information
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-swap-open-interest-information
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b97fb53f2
  * @param {string} symbol Unified CCXT market symbol
  * @param {object} [params] exchange specific parameters
  * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
@@ -9624,9 +9762,11 @@ func (this *HtxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes86938 := (<-this.LoadMarkets())
-		PanicOnError(retRes86938)
+			retRes893612 := (<-this.LoadMarkets())
+			PanicOnError(retRes893612)
+		}
 		var market any = this.Market(symbol)
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " fetchOpenInterest() supports contract markets only")))
@@ -9646,10 +9786,9 @@ func (this *HtxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 			response = (<-this.ContractPublicGetApiV1ContractOpenInterest(this.Extend(request, params)))
 			PanicOnError(response)
 		} else if IsTrue(GetValue(market, "linear")) {
-			AddElementToObject(request, "contract_type", "swap")
-			// USDT-M
+			// USDT-M swaps
 
-			response = (<-this.ContractPublicGetLinearSwapApiV1SwapOpenInterest(this.Extend(request, params)))
+			response = (<-this.ContractPublicGetV5MarketOpenInterest(this.Extend(request, params)))
 			PanicOnError(response)
 		} else {
 			// COIN-M swaps
@@ -9658,27 +9797,21 @@ func (this *HtxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 			PanicOnError(response)
 		}
 		//
-		// USDT-M contractPublicGetLinearSwapApiV1SwapOpenInterest
+		// USDT-M linear swap
 		//
 		//     {
-		//         "status": "ok",
-		//         "data": [
-		//             {
-		//                 "volume": 7192610.000000000000000000,
-		//                 "amount": 7192.610000000000000000,
-		//                 "symbol": "BTC",
-		//                 "value": 134654290.332000000000000000,
-		//                 "contract_code": "BTC-USDT",
-		//                 "trade_amount": 70692.804,
-		//                 "trade_volume": 70692804,
-		//                 "trade_turnover": 1379302592.9518,
-		//                 "business_type": "swap",
-		//                 "pair": "BTC-USDT",
-		//                 "contract_type": "swap",
-		//                 "trade_partition": "USDT"
-		//             }
-		//         ],
-		//         "ts": 1664336503144
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": {
+		//             "amount": "32476.092",
+		//             "volume": "32476092",
+		//             "value": "2063137924.9668",
+		//             "contract_code": "BTC-USDT",
+		//             "trade_amount": "11371.362",
+		//             "trade_volume": "11371362",
+		//             "trade_turnover": "723600792.7222"
+		//         },
+		//         "ts": 1781327941440
 		//     }
 		//
 		// COIN-M Swap contractPublicGetSwapApiV1SwapOpenInterest
@@ -9718,9 +9851,18 @@ func (this *HtxCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan a
 		//         "ts": 1664337928805
 		//     }
 		//
+		var timestamp any = this.SafeInteger(response, "ts")
+		if IsTrue(GetValue(market, "linear")) {
+			var result any = this.SafeDict(response, "data", map[string]any{})
+
+			ch <- this.Extend(this.ParseOpenInterest(result, market), map[string]any{
+				"timestamp": timestamp,
+				"datetime":  this.Iso8601(timestamp),
+			})
+			return nil
+		}
 		var data any = this.SafeValue(response, "data", []any{})
 		var openInterest any = this.ParseOpenInterest(GetValue(data, 0), market)
-		var timestamp any = this.SafeInteger(response, "ts")
 		AddElementToObject(openInterest, "timestamp", timestamp)
 		AddElementToObject(openInterest, "datetime", this.Iso8601(timestamp))
 
@@ -9744,18 +9886,13 @@ func (this *HtxCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
 	// fetchOpenInterest: USDT-M
 	//
 	//     {
-	//         "volume": 7192610.000000000000000000,
-	//         "amount": 7192.610000000000000000,
-	//         "symbol": "BTC",
-	//         "value": 134654290.332000000000000000,
+	//         "amount": "32476.092",
+	//         "volume": "32476092",
+	//         "value": "2063137924.9668",
 	//         "contract_code": "BTC-USDT",
-	//         "trade_amount": 70692.804,
-	//         "trade_volume": 70692804,
-	//         "trade_turnover": 1379302592.9518,
-	//         "business_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "contract_type": "swap",
-	//         "trade_partition": "USDT"
+	//         "trade_amount": "11371.362",
+	//         "trade_volume": "11371362",
+	//         "trade_turnover": "723600792.7222"
 	//     }
 	//
 	// fetchOpenInterest: COIN-M Swap
@@ -9820,9 +9957,11 @@ func (this *HtxCore) BorrowIsolatedMargin(symbol any, code any, amount any, opti
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes88698 := (<-this.LoadMarkets())
-		PanicOnError(retRes88698)
+			retRes910912 := (<-this.LoadMarkets())
+			PanicOnError(retRes910912)
+		}
 		var currency any = this.Currency(code)
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -9870,9 +10009,11 @@ func (this *HtxCore) BorrowCrossMargin(code any, amount any, optionalArgs ...any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89048 := (<-this.LoadMarkets())
-		PanicOnError(retRes89048)
+			retRes914612 := (<-this.LoadMarkets())
+			PanicOnError(retRes914612)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -9918,9 +10059,11 @@ func (this *HtxCore) RepayIsolatedMargin(symbol any, code any, amount any, optio
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89378 := (<-this.LoadMarkets())
-		PanicOnError(retRes89378)
+			retRes918112 := (<-this.LoadMarkets())
+			PanicOnError(retRes918112)
+		}
 		var currency any = this.Currency(code)
 
 		accountId := (<-this.FetchAccountIdByType("spot", "isolated", symbol, params))
@@ -9975,9 +10118,11 @@ func (this *HtxCore) RepayCrossMargin(code any, amount any, optionalArgs ...any)
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89778 := (<-this.LoadMarkets())
-		PanicOnError(retRes89778)
+			retRes922312 := (<-this.LoadMarkets())
+			PanicOnError(retRes922312)
+		}
 		var currency any = this.Currency(code)
 
 		accountId := (<-this.FetchAccountIdByType("spot", "cross", nil, params))
@@ -10055,7 +10200,7 @@ func (this *HtxCore) ParseMarginLoan(info any, optionalArgs ...any) any {
  * @description Fetches historical settlement records
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-historical-settlement-records-of-the-platform-interface
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-historical-settlement-records-of-the-platform-interface
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-historical-settlement-records-of-the-platform-interface
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b931869f0
  * @param {string} symbol unified symbol of the market to fetch the settlement history for
  * @param {int} [since] timestamp in ms, value range = current time - 90 days，default = current time - 90 days
  * @param {int} [limit] page items, default 20, shall not exceed 50
@@ -10081,8 +10226,6 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchSettlementHistory() requires a symbol argument")))
 		}
-		var until any = this.SafeInteger(params, "until")
-		params = this.Omit(params, []any{"until"})
 		var market any = this.Market(symbol)
 		var request any = map[string]any{}
 		if IsTrue(GetValue(market, "future")) {
@@ -10090,20 +10233,24 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		} else {
 			AddElementToObject(request, "contract_code", GetValue(market, "id"))
 		}
-		if IsTrue(!IsEqual(since, nil)) {
-			AddElementToObject(request, "start_at", since)
-		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			AddElementToObject(request, "page_size", limit)
+			if IsTrue(IsTrue(GetValue(market, "linear")) && IsTrue(GetValue(market, "swap"))) {
+				AddElementToObject(request, "limit", limit)
+			} else {
+				AddElementToObject(request, "page_size", limit)
+			}
 		}
-		if IsTrue(!IsEqual(until, nil)) {
-			AddElementToObject(request, "end_at", until)
+		if IsTrue(!IsEqual(since, nil)) {
+			AddElementToObject(request, "start_time", since)
 		}
+		requestparamsVariable := this.HandleUntilOption("end_time", request, params)
+		request = GetValue(requestparamsVariable, 0)
+		params = GetValue(requestparamsVariable, 1)
 		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
 			if IsTrue(GetValue(market, "linear")) {
 
-				response = (<-this.ContractPublicGetLinearSwapApiV1SwapSettlementRecords(this.Extend(request, params)))
+				response = (<-this.ContractPublicGetV5MarketSettlementHistory(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
 
@@ -10116,7 +10263,7 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 			PanicOnError(response)
 		}
 		//
-		// linear swap, coin-m swap
+		// coin-m swap
 		//
 		//    {
 		//        "status": "ok",
@@ -10167,6 +10314,30 @@ func (this *HtxCore) FetchSettlementHistory(optionalArgs ...any) <-chan any {
 		//        }
 		//    }
 		//
+		// linear swap
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": [
+		//             {
+		//                 "id": "14900",
+		//                 "contract_code": "BTC-USDT",
+		//                 "settlement_time": "1781827200000",
+		//                 "clawback_ratio": "0",
+		//                 "settlement_price": "62933.747161774209291325"
+		//             },
+		//         ],
+		//         "ts": 1781853150623
+		//     }
+		//
+		if IsTrue(GetValue(market, "linear")) {
+			var dataLinear any = this.SafeList(response, "data", []any{})
+			var settlementsLinear any = this.ParseSettlements(dataLinear, market)
+
+			ch <- this.SortBy(settlementsLinear, "timestamp")
+			return nil
+		}
 		var data any = this.SafeValue(response, "data")
 		var settlementRecord any = this.SafeValue(data, "settlement_record")
 		var settlements any = this.ParseSettlements(settlementRecord, market)
@@ -10196,9 +10367,11 @@ func (this *HtxCore) FetchDepositWithdrawFees(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes91558 := (<-this.LoadMarkets())
-		PanicOnError(retRes91558)
+			retRes942512 := (<-this.LoadMarkets())
+			PanicOnError(retRes942512)
+		}
 
 		response := (<-this.SpotPublicGetV2ReferenceCurrencies(params))
 		PanicOnError(response)
@@ -10281,12 +10454,13 @@ func (this *HtxCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
 	var chains any = this.SafeValue(fee, "chains", []any{})
+	var code any = this.SafeString(currency, "code")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chainEntry any = GetValue(chains, j)
 		var networkId any = this.SafeString(chainEntry, "chain")
 		var withdrawFeeType any = this.SafeString(chainEntry, "withdrawFeeType")
-		var networkCode any = this.NetworkIdToCode(networkId)
+		var networkCode any = this.NetworkIdToCode(networkId, code)
 		var withdrawFee any = nil
 		var withdrawResult any = nil
 		if IsTrue(IsEqual(withdrawFeeType, "fixed")) {
@@ -10315,7 +10489,7 @@ func (this *HtxCore) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 }
 func (this *HtxCore) ParseSettlements(settlements any, market any) any {
 	//
-	// linear swap, coin-m swap, fetchSettlementHistory
+	// coin-m swap, fetchSettlementHistory
 	//
 	//    [
 	//        {
@@ -10350,11 +10524,26 @@ func (this *HtxCore) ParseSettlements(settlements any, market any) any {
 	//        },
 	//    ]
 	//
+	// linear swap fetchSettlementHistory
+	//
+	//     [
+	//         {
+	//             "id": "14900",
+	//             "contract_code": "BTC-USDT",
+	//             "settlement_time": "1781827200000",
+	//             "clawback_ratio": "0",
+	//             "settlement_price": "62933.747161774209291325"
+	//         }
+	//     ]
+	//
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
 		var settlement any = GetValue(settlements, i)
 		var list any = this.SafeValue(settlement, "list")
-		if IsTrue(!IsEqual(list, nil)) {
+		if IsTrue(GetValue(market, "linear")) {
+			var parsedSettlement any = this.ParseSettlement(settlement, market)
+			AppendToArray(&result, parsedSettlement)
+		} else if IsTrue(!IsEqual(list, nil)) {
 			var timestamp any = this.SafeInteger(settlement, "settlement_time")
 			var timestampDetails any = map[string]any{
 				"timestamp": timestamp,
@@ -10373,7 +10562,7 @@ func (this *HtxCore) ParseSettlements(settlements any, market any) any {
 }
 func (this *HtxCore) ParseSettlement(settlement any, market any) any {
 	//
-	// linear swap, coin-m swap, fetchSettlementHistory
+	// coin-m swap, fetchSettlementHistory
 	//
 	//    {
 	//        "symbol": "ADA",
@@ -10395,6 +10584,16 @@ func (this *HtxCore) ParseSettlement(settlement any, market any) any {
 	//        "settlement_type": "settlement"
 	//    }
 	//
+	// linear swap fetchSettlementHistory
+	//
+	//     {
+	//         "id": "14900",
+	//         "contract_code": "BTC-USDT",
+	//         "settlement_time": "1781827200000",
+	//         "clawback_ratio": "0",
+	//         "settlement_price": "62933.747161774209291325"
+	//     }
+	//
 	var timestamp any = this.SafeInteger(settlement, "settlement_time")
 	var marketId any = this.SafeString(settlement, "contract_code")
 	return map[string]any{
@@ -10410,7 +10609,7 @@ func (this *HtxCore) ParseSettlement(settlement any, market any) any {
  * @method
  * @name htx#fetchLiquidations
  * @description retrieves the public liquidations of a trading pair
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-liquidation-orders-new
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19b975edf5a
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-liquidation-orders-new
  * @see https://huobiapi.github.io/docs/dm/v1/en/#query-liquidation-order-information-new
  * @param {string} symbol unified CCXT market symbol
@@ -10418,7 +10617,7 @@ func (this *HtxCore) ParseSettlement(settlement any, market any) any {
  * @param {int} [limit] the maximum number of liquidation structures to retrieve
  * @param {object} [params] exchange specific parameters for the huobi api endpoint
  * @param {int} [params.until] timestamp in ms of the latest liquidation
- * @param {int} [params.tradeType] default 0, linear swap 0: all liquidated orders, 5: liquidated longs; 6: liquidated shorts, inverse swap and future 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
+ * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
  * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
  */
 func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan any {
@@ -10432,14 +10631,18 @@ func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan a
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes93738 := (<-this.LoadMarkets())
-		PanicOnError(retRes93738)
-		var market any = this.Market(symbol)
-		var tradeType any = this.SafeInteger(params, "trade_type", 0)
-		var request any = map[string]any{
-			"trade_type": tradeType,
+			retRes967112 := (<-this.LoadMarkets())
+			PanicOnError(retRes967112)
 		}
+		var market any = this.Market(symbol)
+		var tradeType any = this.SafeInteger2(params, "trade_type", "tradeType", 0)
+		var request any = map[string]any{}
+		if !IsTrue(GetValue(market, "linear")) {
+			AddElementToObject(request, "trade_type", tradeType)
+		}
+		params = this.Omit(params, []any{"trade_type", "tradeType"})
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "start_time", since)
 		}
@@ -10448,12 +10651,16 @@ func (this *HtxCore) FetchLiquidations(symbol any, optionalArgs ...any) <-chan a
 		params = GetValue(requestparamsVariable, 1)
 		var response any = nil
 		if IsTrue(GetValue(market, "swap")) {
-			AddElementToObject(request, "contract", GetValue(market, "id"))
 			if IsTrue(GetValue(market, "linear")) {
+				AddElementToObject(request, "contract_code", GetValue(market, "id"))
+				if IsTrue(!IsEqual(limit, nil)) {
+					AddElementToObject(request, "limit", limit)
+				}
 
-				response = (<-this.ContractPublicGetLinearSwapApiV3SwapLiquidationOrders(this.Extend(request, params)))
+				response = (<-this.ContractPublicGetV5MarketLiquidationOrders(this.Extend(request, params)))
 				PanicOnError(response)
 			} else {
+				AddElementToObject(request, "contract", GetValue(market, "id"))
 
 				response = (<-this.ContractPublicGetSwapApiV3SwapLiquidationOrders(this.Extend(request, params)))
 				PanicOnError(response)
@@ -10514,17 +10721,31 @@ func (this *HtxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any 
 	//         "pair": "BTC-USDT"
 	//     }
 	//
+	// linear swap
+	//
+	//     {
+	//         "id": "150153038758",
+	//         "contract_code": "BTC-USDT",
+	//         "liquidation_time": "1781849094165",
+	//         "side": "buy",
+	//         "position_side": "short",
+	//         "volume": "2",
+	//         "amount": "2",
+	//         "bankrupt_price": "62978.5",
+	//         "trade_turnover": "125.957"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString(liquidation, "contract_code")
-	var timestamp any = this.SafeInteger(liquidation, "created_at")
+	var timestamp any = this.SafeInteger2(liquidation, "created_at", "liquidation_time")
 	return this.SafeLiquidation(map[string]any{
 		"info":         liquidation,
 		"symbol":       this.SafeSymbol(marketId, market),
 		"contracts":    this.SafeNumber(liquidation, "volume"),
 		"contractSize": this.SafeNumber(market, "contractSize"),
-		"price":        this.SafeNumber(liquidation, "price"),
-		"side":         this.SafeStringLower(liquidation, "direction"),
+		"price":        this.SafeNumber2(liquidation, "price", "bankrupt_price"),
+		"side":         this.SafeStringLower2(liquidation, "direction", "side"),
 		"baseValue":    this.SafeNumber(liquidation, "amount"),
 		"quoteValue":   this.SafeNumber(liquidation, "trade_turnover"),
 		"timestamp":    timestamp,
@@ -10534,10 +10755,9 @@ func (this *HtxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any 
 
 /**
  * @method
- * @name htx#closePositions
- * @description closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+ * @name htx#closePosition
+ * @description closes open positions for a contract market
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1958953a715    // USDT-M
  * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
  * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
  * @param {string} symbol unified CCXT market symbol
@@ -10549,6 +10769,7 @@ func (this *HtxCore) ParseLiquidation(liquidation any, optionalArgs ...any) any 
  * EXCHANGE SPECIFIC PARAMETERS
  * @param {number} [params.amount] order quantity
  * @param {string} [params.order_price_type] 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+ * @param {string} [params.position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
  * @returns {object} [an order structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
@@ -10560,32 +10781,42 @@ func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 		_ = side
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes94778 := (<-this.LoadMarkets())
-		PanicOnError(retRes94778)
+			retRes981712 := (<-this.LoadMarkets())
+			PanicOnError(retRes981712)
+		}
 		var market any = this.Market(symbol)
 		var clientOrderId any = this.SafeString(params, "clientOrderId")
 		if !IsTrue(GetValue(market, "contract")) {
 			panic(BadRequest(Add(this.Id, " closePosition() symbol supports contract markets only")))
 		}
-		this.CheckRequiredArgument("closePosition", side, "side")
 		var request any = map[string]any{
 			"contract_code": GetValue(market, "id"),
-			"direction":     side,
 		}
 		if IsTrue(!IsEqual(clientOrderId, nil)) {
 			AddElementToObject(request, "client_order_id", clientOrderId)
+			params = this.Omit(params, "clientOrderId")
 		}
-		if IsTrue(GetValue(market, "inverse")) {
+		var response any = nil
+		if IsTrue(GetValue(market, "linear")) {
+			var marginMode any = nil
+			marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
+			marginMode = GetValue(marginModeparamsVariable, 0)
+			params = GetValue(marginModeparamsVariable, 1)
+			AddElementToObject(request, "margin_mode", marginMode)
+
+			response = (<-this.ContractPrivatePostV5TradePosition(this.Extend(request, params)))
+			PanicOnError(response)
+		} else {
+			this.CheckRequiredArgument("closePosition", side, "side")
 			var amount any = this.SafeString2(params, "volume", "amount")
 			if IsTrue(IsEqual(amount, nil)) {
 				panic(ArgumentsRequired(Add(this.Id, " closePosition () requires an extra argument params[\"amount\"] for inverse markets")))
 			}
 			AddElementToObject(request, "volume", this.AmountToPrecision(symbol, amount))
-		}
-		params = this.Omit(params, []any{"clientOrderId", "volume", "amount"})
-		var response any = nil
-		if IsTrue(GetValue(market, "inverse")) {
+			AddElementToObject(request, "direction", side)
+			params = this.Omit(params, []any{"volume", "amount"})
 			if IsTrue(GetValue(market, "swap")) {
 
 				response = (<-this.ContractPrivatePostSwapApiV1SwapLightningClosePosition(this.Extend(request, params)))
@@ -10595,20 +10826,12 @@ func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
 				response = (<-this.ContractPrivatePostApiV1LightningClosePosition(this.Extend(request, params)))
 				PanicOnError(response)
 			}
-		} else {
-			var marginMode any = nil
-			marginModeparamsVariable := this.HandleMarginModeAndParams("closePosition", params, "cross")
-			marginMode = GetValue(marginModeparamsVariable, 0)
-			params = GetValue(marginModeparamsVariable, 1)
-			if IsTrue(IsEqual(marginMode, "cross")) {
+		}
+		if IsTrue(GetValue(market, "linear")) {
+			var data any = this.SafeDict(response, "data", map[string]any{})
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(this.Extend(request, params)))
-				PanicOnError(response)
-			} else {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapLightningClosePosition(this.Extend(request, params)))
-				PanicOnError(response)
-			}
+			ch <- this.ParseOrder(data, market)
+			return nil
 		}
 
 		ch <- this.ParseOrder(response, market)
@@ -10622,8 +10845,7 @@ func (this *HtxCore) ClosePosition(symbol any, optionalArgs ...any) <-chan any {
  * @method
  * @name htx#setPositionMode
  * @description set hedged to true or false
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-switch-position-mode
- * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-switch-position-mode
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-1959443cae3
  * @param {bool} hedged set to true to for hedged mode, must be set separately for each market in isolated margin mode, only valid for linear markets
  * @param {string} [symbol] unified market symbol, required for isolated margin mode
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -10639,40 +10861,36 @@ func (this *HtxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes95318 := (<-this.LoadMarkets())
-		PanicOnError(retRes95318)
+			retRes988312 := (<-this.LoadMarkets())
+			PanicOnError(retRes988312)
+		}
 		var posMode any = Ternary(IsTrue(hedged), "dual_side", "single_side")
 		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("setPositionMode", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
 		var request any = map[string]any{
 			"position_mode": posMode,
 		}
-		var response any = nil
 		if IsTrue(IsTrue((!IsEqual(market, nil))) && IsTrue((GetValue(market, "inverse")))) {
 			panic(BadRequest(Add(this.Id, " setPositionMode can only be used for linear markets")))
 		}
-		if IsTrue(IsEqual(marginMode, "isolated")) {
-			if IsTrue(IsEqual(symbol, nil)) {
-				panic(ArgumentsRequired(Add(this.Id, " setPositionMode requires a symbol argument for isolated margin mode")))
-			}
-			AddElementToObject(request, "margin_account", GetValue(market, "id"))
 
-			response = (<-this.ContractPrivatePostLinearSwapApiV1SwapSwitchPositionMode(this.Extend(request, params)))
-			PanicOnError(response)
-		} else {
-			AddElementToObject(request, "margin_account", "USDT")
+		response := (<-this.ContractPrivatePostV5PositionMode(this.Extend(request, params)))
+		PanicOnError(response)
 
-			response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossSwitchPositionMode(this.Extend(request, params)))
-			PanicOnError(response)
-		}
-
+		//
+		//     {
+		//         "code": 200,
+		//         "message": "Success",
+		//         "data": {
+		//             "position_mode": "single_side"
+		//         },
+		//         "ts": 1781233894454
+		//     }
+		//
 		ch <- response
 		return nil
 
@@ -10684,8 +10902,7 @@ func (this *HtxCore) SetPositionMode(hedged any, optionalArgs ...any) <-chan any
  * @method
  * @name htx#fetchPositionsADLRank
  * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
- * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81b5a-77b5-11ed-9966-0242ac110003
- * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb81c49-77b5-11ed-9966-0242ac110003
+ * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-19594266bd8
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c2f164-77ae-11ed-9966-0242ac110003
  * @see https://www.htx.com/en-us/opend/newApiPages/?id=5d518648-77b6-11ed-9966-0242ac110003
  * @param {string[]} [symbols] a list of unified market symbols
@@ -10701,9 +10918,11 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes95968 := (<-this.LoadMarkets())
-		PanicOnError(retRes95968)
+			retRes992312 := (<-this.LoadMarkets())
+			PanicOnError(retRes992312)
+		}
 		symbols = this.MarketSymbols(symbols, nil, true, true, true)
 		var market any = nil
 		if IsTrue(!IsEqual(symbols, nil)) {
@@ -10713,10 +10932,6 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 				market = this.Market(first)
 			}
 		}
-		var marginMode any = nil
-		marginModeparamsVariable := this.HandleMarginModeAndParams("fetchPositionsADLRank", params, "cross")
-		marginMode = GetValue(marginModeparamsVariable, 0)
-		params = GetValue(marginModeparamsVariable, 1)
 		var subType any = nil
 		subTypeparamsVariable := this.HandleSubTypeAndParams("fetchPositionsADLRank", market, params, "linear")
 		subType = GetValue(subTypeparamsVariable, 0)
@@ -10730,17 +10945,9 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 		}
 		var response any = nil
 		if IsTrue(IsEqual(subType, "linear")) {
-			if IsTrue(IsEqual(marginMode, "isolated")) {
 
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapPositionInfo(params))
-				PanicOnError(response)
-			} else if IsTrue(IsEqual(marginMode, "cross")) {
-
-				response = (<-this.ContractPrivatePostLinearSwapApiV1SwapCrossPositionInfo(params))
-				PanicOnError(response)
-			} else {
-				panic(NotSupported(Add(this.Id, " fetchPositionsADLRank() not support this market type")))
-			}
+			response = (<-this.ContractPrivateGetV5TradePositionOpens(params))
+			PanicOnError(response)
 		} else {
 			if IsTrue(IsEqual(marketType, "future")) {
 
@@ -10764,47 +10971,31 @@ func (this *HtxCore) FetchPositionsADLRank(optionalArgs ...any) <-chan any {
 }
 func (this *HtxCore) ParseADLRank(info any, optionalArgs ...any) any {
 	//
-	// fetchPositionADLRank linear swap and future
+	// fetchPositionADLRank linear
 	//
 	//     {
-	//         "symbol": "BTC",
 	//         "contract_code": "BTC-USDT",
-	//         "volume": 1.000000000000000000,
-	//         "available": 1.000000000000000000,
-	//         "frozen": 0E-18,
-	//         "cost_open": 96039.700000000000000000,
-	//         "cost_hold": 96039.700000000000000000,
-	//         "profit_unreal": 0.000600000000000000,
-	//         "profit_rate": 0.000006247416432995,
-	//         "lever_rate": 1,
-	//         "position_margin": 96.040300000000000000,
+	//         "position_side": "long",
 	//         "direction": "buy",
-	//         "profit": 0.000600000000000000,
-	//         "last_price": 96040.3,
-	//         "margin_asset": "USDT",
 	//         "margin_mode": "cross",
-	//         "margin_account": "USDT",
-	//         "contract_type": "swap",
-	//         "pair": "BTC-USDT",
-	//         "business_type": "swap",
-	//         "trade_partition":"USDT",
-	//         "position_mode": "single_side",
-	//         "store_time": "2023-10-08 20:05:06",
-	//         "liquidation_price": null,
-	//         "market_closing_slippage": null,
-	//         "risk_rate": 249.274066168760049797,
-	//         "new_risk_rate": 0.003995619743220614,
-	//         "risk_rate_percent": 0.003995619743220614,
-	//         "withdraw_available": null,
-	//         "open_adl": 1,
+	//         "open_avg_price": "63204.5",
+	//         "volume": "1",
+	//         "available": "1",
+	//         "lever_rate": 20,
 	//         "adl_risk_percent": 3,
-	//         "tp_trigger_price": null,
-	//         "sl_trigger_price": null,
-	//         "tp_order_id": null,
-	//         "sl_order_id": null,
-	//         "tp_trigger_type": null,
-	//         "sl_trigger_type": null,
-	//         "adjust_value": null
+	//         "liquidation_price": "-110163.844268282697306843",
+	//         "margin": "3.158275",
+	//         "initial_margin": "3.158275",
+	//         "maintenance_margin": "0.2147627",
+	//         "profit_unreal": "-0.039",
+	//         "profit_rate": "-0.0123",
+	//         "margin_rate": "0.0012",
+	//         "mark_price": "63165.5",
+	//         "last_price": "63163.3",
+	//         "margin_currency": "USDT",
+	//         "contract_type": "swap",
+	//         "created_time": "1780903703234",
+	//         "updated_time": "1780903703234"
 	//     }
 	//
 	// fetchPositionADLRank inverse
@@ -10833,14 +11024,15 @@ func (this *HtxCore) ParseADLRank(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketId any = this.SafeString(info, "contract_code")
+	var timestamp any = this.SafeInteger(info, "created_time")
 	return map[string]any{
 		"info":       info,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "contract"),
 		"rank":       this.SafeInteger(info, "adl_risk_percent"),
 		"rating":     nil,
 		"percentage": nil,
-		"timestamp":  nil,
-		"datetime":   nil,
+		"timestamp":  timestamp,
+		"datetime":   this.Iso8601(timestamp),
 	}
 }
 

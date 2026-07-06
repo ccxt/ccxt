@@ -137,9 +137,8 @@ public partial class p2b : Exchange
                 { "1d", "1d" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "extension", ".json" },
                 { "referral", "https://p2pb2b.com?referral=ee784c53" },
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755" },
+                { "logo", "https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.p2pb2b.com/api/v2/public" },
                     { "private", "https://api.p2pb2b.com/api/v2" },
@@ -348,8 +347,8 @@ public partial class p2b : Exchange
         object marketId = this.safeString(market, "name");
         object baseId = this.safeString(market, "stock");
         object quoteId = this.safeString(market, "money");
-        object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        object bs = ((string)this.safeCurrencyCode(baseId));
+        object quote = ((string)this.safeCurrencyCode(quoteId));
         object limits = this.safeValue(market, "limits");
         object maxAmount = this.safeString(limits, "max_amount");
         object maxPrice = this.safeString(limits, "max_price");
@@ -388,11 +387,11 @@ public partial class p2b : Exchange
                 } },
                 { "amount", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_amount") },
-                    { "max", this.parseNumber(this.omitZero(maxAmount)) },
+                    { "max", this.parseNumber(this.omitZero(((string)maxAmount))) },
                 } },
                 { "price", new Dictionary<string, object>() {
                     { "min", this.safeNumber(limits, "min_price") },
-                    { "max", this.parseNumber(this.omitZero(maxPrice)) },
+                    { "max", this.parseNumber(this.omitZero(((string)maxPrice))) },
                 } },
                 { "cost", new Dictionary<string, object>() {
                     { "min", null },
@@ -567,7 +566,7 @@ public partial class p2b : Exchange
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -731,7 +730,7 @@ public partial class p2b : Exchange
             { "amount", this.safeString(trade, "amount") },
             { "cost", this.safeString(trade, "deal") },
             { "fee", new Dictionary<string, object>() {
-                { "currency", getValue(market, "quote") },
+                { "currency", this.safeString(market, "quote") },
                 { "cost", this.safeString2(trade, "fee", "deal_fee") },
             } },
         }, market);
@@ -871,7 +870,7 @@ public partial class p2b : Exchange
                 { "free", available },
                 { "used", used },
             };
-            ((IDictionary<string,object>)result)[(string)code] = account;
+            ((IDictionary<string,object>)result)[(string)((string)code)] = account;
         }
         return this.safeBalance(result);
     }
@@ -1141,10 +1140,12 @@ public partial class p2b : Exchange
             throw new BadRequest ((string)add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
         object market = this.market(symbol);
+        object sinceSec = this.parseToInt(divide(since, 1000));
+        object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
-            { "startTime", this.parseToInt(divide(since, 1000)) },
-            { "endTime", this.parseToInt(divide(until, 1000)) },
+            { "startTime", sinceSec },
+            { "endTime", untilSec },
         };
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1226,9 +1227,11 @@ public partial class p2b : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
         }
+        object sinceSec = this.parseToInt(divide(since, 1000));
+        object untilSec = this.parseToInt(divide(until, 1000));
         object request = new Dictionary<string, object>() {
-            { "startTime", this.parseToInt(divide(since, 1000)) },
-            { "endTime", this.parseToInt(divide(until, 1000)) },
+            { "startTime", sinceSec },
+            { "endTime", untilSec },
         };
         if (isTrue(!isEqual(market, null)))
         {

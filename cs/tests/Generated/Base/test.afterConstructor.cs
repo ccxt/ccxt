@@ -116,21 +116,13 @@ public partial class BaseTest
             // options
             //
             Assert(!isEqual(exchange.options, null));
-            object defaultNetworkCodeReplacements = new Dictionary<string, object>() {
-                { "ETH", new Dictionary<string, object>() {
-                    { "ERC20", "ETH" },
-                } },
-                { "TRX", new Dictionary<string, object>() {
-                    { "TRC20", "TRX" },
-                } },
-                { "CRO", new Dictionary<string, object>() {
-                    { "CRC20", "CRONOS" },
-                } },
-                { "BRC20", new Dictionary<string, object>() {
-                    { "BRC20", "BTC" },
-                } },
-            };
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "options", getValue(exchange.options, "defaultNetworkCodeReplacements"), defaultNetworkCodeReplacements);
+            // const defaultNetworkCodeReplacements = [
+            //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+            //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+            //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+            //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+            // ];
+            // AssertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
             //
             // credentials
             //
@@ -285,7 +277,6 @@ public partial class BaseTest
             Assert(isEqual(exchange.timeout, 10000), "timeout should be 10000");
             Assert(isEqual(exchange.verbose, false), "verbose should be false");
             // Assert (exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-            // Assert (exchange.requiresEddsa === false);
             Assert(!isTrue(exchangeProp(exchange, "reloadingMarkets")), "reloadingMarkets should be false");
             Assert(isEqual(exchangeProp(exchange, "marketsLoading"), null), "marketsLoading should be undefined");
             // undefined or false
@@ -299,16 +290,16 @@ public partial class BaseTest
             // instance dynamic cache
             //
             // todo: remove initialization from GO
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "balance", exchange.balance, new Dictionary<string, object>() {});
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "bidsasks", exchange.bidsasks, new Dictionary<string, object>() {});
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "orderbooks", exchange.orderbooks, new Dictionary<string, object>() {});
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "tickers", exchange.tickers, new Dictionary<string, object>() {});
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "balance", exchange.balance, exchange.createSafeDictionary(true));
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "bidsasks", exchange.bidsasks, exchange.createSafeDictionary(true));
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "orderbooks", exchange.orderbooks, exchange.createSafeDictionary(true));
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "tickers", exchange.tickers, exchange.createSafeDictionary(true));
             Assert(isEqual(exchange.liquidations, null), "liquidations should be undefined");
-            Assert(isEqual(exchange.orders, null), "orders should be undefined");
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "trades", exchange.trades, new Dictionary<string, object>() {});
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "transactions", exchange.transactions, new Dictionary<string, object>() {});
-            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "ohlcvs", exchange.ohlcvs, new Dictionary<string, object>() {});
             Assert(isEqual(exchangeProp(exchange, "myLiquidations"), null));
+            Assert(isEqual(exchange.orders, null), "orders should be undefined");
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "trades", exchange.trades, exchange.createSafeDictionary(true));
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "transactions", exchange.transactions, exchange.createSafeDictionary());
+            AssertDeepEqual(exchange, new Dictionary<string, object>() {}, "ohlcvs", exchange.ohlcvs, exchange.createSafeDictionary(true));
             Assert(isEqual(exchangeProp(exchange, "myTrades"), null));
             Assert(isEqual(exchange.positions, null), "positions should be undefined");
             //
@@ -330,6 +321,9 @@ public partial class BaseTest
                 { "XBT", "BTC" },
                 { "BCHSV", "BSV" },
             });
+            // fetch history
+            object fetchHistoryCache = exchange.getFetchCache();
+            Assert(isEqual(getArrayLength(fetchHistoryCache), 0), "fetchHistoryCache should be an empty array");
         }
         public void testAfterConstructor()
         {

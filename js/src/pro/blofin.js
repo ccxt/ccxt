@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import blofinRest from '../blofin.js';
 import { NotSupported, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class blofin extends blofinRest {
     describe() {
@@ -103,7 +103,9 @@ export default class blofin extends blofinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trades = await this.watchMultipleWrapper(true, 'trades', 'watchTradesForSymbols', symbols, params);
         if (this.newUpdates) {
             const firstMarket = this.safeDict(trades, 0);
@@ -158,7 +160,7 @@ export default class blofin extends blofinRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrderBook';
@@ -173,10 +175,12 @@ export default class blofin extends blofinRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let callerMethodName = undefined;
         [callerMethodName, params] = this.handleParamString(params, 'callerMethodName', 'watchOrderBookForSymbols');
         let channelName = undefined;
@@ -310,17 +314,20 @@ export default class blofin extends blofinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
-        const firstMarket = this.market(symbols[0]);
+        const symbolsList = symbols;
+        const firstMarket = this.market(symbolsList[0]);
         const channel = 'tickers';
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
-        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
+        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['public']);
         const messageHashes = [];
         const args = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const market = this.market(symbols[i]);
+        for (let i = 0; i < symbolsList.length; i++) {
+            const market = this.market(symbolsList[i]);
             messageHashes.push('bidask:' + market['symbol']);
             args.push({
                 'channel': channel,
@@ -394,7 +401,9 @@ export default class blofin extends blofinRest {
         if (symbolsLength === 0 || !Array.isArray(symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired(this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [symbol, timeframe, candles] = await this.watchMultipleWrapper(true, 'candle', 'watchOHLCVForSymbols', symbolsAndTimeframes, params);
         if (this.newUpdates) {
             limit = candles.getLimit(symbol, limit);
@@ -449,7 +458,9 @@ export default class blofin extends blofinRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -461,7 +472,7 @@ export default class blofin extends blofinRest {
             'channel': 'account',
         };
         const request = this.getSubscriptionRequest([sub]);
-        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['private']);
+        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['private']);
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
     handleBalance(client, message) {
@@ -517,7 +528,9 @@ export default class blofin extends blofinRest {
      */
     async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const trigger = this.safeValue2(params, 'stop', 'trigger');
         params = this.omit(params, ['stop', 'trigger']);
         const channel = trigger ? 'orders-algo' : 'orders';
@@ -572,7 +585,9 @@ export default class blofin extends blofinRest {
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const newPositions = await this.watchMultipleWrapper(false, 'positions', 'watchPositions', symbols, params);
         if (this.newUpdates) {
             return newPositions;
@@ -617,7 +632,9 @@ export default class blofin extends blofinRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchFundingRate', market, params);
@@ -627,7 +644,7 @@ export default class blofin extends blofinRest {
             'instId': market['id'],
         };
         const request = this.getSubscriptionRequest([requestParams]);
-        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['public']);
+        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['public']);
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
     handleFundingRate(client, message) {
@@ -656,7 +673,9 @@ export default class blofin extends blofinRest {
     }
     async watchMultipleWrapper(isPublic, channelName, callerMethodName, symbolsArray = undefined, params = {}) {
         // underlier method for all watch-multiple symbols
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         [callerMethodName, params] = this.handleParamString(params, 'callerMethodName', callerMethodName);
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
@@ -711,7 +730,7 @@ export default class blofin extends blofinRest {
         }
         const request = this.getSubscriptionRequest(rawSubscriptions);
         const privateOrPublic = isPublic ? 'public' : 'private';
-        const url = this.implodeHostname(this.urls['api']['ws'][marketType][privateOrPublic]);
+        const url = this.implodeHostname((this.urls['api'])['ws'][marketType][privateOrPublic]);
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
     }
     getSubscriptionRequest(args) {
@@ -740,7 +759,7 @@ export default class blofin extends blofinRest {
             'trades': this.handleTrades,
             'books': this.handleOrderBook,
             'tickers': this.handleTicker,
-            'candle': this.handleOHLCV,
+            'candle': this.handleOHLCV, // candle1m, candle5m, etc
             // private
             'account': this.handleBalance,
             'orders': this.handleOrders,
@@ -797,7 +816,7 @@ export default class blofin extends blofinRest {
             ],
         };
         const marketType = 'swap'; // for now
-        const url = this.implodeHostname(this.urls['api']['ws'][marketType]['private']);
+        const url = this.implodeHostname((this.urls['api'])['ws'][marketType]['private']);
         await this.watch(url, messageHash, this.deepExtend(request, params), messageHash);
     }
 }

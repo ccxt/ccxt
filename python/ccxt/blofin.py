@@ -164,9 +164,8 @@ class blofin(Exchange, ImplicitAPI):
                 '1w': '1W',
                 '1M': '1M',
             },
-            'hostname': 'www.blofin.com',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b',
+                'logo': 'https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1',
                 'api': {
                     'rest': 'https://openapi.blofin.com',
                 },
@@ -557,6 +556,7 @@ class blofin(Exchange, ImplicitAPI):
         maxLeverage = self.safe_string(market, 'maxLeverage', '100')
         maxLeverage = Precise.string_max(maxLeverage, '1')
         isActive = (self.safe_string(market, 'state') == 'live')
+        isMargin = spot and (Precise.string_gt(maxLeverage, '1'))
         return self.safe_market_structure({
             'id': id,
             'symbol': symbol,
@@ -569,7 +569,7 @@ class blofin(Exchange, ImplicitAPI):
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': spot and (Precise.string_gt(maxLeverage, '1')),
+            'margin': isMargin,
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -618,11 +618,12 @@ class blofin(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         limit = 50 if (limit is None) else limit
@@ -721,9 +722,10 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         response = self.publicGetMarketTickers(self.extend(request, params))
@@ -742,7 +744,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -762,7 +765,8 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTickers(params)
         tickers = self.safe_list(response, 'data', [])
@@ -838,7 +842,7 @@ class blofin(Exchange, ImplicitAPI):
         if isSpot:
             spotSymbol = market['base'] + '/' + market['quote']
             cost = self.parse_number(Precise.string_mul(price, amount))
-            result: dict = {
+            result = {
                 'info': trade,
                 'timestamp': timestamp,
                 'datetime': self.iso8601(timestamp),
@@ -887,13 +891,14 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: *only applies to publicGetMarketHistoryTrades* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'tradeId', 'after', None, 100)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         response = None
@@ -944,7 +949,8 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
@@ -952,7 +958,7 @@ class blofin(Exchange, ImplicitAPI):
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 100)
         if limit is None:
             limit = 100  # default 100, max 100
-        request: dict = {
+        request = {
             'instId': market['id'],
             'bar': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
@@ -961,7 +967,6 @@ class blofin(Exchange, ImplicitAPI):
         if until is not None:
             request['after'] = until
             params = self.omit(params, 'until')
-        response = None
         response = self.publicGetMarketCandles(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
@@ -982,13 +987,14 @@ class blofin(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         if since is not None:
@@ -1058,11 +1064,12 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         response = self.publicGetMarketFundingRate(self.extend(request, params))
@@ -1121,7 +1128,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        result: dict = {'info': response}
+        result = {'info': response}
         data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'ts')
         details = self.safe_list(data, 'details', [])
@@ -1160,7 +1167,7 @@ class blofin(Exchange, ImplicitAPI):
         #      ]
         #  }
         #
-        result: dict = {'info': response}
+        result = {'info': response}
         data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             balance = data[i]
@@ -1196,12 +1203,13 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.accountType]: the type of account to fetch the balance for, either 'funding' or 'futures'  or 'copy_trading' or 'earn'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountType = None
         accountType, params = self.handle_option_and_params_2(params, 'fetchBalance', 'accountType', 'type')
-        request: dict = {
+        request = {
         }
-        response = None
+        response: dict
         if accountType is not None and accountType != 'swap':
             options = self.safe_dict(self.options, 'accountsByType', {})
             parsedAccountType = self.safe_string(options, accountType, accountType)
@@ -1213,7 +1221,7 @@ class blofin(Exchange, ImplicitAPI):
 
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'side': side,
             'orderType': type,
@@ -1269,7 +1277,7 @@ class blofin(Exchange, ImplicitAPI):
         return self.extend(request, params)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
             'live': 'open',
@@ -1346,7 +1354,7 @@ class blofin(Exchange, ImplicitAPI):
         leverage = self.safe_string(order, 'leverage', '1')
         contractSize = self.safe_string(market, 'contractSize')
         baseAmount = Precise.string_mul(contractSize, filled)
-        cost: Str = None
+        cost = None
         if average is not None:
             cost = Precise.string_mul(average, baseAmount)
             cost = Precise.string_div(cost, leverage)
@@ -1426,16 +1434,20 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.stopLoss.price]: stop loss order price(if not provided the order will be a market order)
+        :param float [params.tpsl]: whether to force to send the order to the combined TPSL oco order endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         isStopLossPriceDefined = self.safe_string(params, 'stopLossPrice') is not None
         isTakeProfitPriceDefined = self.safe_string(params, 'takeProfitPrice') is not None
         isTriggerOrder = self.safe_string(params, 'triggerPrice') is not None
-        isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined)
+        isTpslEndpoint = False
+        isTpslEndpoint, params = self.handle_option_and_params(params, 'createOrder', 'tpsl', False)
+        isCombinedSlTp = (isStopLossPriceDefined and isTakeProfitPriceDefined) or isTpslEndpoint
         isSlOrTp = isStopLossPriceDefined or isTakeProfitPriceDefined
-        response = None
+        response: dict
         reduceOnly = self.safe_bool(params, 'reduceOnly')
         if reduceOnly is not None:
             params['reduceOnly'] = 'true' if reduceOnly else 'false'
@@ -1464,7 +1476,7 @@ class blofin(Exchange, ImplicitAPI):
         positionSide = 'net'
         if hedged:
             positionSide = 'short' if (side == 'buy') else 'long'
-        request: dict = {
+        request = {
             'instId': market['id'],
             'side': side,
             'positionSide': positionSide,
@@ -1480,10 +1492,24 @@ class blofin(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_string(params, 'takeProfitPrice')
         if stopLossPrice is not None:
             request['slTriggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
-            request['slOrderPrice'] = '-1' if (type == 'market') else self.price_to_precision(symbol, price)
+            if type == 'market':
+                request['slOrderPrice'] = '-1'
+            else:
+                slLimitPrice = self.safe_string(params, 'stopLossLimitPrice')
+                if slLimitPrice is None:
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "stopLossLimitPrice" parameter(instead of "price" argument) for stop loss orders when the order type is not market')
+                request['slOrderPrice'] = self.price_to_precision(symbol, slLimitPrice)
+                params = self.omit(params, 'stopLossLimitPrice')
         if takeProfitPrice is not None:
             request['tpTriggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
-            request['tpOrderPrice'] = '-1' if (type == 'market') else self.price_to_precision(symbol, price)
+            if type == 'market':
+                request['tpOrderPrice'] = '-1'
+            else:
+                tpLimitPrice = self.safe_string(params, 'takeProfitLimitPrice')
+                if tpLimitPrice is None:
+                    raise ArgumentsRequired(self.id + ' createTpslOrder() requires a "takeProfitLimitPrice" parameter(instead of "price" argument) for take profit orders when the order type is not market')
+                request['tpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
+                params = self.omit(params, 'takeProfitLimitPrice')
         request['marginMode'] = marginMode
         params = self.omit(params, ['stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])
         return self.extend(request, params)
@@ -1504,9 +1530,10 @@ class blofin(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         isTrigger = self.safe_bool_n(params, ['trigger'], False)
@@ -1545,7 +1572,8 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1578,12 +1606,13 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOpenOrders', symbol, since, limit, params)
-        request: dict = {
+        request = {
         }
         market = None
         if symbol is not None:
@@ -1593,10 +1622,10 @@ class blofin(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 100
         isTrigger = self.safe_bool_n(params, ['stop', 'trigger'], False)
         isTpSl = self.safe_bool_2(params, 'tpsl', 'TPSL', False)
-        method: Str = None
+        method = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersPending')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
-        response = None
+        response: dict
         if isTpSl or (method == 'privateGetTradeOrdersTpslPending'):
             response = self.privateGetTradeOrdersTpslPending(self.extend(request, query))
         elif isTrigger or (method == 'privateGetTradeOrdersAlgoPending'):
@@ -1623,12 +1652,13 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
-        request: dict = {
+        request = {
         }
         market = None
         if symbol is not None:
@@ -1639,7 +1669,7 @@ class blofin(Exchange, ImplicitAPI):
             request['limit'] = limit  # default 100, max 100
         type = 'swap'
         type, params = self.handle_market_type_and_params('fetchMyTrades', market, params, type)
-        response = None
+        response: dict
         if type == 'spot':
             request['instType'] = 'SPOT'
             #
@@ -1683,12 +1713,13 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchDeposits', code, since, limit, params)
-        request: dict = {
+        request = {
         }
         currency = None
         if code is not None:
@@ -1717,12 +1748,13 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchWithdrawals', code, since, limit, params)
-        request: dict = {
+        request = {
         }
         currency = None
         if code is not None:
@@ -1752,12 +1784,13 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
-        request: dict = {
+        request = {
         }
         if limit is not None:
             request['limit'] = limit
@@ -1766,7 +1799,6 @@ class blofin(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['currency'] = currency['id']
         request, params = self.handle_until_option('end', request, params)
-        response = None
         response = self.privateGetAssetBills(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         return self.parse_ledger(data, currency, since, limit)
@@ -1858,7 +1890,7 @@ class blofin(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_withdrawal_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',
             '2': 'failed',
             '3': 'ok',
@@ -1869,7 +1901,7 @@ class blofin(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_deposit_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -1878,7 +1910,7 @@ class blofin(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_ledger_entry_type(self, type):
-        types: dict = {
+        types = {
             '1': 'transfer',  # transfer
             '2': 'trade',  # trade
             '3': 'trade',  # delivery
@@ -1942,7 +1974,8 @@ class blofin(Exchange, ImplicitAPI):
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = []
         options = self.safe_dict(self.options, 'cancelOrders', {})
@@ -1978,7 +2011,7 @@ class blofin(Exchange, ImplicitAPI):
                     'instId': market['id'],
                     'clientOrderId': clientOrderIds[i],
                 })
-        response = None
+        response: dict
         if method == 'privatePostTradeCancelTpsl':
             response = self.privatePostTradeCancelTpsl(request)  # * dont self.extend with params, otherwise ARRAY will be turned into OBJECT
         else:
@@ -1999,12 +2032,13 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'fromAccount': fromId,
@@ -2039,9 +2073,10 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.instType]: MARGIN, SWAP, FUTURES, OPTION
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
         }
         response = self.privateGetAccountPositions(self.extend(request, params))
@@ -2062,7 +2097,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.instType]: MARGIN, SWAP, FUTURES, OPTION
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.privateGetAccountPositions(params)
         data = self.safe_list(response, 'data', [])
@@ -2084,8 +2120,9 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         market = None
         if symbols is not None:
             symbolsLength = len(symbols)
@@ -2272,7 +2309,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchLeverages() requires a symbols argument')
         marginMode = None
@@ -2282,15 +2320,16 @@ class blofin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbols = self.market_symbols(symbols)
+        symbolsList = symbols
         instIds = ''
-        for i in range(0, len(symbols)):
-            entry = symbols[i]
+        for i in range(0, len(symbolsList)):
+            entry = symbolsList[i]
             entryMarket = self.market(entry)
             if i > 0:
                 instIds = instIds + ',' + entryMarket['id']
             else:
                 instIds = instIds + entryMarket['id']
-        request: dict = {
+        request = {
             'instId': instIds,
             'marginMode': marginMode,
         }
@@ -2322,7 +2361,8 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
@@ -2330,7 +2370,7 @@ class blofin(Exchange, ImplicitAPI):
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instId': market['id'],
             'marginMode': marginMode,
         }
@@ -2379,13 +2419,14 @@ class blofin(Exchange, ImplicitAPI):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
-        request: dict = {
+        request = {
             'leverage': leverage,
             'marginMode': marginMode,
             'instId': market['id'],
@@ -2411,12 +2452,13 @@ class blofin(Exchange, ImplicitAPI):
         :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
-        request: dict = {
+        request = {
             'instId': market['id'],
             'marginMode': marginMode,
         }
@@ -2440,12 +2482,13 @@ class blofin(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchClosedOrders', symbol, since, limit, params)
-        request: dict = {
+        request = {
         }
         market = None
         if symbol is not None:
@@ -2456,10 +2499,10 @@ class blofin(Exchange, ImplicitAPI):
         if since is not None:
             request['begin'] = since
         isTrigger = self.safe_bool_n(params, ['stop', 'trigger', 'tpsl', 'TPSL'], False)
-        method: Str = None
+        method = None
         method, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory')
         query = self.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL'])
-        response = None
+        response: dict
         if (isTrigger) or (method == 'privateGetTradeOrdersTpslHistory'):
             response = self.privateGetTradeOrdersTpslHistory(self.extend(request, query))
         else:
@@ -2477,7 +2520,8 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         response = self.privateGetAccountMarginMode(params)
         #
@@ -2511,11 +2555,12 @@ class blofin(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         self.check_required_argument('setMarginMode', marginMode, 'marginMode', ['cross', 'isolated'])
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'marginMode': marginMode,
         }
         response = self.privatePostAccountSetMarginMode(self.extend(request, params))
@@ -2529,7 +2574,7 @@ class blofin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_margin_mode(data, market)
+        return self.parse_margin_mode(data, market)  # keep untyped to match the base setMarginMode return({}) — narrowing it breaks the Go IExchange interface
 
     def fetch_position_mode(self, symbol: Str = None, params={}):
         """
@@ -2569,7 +2614,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        request: dict = {
+        request = {
             'positionMode': 'long_short_mode' if hedged else 'net_mode',
         }
         #
@@ -2593,7 +2638,8 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         response = self.privateGetAccountPositions(params)
         #
@@ -2698,10 +2744,10 @@ class blofin(Exchange, ImplicitAPI):
             self.throw_broadly_matched_exception(self.exceptions['broad'], insideMsg, feedback)
         return None
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = '/api/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
-        url = self.implode_hostname(self.urls['api']['rest']) + request
+        url = self.urls['api']['rest'] + request
         # type = self.getPathAuthenticationType(path)
         if api == 'public':
             if not self.is_empty(query):

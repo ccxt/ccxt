@@ -374,13 +374,24 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades for swap",
+                "description": "spot +since +limit",
                 "method": "fetchTrades",
-                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT-SWAP&limit=1&productGroup=SwapU",
+                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT&limit=500&productGroup=Spot",
+                "input": [
+                    "ETH/USDT",
+                    1770000000000,
+                    5000
+                ],
+                "output": null
+            },
+            {
+                "description": "swap +limit",
+                "method": "fetchTrades",
+                "url": "https://api.deepcoin.com/deepcoin/market/trades?instId=ETH-USDT-SWAP&limit=500&productGroup=SwapU",
                 "input": [
                     "ETH/USDT:USDT",
                     null,
-                    1
+                    5000
                 ],
                 "output": null
             },

@@ -632,7 +632,7 @@ export default class kraken extends krakenRest {
         const ohlcvsLength = data.length;
         for (let i = 0; i < ohlcvsLength; i++) {
             const candle = data[ohlcvsLength - i - 1];
-            const datetime = this.safeString(candle, 'timestamp');
+            const datetime = this.safeString(candle, 'interval_begin');
             const timestamp = this.parse8601(datetime);
             const parsed = [
                 timestamp,
@@ -752,7 +752,7 @@ export default class kraken extends krakenRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -765,7 +765,7 @@ export default class kraken extends krakenRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         const requiredParams = {};
@@ -821,12 +821,15 @@ export default class kraken extends krakenRest {
         let marketsByWsName = this.safeValue(this.options, 'marketsByWsName');
         if ((marketsByWsName === undefined) || reload) {
             marketsByWsName = {};
-            for (let i = 0; i < this.symbols.length; i++) {
-                const symbol = this.symbols[i];
-                const market = this.markets[symbol];
-                const info = this.safeValue(market, 'info', {});
-                const wsName = this.safeString(info, 'wsname');
-                marketsByWsName[wsName] = market;
+            const symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
+            if (symbols !== undefined) {
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    const market = this.markets[symbol];
+                    const info = this.safeValue(market, 'info', {});
+                    const wsName = this.safeString(info, 'wsname');
+                    marketsByWsName[wsName] = market;
+                }
             }
             this.options['marketsByWsName'] = marketsByWsName;
         }
@@ -1394,6 +1397,9 @@ export default class kraken extends krakenRest {
         await this.loadMarkets();
         // symbols are required
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
+        if (symbols === undefined) {
+            return undefined;
+        }
         const messageHashes = [];
         for (let i = 0; i < symbols.length; i++) {
             const eventTrigger = this.safeString(params, 'event_trigger');

@@ -9,11 +9,10 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class weex extends \ccxt\async\weex {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
@@ -92,7 +91,7 @@ class weex extends \ccxt\async\weex {
         return $this->number_to_string($requestId);
     }
 
-    public function subscribe_public($messageHashes, $channels, $isContract = false, $params = array (), $subscription = array ()) {
+    public function subscribe_public($messageHashes, $channels, $isContract = false, $params = array(), $subscription = array()) {
         return Async\async(function () use ($messageHashes, $channels, $isContract, $params, $subscription) {
             $id = $this->request_id();
             $method = 'SUBSCRIBE';
@@ -109,10 +108,10 @@ class weex extends \ccxt\async\weex {
             $type = $isContract ? 'contract' : 'spot';
             $url = $this->urls['api']['ws'][$type] . '/public';
             return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($message, $params), $messageHashes, $subscription));
-        }) ();
+        })();
     }
 
-    public function subscribe_private($messageHash, $subscribeHash, $channel, $isContract = false, $params = array (), $subscription = array ()) {
+    public function subscribe_private($messageHash, $subscribeHash, $channel, $isContract = false, $params = array(), $subscription = array()) {
         return Async\async(function () use ($messageHash, $subscribeHash, $channel, $isContract, $params, $subscription) {
             $type = $isContract ? 'contract' : 'spot';
             $url = $this->urls['api']['ws'][$type] . '/private';
@@ -130,7 +129,7 @@ class weex extends \ccxt\async\weex {
             );
             $subscription = $this->extend($subscription, array( 'id' => $id ));
             return Async\await($this->watch($url, $messageHash, $this->deep_extend($message, $params), $subscribeHash, $subscription));
-        }) ();
+        })();
     }
 
     public function authenticate($url) {
@@ -172,7 +171,7 @@ class weex extends \ccxt\async\weex {
         $this->extend_exchange_options($defaultOptions);
     }
 
-    public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -189,10 +188,10 @@ class weex extends \ccxt\async\weex {
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
-        }) ();
+        })();
     }
 
-    public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -226,10 +225,10 @@ class weex extends \ccxt\async\weex {
                 return $result;
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function un_watch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -242,10 +241,10 @@ class weex extends \ccxt\async\weex {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             return Async\await($this->un_watch_tickers(array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function un_watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
@@ -283,7 +282,7 @@ class weex extends \ccxt\async\weex {
                 'topic' => $topic,
             );
             return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_ticker(Client $client, $message) {
@@ -319,7 +318,7 @@ class weex extends \ccxt\async\weex {
         $symbol = $market['symbol'];
         $messageHash = 'ticker::' . $symbol;
         $this->tickers[$symbol] = $ticker;
-        $client->resolve ($this->tickers[$symbol], $messageHash);
+        $client->resolve($this->tickers[$symbol], $messageHash);
     }
 
     public function parse_ws_ticker(array $ticker, ?array $market = null): array {
@@ -369,7 +368,7 @@ class weex extends \ccxt\async\weex {
         ), $market);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -384,10 +383,10 @@ class weex extends \ccxt\async\weex {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
@@ -420,13 +419,13 @@ class weex extends \ccxt\async\weex {
             if ($this->newUpdates) {
                 $first = $this->safe_value($trades, 0);
                 $tradeSymbol = $this->safe_string($first, 'symbol');
-                $limit = $trades->getLimit ($tradeSymbol, $limit);
+                $limit = $trades->getLimit($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
-        }) ();
+        })();
     }
 
-    public function un_watch_trades(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unsubscribes from the trades channel
@@ -440,10 +439,10 @@ class weex extends \ccxt\async\weex {
              */
             Async\await($this->load_markets());
             return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function un_watch_trades_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_trades_for_symbols(array $symbols, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unsubscribes from the trades channel
@@ -481,7 +480,7 @@ class weex extends \ccxt\async\weex {
                 'topic' => 'trades',
             );
             return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_trade(Client $client, $message) {
@@ -507,7 +506,7 @@ class weex extends \ccxt\async\weex {
         $messageHash = 'trade::' . $symbol;
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->trades[$symbol] = new ArrayCache ($limit);
+            $this->trades[$symbol] = new ArrayCache($limit);
         }
         $tradesArray = $this->trades[$symbol];
         $data = $this->safe_list($message, 'd', array());
@@ -520,10 +519,10 @@ class weex extends \ccxt\async\weex {
         $sorted = $this->sort_by($newTrades, 'timestamp');
         for ($j = 0; $j < count($sorted); $j++) {
             $sortedTrade = $sorted[$j];
-            $tradesArray->append ($sortedTrade);
+            $tradesArray->append($sortedTrade);
         }
         $this->trades[$symbol] = $tradesArray;
-        $client->resolve ($tradesArray, $messageHash);
+        $client->resolve($tradesArray, $messageHash);
     }
 
     public function parse_ws_trade($trade, $market = null) {
@@ -555,7 +554,7 @@ class weex extends \ccxt\async\weex {
         ), $market);
     }
 
-    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -575,10 +574,10 @@ class weex extends \ccxt\async\weex {
             ));
             $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $extendedParams));
             return $result[$symbol][$timeframe];
-        }) ();
+        })();
     }
 
-    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -622,14 +621,14 @@ class weex extends \ccxt\async\weex {
             }
             list($symbol, $timeframe, $stored) = Async\await($this->subscribe_public($messageHashes, $channels, $isContract, $params));
             if ($this->newUpdates) {
-                $limit = $stored->getLimit ($symbol, $limit);
+                $limit = $stored->getLimit($symbol, $limit);
             }
             $filtered = $this->filter_by_since_limit($stored, $since, $limit, 0, true);
             return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -644,10 +643,10 @@ class weex extends \ccxt\async\weex {
              */
             $params['callerMethodName'] = 'unWatchOHLCV';
             return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
-        }) ();
+        })();
     }
 
-    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()): PromiseInterface {
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbolsAndTimeframes, $params) {
             /**
              * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
@@ -698,7 +697,7 @@ class weex extends \ccxt\async\weex {
                 'topic' => 'ohlcv',
             );
             return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_ohlcv(Client $client, $message) {
@@ -738,17 +737,17 @@ class weex extends \ccxt\async\weex {
         $timeframe = $this->find_timeframe($interval);
         if (!(is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol]))) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
-            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp ($limit);
+            $this->ohlcvs[$symbol][$timeframe] = new ArrayCacheByTimestamp($limit);
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
         for ($i = 0; $i < count($data); $i++) {
             $entry = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_ohlcv($entry);
-            $stored->append ($parsed);
+            $stored->append($parsed);
         }
         $messageHash = 'ohlcv::' . $symbol . '::' . $timeframe;
         $resolveData = array( $symbol, $timeframe, $stored );
-        $client->resolve ($resolveData, $messageHash);
+        $client->resolve($resolveData, $messageHash);
     }
 
     public function parse_ws_ohlcv($ohlcv, $market = null): array {
@@ -779,7 +778,7 @@ class weex extends \ccxt\async\weex {
         );
     }
 
-    public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -790,16 +789,16 @@ class weex extends \ccxt\async\weex {
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $params = $this->extend($params, array(
                 'callerMethodName' => 'watchOrderBook',
             ));
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
-        }) ();
+        })();
     }
 
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -810,7 +809,7 @@ class weex extends \ccxt\async\weex {
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true);
@@ -834,11 +833,11 @@ class weex extends \ccxt\async\weex {
                 'limit' => $limit,
             );
             $orderbook = Async\await($this->subscribe_public($messageHashes, $channels, $isContract, $params, $subscription));
-            return $orderbook->limit ();
-        }) ();
+            return $orderbook->limit();
+        })();
     }
 
-    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+    public function un_watch_order_book(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -848,16 +847,16 @@ class weex extends \ccxt\async\weex {
              *
              * @param {string} $symbol unified array of symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $params = $this->extend($params, array(
                 'callerMethodName' => 'unWatchOrderBook',
             ));
             return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
-        }) ();
+        })();
     }
 
-    public function un_watch_order_book_for_symbols(array $symbols, $params = array ()): PromiseInterface {
+    public function un_watch_order_book_for_symbols(array $symbols, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -867,7 +866,7 @@ class weex extends \ccxt\async\weex {
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market $symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false, true);
@@ -898,7 +897,7 @@ class weex extends \ccxt\async\weex {
                 'topic' => 'orderbook',
             );
             return Async\await($this->subscribe_public($unSubHashes, $channels, $isContract, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_order_book(Client $client, $message) {
@@ -934,7 +933,7 @@ class weex extends \ccxt\async\weex {
         if ($event === 'depthSnapshot') {
             $parsed = $this->parse_order_book($message, $symbol, $timestamp, 'b', 'a');
             $parsed['nonce'] = $nonce;
-            $orderbook->reset ($parsed);
+            $orderbook->reset($parsed);
         } else {
             $asks = $this->safe_list($message, 'a', array());
             $bids = $this->safe_list($message, 'b', array());
@@ -944,15 +943,15 @@ class weex extends \ccxt\async\weex {
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $orderbook['nonce'] = $nonce;
         }
-        $client->resolve ($orderbook, $messageHash);
+        $client->resolve($orderbook, $messageHash);
     }
 
     public function handle_delta($bookside, $delta) {
-        $bidAsk = $this->parse_bid_ask($delta);
-        $bookside->storeArray ($bidAsk);
+        $bidAsk = $this->parse_order_book_bid_ask($delta);
+        $bookside->storeArray($bidAsk);
     }
 
-    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for spot $symbols
@@ -986,10 +985,10 @@ class weex extends \ccxt\async\weex {
                 return $result;
             }
             return $this->filter_by_array($this->bidsasks, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function un_watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches best bid & ask for spot $symbols
@@ -1027,7 +1026,7 @@ class weex extends \ccxt\async\weex {
                 'topic' => 'bidsasks',
             );
             return Async\await($this->subscribe_public($unSubHashes, $channels, false, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_bid_ask(Client $client, $message) {
@@ -1048,7 +1047,7 @@ class weex extends \ccxt\async\weex {
         $symbol = $ticker['symbol'];
         $this->bidsasks[$symbol] = $ticker;
         $messageHash = 'bidask::' . $symbol;
-        $client->resolve ($ticker, $messageHash);
+        $client->resolve($ticker, $messageHash);
     }
 
     public function parse_ws_bid_ask($message, $market = null) {
@@ -1065,7 +1064,7 @@ class weex extends \ccxt\async\weex {
         ), $market);
     }
 
-    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made by the user
@@ -1097,13 +1096,13 @@ class weex extends \ccxt\async\weex {
             $channel = 'fill';
             $trades = Async\await($this->subscribe_private($messageHash, $subscriptionHash, $channel, $isContract, $params));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $limit = $trades->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($trades, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_my_trades(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function un_watch_my_trades(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple trades made by the user
@@ -1133,7 +1132,7 @@ class weex extends \ccxt\async\weex {
                 'subHashIsPrefix' => true,
             );
             return Async\await($this->subscribe_private($unSubHash, $unSubHash, $channel, $isContract, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_my_trades(Client $client, $message) {
@@ -1185,7 +1184,7 @@ class weex extends \ccxt\async\weex {
         //
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
-            $this->myTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = new ArrayCacheBySymbolById($limit);
         }
         $trades = $this->myTrades;
         $data = $this->safe_list($message, 'd', array());
@@ -1195,7 +1194,7 @@ class weex extends \ccxt\async\weex {
             $parsed = $this->parse_ws_my_trade($trade);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
-            $trades->append ($parsed);
+            $trades->append($parsed);
         }
         $messageHash = 'myTrades';
         $symbolKeys = is_array($symbols) ? array_keys($symbols) : array();
@@ -1206,9 +1205,9 @@ class weex extends \ccxt\async\weex {
         for ($j = 0; $j < count($symbolKeys); $j++) {
             $symbol = $symbolKeys[$j];
             $symbolMessageHash = $messageHash . '::' . $symbol;
-            $client->resolve ($trades, $symbolMessageHash);
+            $client->resolve($trades, $symbolMessageHash);
         }
-        $client->resolve ($trades, $messageHash);
+        $client->resolve($trades, $messageHash);
     }
 
     public function parse_ws_my_trade($trade, $market = null) {
@@ -1272,7 +1271,7 @@ class weex extends \ccxt\async\weex {
         ));
     }
 
-    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
@@ -1304,13 +1303,13 @@ class weex extends \ccxt\async\weex {
             $channel = 'orders';
             $orders = Async\await($this->subscribe_private($messageHash, $subscriptionHash, $channel, $isContract, $params));
             if ($this->newUpdates) {
-                $limit = $orders->getLimit ($symbol, $limit);
+                $limit = $orders->getLimit($symbol, $limit);
             }
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function un_watch_orders(?string $symbol = null, $params = array ()): PromiseInterface {
+    public function un_watch_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * unWatches information on multiple orders made by the user
@@ -1339,7 +1338,7 @@ class weex extends \ccxt\async\weex {
                 'subHashIsPrefix' => true,
             );
             return Async\await($this->subscribe_private($unSubHash, $unSubHash, $channel, $isContract, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_orders(Client $client, $message) {
@@ -1394,15 +1393,13 @@ class weex extends \ccxt\async\weex {
         $symbols = array();
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
-            $this->orders = new ArrayCacheBySymbolById ($limit);
+            $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $orders = $this->orders;
-        $newOrders = array();
         for ($i = 0; $i < count($data); $i++) {
             $rawOrder = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_ws_order($rawOrder);
-            $orders->append ($parsed);
-            $newOrders[] = $parsed;
+            $orders->append($parsed);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
         }
@@ -1415,9 +1412,9 @@ class weex extends \ccxt\async\weex {
         for ($i = 0; $i < count($symbolKeys); $i++) {
             $symbol = $symbolKeys[$i];
             $symbolMessageHash = $messageHash . '::' . $symbol;
-            $client->resolve ($newOrders, $symbolMessageHash);
+            $client->resolve($orders, $symbolMessageHash);
         }
-        $client->resolve ($newOrders, $messageHash);
+        $client->resolve($this->orders, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1546,7 +1543,7 @@ class weex extends \ccxt\async\weex {
             'id' => $this->safe_string($order, 'id'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'symbol' => $market['symbol'],
-            'type' => $this->parseOrderType ($rawType),
+            'type' => $this->parseOrderType($rawType),
             'timeInForce' => $this->safe_string($order, 'timeInForce'),
             'postOnly' => null,
             'reduceOnly' => $this->safe_bool($order, 'reduceOnly'),
@@ -1571,7 +1568,7 @@ class weex extends \ccxt\async\weex {
         ), $market);
     }
 
-    public function watch_balance($params = array ()): PromiseInterface {
+    public function watch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1596,11 +1593,11 @@ class weex extends \ccxt\async\weex {
             $fetchBalanceSnapshot = $this->safe_bool($options, 'fetchBalanceSnapshot', false);
             $awaitBalanceSnapshot = $this->safe_bool($options, 'awaitBalanceSnapshot', true);
             if ($fetchBalanceSnapshot && $awaitBalanceSnapshot) {
-                Async\await($client->future ($type . ':fetchBalanceSnapshot'));
+                Async\await($client->future($type . ':fetchBalanceSnapshot'));
             }
             $messageHash = $type . ':' . 'balance';
             return Async\await($this->subscribe_private($messageHash, $type, 'account', $isContract, $params));
-        }) ();
+        })();
     }
 
     public function set_balance_cache(Client $client, $type) {
@@ -1612,7 +1609,7 @@ class weex extends \ccxt\async\weex {
         if ($fetchBalanceSnapshot) {
             $messageHash = $type . ':fetchBalanceSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_balance_snapshot'), $client, $messageHash, $type);
             }
         } else {
@@ -1630,10 +1627,10 @@ class weex extends \ccxt\async\weex {
             // don't remove the $future from the .futures cache
             if (is_array($client->futures) && array_key_exists($messageHash, $client->futures)) {
                 $future = $client->futures[$messageHash];
-                $future->resolve ();
-                $client->resolve ($this->balance[$type], $type . ':balance');
+                $future->resolve();
+                $client->resolve($this->balance[$type], $type . ':balance');
             }
-        }) ();
+        })();
     }
 
     public function handle_balance(Client $client, $message) {
@@ -1719,10 +1716,10 @@ class weex extends \ccxt\async\weex {
         $this->balance[$accountType]['timestamp'] = $timestamp;
         $this->balance[$accountType]['datetime'] = $this->iso8601($timestamp);
         $this->balance[$accountType] = $this->safe_balance($this->balance[$accountType]);
-        $client->resolve ($this->balance[$accountType], $messageHash);
+        $client->resolve($this->balance[$accountType], $messageHash);
     }
 
-    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
@@ -1751,7 +1748,7 @@ class weex extends \ccxt\async\weex {
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
             $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
-                $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
+                $snapshot = Async\await($client->future('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
             }
             $newPositions = Async\await($this->subscribe_private($messageHash, $subscriptionHash, $channel, true, $params));
@@ -1759,39 +1756,39 @@ class weex extends \ccxt\async\weex {
                 return $newPositions;
             }
             return $this->filter_by_symbols_since_limit($this->positions, $symbols, $since, $limit, true);
-        }) ();
+        })();
     }
 
-    public function set_positions_cache(Client $client, array $params = array ()) {
+    public function set_positions_cache(Client $client, array $params = array()) {
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
         if ($fetchPositionsSnapshot) {
             $messageHash = 'fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash, $client->futures))) {
-                $client->future ($messageHash);
+                $client->future($messageHash);
                 $this->spawn(array($this, 'load_positions_snapshot'), $client, $messageHash, $params);
             }
         } else {
-            $this->positions = new ArrayCacheBySymbolById ();
+            $this->positions = new ArrayCacheBySymbolById();
         }
     }
 
     public function load_positions_snapshot($client, $messageHash, $params) {
         return Async\async(function () use ($client, $messageHash, $params) {
             $positions = Async\await($this->fetch_positions(null, $params));
-            $this->positions = new ArrayCacheBySymbolById ();
+            $this->positions = new ArrayCacheBySymbolById();
             $cache = $this->positions;
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
-                $cache->append ($position);
+                $cache->append($position);
             }
             // don't remove the $future from the .futures $cache
             $future = $client->futures[$messageHash];
-            $future->resolve ($cache);
-            $client->resolve ($cache, 'positions');
-        }) ();
+            $future->resolve($cache);
+            $client->resolve($cache, 'positions');
+        })();
     }
 
-    public function un_watch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function un_watch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * unWatches all open positions
@@ -1816,7 +1813,7 @@ class weex extends \ccxt\async\weex {
                 'subHashIsPrefix' => true,
             );
             return Async\await($this->subscribe_private($unSubHash, $unSubHash, $channel, true, $params, $subscription));
-        }) ();
+        })();
     }
 
     public function handle_positions($client, $message) {
@@ -1859,15 +1856,15 @@ class weex extends \ccxt\async\weex {
         //     }
         //
         if ($this->positions === null) {
-            $this->positions = new ArrayCacheBySymbolById ();
+            $this->positions = new ArrayCacheBySymbolById();
         }
         $cache = $this->positions;
         $newPositions = array();
         $data = $this->safe_list($message, 'd', array());
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $this->safe_dict($data, $i, array());
-            $position = $this->parse_position($rawPosition);
-            $cache->append ($position);
+            $position = $this->parse_ws_position($rawPosition);
+            $cache->append($position);
             $newPositions[] = $position;
         }
         $messageHashes = $this->find_message_hashes($client, 'positions::');
@@ -1878,10 +1875,15 @@ class weex extends \ccxt\async\weex {
             $symbols = explode(',', $symbolsString);
             $positions = $this->filter_by_array($newPositions, 'symbol', $symbols, false);
             if (!$this->is_empty($positions)) {
-                $client->resolve ($positions, $messageHash);
+                $client->resolve($positions, $messageHash);
             }
         }
-        $client->resolve ($newPositions, 'positions');
+        $client->resolve($newPositions, 'positions');
+    }
+
+    public function parse_ws_position($position, $market = null) {
+        // same api
+        return $this->parse_position($position, $market);
     }
 
     public function get_market_from_client_and_message(Client $client, $message) {
@@ -1906,8 +1908,8 @@ class weex extends \ccxt\async\weex {
                 'id' => $this->request_id(),
                 'method' => 'PONG',
             );
-            Async\await($client->send ($response));
-        }) ();
+            Async\await($client->send($response));
+        })();
     }
 
     public function handle_ping(Client $client, $message) {
@@ -1953,7 +1955,7 @@ class weex extends \ccxt\async\weex {
                 $this->throw_broadly_matched_exception($this->exceptions['broad'], $msg, $feedback);
                 throw new ExchangeError($feedback);
             } catch (Exception $error) {
-                $client->reject ($error);
+                $client->reject($error);
                 return true;
             }
         }

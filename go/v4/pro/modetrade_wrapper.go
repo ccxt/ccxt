@@ -29,7 +29,7 @@ func NewModetrade(userConfig map[string]any) *Modetrade {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Modetrade) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -327,9 +327,9 @@ func (this *Modetrade) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]cc
  * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
- * @param since timestamp in ms of the earliest position to fetch
- * @param limit the maximum number of positions to fetch
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func (this *Modetrade) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {

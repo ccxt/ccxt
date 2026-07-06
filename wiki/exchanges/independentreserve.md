@@ -37,7 +37,7 @@ retrieves data on all markets for independentreserve
 
 
 ```javascript
-independentreserve.fetchMarkets ([params])
+independentreserve.fetchMarkets (params?)
 ```
 
 
@@ -56,7 +56,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-independentreserve.fetchBalance ([params])
+independentreserve.fetchBalance (params?)
 ```
 
 
@@ -66,7 +66,7 @@ independentreserve.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -77,7 +77,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-independentreserve.fetchOrderBook (symbol[, limit, params])
+independentreserve.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -97,7 +97,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-independentreserve.fetchTicker (symbol[, params])
+independentreserve.fetchTicker (symbol, params?)
 ```
 
 
@@ -118,7 +118,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-independentreserve.fetchOrder (id, symbol[, params])
+independentreserve.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -140,7 +140,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-independentreserve.fetchOpenOrders (symbol[, since, limit, params])
+independentreserve.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -162,7 +162,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-independentreserve.fetchClosedOrders (symbol[, since, limit, params])
+independentreserve.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -184,7 +184,7 @@ fetch all trades made by the user
 
 
 ```javascript
-independentreserve.fetchMyTrades (symbol[, since, limit, params])
+independentreserve.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -206,7 +206,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-independentreserve.fetchTrades (symbol[, since, limit, params])
+independentreserve.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -225,7 +225,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-independentreserve.fetchTradingFees ([params])
+independentreserve.fetchTradingFees (params?)
 ```
 
 
@@ -249,7 +249,7 @@ create a trade order
 
 
 ```javascript
-independentreserve.createOrder (symbol, type, side, amount[, price, params])
+independentreserve.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -271,7 +271,7 @@ cancels an open order
 
 
 ```javascript
-independentreserve.cancelOrder (id, symbol[, params])
+independentreserve.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -292,7 +292,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-independentreserve.fetchDepositAddress (code[, params])
+independentreserve.fetchDepositAddress (code, params?)
 ```
 
 
@@ -317,7 +317,7 @@ make a withdrawal
 
 
 ```javascript
-independentreserve.withdraw (code, amount, address, tag[, params])
+independentreserve.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -339,7 +339,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-independentreserve.watchTrades (symbol[, since, limit, params])
+independentreserve.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -349,7 +349,7 @@ independentreserve.watchTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>independentreserve</code>](#independentreserve)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 
 | Param | Type | Required | Description |
@@ -360,6 +360,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-independentreserve.watchOrderBook (symbol[, limit, params])
+independentreserve.watchOrderBook (symbol, limit?, params?)
 ```
 

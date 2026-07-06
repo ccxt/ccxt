@@ -20,10 +20,10 @@ public partial class gemini
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an associative dictionary of currencies.</returns>
-    public async Task<Dictionary<string, object>> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
+    public async Task<Currencies> FetchCurrenciesFromWeb(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchCurrenciesFromWeb(parameters);
-        return ((Dictionary<string, object>)res);
+        return new Currencies(res);
     }
     /// <summary>
     /// retrieves data on all markets for gemini
@@ -80,7 +80,7 @@ public partial class gemini
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;

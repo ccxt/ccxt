@@ -141,7 +141,7 @@ public partial class onetrading : Exchange
                 { "1M", "1/MONTHS" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c" },
+                { "logo", "https://github.com/user-attachments/assets/341a1b01-7660-402a-9a2b-876391e52f15" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.onetrading.com/fast" },
                     { "private", "https://api.onetrading.com/fast" },
@@ -265,6 +265,7 @@ public partial class onetrading : Exchange
                 { "MIOTA", "IOTA" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "mica", true },
                 { "fetchTradingFees", new Dictionary<string, object>() {
                     { "method", "fetchPrivateTradingFees" },
                 } },
@@ -387,36 +388,35 @@ public partial class onetrading : Exchange
         //         },
         //     ]
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
-        {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "code");
-            object code = this.safeCurrencyCode(id);
-            ((IDictionary<string,object>)result)[(string)code] = this.safeCurrencyStructure(new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, "name") },
-                { "info", currency },
-                { "active", null },
-                { "fee", null },
-                { "precision", this.parseNumber(this.parsePrecision(this.safeString(currency, "precision"))) },
-                { "withdraw", null },
-                { "deposit", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", null },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "code");
+        object code = this.safeCurrencyCode(id);
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, "name") },
+            { "info", rawCurrency },
+            { "active", null },
+            { "fee", null },
+            { "precision", this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision"))) },
+            { "withdraw", null },
+            { "deposit", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
-            });
-        }
-        return result;
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", new Dictionary<string, object>() {} },
+        });
     }
 
     /**
@@ -896,7 +896,7 @@ public partial class onetrading : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

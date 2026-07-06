@@ -77,7 +77,7 @@ public partial class bittrade : Exchange
                 { "1y", "1year" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae" },
                 { "api", new Dictionary<string, object>() {
                     { "market", "https://{hostname}" },
                     { "public", "https://{hostname}" },
@@ -360,7 +360,6 @@ public partial class bittrade : Exchange
                     { "HECO", "hrc20" },
                     { "HT", "hrc20" },
                     { "ALGO", "algo" },
-                    { "OMNI", "" },
                 } },
                 { "fetchOrdersByStatesMethod", "private_get_order_orders" },
                 { "fetchOpenOrdersMethod", "fetch_open_orders_v1" },
@@ -699,7 +698,7 @@ public partial class bittrade : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1157,49 +1156,48 @@ public partial class bittrade : Exchange
         //     }
         //
         object currencies = this.safeValue(response, "data", new List<object>() {});
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
-        {
-            object currency = getValue(currencies, i);
-            object id = this.safeValue(currency, "name");
-            object code = this.safeCurrencyCode(id);
-            object depositEnabled = this.safeValue(currency, "deposit-enabled");
-            object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
-            object countryDisabled = this.safeValue(currency, "country-disabled");
-            object visible = this.safeBool(currency, "visible", false);
-            object state = this.safeString(currency, "state");
-            object active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
-            object name = this.safeString(currency, "display-name");
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "type", "crypto" },
-                { "name", name },
-                { "active", active },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", null },
-                { "precision", precision },
-                { "networks", null },
-                { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", precision },
-                        { "max", null },
-                    } },
-                    { "deposit", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "deposit-min-amount") },
-                        { "max", null },
-                    } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(currency, "withdraw-min-amount") },
-                        { "max", null },
-                    } },
+        return this.parseCurrencies(currencies);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object id = this.safeValue(currency, "name");
+        object code = this.safeCurrencyCode(id);
+        object depositEnabled = this.safeValue(currency, "deposit-enabled");
+        object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
+        object countryDisabled = this.safeValue(currency, "country-disabled");
+        object visible = this.safeBool(currency, "visible", false);
+        object state = this.safeString(currency, "state");
+        object active = isTrue(isTrue(isTrue(isTrue(visible) && isTrue(depositEnabled)) && isTrue(withdrawEnabled)) && isTrue((isEqual(state, "online")))) && !isTrue(countryDisabled);
+        object name = this.safeString(currency, "display-name");
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "withdraw-precision")));
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "type", "crypto" },
+            { "name", name },
+            { "active", active },
+            { "deposit", depositEnabled },
+            { "withdraw", withdrawEnabled },
+            { "fee", null },
+            { "precision", precision },
+            { "networks", null },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", precision },
+                    { "max", null },
                 } },
-                { "info", currency },
-            };
-        }
-        return result;
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(currency, "deposit-min-amount") },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(currency, "withdraw-min-amount") },
+                    { "max", null },
+                } },
+            } },
+            { "info", currency },
+        });
     }
 
     public override object parseBalance(object response)
@@ -2142,8 +2140,9 @@ public partial class bittrade : Exchange
             object requestSorted = this.keysort(request);
             object auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
+            object content = new List<object>() {method, this.hostname, url, auth};
             // eslint-disable-next-line quotes
-            object payload = String.Join("\n", ((IList<object>)new List<object>() {method, this.hostname, url, auth}).ToArray());
+            object payload = String.Join("\n", ((IList<object>)content).ToArray());
             object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
             auth = add(auth, add("&", this.urlencode(new Dictionary<string, object>() {
     { "Signature", signature },

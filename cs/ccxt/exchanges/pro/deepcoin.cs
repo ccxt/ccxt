@@ -114,7 +114,7 @@ public partial class deepcoin : ccxt.deepcoin
         object marketId = getValue(market, "symbol"); // spot markets use symbol with slash
         if (isTrue(isEqual(getValue(market, "type"), "swap")))
         {
-            marketId = add(getValue(market, "baseId"), getValue(market, "quoteId")); // swap markets use symbol without slash
+            marketId = add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
         object action = "1"; // subscribe
         if (isTrue(unWatch))
@@ -334,14 +334,14 @@ public partial class deepcoin : ccxt.deepcoin
         object ask = this.safeNumber(ticker, "AP1");
         object baseVolume = this.safeNumber(ticker, "V");
         object quoteVolume = this.safeNumber(ticker, "T");
-        if (isTrue(getValue(market, "inverse")))
+        if (isTrue(this.safeBool(market, "inverse")))
         {
             object temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
         return this.safeTicker(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "high", high },
@@ -504,7 +504,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "id", this.safeString2(trade, "TradeID", "TI") },
             { "order", this.safeString(trade, "OS") },
             { "type", null },
@@ -523,7 +523,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "0", "buy" },
             { "1", "sell" },
         };
-        return this.safeString(sides, direction, direction);
+        return this.safeString(sides, ((string)direction), direction);
     }
 
     public virtual object handleTakerOrMaker(object matchRole)
@@ -532,7 +532,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "0", "maker" },
             { "1", "taker" },
         };
-        return this.safeString(roles, matchRole, matchRole);
+        return this.safeString(roles, ((string)matchRole), matchRole);
     }
 
     /**
@@ -631,12 +631,12 @@ public partial class deepcoin : ccxt.deepcoin
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), timeframe))))
+        if (!isTrue((inOp(getValue(this.ohlcvs, symbol), ((string)timeframe)))))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = new ArrayCacheByTimestamp(limit);
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
-        object stored = getValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
         if (isTrue(!isEqual(data, null)))
         {
             object ohlcv = this.parseWsOHLCV(data, market);
@@ -672,7 +672,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -692,7 +692,7 @@ public partial class deepcoin : ccxt.deepcoin
      * @see https://www.deepcoin.com/docs/publicWS/25LevelIncrementalMarketData
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -786,7 +786,7 @@ public partial class deepcoin : ccxt.deepcoin
                 ((IList<object>)getValue(orderedEntries, "asks")).Add(new List<object>() {price, volume});
             }
         }
-        object timestamp = this.safeInteger(message, "mt");
+        object timestamp = this.safeInteger(message, "mt", 0);
         object snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         (orderbook as IOrderBook).reset(snapshot);
         object cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
@@ -817,7 +817,7 @@ public partial class deepcoin : ccxt.deepcoin
         //         "mt": 1760975816446
         //     }
         //
-        object timestamp = this.safeInteger(message, "mt");
+        object timestamp = this.safeInteger(message, "mt", 0);
         if (isTrue(isGreaterThan(timestamp, getValue(orderbook, "timestamp"))))
         {
             object response = this.safeList(message, "r", new List<object>() {});
@@ -1048,7 +1048,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "lastTradeTimestamp", null },
             { "lastUpdateTimestamp", this.safeTimestamp(order, "U") },
             { "status", this.parseWsOrderStatus(state) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "type", null },
             { "timeInForce", null },
             { "side", this.parseTradeSide(direction) },
@@ -1076,7 +1076,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "4", "open" },
             { "6", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     /**
@@ -1186,7 +1186,7 @@ public partial class deepcoin : ccxt.deepcoin
         object direction = this.safeString(position, "p");
         object marginMode = this.safeString(position, "i");
         return this.safePosition(new Dictionary<string, object>() {
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", this.safeString(market, "symbol") },
             { "id", null },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -1194,7 +1194,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "contractSize", null },
             { "side", this.parsePositionSide(direction) },
             { "notional", null },
-            { "leverage", this.omitZero(this.safeString(position, "l")) },
+            { "leverage", this.omitZero(((string)this.safeString(position, "l"))) },
             { "unrealizedPnl", null },
             { "realizedPnl", null },
             { "collateral", null },
@@ -1323,7 +1323,7 @@ public partial class deepcoin : ccxt.deepcoin
     {
         object subHash = this.safeString(subscription, "subHash");
         object unsubHash = this.safeString(subscription, "unsubHash");
-        this.cleanUnsubscription(client as WebSocketClient, subHash, unsubHash);
+        this.cleanUnsubscription(client as WebSocketClient, ((string)subHash), ((string)unsubHash));
         this.cleanCache(subscription);
     }
 

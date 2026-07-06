@@ -165,7 +165,7 @@ export default class weex extends weexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -177,7 +177,7 @@ export default class weex extends weexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -188,7 +188,7 @@ export default class weex extends weexRest {
      * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -199,7 +199,7 @@ export default class weex extends weexRest {
      * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
@@ -321,6 +321,7 @@ export default class weex extends weexRest {
      */
     unWatchPositions(symbols?: Strings, params?: {}): Promise<any>;
     handlePositions(client: any, message: any): void;
+    parseWsPosition(position: any, market?: any): Position;
     getMarketFromClientAndMessage(client: Client, message: any): import("../base/types.js").MarketInterface;
     pong(client: Client, message: any): Promise<void>;
     handlePing(client: Client, message: any): void;

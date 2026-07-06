@@ -730,6 +730,7 @@
                             "marginRatio": "161.322877125756096924",
                             "liquidationPrice": "6.588863861975256971",
                             "unrealizedPnl": "-0.01856659999999",
+                            "percentage": -0.08,
                             "unrealizedPnlRatio": "-0.000820925571112306",
                             "initialMargin": "22.610477800000003333",
                             "maintenanceMargin": "0.33915716700000005",
@@ -755,6 +756,7 @@
                             "marginRatio": "161.322877125756096924",
                             "liquidationPrice": "6.588863861975256971",
                             "unrealizedPnl": "-0.01856659999999",
+                            "percentage": -0.08,
                             "unrealizedPnlRatio": "-0.000820925571112306",
                             "initialMargin": "22.610477800000003333",
                             "maintenanceMargin": "0.33915716700000005",
@@ -1035,6 +1037,68 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "tpsl",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "market",
+                    "sell",
+                    0.1,
+                    null,
+                    {
+                        "stopLossPrice": 2111,
+                        "takeProfitPrice": 2222,
+                        "tpsl": true
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Order placed",
+                    "data": {
+                        "tpslId": "10010751351",
+                        "clientOrderId": null,
+                        "code": "0",
+                        "msg": null
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tpslId": "10010751351",
+                        "clientOrderId": null,
+                        "code": "0",
+                        "msg": null
+                    },
+                    "id": "10010751351",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "stopLossTriggerPrice": null,
+                    "takeProfitTriggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null,
+                    "triggerPrice": null
+                }
+            },
             {
                 "description": "takeProfitPrice",
                 "method": "createOrder",
@@ -1489,6 +1553,7 @@
                             "marginRatio": "822.305183525552961566",
                             "liquidationPrice": "",
                             "unrealizedPnl": "-0.00185303507244",
+                            "percentage": -0.06,
                             "unrealizedPnlRatio": "-0.000627687178252332",
                             "initialMargin": "2.951545654975853333",
                             "maintenanceMargin": "0.02656391089478268",
@@ -1513,6 +1578,7 @@
                         "marginRatio": "822.305183525552961566",
                         "liquidationPrice": "",
                         "unrealizedPnl": "-0.00185303507244",
+                        "percentage": -0.06,
                         "unrealizedPnlRatio": "-0.000627687178252332",
                         "initialMargin": "2.951545654975853333",
                         "maintenanceMargin": "0.02656391089478268",

@@ -57,7 +57,6 @@ export default class binanceus extends binance {
                 'watchPositions': false,
             },
             'options': {
-                'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
                 'fetchMarkets': {

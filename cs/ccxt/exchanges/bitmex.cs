@@ -101,7 +101,7 @@ public partial class bitmex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchVolatilityHistory", false },
-                { "index", true },
+                { "index", false },
                 { "reduceMargin", null },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -124,7 +124,7 @@ public partial class bitmex : Exchange
                     { "public", "https://testnet.bitmex.com" },
                     { "private", "https://testnet.bitmex.com" },
                 } },
-                { "logo", "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04" },
+                { "logo", "https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://www.bitmex.com" },
                     { "private", "https://www.bitmex.com" },
@@ -444,98 +444,97 @@ public partial class bitmex : Exchange
         //        },
         //     }
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object asset = this.safeString(currency, "asset");
+        object code = this.safeCurrencyCode(asset);
+        object id = this.safeString(currency, "currency");
+        object name = this.safeString(currency, "name");
+        object chains = this.safeValue(currency, "networks", new List<object>() {});
+        object depositEnabled = false;
+        object withdrawEnabled = false;
+        object networks = new Dictionary<string, object>() {};
+        object scale = this.safeString(currency, "scale");
+        object precisionString = this.parsePrecision(scale);
+        object precision = this.parseNumber(precisionString);
+        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
-            object currency = getValue(response, i);
-            object asset = this.safeString(currency, "asset");
-            object code = this.safeCurrencyCode(asset);
-            object id = this.safeString(currency, "currency");
-            object name = this.safeString(currency, "name");
-            object chains = this.safeValue(currency, "networks", new List<object>() {});
-            object depositEnabled = false;
-            object withdrawEnabled = false;
-            object networks = new Dictionary<string, object>() {};
-            object scale = this.safeString(currency, "scale");
-            object precisionString = this.parsePrecision(scale);
-            object precision = this.parseNumber(precisionString);
-            for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+            object chain = getValue(chains, j);
+            object networkId = this.safeString(chain, "asset");
+            object network = this.networkIdToCode(networkId, code);
+            object withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
+            object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
+            object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
+            object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
+            object active = (isTrue(isDepositEnabled) && isTrue(isWithdrawEnabled));
+            if (isTrue(isDepositEnabled))
             {
-                object chain = getValue(chains, j);
-                object networkId = this.safeString(chain, "asset");
-                object network = this.networkIdToCode(networkId);
-                object withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
-                object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-                object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
-                object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
-                object active = (isTrue(isDepositEnabled) && isTrue(isWithdrawEnabled));
-                if (isTrue(isDepositEnabled))
-                {
-                    depositEnabled = true;
-                }
-                if (isTrue(isWithdrawEnabled))
-                {
-                    withdrawEnabled = true;
-                }
-                ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
-                    { "info", chain },
-                    { "id", networkId },
-                    { "network", network },
-                    { "active", active },
-                    { "deposit", isDepositEnabled },
-                    { "withdraw", isWithdrawEnabled },
-                    { "fee", withdrawalFee },
-                    { "precision", null },
-                    { "limits", new Dictionary<string, object>() {
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
+                depositEnabled = true;
             }
-            object currencyEnabled = this.safeValue(currency, "enabled");
-            object currencyActive = isTrue(currencyEnabled) || isTrue((isTrue(depositEnabled) || isTrue(withdrawEnabled)));
-            object minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
-            object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
-            object maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
-            object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
-            object minDepositString = this.safeString(currency, "minDepositAmount");
-            object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
-            object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "name", name },
-                { "active", currencyActive },
-                { "deposit", depositEnabled },
-                { "withdraw", withdrawEnabled },
-                { "fee", null },
-                { "precision", precision },
+            if (isTrue(isWithdrawEnabled))
+            {
+                withdrawEnabled = true;
+            }
+            ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
+                { "info", chain },
+                { "id", networkId },
+                { "network", network },
+                { "active", active },
+                { "deposit", isDepositEnabled },
+                { "withdraw", isWithdrawEnabled },
+                { "fee", withdrawalFee },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
                         { "min", null },
                         { "max", null },
                     } },
-                    { "withdraw", new Dictionary<string, object>() {
-                        { "min", minWithdrawal },
-                        { "max", maxWithdrawal },
-                    } },
                     { "deposit", new Dictionary<string, object>() {
-                        { "min", minDeposit },
+                        { "min", null },
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
-                { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
             };
         }
-        return result;
+        object currencyEnabled = this.safeValue(currency, "enabled");
+        object currencyActive = isTrue(currencyEnabled) || isTrue((isTrue(depositEnabled) || isTrue(withdrawEnabled)));
+        object minWithdrawalString = this.safeString(currency, "minWithdrawalAmount");
+        object minWithdrawal = this.parseNumber(Precise.stringMul(minWithdrawalString, precisionString));
+        object maxWithdrawalString = this.safeString(currency, "maxWithdrawalAmount");
+        object maxWithdrawal = this.parseNumber(Precise.stringMul(maxWithdrawalString, precisionString));
+        object minDepositString = this.safeString(currency, "minDepositAmount");
+        object minDeposit = this.parseNumber(Precise.stringMul(minDepositString, precisionString));
+        object isCrypto = isEqual(this.safeString(currency, "currencyType"), "Crypto");
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", currency },
+            { "name", name },
+            { "active", currencyActive },
+            { "deposit", depositEnabled },
+            { "withdraw", withdrawEnabled },
+            { "fee", null },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", minWithdrawal },
+                    { "max", maxWithdrawal },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", minDeposit },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+            { "type", ((bool) isTrue(isCrypto)) ? "crypto" : "other" },
+        });
     }
 
     public virtual object convertFromRealAmount(object code, object amount)
@@ -719,7 +718,75 @@ public partial class bitmex : Exchange
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
         //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
+        //    },
+        //
+        //    other kind of markets have extra fields
+        //
+        //    {
+        //     "symbol": "XBTUSD-XBTU26",
+        //     "rootSymbol": "XBT",
+        //     "instrumentID": "3059",
+        //     "state": "Open",
+        //     "typ": "FFMCSX",
+        //     "listing": "2026-06-10T08:00:00.000Z",
+        //     "front": "2026-06-10T08:00:00.000Z",
+        //     "expiry": "2026-09-25T12:00:00.000Z",
+        //     "settle": "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency": "USD",
+        //     "underlying": "XBT",
+        //     "quoteCurrency": "USD",
+        //     "underlyingSymbol": "XBT=",
+        //     "referenceSymbol": "XBTUSD",
+        //     "maxOrderQty": "10000000",
+        //     "minPrice": "-1000000",
+        //     "maxPrice": "1000000",
+        //     "lotSize": "100",
+        //     "tickSize": "0.5",
+        //     "multiplier": "1",
+        //     "settlCurrency": "XBt",
+        //     "underlyingToSettleMultiplier": "-100000000",
+        //     "isQuanto": false,
+        //     "isInverse": false,
+        //     "taxed": true,
+        //     "deleverage": true,
+        //     "makerFee": "0.0005",
+        //     "takerFee": "0.0005",
+        //     "limitDownPrice": null,
+        //     "limitUpPrice": null,
+        //     "prevTotalVolume": "300",
+        //     "totalVolume": "300",
+        //     "volume": "0",
+        //     "volume24h": "200",
+        //     "prevTotalTurnover": "460833",
+        //     "totalTurnover": "460833",
+        //     "turnover": "0",
+        //     "turnover24h": "298516",
+        //     "homeNotional24h": "0",
+        //     "foreignNotional24h": "0",
+        //     "prevPrice24h": "0",
+        //     "vwap": "577.5",
+        //     "highPrice": "577.5",
+        //     "lowPrice": "0",
+        //     "lastPrice": "577.5",
+        //     "lastPriceProtected": "577.5",
+        //     "lastTickDirection": "ZeroPlusTick",
+        //     "lastChangePcnt": "0",
+        //     "bidPrice": "566.5",
+        //     "midPrice": "567.25",
+        //     "askPrice": "568",
+        //     "hasLiquidity": false,
+        //     "openInterest": "0",
+        //     "openValue": "0",
+        //     "instantPnl": false,
+        //     "timestamp": "2026-06-17T05:22:50.000Z",
+        //     "capped": false,
+        //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol": "XBTU26",
+        //     "nearLegSymbol": "XBTUSD",
+        //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        //     "pool": "Primary",
+        //     "referencePrice": "65728"
+        //     }
         //  ]
         //
         return this.parseMarkets(response);
@@ -747,7 +814,7 @@ public partial class bitmex : Exchange
         {
             type = "spot";
             spot = true;
-        } else if (isTrue(isEqual(typ, "FFCCSX")))
+        } else if (isTrue(isTrue(isEqual(typ, "FFCCSX")) || isTrue(isEqual(typ, "FFMCSX"))))
         {
             type = "future";
             future = true;
@@ -784,15 +851,14 @@ public partial class bitmex : Exchange
             if (isTrue(linear))
             {
                 object multiplierString = this.safeString2(market, "underlyingToPositionMultiplier", "underlyingToSettleMultiplier");
-                contractSize = this.parseNumber(Precise.stringDiv("1", multiplierString));
+                contractSize = Precise.stringAbs(Precise.stringDiv("1", multiplierString));
             } else
             {
-                object multiplierString = Precise.stringAbs(this.safeString(market, "multiplier"));
-                contractSize = this.parseNumber(multiplierString);
+                contractSize = Precise.stringAbs(this.safeString(market, "multiplier"));
             }
-            expiryDatetime = this.safeString(market, "expiry");
+            expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (isTrue(!isEqual(expiry, null)))
+            if (isTrue(isTrue(!isEqual(expiry, null)) && isTrue(future)))
             {
                 symbol = add(add(symbol, "-"), this.yymmdd(expiry));
             }
@@ -836,7 +902,7 @@ public partial class bitmex : Exchange
             { "quanto", isQuanto },
             { "taker", this.safeNumber(market, "takerFee") },
             { "maker", this.safeNumber(market, "makerFee") },
-            { "contractSize", contractSize },
+            { "contractSize", this.parseNumber(contractSize) },
             { "expiry", expiry },
             { "expiryDatetime", expiryDatetime },
             { "strike", this.safeNumber(market, "optionStrikePrice") },
@@ -1009,7 +1075,7 @@ public partial class bitmex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -1564,13 +1630,14 @@ public partial class bitmex : Exchange
         {
             status = this.parseTransactionStatus(status);
         }
+        object code = getValue(currency, "code");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "transactID") },
             { "txid", this.safeString(transaction, "tx") },
             { "type", type },
-            { "currency", getValue(currency, "code") },
-            { "network", this.networkIdToCode(this.safeString(transaction, "network"), getValue(currency, "code")) },
+            { "currency", code },
+            { "network", this.networkIdToCode(this.safeString(transaction, "network"), code) },
             { "amount", this.parseNumber(amount) },
             { "status", status },
             { "timestamp", transactTime },
@@ -1785,7 +1852,7 @@ public partial class bitmex : Exchange
             // so the previous close becomes the current open, and we drop the first candle
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
-                ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(getValue(getValue(result, i), 0), duration);
+                ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(getValue(result, i), 0)), duration);
             }
         }
         return result;
@@ -2145,6 +2212,7 @@ public partial class bitmex : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object orderType = this.capitalize(type);
+        object capitalizeOrderType = orderType;
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
         {
@@ -2161,7 +2229,7 @@ public partial class bitmex : Exchange
             { "symbol", getValue(market, "id") },
             { "side", this.capitalize(side) },
             { "orderQty", qty },
-            { "ordType", orderType },
+            { "ordType", capitalizeOrderType },
             { "text", brokerId },
         };
         object execInstructions = new List<object>() {};
@@ -3078,9 +3146,10 @@ public partial class bitmex : Exchange
         }
         object currency = this.currency(code);
         parameters = this.omit(parameters, "network");
+        object parsedNetwork = this.networkCodeToId(networkCode, getValue(currency, "code"));
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
-            { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
+            { "network", parsedNetwork },
         };
         object response = await this.privateGetUserDepositAddress(this.extend(request, parameters));
         //

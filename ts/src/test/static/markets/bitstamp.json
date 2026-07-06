@@ -30,7 +30,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -61,8 +61,8 @@
             "base_currency": "BTC",
             "base_decimals": 8,
             "counter_currency": "USD",
-            "counter_decimals": 0,
-            "minimum_order_value": "10",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -197,7 +197,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -228,8 +228,8 @@
             "base_currency": "BTC",
             "base_decimals": 8,
             "counter_currency": "EUR",
-            "counter_decimals": 0,
-            "minimum_order_value": "10",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -698,7 +698,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -729,8 +729,8 @@
             "base_currency": "BTC",
             "base_decimals": 8,
             "counter_currency": "USDT",
-            "counter_decimals": 0,
-            "minimum_order_value": "10",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -1208,7 +1208,7 @@
             },
             "amount": {
                 "min": 0.00001,
-                "max": 10
+                "max": 20
             },
             "price": {
                 "min": null,
@@ -1216,7 +1216,7 @@
             },
             "cost": {
                 "min": 10,
-                "max": 500000
+                "max": 1000000
             }
         },
         "marginModes": {
@@ -1232,9 +1232,9 @@
             "counter_currency": "USD",
             "counter_decimals": 0,
             "minimum_order_value": "10",
-            "maximum_order_value": "500000.00000000",
+            "maximum_order_value": "1000000.00000000",
             "minimum_order_amount": "0.00001000",
-            "maximum_order_amount": "10.00000000",
+            "maximum_order_amount": "20.00000000",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -1382,7 +1382,7 @@
             },
             "amount": {
                 "min": 0.001,
-                "max": 1000
+                "max": 500
             },
             "price": {
                 "min": null,
@@ -1390,7 +1390,7 @@
             },
             "cost": {
                 "min": 10,
-                "max": 500000
+                "max": 750000
             }
         },
         "marginModes": {
@@ -1406,9 +1406,9 @@
             "counter_currency": "USD",
             "counter_decimals": 1,
             "minimum_order_value": "10.0",
-            "maximum_order_value": "500000.00000000",
+            "maximum_order_value": "750000.00000000",
             "minimum_order_amount": "0.00100000",
-            "maximum_order_amount": "1000.00000000",
+            "maximum_order_amount": "500.00000000",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -1546,8 +1546,8 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": 1e-8,
-            "price": 0.01
+            "amount": 0.0001,
+            "price": 0.0001
         },
         "limits": {
             "leverage": {
@@ -1576,12 +1576,12 @@
             "name": "LINK/USD",
             "market_symbol": "linkusd",
             "base_currency": "LINK",
-            "base_decimals": 8,
+            "base_decimals": 4,
             "counter_currency": "USD",
-            "counter_decimals": 2,
-            "minimum_order_value": "10.00",
+            "counter_decimals": 4,
+            "minimum_order_value": "10.0000",
             "trading": "Enabled",
-            "instant_order_counter_decimals": 2,
+            "instant_order_counter_decimals": 4,
             "instant_and_market_orders": "Enabled",
             "description": "Chainlink / U.S. dollar",
             "market_type": "SPOT"

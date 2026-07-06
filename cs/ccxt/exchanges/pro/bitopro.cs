@@ -59,7 +59,7 @@ public partial class bitopro : ccxt.bitopro
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -394,7 +394,7 @@ public partial class bitopro : ccxt.bitopro
         //
         object marketId = this.safeString(message, "pair");
         // market-ids are lowercase in REST API and uppercase in WS API
-        object market = this.safeMarket(((string)marketId).ToLower(), null, "_");
+        object market = this.safeMarket(((bool) isTrue(!isEqual(marketId, null))) ? ((string)marketId).ToLower() : null, null, "_");
         object symbol = getValue(market, "symbol");
         object eventVar = this.safeString(message, "event");
         object messageHash = add(add(eventVar, ":"), symbol);

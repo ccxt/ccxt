@@ -223,9 +223,11 @@ func  (this *WeexCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1798 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1798)
+                retRes18012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes18012)
+            }
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]any{symbol}, params))
@@ -256,9 +258,11 @@ func  (this *WeexCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1968)
+                retRes19912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes19912)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isContract any = ccxt.GetValue(firstMarket, "contract")
@@ -308,9 +312,9 @@ func  (this *WeexCore) UnWatchTicker(symbol any, optionalArgs ...any) <- chan an
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes23115 :=  (<-this.UnWatchTickers([]any{symbol}, params))
-                ccxt.PanicOnError(retRes23115)
-                ch <- retRes23115
+                retRes23515 :=  (<-this.UnWatchTickers([]any{symbol}, params))
+                ccxt.PanicOnError(retRes23515)
+                ch <- retRes23515
                 return nil
         
             }()
@@ -335,9 +339,11 @@ func  (this *WeexCore) UnWatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2458 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2458)
+                retRes25012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes25012)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isContract any = ccxt.GetValue(firstMarket, "contract")
@@ -363,9 +369,9 @@ func  (this *WeexCore) UnWatchTickers(optionalArgs ...any) <- chan any {
                 "topic": topic,
             }
         
-                retRes27015 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
-                ccxt.PanicOnError(retRes27015)
-                ch <- retRes27015
+                retRes27615 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
+                ccxt.PanicOnError(retRes27615)
+                ch <- retRes27615
                 return nil
         
             }()
@@ -478,9 +484,9 @@ func  (this *WeexCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes36915 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes36915)
-                ch <- retRes36915
+                retRes37515 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes37515)
+                ch <- retRes37515
                 return nil
         
             }()
@@ -509,9 +515,11 @@ func  (this *WeexCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3858)
+                retRes39212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes39212)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isContract any = ccxt.GetValue(firstMarket, "contract")
@@ -558,13 +566,15 @@ func  (this *WeexCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan an
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4208 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4208)
+                retRes42912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes42912)
+            }
         
-                retRes42115 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
-                ccxt.PanicOnError(retRes42115)
-                ch <- retRes42115
+                retRes43115 :=  (<-this.UnWatchTradesForSymbols([]any{symbol}, params))
+                ccxt.PanicOnError(retRes43115)
+                ch <- retRes43115
                 return nil
         
             }()
@@ -587,9 +597,11 @@ func  (this *WeexCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any)
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4358)
+                retRes44612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes44612)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isContract any = ccxt.GetValue(firstMarket, "contract")
@@ -615,9 +627,9 @@ func  (this *WeexCore) UnWatchTradesForSymbols(symbols any, optionalArgs ...any)
                 "topic": "trades",
             }
         
-                retRes46015 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
-                ccxt.PanicOnError(retRes46015)
-                ch <- retRes46015
+                retRes47215 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
+                ccxt.PanicOnError(retRes47215)
+                ch <- retRes47215
                 return nil
         
             }()
@@ -756,9 +768,11 @@ func  (this *WeexCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalAr
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5688)
+                retRes58112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes58112)
+            }
             var callerMethodName any = this.SafeString(params, "callerMethodName", "watchOHLCVForSymbols")
             params = this.Omit(params, "callerMethodName")
             var channels any = []any{}
@@ -825,9 +839,9 @@ func  (this *WeexCore) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = params
             ccxt.AddElementToObject(params, "callerMethodName", "unWatchOHLCV")
         
-                retRes61715 :=  (<-this.UnWatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, params))
-                ccxt.PanicOnError(retRes61715)
-                ch <- retRes61715
+                retRes63115 :=  (<-this.UnWatchOHLCVForSymbols([]any{[]any{symbol, timeframe}}, params))
+                ccxt.PanicOnError(retRes63115)
+                ch <- retRes63115
                 return nil
         
             }()
@@ -850,9 +864,11 @@ func  (this *WeexCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optional
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6318 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6318)
+                retRes64612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes64612)
+            }
             var callerMethodName any = this.SafeString(params, "callerMethodName", "unWatchOHLCVForSymbols")
             params = this.Omit(params, "callerMethodName")
             var channels any = []any{}
@@ -893,9 +909,9 @@ func  (this *WeexCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optional
                 "topic": "ohlcv",
             }
         
-                retRes66915 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
-                ccxt.PanicOnError(retRes66915)
-                ch <- retRes66915
+                retRes68515 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
+                ccxt.PanicOnError(retRes68515)
+                ch <- retRes68515
                 return nil
         
             }()
@@ -981,7 +997,7 @@ func  (this *WeexCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *WeexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -996,9 +1012,9 @@ func  (this *WeexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
                 "callerMethodName": "watchOrderBook",
             })
         
-                retRes76515 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-                ccxt.PanicOnError(retRes76515)
-                ch <- retRes76515
+                retRes78115 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+                ccxt.PanicOnError(retRes78115)
+                ch <- retRes78115
                 return nil
         
             }()
@@ -1013,7 +1029,7 @@ func  (this *WeexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *WeexCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1024,9 +1040,11 @@ func  (this *WeexCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes7808 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes7808)
+                retRes79712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes79712)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isContract any = ccxt.GetValue(firstMarket, "contract")
@@ -1067,7 +1085,7 @@ func  (this *WeexCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any
  * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
  * @param {string} symbol unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *WeexCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1080,9 +1098,9 @@ func  (this *WeexCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan
                 "callerMethodName": "unWatchOrderBook",
             })
         
-                retRes81915 :=  (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
-                ccxt.PanicOnError(retRes81915)
-                ch <- retRes81915
+                retRes83715 :=  (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+                ccxt.PanicOnError(retRes83715)
+                ch <- retRes83715
                 return nil
         
             }()
@@ -1096,7 +1114,7 @@ func  (this *WeexCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- chan
  * @see https://www.weex.com/api-doc/contract/Websocket/public/Depth-Channel
  * @param {string[]} symbols unified array of symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *WeexCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -1105,9 +1123,11 @@ func  (this *WeexCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...a
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes8338 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes8338)
+                retRes85212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes85212)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             var isContract any = ccxt.GetValue(firstMarket, "contract")
@@ -1138,9 +1158,9 @@ func  (this *WeexCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...a
                 "topic": "orderbook",
             }
         
-                retRes86115 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
-                ccxt.PanicOnError(retRes86115)
-                ch <- retRes86115
+                retRes88115 :=  (<-this.SubscribePublic(unSubHashes, channels, isContract, params, subscription))
+                ccxt.PanicOnError(retRes88115)
+                ch <- retRes88115
                 return nil
         
             }()
@@ -1192,7 +1212,7 @@ func  (this *WeexCore) HandleOrderBook(client any, message any)  {
     client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
 func  (this *WeexCore) HandleDelta(bookside any, delta any)  {
-    var bidAsk any = this.ParseBidAsk(delta)
+    var bidAsk any = this.ParseOrderBookBidAsk(delta)
     bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 }
 /**
@@ -1213,9 +1233,11 @@ func  (this *WeexCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9258 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9258)
+                retRes94612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes94612)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
@@ -1266,9 +1288,11 @@ func  (this *WeexCore) UnWatchBidsAsks(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes9608 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes9608)
+                retRes98312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes98312)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true)
             var firstMarket any = this.GetMarketFromSymbols(symbols)
             if ccxt.IsTrue(ccxt.GetValue(firstMarket, "contract")) {
@@ -1295,9 +1319,9 @@ func  (this *WeexCore) UnWatchBidsAsks(optionalArgs ...any) <- chan any {
                 "topic": "bidsasks",
             }
         
-                retRes98615 :=  (<-this.SubscribePublic(unSubHashes, channels, false, params, subscription))
-                ccxt.PanicOnError(retRes98615)
-                ch <- retRes98615
+                retRes101015 :=  (<-this.SubscribePublic(unSubHashes, channels, false, params, subscription))
+                ccxt.PanicOnError(retRes101015)
+                ch <- retRes101015
                 return nil
         
             }()
@@ -1364,9 +1388,11 @@ func  (this *WeexCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes10388 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes10388)
+                retRes106312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes106312)
+            }
             var marketType any = nil
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -1435,9 +1461,9 @@ func  (this *WeexCore) UnWatchMyTrades(optionalArgs ...any) <- chan any {
                 "subHashIsPrefix": true,
             }
         
-                retRes108815 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, isContract, params, subscription))
-                ccxt.PanicOnError(retRes108815)
-                ch <- retRes108815
+                retRes111415 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, isContract, params, subscription))
+                ccxt.PanicOnError(retRes111415)
+                ch <- retRes111415
                 return nil
         
             }()
@@ -1605,9 +1631,11 @@ func  (this *WeexCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes12418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes12418)
+                retRes126812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes126812)
+            }
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 market = this.Market(symbol)
@@ -1675,9 +1703,9 @@ func  (this *WeexCore) UnWatchOrders(optionalArgs ...any) <- chan any {
                 "subHashIsPrefix": true,
             }
         
-                retRes129015 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, isContract, params, subscription))
-                ccxt.PanicOnError(retRes129015)
-                ch <- retRes129015
+                retRes131815 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, isContract, params, subscription))
+                ccxt.PanicOnError(retRes131815)
+                ch <- retRes131815
                 return nil
         
             }()
@@ -1738,12 +1766,10 @@ func  (this *WeexCore) HandleOrders(client any, message any)  {
         this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
     }
     var orders any = this.Orders
-    var newOrders any = []any{}
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var rawOrder any = this.SafeDict(data, i, map[string]any {})
         var parsed any = this.ParseWsOrder(rawOrder)
         orders.(ccxt.Appender).Append(parsed)
-        ccxt.AppendToArray(&newOrders, parsed)
         var symbol any = ccxt.GetValue(parsed, "symbol")
         ccxt.AddElementToObject(symbols, symbol, true)
     }
@@ -1756,9 +1782,9 @@ func  (this *WeexCore) HandleOrders(client any, message any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolKeys)); i++ {
         var symbol any = ccxt.GetValue(symbolKeys, i)
         var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, "::"), symbol)
-        client.(ccxt.ClientInterface).Resolve(newOrders, symbolMessageHash)
+        client.(ccxt.ClientInterface).Resolve(orders, symbolMessageHash)
     }
-    client.(ccxt.ClientInterface).Resolve(newOrders, messageHash)
+    client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 }
 func  (this *WeexCore) ParseWsOrder(order any, optionalArgs ...any) any  {
     //
@@ -1929,9 +1955,11 @@ func  (this *WeexCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes15338 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes15338)
+                retRes156012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes156012)
+            }
             var typeVar any = nil
             typeVarparamsVariable := this.HandleMarketTypeAndParams("watchBalance", nil, params)
             typeVar = ccxt.GetValue(typeVarparamsVariable,0)
@@ -1947,14 +1975,14 @@ func  (this *WeexCore) WatchBalance(optionalArgs ...any) <- chan any {
             var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
             if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
         
-                retRes154612 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
-                ccxt.PanicOnError(retRes154612)
+                retRes157412 := (<-client.(ccxt.ClientInterface).Future(ccxt.Add(typeVar, ":fetchBalanceSnapshot")))
+                ccxt.PanicOnError(retRes157412)
             }
             var messageHash any = ccxt.Add(ccxt.Add(typeVar, ":"), "balance")
         
-                retRes154915 :=  (<-this.SubscribePrivate(messageHash, typeVar, "account", isContract, params))
-                ccxt.PanicOnError(retRes154915)
-                ch <- retRes154915
+                retRes157715 :=  (<-this.SubscribePrivate(messageHash, typeVar, "account", isContract, params))
+                ccxt.PanicOnError(retRes157715)
+                ch <- retRes157715
                 return nil
         
             }()
@@ -2108,9 +2136,11 @@ func  (this *WeexCore) WatchPositions(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes16828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes16828)
+                retRes171112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes171112)
+            }
             var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "contract"), "/private")
             this.Authenticate(url)
             var client any = this.Client(url)
@@ -2215,9 +2245,9 @@ func  (this *WeexCore) UnWatchPositions(optionalArgs ...any) <- chan any {
                 "subHashIsPrefix": true,
             }
         
-                retRes175715 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, true, params, subscription))
-                ccxt.PanicOnError(retRes175715)
-                ch <- retRes175715
+                retRes178715 :=  (<-this.SubscribePrivate(unSubHash, unSubHash, channel, true, params, subscription))
+                ccxt.PanicOnError(retRes178715)
+                ch <- retRes178715
                 return nil
         
             }()
@@ -2270,7 +2300,7 @@ func  (this *WeexCore) HandlePositions(client any, message any)  {
     var data any = this.SafeList(message, "d", []any{})
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
         var rawPosition any = this.SafeDict(data, i, map[string]any {})
-        var position any = this.ParsePosition(rawPosition)
+        var position any = this.ParseWsPosition(rawPosition)
         cache.(ccxt.Appender).Append(position)
         ccxt.AppendToArray(&newPositions, position)
     }
@@ -2286,6 +2316,12 @@ func  (this *WeexCore) HandlePositions(client any, message any)  {
         }
     }
     client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
+}
+func  (this *WeexCore) ParseWsPosition(position any, optionalArgs ...any) any  {
+    // same as REST api
+    market := ccxt.GetArg(optionalArgs, 0, nil)
+    _ = market
+    return this.ParsePosition(position, market)
 }
 func  (this *WeexCore) GetMarketFromClientAndMessage(client any, message any) any  {
     var url any = client.(ccxt.ClientInterface).GetUrl()
@@ -2312,8 +2348,8 @@ func  (this *WeexCore) Pong(client any, message any) <- chan any {
                 "method": "PONG",
             }
         
-            retRes18468 := (<-client.(ccxt.ClientInterface).Send(response))
-            ccxt.PanicOnError(retRes18468)
+            retRes18818 := (<-client.(ccxt.ClientInterface).Send(response))
+            ccxt.PanicOnError(retRes18818)
                 return nil
             }()
             return ch

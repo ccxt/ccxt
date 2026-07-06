@@ -31,7 +31,7 @@ func NewWoo(userConfig map[string]any) *Woo {
  * @param {int} [limit] the maximum amount of order book entries to return.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Woo) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOptions) (ccxt.OrderBook, error) {
 
@@ -64,7 +64,7 @@ func (this *Woo) WatchOrderBook(symbol string, options ...ccxt.WatchOrderBookOpt
  * @see https://docs.woox.io/#orderbook
  * @param {string} symbol unified symbol of the market
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Woo) UnWatchOrderBook(symbol string, options ...ccxt.UnWatchOrderBookOptions) (any, error) {
 
@@ -506,10 +506,10 @@ func (this *Woo) WatchMyTrades(options ...ccxt.WatchMyTradesOptions) ([]ccxt.Tra
  * @name woo#watchPositions
  * @see https://docs.woox.io/#position-push
  * @description watch all open positions
- * @param {string[]|undefined} symbols list of unified market symbols
- * @param since
- * @param limit
- * @param {object} params extra parameters specific to the exchange API endpoint
+ * @param {string[]} [symbols] list of unified market symbols
+ * @param {int} [since] timestamp in ms of the earliest position to fetch
+ * @param {int} [limit] the maximum number of positions to fetch
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
 func (this *Woo) WatchPositions(options ...ccxt.WatchPositionsOptions) ([]ccxt.Position, error) {

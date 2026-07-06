@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/hibachi.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { Precise } from './base/Precise.js';
 import { BadRequest, ExchangeError, OrderNotFound } from './base/errors.js';
 // ---------------------------------------------------------------------------
@@ -127,39 +127,43 @@ export default class hibachi extends Exchange {
                 '1w': '1w',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973',
+                'logo': 'https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab',
                 'api': {
                     'public': 'https://data-api.hibachi.xyz',
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
                 'referral': {
-                    'url': 'hibachi.xyz/r/ZBL2YFWIHU',
+                    'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
             },
             'api': {
                 'public': {
                     'get': {
                         'market/exchange-info': 1,
-                        'market/data/trades': 1,
+                        'market/inventory': 1,
                         'market/data/prices': 1,
                         'market/data/stats': 1,
+                        'market/data/trades': 1,
                         'market/data/klines': 1,
-                        'market/data/orderbook': 1,
                         'market/data/open-interest': 1,
+                        'market/data/orderbook': 1,
                         'market/data/funding-rates': 1,
                         'exchange/utc-timestamp': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/deposit-info': 1,
+                        'capital/balance': 1,
                         'capital/history': 1,
-                        'trade/account/trading_history': 1,
+                        'capital/deposit-info': 1,
                         'trade/account/info': 1,
-                        'trade/order': 1,
                         'trade/account/trades': 1,
+                        'trade/account/trading_history': 1, // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': 1,
                         'trade/orders': 1,
+                        'trade/order': 1,
+                        'trade/orders/history': 1,
                     },
                     'put': {
                         'trade/order': 1,
@@ -172,6 +176,8 @@ export default class hibachi extends Exchange {
                         'trade/order': 1,
                         'trade/orders': 1,
                         'capital/withdraw': 1,
+                        'capital/transfer': 1,
+                        'trade/account/leverage': 1,
                     },
                 },
             },
@@ -259,8 +265,8 @@ export default class hibachi extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '2': BadRequest,
-                    '3': OrderNotFound,
+                    '2': BadRequest, // {"errorCode":2,"message":"Invalid signature: Failed to verify signature"}
+                    '3': OrderNotFound, // {"errorCode":3,"message":"Not found: order ID 33","status":"failed"}
                     '4': BadRequest, // {"errorCode":4,"message":"Missing accountId","status":"failed"}
                 },
                 'broad': {},
@@ -312,7 +318,7 @@ export default class hibachi extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeList(market, 'orderbookGranularities')[0]) / 10000.0,
+                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
             },
             'limits': {
                 'leverage': {
@@ -582,7 +588,9 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of recent [trade structures]
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -606,14 +614,17 @@ export default class hibachi extends Exchange {
     /**
      * @method
      * @name hibachi#fetchTicker
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+     * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
      * @description fetches a price ticker and the related information for the past 24h
      * @param {string} symbol unified symbol of the market
      * @param {object} [params] extra parameters specific to the hibachi api endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -735,7 +746,9 @@ export default class hibachi extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -751,11 +764,14 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchTradingFees
      * @description fetch the trading fee
-     * @param params extra parameters
+     * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'accountId': this.getAccountId(),
         };
@@ -823,6 +839,7 @@ export default class hibachi extends Exchange {
             const priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             const price16 = this.intToBase16(this.parseToInt(priceInternal));
             const pricePadded = price16.padStart(16, '0');
+            // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
         const message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
@@ -887,7 +904,9 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const nonce = this.nonce();
         const request = this.createOrderRequest(nonce, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId();
@@ -912,7 +931,9 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const nonce = this.nonce();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
@@ -936,7 +957,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { nonce: '1754349993908', orderId: '589642085255349248' } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -977,7 +998,9 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const nonce = this.nonce();
         const request = this.editOrderRequest(nonce, id, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId();
@@ -1001,7 +1024,9 @@ export default class hibachi extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const nonce = this.nonce();
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
@@ -1026,7 +1051,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1098,7 +1123,7 @@ export default class hibachi extends Exchange {
         // { "orders": [ { "orderId": "589636801329628160" } ] }
         //
         const ret = [];
-        const responseOrders = this.safeList(response, 'orders');
+        const responseOrders = this.safeList(response, 'orders', []);
         for (let i = 0; i < responseOrders.length; i++) {
             const responseOrder = responseOrders[i];
             ret.push(this.safeOrder({
@@ -1119,7 +1144,9 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const nonce = this.nonce();
         const nonce16 = this.intToBase16(nonce);
         const noncePadded = nonce16.padStart(16, '0');
@@ -1261,14 +1288,16 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchOrderBook
      * @description fetches the state of the open orders on the orderbook
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
      * @param {string} symbol unified symbol of the market
      * @param {int} [limit] currently unused
      * @param {object} [params] extra parameters to be passed -- see documentation link above
      * @returns {object} A dictionary containg [orderbook information]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1329,7 +1358,9 @@ export default class hibachi extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1395,7 +1426,9 @@ export default class hibachi extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1435,8 +1468,9 @@ export default class hibachi extends Exchange {
         return this.parseOrders(response, market, since, limit);
     }
     /**
+     * @method
      * @name hibachi#fetchOHLCV
-     * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+     * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
      * @description fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1447,7 +1481,9 @@ export default class hibachi extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         timeframe = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -1489,7 +1525,9 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {
             'accountId': this.getAccountId(),
@@ -1717,7 +1755,9 @@ export default class hibachi extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency('USDT');
         const request = { 'accountId': this.getAccountId() };
         const rawPromises = [
@@ -1815,6 +1855,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchDepositAddress
      * @description fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+     * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters for API
      * @param {string} [params.publicKey] your public key, you can get it from UI after creating API key
@@ -1850,7 +1891,7 @@ export default class hibachi extends Exchange {
             'txid': this.safeString(transaction, 'transactionHash'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': 'ARBITRUM',
+            'network': 'ARBITRUM', // Currently the exchange only exists on Arbitrum,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -1915,7 +1956,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList(response, 'transactions');
+        const transactions = this.safeList(response, 'transactions', []);
         const deposits = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -1973,7 +2014,7 @@ export default class hibachi extends Exchange {
         //         },
         //     ]
         // }
-        const transactions = this.safeList(response, 'transactions');
+        const transactions = this.safeList(response, 'transactions', []);
         const withdrawals = [];
         for (let i = 0; i < transactions.length; i++) {
             const transaction = transactions[i];
@@ -1987,7 +2028,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+     * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -2008,7 +2049,9 @@ export default class hibachi extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2037,7 +2080,9 @@ export default class hibachi extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2085,7 +2130,7 @@ export default class hibachi extends Exchange {
      * @method
      * @name hibachi#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+     * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -2093,7 +2138,9 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2111,7 +2158,7 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         //
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         const rates = [];
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];

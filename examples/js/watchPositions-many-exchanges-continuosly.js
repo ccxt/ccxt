@@ -1,5 +1,4 @@
 import ccxt from '../../js/ccxt.js';
-// AUTO-TRANSPILE //
 // watch and handle constinuosly
 async function watchPositionsContinuously(exchange) {
     while (true) {
@@ -32,7 +31,7 @@ async function example() {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_API_SECRET',
         },
-        'huobi': {
+        'htx': {
             'apiKey': 'YOUR_API_KEY',
             'secret': 'YOUR_API_SECRET',
         },

@@ -14,7 +14,7 @@ func TestFetchMarginModes(exchange ccxt.ICoreExchange, skippedProperties any, sy
 
 		marginModes := (<-exchange.FetchMarginModes([]any{"symbol"}))
 		PanicOnError(marginModes)
-		Assert(IsObject(marginModes), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return an object. "), exchange.Json(marginModes)))
+		Assert(exchange.IsDictionary(marginModes), Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " must return a dict. "), exchange.Json(marginModes)))
 		var marginModeKeys any = ObjectKeys(marginModes)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol)
 		for i := 0; IsLessThan(i, GetArrayLength(marginModeKeys)); i++ {

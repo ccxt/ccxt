@@ -1,5 +1,5 @@
 import Exchange from './abstract/bullish.js';
-import { Account, Balances, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest } from './base/types.js';
+import { Account, Balances, Currencies, Currency, DepositAddress, Dict, Int, int, FundingRateHistory, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade, Transaction, TransferEntry, OpenInterest, NullableDict } from './base/types.js';
 /**
  * @class bullish
  * @augments Exchange
@@ -24,6 +24,7 @@ export default class bullish extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name bullish#fetchMarkets
@@ -34,7 +35,7 @@ export default class bullish extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    parseMarketType(type: string, defaultType?: Str): string;
+    parseMarketType(type?: Str, defaultType?: Str): Str;
     /**
      * @method
      * @name bullish#fetchOrderBook
@@ -43,7 +44,7 @@ export default class bullish extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (not used by bullish)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -437,11 +438,11 @@ export default class bullish extends Exchange {
      */
     fetchOpenInterest(symbol: string, params?: {}): Promise<OpenInterest>;
     parseOpenInterest(interest: any, market?: Market): OpenInterest;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     /**
      * @method

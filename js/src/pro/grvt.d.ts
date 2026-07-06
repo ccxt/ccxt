@@ -1,5 +1,5 @@
 import grvtRest from '../grvt.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, Position, Bool, Tickers } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, Market, Position, Bool, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class grvt extends grvtRest {
     describe(): any;
@@ -20,14 +20,14 @@ export default class grvt extends grvtRest {
      * @method
      * @name grvt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
-    parseWsTicker(message: any, market?: any): Ticker;
+    parseWsTicker(message: any, market?: Market): Ticker;
     /**
      * @method
      * @name grvt#watchTrades
@@ -54,7 +54,7 @@ export default class grvt extends grvtRest {
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name grvt#watchOHLCV
@@ -81,7 +81,7 @@ export default class grvt extends grvtRest {
      */
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
-    parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
      * @name grvt#watchOrderBook
@@ -91,7 +91,7 @@ export default class grvt extends grvtRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -103,7 +103,7 @@ export default class grvt extends grvtRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
@@ -122,7 +122,7 @@ export default class grvt extends grvtRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any): void;
-    parseWsMyTrade(trade: any, market?: any): Trade;
+    parseWsMyTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name grvt#watchPositions
@@ -136,7 +136,7 @@ export default class grvt extends grvtRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handlePosition(client: any, message: any): void;
-    parseWsPosition(position: any, market?: any): Position;
+    parseWsPosition(position: any, market?: Market): Position;
     /**
      * @method
      * @name grvt#watchOrders
@@ -150,6 +150,6 @@ export default class grvt extends grvtRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrder(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     handleErrorMessage(client: Client, response: any): Bool;
 }

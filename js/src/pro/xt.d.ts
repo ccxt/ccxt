@@ -29,7 +29,7 @@ export default class xt extends xtRest {
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    subscribe(name: string, access: string, methodName: string, market?: Market, symbols?: string[], params?: {}): Promise<any>;
+    subscribe(name: string, access: string, methodName: string, market?: Market, symbols?: Strings, params?: {}): Promise<any>;
     /**
      * @ignore
      * @method
@@ -47,7 +47,7 @@ export default class xt extends xtRest {
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    unSubscribe(messageHash: string, name: string, access: string, methodName: string, topic: string, market?: Market, symbols?: string[], params?: {}, subscriptionParams?: {}): Promise<any>;
+    unSubscribe(messageHash: string, name: string, access: string, methodName: string, topic: string, market?: Market, symbols?: Strings, params?: {}, subscriptionParams?: {}): Promise<any>;
     /**
      * @method
      * @name xt#watchTicker

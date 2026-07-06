@@ -815,9 +815,20 @@ public partial class backpack : ccxt.backpack
         object id = this.safeString(trade, "t");
         object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        object isMaker = this.safeBool(trade, "m");
-        object side = ((bool) isTrue(isMaker)) ? "sell" : "buy";
-        object takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
+        object isBuyerMaker = this.safeBool(trade, "m");
+        object side = null;
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(isBuyerMaker, null)))
+        {
+            takerOrMaker = "taker";
+            if (isTrue(isBuyerMaker))
+            {
+                side = "sell";
+            } else
+            {
+                side = "buy";
+            }
+        }
         object price = this.safeString(trade, "p");
         object amount = this.safeString(trade, "q");
         object orderId = null;
@@ -856,7 +867,7 @@ public partial class backpack : ccxt.backpack
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -873,7 +884,7 @@ public partial class backpack : ccxt.backpack
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
@@ -901,7 +912,7 @@ public partial class backpack : ccxt.backpack
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
@@ -916,7 +927,7 @@ public partial class backpack : ccxt.backpack
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
     {
@@ -990,7 +1001,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object timestamp = this.parseToInt(divide(this.safeInteger(delta, "T"), 1000));
+        object timestamp = this.parseToInt(divide(this.safeInteger(delta, "T", 0), 1000));
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(delta, "u");
@@ -1006,7 +1017,7 @@ public partial class backpack : ccxt.backpack
     {
         for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseBidAsk(getValue(bidAsks, i));
+            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }

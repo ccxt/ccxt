@@ -28,7 +28,8 @@ def tco_debug(exchange, symbol, message):
     debug_create_order = True
     if debug_create_order:
         # for c# fix, extra step to convert them to string
-        print(' >>>>> testCreateOrder [', str((exchange['id'])), ' : ', symbol, '] ', message)
+        msg = ' >>>>> testCreateOrder [' + str((exchange['id'])) + ' : ' + symbol + '] ' + message
+        print(msg)
     return True
 
 
@@ -50,18 +51,18 @@ async def test_create_order(exchange, skipped_properties, symbol):
     # **************** [Scenario 1 - START] **************** #
     tco_debug(exchange, symbol, '### SCENARIO 1 ###')
     # create a "limit order" which IS GUARANTEED not to have a fill (i.e. being far from the real price)
-    await tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy', None)
+    await tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy')
     if is_swap_future:
         # for swap markets, we test sell orders too
-        await tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell', None)
+        await tco_create_unfillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell')
     tco_debug(exchange, symbol, '### SCENARIO 1 PASSED ###')
     # **************** [Scenario 2 - START] **************** #
     tco_debug(exchange, symbol, '### SCENARIO 2 ###')
     # create an order which IS GUARANTEED to have a fill (full or partial)
-    await tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy', None)
+    await tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'buy')
     if is_swap_future:
         # for swap markets, we test sell orders too
-        await tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell', None)
+        await tco_create_fillable_order(exchange, market, log_prefix, skipped_properties, best_bid, best_ask, limit_price_safety_multiplier_from_median, 'sell')
     tco_debug(exchange, symbol, '### SCENARIO 2 PASSED ###')
     # **************** [Scenario 3 - START] **************** #
     return True

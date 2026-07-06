@@ -61,7 +61,7 @@ func  (this *CoincheckCore) Describe() any  {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *CoincheckCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -72,9 +72,11 @@ func  (this *CoincheckCore) WatchOrderBook(symbol any, optionalArgs ...any) <- c
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes598 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes598)
+                retRes6012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes6012)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -151,9 +153,11 @@ func  (this *CoincheckCore) WatchTrades(symbol any, optionalArgs ...any) <- chan
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1218 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1218)
+                retRes12412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes12412)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))

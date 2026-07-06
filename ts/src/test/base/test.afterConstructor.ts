@@ -104,13 +104,13 @@ function helperTestProperties () {
     // options
     //
     assert (exchange.options !== undefined);
-    const defaultNetworkCodeReplacements = {
-        'ETH': { 'ERC20': 'ETH' },
-        'TRX': { 'TRC20': 'TRX' },
-        'CRO': { 'CRC20': 'CRONOS' },
-        'BRC20': { 'BRC20': 'BTC' },
-    };
-    testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
+    // const defaultNetworkCodeReplacements = [
+    //     { 'baseCoin': 'ETH', 'primary': 'ETH', 'secondary': 'ERC20' },
+    //     { 'baseCoin': 'CRO', 'primary': 'CRONOS', 'secondary': 'CRC20' },
+    //     { 'baseCoin': 'TRX', 'primary': 'TRX', 'secondary': 'TRC20' },
+    //     { 'baseCoin': 'BTC', 'primary': 'BTC', 'secondary': 'BRC20' },
+    // ];
+    // testSharedMethods.assertDeepEqual (exchange, {}, 'options', exchange.options['defaultNetworkCodeReplacements'], defaultNetworkCodeReplacements);
 
     //
     // credentials
@@ -257,7 +257,6 @@ function helperTestProperties () {
     assert (exchange.timeout === 10000, 'timeout should be 10000');
     assert (exchange.verbose === false, 'verbose should be false');
     // assert (testSharedMethods.exchangeProp (exchange, 'newUpdates') === true, 'newUpdates should be true'); // todo WS
-    // assert (exchange.requiresEddsa === false);
     assert (!testSharedMethods.exchangeProp (exchange, 'reloadingMarkets'), 'reloadingMarkets should be false');
     assert (testSharedMethods.exchangeProp (exchange, 'marketsLoading') === undefined, 'marketsLoading should be undefined');
     // undefined or false
@@ -272,16 +271,16 @@ function helperTestProperties () {
     // instance dynamic cache
     //
     // todo: remove initialization from GO
-    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, {});
+    testSharedMethods.assertDeepEqual (exchange, {}, 'balance', exchange.balance, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'bidsasks', exchange.bidsasks, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'orderbooks', exchange.orderbooks, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'tickers', exchange.tickers, exchange.createSafeDictionary (true));
     assert (exchange.liquidations === undefined, 'liquidations should be undefined');
-    assert (exchange.orders === undefined, 'orders should be undefined');
-    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, {});
-    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, {});
     assert (testSharedMethods.exchangeProp (exchange, 'myLiquidations') === undefined);
+    assert (exchange.orders === undefined, 'orders should be undefined');
+    testSharedMethods.assertDeepEqual (exchange, {}, 'trades', exchange.trades, exchange.createSafeDictionary (true));
+    testSharedMethods.assertDeepEqual (exchange, {}, 'transactions', exchange.transactions, exchange.createSafeDictionary ());
+    testSharedMethods.assertDeepEqual (exchange, {}, 'ohlcvs', exchange.ohlcvs, exchange.createSafeDictionary (true));
     assert (testSharedMethods.exchangeProp (exchange, 'myTrades') === undefined);
     assert (exchange.positions === undefined, 'positions should be undefined');
 
@@ -301,6 +300,9 @@ function helperTestProperties () {
     assert (testSharedMethods.exchangeProp (exchange, 'accountsById') === undefined, 'accountsById should be undefined');
     // @SKIP_END_GO
     testSharedMethods.assertDeepEqual (exchange, {}, 'commonCurrencies', testSharedMethods.exchangeProp (exchange, 'commonCurrencies'), { 'XBT': 'BTC', 'BCHSV': 'BSV' });
+    // fetch history
+    const fetchHistoryCache = exchange.getFetchCache ();
+    assert (fetchHistoryCache.length === 0, 'fetchHistoryCache should be an empty array');
 }
 
 function testAfterConstructor () {

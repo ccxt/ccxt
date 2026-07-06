@@ -49,7 +49,7 @@ retrieves data on all markets for blockchaincom
 
 
 ```javascript
-blockchaincom.fetchMarkets ([params])
+blockchaincom.fetchMarkets (params?)
 ```
 
 
@@ -59,7 +59,7 @@ blockchaincom.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.blockchain.com/v3/#getl3orderbook  
 
@@ -71,7 +71,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-blockchaincom.fetchOrderBook (symbol[, limit, params])
+blockchaincom.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -93,7 +93,7 @@ fetches level 3 information on open orders with bid (buy) and ask (sell) prices,
 
 
 ```javascript
-blockchaincom.fetchL3OrderBook (symbol[, limit, params])
+blockchaincom.fetchL3OrderBook (symbol, limit?, params?)
 ```
 
 
@@ -114,7 +114,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-blockchaincom.fetchTicker (symbol[, params])
+blockchaincom.fetchTicker (symbol, params?)
 ```
 
 
@@ -135,7 +135,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-blockchaincom.fetchTickers (symbols[, params])
+blockchaincom.fetchTickers (symbols, params?)
 ```
 
 
@@ -160,7 +160,7 @@ create a trade order
 
 
 ```javascript
-blockchaincom.createOrder (symbol, type, side, amount[, price, params])
+blockchaincom.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -182,7 +182,7 @@ cancels an open order
 
 
 ```javascript
-blockchaincom.cancelOrder (id, symbol[, params])
+blockchaincom.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -203,7 +203,7 @@ cancel all open orders
 
 
 ```javascript
-blockchaincom.cancelAllOrders (symbol[, params])
+blockchaincom.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -223,7 +223,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-blockchaincom.fetchTradingFees ([params])
+blockchaincom.fetchTradingFees (params?)
 ```
 
 
@@ -246,7 +246,7 @@ fetches information on multiple canceled orders made by the user
 
 
 ```javascript
-blockchaincom.fetchCanceledOrders (symbol[, since, limit, params])
+blockchaincom.fetchCanceledOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -269,7 +269,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-blockchaincom.fetchClosedOrders (symbol[, since, limit, params])
+blockchaincom.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -292,7 +292,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-blockchaincom.fetchOpenOrders (symbol[, since, limit, params])
+blockchaincom.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -315,7 +315,7 @@ fetch all trades made by the user
 
 
 ```javascript
-blockchaincom.fetchMyTrades (symbol[, since, limit, params])
+blockchaincom.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -336,7 +336,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-blockchaincom.fetchDepositAddress (code[, params])
+blockchaincom.fetchDepositAddress (code, params?)
 ```
 
 
@@ -360,7 +360,7 @@ make a withdrawal
 
 
 ```javascript
-blockchaincom.withdraw (code, amount, address, tag[, params])
+blockchaincom.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -383,7 +383,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-blockchaincom.fetchWithdrawals (code[, since, limit, params])
+blockchaincom.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -405,7 +405,7 @@ fetch data on a currency withdrawal via the withdrawal id
 
 
 ```javascript
-blockchaincom.fetchWithdrawal (id, code[, params])
+blockchaincom.fetchWithdrawal (id, code, params?)
 ```
 
 
@@ -428,7 +428,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-blockchaincom.fetchDeposits (code[, since, limit, params])
+blockchaincom.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -450,7 +450,7 @@ fetch information on a deposit
 
 
 ```javascript
-blockchaincom.fetchDeposit (id, code[, params])
+blockchaincom.fetchDeposit (id, code, params?)
 ```
 
 
@@ -470,7 +470,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-blockchaincom.fetchBalance ([params])
+blockchaincom.fetchBalance (params?)
 ```
 
 
@@ -492,7 +492,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-blockchaincom.fetchOrder (id, symbol[, params])
+blockchaincom.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -512,7 +512,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-blockchaincom.watchBalance ([params])
+blockchaincom.watchBalance (params?)
 ```
 
 
@@ -536,7 +536,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-blockchaincom.watchOHLCV (symbol, timeframe[, since, limit, params])
+blockchaincom.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -557,7 +557,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-blockchaincom.watchTicker (symbol[, params])
+blockchaincom.watchTicker (symbol, params?)
 ```
 
 
@@ -580,7 +580,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-blockchaincom.watchTrades (symbol[, since, limit, params])
+blockchaincom.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -603,7 +603,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-blockchaincom.fetchOrders (symbol[, since, limit, params])
+blockchaincom.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -613,7 +613,7 @@ blockchaincom.fetchOrders (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>blockchaincom</code>](#blockchaincom)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://exchange.blockchain.com/api/#l2-order-book  
 
@@ -626,6 +626,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-blockchaincom.watchOrderBook (symbol[, limit, params])
+blockchaincom.watchOrderBook (symbol, limit?, params?)
 ```
 

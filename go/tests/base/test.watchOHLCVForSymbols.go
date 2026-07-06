@@ -56,10 +56,10 @@ func TestWatchOHLCVForSymbols(exchange ccxt.ICoreExchange, skippedProperties any
 			}
 			if IsTrue(IsEqual(success, true)) {
 				var AssertionMessage any = Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), symbol), " "), chosenTimeframeKey), " | "), exchange.Json(response))
-				Assert(IsObject(response), Add("Response must be a dictionary. ", AssertionMessage))
+				Assert(exchange.IsDictionary(response), Add("Response must be a dictionary. ", AssertionMessage))
 				Assert(InOp(response, symbol), Add("Response should contain the symbol as key. ", AssertionMessage))
 				var symbolObj any = GetValue(response, symbol)
-				Assert(IsObject(symbolObj), Add("Response.Symbol should be a dictionary. ", AssertionMessage))
+				Assert(exchange.IsDictionary(symbolObj), Add("Response.Symbol should be a dictionary. ", AssertionMessage))
 				Assert(InOp(symbolObj, chosenTimeframeKey), Add("Response.symbol should contain the timeframe key. ", AssertionMessage))
 				var ohlcvs any = GetValue(symbolObj, chosenTimeframeKey)
 				Assert(IsArray(ohlcvs), Add("Response.symbol.timeframe should be an array. ", AssertionMessage))

@@ -266,6 +266,7 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/wallet/v1/withdraw/apply': 600,
                         'openapi/v1/order/test': 1,
                         'openapi/v1/order': 1,
+                        'openapi/v1/order/cancelReplace': 1,
                         'openapi/v1/capital/withdraw/apply': 1,
                         'openapi/v1/capital/deposit/apply': 1,
                         'openapi/v3/payment-request/payment-requests': 1,
@@ -276,14 +277,20 @@ class coinsph(Exchange, ImplicitAPI):
                         'merchant-api/v1/invoices-cancel': 1,
                         'openapi/convert/v1/get-supported-trading-pairs': 1,
                         'openapi/convert/v1/get-quote': 1,
-                        'openapi/convert/v1/accpet-quote': 1,
+                        'openapi/convert/v1/accept-quote': 1,
                         'openapi/convert/v1/query-order-history': 1,
+                        'openapi/otc-trade/v1/get-supported-trading-pairs': 1,
+                        'openapi/otc-trade/v1/create-rfq': 1,
+                        'openapi/otc-trade/v1/accept-rfq': 1,
+                        'openapi/otc-trade/v1/manual-settle': 1,
+                        'openapi/otc-trade/v1/query-order-history': 1,
                         'openapi/fiat/v1/support-channel': 1,
                         'openapi/fiat/v1/cash-out': 1,
                         'openapi/fiat/v1/history': 1,
                         'openapi/migration/v4/sellorder': 1,
                         'openapi/migration/v4/validate-field': 1,
                         'openapi/transfer/v3/transfers': 1,
+                        'openapi/transfer/v4/transfers': 1,
                         'openapi/v1/sub-account/create': 30,
                         'openapi/v1/sub-account/transfer/universal-transfer': 100,
                         'openapi/v1/sub-account/transfer/sub-to-master': 100,
@@ -633,54 +640,53 @@ class coinsph(Exchange, ImplicitAPI):
         #        }
         #    ]
         #
-        result: dict = {}
-        for i in range(0, len(response)):
-            entry = response[i]
-            id = self.safe_string(entry, 'coin')
-            code = self.safe_currency_code(id)
-            isFiat = self.safe_bool(entry, 'isLegalMoney')
-            networkList = self.safe_list(entry, 'networkList', [])
-            networks: dict = {}
-            for j in range(0, len(networkList)):
-                networkItem = networkList[j]
-                network = self.safe_string(networkItem, 'network')
-                networkCode = self.network_id_to_code(network)
-                networks[networkCode] = {
-                    'info': networkItem,
-                    'id': network,
-                    'network': networkCode,
-                    'active': None,
-                    'deposit': self.safe_bool(networkItem, 'depositEnable'),
-                    'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
-                    'fee': self.safe_number(networkItem, 'withdrawFee'),
-                    'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(networkItem, 'withdrawMin'),
-                            'max': self.safe_number(networkItem, 'withdrawMax'),
-                        },
-                        'deposit': {
-                            'min': None,
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'id': id,
-                'name': self.safe_string(entry, 'name'),
-                'code': code,
-                'type': 'fiat' if isFiat else 'crypto',
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'transferPrecision'))),
-                'info': entry,
+        return self.parse_currencies(response)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'coin')
+        code = self.safe_currency_code(id)
+        isFiat = self.safe_bool(rawCurrency, 'isLegalMoney')
+        networkList = self.safe_list(rawCurrency, 'networkList', [])
+        networks = {}
+        for j in range(0, len(networkList)):
+            networkItem = networkList[j]
+            network = self.safe_string(networkItem, 'network')
+            networkCode = self.network_id_to_code(network, code)
+            networks[networkCode] = {
+                'info': networkItem,
+                'id': network,
+                'network': networkCode,
                 'active': None,
-                'deposit': self.safe_bool(entry, 'depositAllEnable'),
-                'withdraw': self.safe_bool(entry, 'withdrawAllEnable'),
-                'networks': networks,
-                'fee': None,
-                'fees': None,
-                'limits': {},
-            })
-        return result
+                'deposit': self.safe_bool(networkItem, 'depositEnable'),
+                'withdraw': self.safe_bool(networkItem, 'withdrawEnable'),
+                'fee': self.safe_number(networkItem, 'withdrawFee'),
+                'precision': self.safe_number(networkItem, 'withdrawIntegerMultiple'),
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkItem, 'withdrawMin'),
+                        'max': self.safe_number(networkItem, 'withdrawMax'),
+                    },
+                    'deposit': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'code': code,
+            'type': 'fiat' if isFiat else 'crypto',
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'transferPrecision'))),
+            'info': rawCurrency,
+            'active': None,
+            'deposit': self.safe_bool(rawCurrency, 'depositAllEnable'),
+            'withdraw': self.safe_bool(rawCurrency, 'withdrawAllEnable'),
+            'networks': networks,
+            'fee': None,
+            'fees': None,
+            'limits': {},
+        })
 
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         if ('noSymbol' in config) and not ('symbol' in params):
@@ -708,7 +714,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://coins-docs.github.io/rest-api/#test-connectivity
+        https://docs.coins.ph/rest-api/#test-connectivity
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
@@ -726,7 +732,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://coins-docs.github.io/rest-api/#check-server-time
+        https://docs.coins.ph/rest-api/#check-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -741,7 +747,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for coinsph
 
-        https://coins-docs.github.io/rest-api/#exchange-information
+        https://docs.coins.ph/rest-api/#exchange-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -877,16 +883,17 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-        https://coins-docs.github.io/rest-api/#symbol-price-ticker
-        https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+        https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+        https://docs.coins.ph/rest-api/#symbol-price-ticker
+        https://docs.coins.ph/rest-api/#symbol-order-book-ticker
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         if symbols is not None:
             ids = []
             for i in range(0, len(symbols)):
@@ -897,7 +904,7 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers = None
+        tickers = []
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             tickers = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -910,23 +917,24 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-        https://coins-docs.github.io/rest-api/#symbol-price-ticker
-        https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+        https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+        https://docs.coins.ph/rest-api/#symbol-price-ticker
+        https://docs.coins.ph/rest-api/#symbol-order-book-ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker = None
+        ticker = {}
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             ticker = await self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -1017,16 +1025,17 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://coins-docs.github.io/rest-api/#order-book
+        https://docs.coins.ph/rest-api/#order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(default 100, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1053,7 +1062,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://coins-docs.github.io/rest-api/#klinecandlestick-data
+        https://docs.coins.ph/rest-api/#klinecandlestick-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1063,11 +1072,12 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe)
         until = self.safe_integer(params, 'until')
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'interval': interval,
         }
@@ -1124,7 +1134,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://coins-docs.github.io/rest-api/#recent-trades-list
+        https://docs.coins.ph/rest-api/#recent-trades-list
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1132,9 +1142,10 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1163,7 +1174,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+        https://docs.coins.ph/rest-api/#account-trade-list-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1173,9 +1184,10 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1191,7 +1203,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+        https://docs.coins.ph/rest-api/#account-trade-list-user_data
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -1202,7 +1214,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderTrades() requires a symbol argument')
-        request: dict = {
+        request = {
             'orderId': id,
         }
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
@@ -1254,7 +1266,7 @@ class coinsph(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         type = None
-        fee = None
+        fee = {}
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionAsset')
@@ -1262,11 +1274,11 @@ class coinsph(Exchange, ImplicitAPI):
                 'cost': feeCost,
                 'currency': self.safe_currency_code(feeCurrencyId),
             }
-        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker', None)
+        isBuyer = self.safe_bool_2(trade, 'isBuyer', 'isBuyerMaker')
         side = None
         if isBuyer is not None:
             side = 'buy' if (isBuyer is True) else 'sell'
-        isMaker = self.safe_string_2(trade, 'isMaker', None)
+        isMaker = self.safe_string(trade, 'isMaker')
         takerOrMaker = None
         if isMaker is not None:
             takerOrMaker = 'maker' if (isMaker == 'true') else 'taker'
@@ -1293,12 +1305,13 @@ class coinsph(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://coins-docs.github.io/rest-api/#accept-the-quote
+        https://docs.coins.ph/rest-api/#accept-the-quote
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetOpenapiV1Account(params)
         #
         #     {
@@ -1325,7 +1338,7 @@ class coinsph(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         balances = self.safe_list(response, 'balances', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1344,7 +1357,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://coins-docs.github.io/rest-api/#new-order--trade
+        https://docs.coins.ph/rest-api/#new-order--trade
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
@@ -1357,7 +1370,8 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         # todo: add test order low priority
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
@@ -1365,7 +1379,7 @@ class coinsph(Exchange, ImplicitAPI):
         orderType = self.encode_order_type(orderType)
         params = self.omit(params, 'type')
         orderSide = self.encode_order_side(side)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'type': orderType,
             'side': orderSide,
@@ -1412,7 +1426,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = None
+        response = {}
         if testOrder:
             response = await self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
@@ -1450,15 +1464,16 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://coins-docs.github.io/rest-api/#query-order-user_data
+        https://docs.coins.ph/rest-api/#query-order-user_data
 
         :param int|str id: order id
         :param str symbol: not used by coinsph fetchOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
@@ -1472,7 +1487,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+        https://docs.coins.ph/rest-api/#current-open-orders-user_data
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -1480,9 +1495,10 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1493,7 +1509,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://coins-docs.github.io/rest-api/#history-orders-user_data
+        https://docs.coins.ph/rest-api/#history-orders-user_data
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1503,9 +1519,10 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -1521,15 +1538,16 @@ class coinsph(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://coins-docs.github.io/rest-api/#cancel-order-trade
+        https://docs.coins.ph/rest-api/#cancel-order-trade
 
         :param str id: order id
         :param str symbol: not used by coinsph cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
             request['origClientOrderId'] = clientOrderId
@@ -1543,7 +1561,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         cancel open orders of market
 
-        https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+        https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1551,9 +1569,10 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1633,7 +1652,7 @@ class coinsph(Exchange, ImplicitAPI):
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer_2(order, 'time', 'transactTime')
-        trades = self.safe_value(order, 'fills', None)
+        trades = self.safe_value(order, 'fills')
         triggerPrice = self.safe_string(order, 'stopPrice')
         if Precise.string_eq(triggerPrice, '0'):
             triggerPrice = None
@@ -1662,21 +1681,25 @@ class coinsph(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_side(self, status):
-        statuses: dict = {
+        statuses = {
             'BUY': 'buy',
             'SELL': 'sell',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def encode_order_side(self, status):
-        statuses: dict = {
+        statuses = {
             'buy': 'BUY',
             'sell': 'SELL',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
@@ -1685,10 +1708,12 @@ class coinsph(Exchange, ImplicitAPI):
             'TAKE_PROFIT': 'market',
             'TAKE_PROFIT_LIMIT': 'limit',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def encode_order_type(self, status):
-        statuses: dict = {
+        statuses = {
             'market': 'MARKET',
             'limit': 'LIMIT',
             'limit_maker': 'LIMIT_MAKER',
@@ -1697,10 +1722,12 @@ class coinsph(Exchange, ImplicitAPI):
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'NEW': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
@@ -1708,29 +1735,34 @@ class coinsph(Exchange, ImplicitAPI):
             'PARTIALLY_CANCELED': 'canceled',
             'REJECTED': 'rejected',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_time_in_force(self, status):
-        statuses: dict = {
+        statuses = {
             'GTC': 'GTC',
             'FOK': 'FOK',
             'IOC': 'IOC',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
-        https://coins-docs.github.io/rest-api/#trade-fee-user_data
+        https://docs.coins.ph/rest-api/#trade-fee-user_data
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.privateGetOpenapiV1AssetTradeFee(self.extend(request, params))
@@ -1750,12 +1782,13 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch the trading fees for multiple markets
 
-        https://coins-docs.github.io/rest-api/#trade-fee-user_data
+        https://docs.coins.ph/rest-api/#trade-fee-user_data
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetOpenapiV1AssetTradeFee(params)
         #
         #     [
@@ -1771,11 +1804,12 @@ class coinsph(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            if symbol is not None:
+                result[symbol] = fee
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -1802,7 +1836,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         make a withdrawal to coins_ph account
 
-        https://coins-docs.github.io/rest-api/#withdrawuser_data
+        https://docs.coins.ph/rest-api/#withdrawuser_data
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -1816,12 +1850,13 @@ class coinsph(Exchange, ImplicitAPI):
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() require network parameter')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'amount': self.number_to_string(amount),
             'network': networkId,
@@ -1837,7 +1872,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://coins-docs.github.io/rest-api/#deposit-history-user_data
+        https://docs.coins.ph/rest-api/#deposit-history-user_data
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -1846,9 +1881,10 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -1891,7 +1927,7 @@ class coinsph(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+        https://docs.coins.ph/rest-api/#withdraw-history-user_data
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -1900,9 +1936,10 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['coin'] = currency['id']
@@ -2035,19 +2072,21 @@ class coinsph(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
             '3': 'pending',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch the deposit address for a currency associated with self account
 
-        https://coins-docs.github.io/rest-api/#deposit-address-user_data
+        https://docs.coins.ph/rest-api/#deposit-address-user_data
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2055,12 +2094,13 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         networkCode = self.safe_string(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' fetchDepositAddress() require network parameter')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
             'network': networkId,
         }
@@ -2118,7 +2158,7 @@ class coinsph(Exchange, ImplicitAPI):
         urlEncodedParam = key + '=' + stringifiedArray
         return urlEncodedParam
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = self.urls['api'][api]
         query = self.omit(params, self.extract_params(path))
         endpoint = self.implode_params(path, params)
@@ -2146,7 +2186,7 @@ class coinsph(Exchange, ImplicitAPI):
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None
-        responseCode = self.safe_string(response, 'code', None)
+        responseCode = self.safe_string(response, 'code')
         if (responseCode is not None) and (responseCode != '200') and (responseCode != '0'):
             feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)

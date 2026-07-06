@@ -16,7 +16,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 // Bulding OHLCV array from trades (executions) data is a bit tricky. For example, if you want to build 100 ohlcv bars of 1-minute timeframe, then you have to fetch the 100 minutes of trading data. So, higher timeframe bars require more trading data (i.e. building 100 bars of 1-day timeframe OHLCV would require massive amount of trading data, which might not be desirable for user, because of data-usage rate limits)
 function example_with_fetch_trades() {
     return Async\async(function () {
@@ -25,7 +24,7 @@ function example_with_fetch_trades() {
         $symbol = 'OGN/USDT';
         $since = $exch->milliseconds() - 1000 * 60 * 30; // last 30 mins
         $limit = 1000;
-        $trades = Async\await($exch->fetch_trades($symbol, $since, $limit));
+        $trades = \React\Async\await($exch->fetch_trades($symbol, $since, $limit));
         $generated_bars = $exch->build_ohlcvc($trades, $timeframe, $since, $limit);
         // you can ignore 6th index ("count" field) from ohlcv entries, which is not part of OHLCV standard structure and is just added internally by `buildOHLCVC` method
         var_dump('[REST] Constructed', count($generated_bars), 'bars from trades: ', $generated_bars);
@@ -43,7 +42,7 @@ function example_with_watch_trades() {
         $collected_trades = [];
         $collected_bars = [];
         while (true) {
-            $ws_trades = Async\await($exch->watch_trades($symbol, $since, $limit, array()));
+            $ws_trades = \React\Async\await($exch->watch_trades($symbol, $since, $limit, array()));
             $collected_trades = array_merge($collected_trades, $ws_trades);
             $generated_bars = $exch->build_ohlcvc($collected_trades, $timeframe, $since, $limit);
             // Note: first bar would be partially constructed bar and its 'open' & 'high' & 'low' prices (except 'close' price) would probably have different values compared to real bar on chart, because the first obtained trade timestamp might be somewhere in the middle of timeframe period, so the pre-period would be missing because we would not have trades data. To fix that, you can get older data with `fetchTrades` to fill up bars till start bar.
@@ -68,7 +67,7 @@ function example_with_watch_trades() {
 }
 
 
-Async\await(example_with_fetch_trades());
+\React\Async\await(example_with_fetch_trades());
 
 
-Async\await(example_with_watch_trades());
+\React\Async\await(example_with_watch_trades());

@@ -14,11 +14,11 @@ class bittrade extends bittrade$1["default"] {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
-                'watchBalance': false,
+                'watchBalance': false, // for now
                 'watchOHLCV': true,
             },
             'urls': {
@@ -34,7 +34,7 @@ class bittrade extends bittrade$1["default"] {
             'options': {
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
-                'api': 'api',
+                'api': 'api', // or api-aws for clients hosted on AWS
                 'ws': {
                     'gunzip': true,
                 },
@@ -57,7 +57,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -121,7 +123,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -199,7 +203,9 @@ class bittrade extends bittrade$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -268,13 +274,15 @@ class bittrade extends bittrade$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if ((limit !== undefined) && (limit !== 150)) {
             throw new errors.ExchangeError(this.id + ' watchOrderBook accepts limit = 150 only');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -581,7 +589,7 @@ class bittrade extends bittrade$1["default"] {
             }
             return false;
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         if (this.handleErrorMessage(client, message)) {
