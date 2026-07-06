@@ -77,10 +77,9 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 // for WS, watchOHLCV might need 60 seconds for update (so, spot & swap ~ 120sec)
 const timeoutSeconds = wsFlag ? 120 : 250;
 
-const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
-
 const SHOW_TIMER = debugKeys['--show-timer'];
 if (SHOW_TIMER) {
+    const secondsElapsedFrom = (startTime) => Math.floor((Date.now() - startTime) / 1000);
     const startTime = Date.now ();
     setInterval (() => {
         log.bright.yellow(`\t\t\t\t\t\t\t[RUNTESTS ELAPSED ${wsFlag}: ${secondsElapsedFrom(startTime)} s]`);
