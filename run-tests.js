@@ -184,31 +184,19 @@ const exec = (bin, ...args) => {
             }
     }
 
-    const startTime = Date.now ();
     return timeout (timeoutSeconds, new Promise (resolver => {
 
         const psSpawn = ps.spawn (bin, args)
 
-        psSpawn.stdout.on ('data', data => {
-            output += data.toString ()
-        })
-        psSpawn.stderr.on ('data', data => {
-            output += data.toString ();
-            stderr += data.toString ().trim ();
-        })
+        psSpawn.stdout.on ('data', data => { output += data.toString () })
+        psSpawn.stderr.on ('data', data => { output += data.toString (); stderr += data.toString ().trim (); })
 
         psSpawn.on ('exit', code => {
-            if (SHOW_TIMER) {
-                output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
-            }
             const result = generateResultFromOutput (output, stderr, code)
             return resolver (result) ;
         })
 
     })).catch (e => {
-        if (SHOW_TIMER) {
-            output += ` [elapsed: ${secondsElapsedFrom(startTime)} + 's']`;
-        }
         const isTimeout = e.message === 'RUNTEST_TIMED_OUT';
         if (isTimeout) {
             stderr += '\n' + 'RUNTEST_TIMED_OUT: ';
