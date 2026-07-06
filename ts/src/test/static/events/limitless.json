@@ -1,0 +1,564 @@
+[
+    {
+        "id": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+        "event": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+        "slug": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+        "markets": [
+            {
+                "id": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                "symbol": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+                "base": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                "quote": "USDC",
+                "baseId": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                "quoteId": "USDC",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "active": true,
+                "contract": false,
+                "taker": 0.02,
+                "maker": 0.02,
+                "precision": {
+                    "amount": 1e-06,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "marginModes": {},
+                "info": {
+                    "id": "227621",
+                    "automationType": "manual",
+                    "conditionId": "0xc271f82e40443d441582344a626199f34127fe4b48391d87db40564a601c78a3",
+                    "negRiskRequestId": null,
+                    "description": "<p>This market will resolve to \"YES\" if Elon Musk's net worth is strictly greater than $1.15T (equivalent to $1,150B) at any point prior to June 19, 2026, 11:59",
+                    "groupId": null,
+                    "collateralToken": {
+                        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                        "decimals": "6",
+                        "symbol": "USDC"
+                    },
+                    "title": "Will Elon Musk's net worth exceed $1.15T before June 19, 2026?",
+                    "proxyTitle": null,
+                    "expirationDate": "Jun 20, 2026",
+                    "expirationTimestamp": "1781927940000",
+                    "createdAt": "2026-06-10T09:05:21.910Z",
+                    "startAt": null,
+                    "updatedAt": "2026-06-10T09:06:32.831Z",
+                    "categories": [
+                        "Crypto"
+                    ],
+                    "status": "FUNDED",
+                    "expired": false,
+                    "hidden": false,
+                    "creator": {
+                        "name": "Limitless",
+                        "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+                        "link": "https://x.com/trylimitless",
+                        "address": "0x60e61631d9a585797cDee9f79FafDecf3bd7F64D"
+                    },
+                    "tags": [],
+                    "volume": "1609029000",
+                    "volumeFormatted": "1609.029000",
+                    "tokens": {
+                        "yes": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+                        "no": "41103869916214591363115353694440133592981018022960388117140757132692308546157"
+                    },
+                    "prices": [
+                        0.952,
+                        0.048
+                    ],
+                    "tradePrices": {
+                        "buy": {
+                            "market": [
+                                0.967,
+                                0.063
+                            ],
+                            "limit": [
+                                0.937,
+                                0.033
+                            ]
+                        },
+                        "sell": {
+                            "market": [
+                                0.937,
+                                0.033
+                            ],
+                            "limit": [
+                                0.967,
+                                0.063
+                            ]
+                        }
+                    },
+                    "isOther": false,
+                    "isRewardable": true,
+                    "slug": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                    "tradeType": "clob",
+                    "venue": {
+                        "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+                        "adapter": null
+                    },
+                    "marketType": "single",
+                    "priorityIndex": "0",
+                    "winningOutcomeIndex": null,
+                    "metadata": {
+                        "fee": true,
+                        "isBannered": false,
+                        "isPolyArbitrage": false,
+                        "shouldMarketMake": false,
+                        "descriptionEditedManually": true
+                    },
+                    "trends": {
+                        "hourly": {
+                            "value": "5",
+                            "rank": "74"
+                        }
+                    },
+                    "settings": {
+                        "minSize": "100000000",
+                        "maxSpread": "0.035",
+                        "dailyReward": "1",
+                        "rewardsEpoch": "0.0006944444444444445",
+                        "c": "3",
+                        "rebateRate": "0",
+                        "takerDelayMs": "0",
+                        "creatorFeePct": "0"
+                    },
+                    "imageUrl": "https://cdn.limitless.exchange/markets-logo/227621/bc5fa3ed-48af-4518-bd94-47ad71e5853b.png",
+                    "logo": "https://cdn.limitless.exchange/markets-logo/227621/bc5fa3ed-48af-4518-bd94-47ad71e5853b.png",
+                    "address": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910"
+                },
+                "tierBased": false,
+                "percentage": true,
+                "prediction": true,
+                "feeSide": "get",
+                "outcomes": [
+                    {
+                        "id": "107351533390162975244672983811852739852090084984816899292786653138720848063052",
+                        "symbol": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:YES",
+                        "marketSymbol": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+                        "label": "yes",
+                        "active": true,
+                        "info": {
+                            "slug": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                            "address": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                            "outcomeLabel": "yes",
+                            "tokenId": "107351533390162975244672983811852739852090084984816899292786653138720848063052"
+                        }
+                    },
+                    {
+                        "id": "41103869916214591363115353694440133592981018022960388117140757132692308546157",
+                        "symbol": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910:NO",
+                        "marketSymbol": "ELON_MUSKS_NET_WORTH_EXCEED_DOLLAR115T_JUNE_19_2026_1781082321910",
+                        "label": "no",
+                        "active": true,
+                        "info": {
+                            "slug": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                            "address": "will-elon-musks-net-worth-exceed-dollar115t-before-june-19-2026-1781082321910",
+                            "outcomeLabel": "no",
+                            "tokenId": "41103869916214591363115353694440133592981018022960388117140757132692308546157"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+        "event": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+        "slug": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+        "markets": [
+            {
+                "id": "usa-and-australia-both-to-score-1779980360817",
+                "symbol": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+                "base": "usa-and-australia-both-to-score-1779980360817",
+                "quote": "USDC",
+                "baseId": "usa-and-australia-both-to-score-1779980360817",
+                "quoteId": "USDC",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "active": true,
+                "contract": false,
+                "taker": 0.02,
+                "maker": 0.02,
+                "precision": {
+                    "amount": 1e-06,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "marginModes": {},
+                "info": {
+                    "id": "185421",
+                    "automationType": "sports",
+                    "conditionId": "0x596f88053d8b0aaffb4909bc936f90915475d02f52cf8c704a3fa9a358ebd411",
+                    "negRiskRequestId": null,
+                    "description": "This market will resolve to \"YES\" if both USA and Australia score at least one goal each during regular time (90 minutes plus stoppage time only) in the World C",
+                    "groupId": null,
+                    "collateralToken": {
+                        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                        "decimals": "6",
+                        "symbol": "USDC"
+                    },
+                    "title": "USA and Australia both to score?",
+                    "proxyTitle": null,
+                    "expirationDate": "Jun 20, 2026",
+                    "expirationTimestamp": "1781982000000",
+                    "createdAt": "2026-05-28T14:59:20.806Z",
+                    "startAt": null,
+                    "updatedAt": "2026-05-28T15:07:18.277Z",
+                    "categories": [
+                        "Props"
+                    ],
+                    "status": "FUNDED",
+                    "expired": false,
+                    "hidden": false,
+                    "creator": {
+                        "name": "Limitless",
+                        "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+                        "link": "https://x.com/trylimitless",
+                        "address": "0x60e61631d9a585797cDee9f79FafDecf3bd7F64D"
+                    },
+                    "tags": [
+                        "Football",
+                        "Lumy"
+                    ],
+                    "volume": "0",
+                    "volumeFormatted": "0.000000",
+                    "tokens": {
+                        "yes": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+                        "no": "86230754815698413619206189608906849294848879165498461416569335949589979443562"
+                    },
+                    "prices": [
+                        0.476,
+                        0.524
+                    ],
+                    "tradePrices": {
+                        "buy": {
+                            "market": [
+                                0.486,
+                                0.534
+                            ],
+                            "limit": [
+                                0.466,
+                                0.514
+                            ]
+                        },
+                        "sell": {
+                            "market": [
+                                0.466,
+                                0.514
+                            ],
+                            "limit": [
+                                0.486,
+                                0.534
+                            ]
+                        }
+                    },
+                    "isOther": false,
+                    "isRewardable": true,
+                    "slug": "usa-and-australia-both-to-score-1779980360817",
+                    "tradeType": "clob",
+                    "venue": {
+                        "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+                        "adapter": null
+                    },
+                    "marketType": "single",
+                    "priorityIndex": "0",
+                    "winningOutcomeIndex": null,
+                    "metadata": {
+                        "fee": true,
+                        "awayTeam": "Australia",
+                        "homeTeam": "USA",
+                        "fixtureId": "1489391",
+                        "sportType": "football",
+                        "externalSlug": "fifwc-usa-aus-2026-06-19-btts",
+                        "cardsThreshold": "0",
+                        "goalsThreshold": "0",
+                        "shotsThreshold": "0",
+                        "daysBeforeMatch": "30",
+                        "binaryMarketType": "btts",
+                        "cornersThreshold": "0",
+                        "startMatchTimestampInUTC": "1781895600",
+                        "conditionalMarketSettings": {
+                            "c": "3",
+                            "minSize": "100000000",
+                            "maxSpread": "0.035",
+                            "rewardsEpoch": "0.002777777777777778"
+                        },
+                        "conditionalSettingsApplied": false,
+                        "daysBeforeMatchForSettings": "5"
+                    },
+                    "settings": {
+                        "minSize": "100000000",
+                        "maxSpread": "0.035",
+                        "dailyReward": "1",
+                        "rewardsEpoch": "0.0006944444444444445",
+                        "c": "3",
+                        "rebateRate": "0",
+                        "takerDelayMs": "250",
+                        "creatorFeePct": "0"
+                    },
+                    "imageUrl": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+                    "logo": "https://storage.googleapis.com/limitless-exchange-assets/assets/ball.png",
+                    "address": "usa-and-australia-both-to-score-1779980360817"
+                },
+                "tierBased": false,
+                "percentage": true,
+                "prediction": true,
+                "feeSide": "get",
+                "outcomes": [
+                    {
+                        "id": "86754852064474869881286364251658764942266025328391522221494274517474936254814",
+                        "symbol": "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
+                        "marketSymbol": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+                        "label": "yes",
+                        "active": true,
+                        "info": {
+                            "slug": "usa-and-australia-both-to-score-1779980360817",
+                            "address": "usa-and-australia-both-to-score-1779980360817",
+                            "outcomeLabel": "yes",
+                            "tokenId": "86754852064474869881286364251658764942266025328391522221494274517474936254814"
+                        }
+                    },
+                    {
+                        "id": "86230754815698413619206189608906849294848879165498461416569335949589979443562",
+                        "symbol": "USA_AUSTRALIA_BOTH_SCORE_1779980360817:NO",
+                        "marketSymbol": "USA_AUSTRALIA_BOTH_SCORE_1779980360817",
+                        "label": "no",
+                        "active": true,
+                        "info": {
+                            "slug": "usa-and-australia-both-to-score-1779980360817",
+                            "address": "usa-and-australia-both-to-score-1779980360817",
+                            "outcomeLabel": "no",
+                            "tokenId": "86230754815698413619206189608906849294848879165498461416569335949589979443562"
+                        }
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+        "event": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+        "slug": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+        "markets": [
+            {
+                "id": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                "symbol": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+                "base": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                "quote": "USDC",
+                "baseId": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                "quoteId": "USDC",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "active": true,
+                "contract": false,
+                "taker": 0.02,
+                "maker": 0.02,
+                "precision": {
+                    "amount": 1e-06,
+                    "price": 0.001
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 0
+                    },
+                    "price": {
+                        "min": 0.001,
+                        "max": 0.999
+                    },
+                    "cost": {}
+                },
+                "marginModes": {},
+                "info": {
+                    "id": "185664",
+                    "automationType": "sports",
+                    "conditionId": "0x7e7d2547343863adaeafb0af40371a66aa6f1e08142c488063055b808011e99e",
+                    "negRiskRequestId": null,
+                    "description": "This market will resolve to \"YES\" if Brazil wins by 2 or more goals against Haiti during regular time (90 minutes plus stoppage time only) in the World Cup matc",
+                    "groupId": null,
+                    "collateralToken": {
+                        "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                        "decimals": "6",
+                        "symbol": "USDC"
+                    },
+                    "title": "Brazil to win by 2 or more goals vs Haiti?",
+                    "proxyTitle": null,
+                    "expirationDate": "Jun 21, 2026",
+                    "expirationTimestamp": "1782001800000",
+                    "createdAt": "2026-05-28T15:00:25.811Z",
+                    "startAt": null,
+                    "updatedAt": "2026-05-28T15:29:57.741Z",
+                    "categories": [
+                        "Props"
+                    ],
+                    "status": "FUNDED",
+                    "expired": false,
+                    "hidden": false,
+                    "creator": {
+                        "name": "Limitless",
+                        "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+                        "link": "https://x.com/trylimitless",
+                        "address": "0x60e61631d9a585797cDee9f79FafDecf3bd7F64D"
+                    },
+                    "tags": [
+                        "Football",
+                        "Lumy"
+                    ],
+                    "volume": "50000000",
+                    "volumeFormatted": "50.000000",
+                    "tokens": {
+                        "yes": "89634175829769632055090515893651875306167461564178587806346495495252663212018",
+                        "no": "1925591688422419280266869615271650897764513098637284614861873593056563392412"
+                    },
+                    "prices": [
+                        0.775,
+                        0.225
+                    ],
+                    "tradePrices": {
+                        "buy": {
+                            "market": [
+                                0.825,
+                                0.275
+                            ],
+                            "limit": [
+                                0.725,
+                                0.175
+                            ]
+                        },
+                        "sell": {
+                            "market": [
+                                0.725,
+                                0.175
+                            ],
+                            "limit": [
+                                0.825,
+                                0.275
+                            ]
+                        }
+                    },
+                    "isOther": false,
+                    "isRewardable": true,
+                    "slug": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                    "tradeType": "clob",
+                    "venue": {
+                        "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+                        "adapter": null
+                    },
+                    "marketType": "single",
+                    "priorityIndex": "0",
+                    "winningOutcomeIndex": null,
+                    "metadata": {
+                        "fee": true,
+                        "team": "home",
+                        "awayTeam": "Haiti",
+                        "homeTeam": "Brazil",
+                        "fixtureId": "1489389",
+                        "sportType": "football",
+                        "externalSlug": "fifwc-bra-hai-2026-06-19-spread-home-1pt5",
+                        "cardsThreshold": "0",
+                        "goalsThreshold": "0",
+                        "shotsThreshold": "0",
+                        "daysBeforeMatch": "30",
+                        "spreadThreshold": "2",
+                        "binaryMarketType": "spreads",
+                        "cornersThreshold": "0",
+                        "startMatchTimestampInUTC": "1781915400",
+                        "conditionalMarketSettings": {
+                            "c": "3",
+                            "minSize": "100000000",
+                            "maxSpread": "0.035",
+                            "rewardsEpoch": "0.002777777777777778"
+                        },
+                        "conditionalSettingsApplied": false,
+                        "daysBeforeMatchForSettings": "5"
+                    },
+                    "settings": {
+                        "minSize": "100000000",
+                        "maxSpread": "0.035",
+                        "dailyReward": "1",
+                        "rewardsEpoch": "0.0006944444444444445",
+                        "c": "3",
+                        "rebateRate": "0",
+                        "takerDelayMs": "250",
+                        "creatorFeePct": "0"
+                    },
+                    "imageUrl": "https://storage.googleapis.com/limitless-exchange-assets/assets/spread.png",
+                    "logo": "https://storage.googleapis.com/limitless-exchange-assets/assets/spread.png",
+                    "address": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813"
+                },
+                "tierBased": false,
+                "percentage": true,
+                "prediction": true,
+                "feeSide": "get",
+                "outcomes": [
+                    {
+                        "id": "89634175829769632055090515893651875306167461564178587806346495495252663212018",
+                        "symbol": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813:YES",
+                        "marketSymbol": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+                        "label": "yes",
+                        "active": true,
+                        "info": {
+                            "slug": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                            "address": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                            "outcomeLabel": "yes",
+                            "tokenId": "89634175829769632055090515893651875306167461564178587806346495495252663212018"
+                        }
+                    },
+                    {
+                        "id": "1925591688422419280266869615271650897764513098637284614861873593056563392412",
+                        "symbol": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813:NO",
+                        "marketSymbol": "BRAZIL_WIN_2_MORE_GOALS_VS_HAITI_1779980425813",
+                        "label": "no",
+                        "active": true,
+                        "info": {
+                            "slug": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                            "address": "brazil-to-win-by-2-or-more-goals-vs-haiti-1779980425813",
+                            "outcomeLabel": "no",
+                            "tokenId": "1925591688422419280266869615271650897764513098637284614861873593056563392412"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+]

@@ -3146,7 +3146,7 @@ class coinex extends Exchange {
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
                 $code = $this->safe_string($entry, 'code');
-                $message = $this->safe_string($entry, 'message');
+                $message = $this->safe_string($entry, 'message', '');
                 if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
                     $feedback = $this->id . ' ' . $message;
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
@@ -4049,7 +4049,7 @@ class coinex extends Exchange {
         //         "memo" => ""
         //     }
         //
-        $coinAddress = $this->safe_string($depositAddress, 'address');
+        $coinAddress = $this->safe_string($depositAddress, 'address', '');
         $parts = explode(':', $coinAddress);
         $address = null;
         $tag = null;
@@ -6168,7 +6168,7 @@ class coinex extends Exchange {
         })();
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array(), $defaultValue = null): array {
+    public function handle_margin_mode_and_params($methodName, $params = array(), mixed $defaultValue = null): array {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -6302,7 +6302,7 @@ class coinex extends Exchange {
         }
         $code = $this->safe_string($response, 'code');
         $data = $this->safe_value($response, 'data');
-        $message = $this->safe_string($response, 'message');
+        $message = $this->safe_string($response, 'message', '');
         if (($code !== '0') || (($message !== 'Success') && ($message !== 'Succeeded') && (strtolower($message) !== 'ok') && !$data)) {
             $feedback = $this->id . ' ' . $message;
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

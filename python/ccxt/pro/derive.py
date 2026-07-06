@@ -123,14 +123,14 @@ class derive(ccxt.async_support.derive):
         # }
         #
         params = self.safe_dict(message, 'params')
-        data = self.safe_dict(params, 'data')
+        data = self.safe_dict(params, 'data', {})
         marketId = self.safe_string(data, 'instrument_name')
         market = self.safe_market(marketId)
         symbol = market['symbol']
         topic = self.safe_string(params, 'channel')
         if not (symbol in self.orderbooks):
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
-            subscription = client.subscriptions[topic]
+            subscription = None if (topic is None) else client.subscriptions[topic]
             limit = self.safe_integer(subscription, 'limit', defaultLimit)
             self.orderbooks[symbol] = self.order_book({}, limit)
         orderbook = self.orderbooks[symbol]
@@ -234,10 +234,12 @@ class derive(ccxt.async_support.derive):
         #
         params = self.safe_dict(message, 'params')
         rawData = self.safe_dict(params, 'data')
-        data = self.safe_dict(rawData, 'instrument_ticker')
+        data = self.safe_dict(rawData, 'instrument_ticker', {})
         topic = self.safe_value(params, 'channel')
         ticker = self.parse_ticker(data)
-        self.tickers[ticker['symbol']] = ticker
+        tickerSymbol = ticker['symbol']
+        if tickerSymbol is not None:
+            self.tickers[tickerSymbol] = ticker
         client.resolve(ticker, topic)
         return message
 
@@ -390,7 +392,7 @@ class derive(ccxt.async_support.derive):
         #
         #
         params = self.safe_dict(message, 'params')
-        data = self.safe_dict(params, 'data')
+        data = self.safe_dict(params, 'data', {})
         topic = self.safe_value(params, 'channel')
         parsedTopic = topic.split('.')
         marketId = self.safe_string(parsedTopic, 1)
@@ -533,7 +535,7 @@ class derive(ccxt.async_support.derive):
         #
         params = self.safe_dict(message, 'params')
         topic = self.safe_string(params, 'channel')
-        rawOrders = self.safe_list(params, 'data')
+        rawOrders = self.safe_list(params, 'data', [])
         for i in range(0, len(rawOrders)):
             data = rawOrders[i]
             parsed = self.parse_order(data)
@@ -545,7 +547,7 @@ class derive(ccxt.async_support.derive):
                     self.orders = ArrayCacheBySymbolById(limit)
                 cachedOrders = self.orders
                 orders = self.safe_value(cachedOrders.hashmap, symbol, {})
-                order = self.safe_value(orders, orderId)
+                order = None if (orderId is None) else self.safe_value(orders, orderId)
                 if order is not None:
                     fee = self.safe_value(order, 'fee')
                     if fee is not None:
@@ -610,7 +612,7 @@ class derive(ccxt.async_support.derive):
             myTrades = ArrayCacheBySymbolById(limit)
         params = self.safe_dict(message, 'params')
         topic = self.safe_string(params, 'channel')
-        rawTrades = self.safe_list(params, 'data')
+        rawTrades = self.safe_list(params, 'data', [])
         for i in range(0, len(rawTrades)):
             trade = self.parse_trade(message)
             myTrades.append(trade)
@@ -668,14 +670,14 @@ class derive(ccxt.async_support.derive):
                         event = 'mytrades'
                 else:
                     event = self.safe_string(parsedChannel, 0)
-        method = self.safe_value(methods, event)
+        method = None if (event is None) else self.safe_value(methods, event)
         if method is not None:
             method(client, message)
             return
         if 'id' in message:
             id = self.safe_string(message, 'id')
             subscriptionsById = self.index_by(client.subscriptions, 'id')
-            subscription = self.safe_value(subscriptionsById, id, {})
+            subscription = {} if (id is None) else self.safe_value(subscriptionsById, id, {})
             if 'method' in subscription:
                 if subscription['method'] == 'public/login':
                     self.handle_auth(client, message)
@@ -691,7 +693,7 @@ class derive(ccxt.async_support.derive):
         # }
         #
         messageHash = 'authenticated'
-        ids = self.safe_list(message, 'result')
+        ids = self.safe_list(message, 'result', [])
         if len(ids) > 0:
             # client.resolve(message, messageHash)
             future = self.safe_value(client.futures, 'authenticated')

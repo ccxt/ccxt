@@ -8,7 +8,10 @@
 import fs from 'fs';
 import path from 'path'
 import { platform } from 'process'
-import ccxt from '../js/ccxt.js';
+// import the TS source ccxt (resolved by tsx) so the ccxt.prediction namespace is available —
+// the built js/ccxt.js may be stale and miss prediction exchanges (kalshi/limitless/... and the
+// hyperliquid prediction variant)
+import ccxt from '../ts/ccxt.js';
 
 const [,, ...args] = process.argv;
 
@@ -85,13 +88,17 @@ function twoSpacedIndent (jsonStr) {
 
 // #####################################
 
-function add_static_result (requestOrResponse, exchangeId, method, entry, spacesIndent = undefined) {
-        
+function add_static_result (requestOrResponse, exchangeId, method, entry, spacesIndent = undefined, isPrediction = false) {
+
     if (!exchangeId) {
         die ("Exchange id is missing");
     }
 
-    if (!ccxt.exchanges.includes(exchangeId)) {
+    // prediction-market exchanges live in the ccxt.prediction namespace (some, like kalshi, are not
+    // in ccxt.exchanges at all) and their fixtures are stored under the static/<type>/prediction/ subfolder
+    const predictionExchanges = ((ccxt as any).prediction !== undefined) ? (ccxt as any).prediction.exchanges : [];
+    const validIds = isPrediction ? predictionExchanges : ccxt.exchanges;
+    if (!validIds.includes(exchangeId)) {
         console.log('Exchange id ' + exchangeId + ' not found in exchanges.json');
         process.exit(1);
     }
@@ -99,10 +106,16 @@ function add_static_result (requestOrResponse, exchangeId, method, entry, spaces
     if (requestOrResponse !== 'request' && requestOrResponse !== 'response') {
         throw new Error ('should be either "request" or "response"');
     }
-    const filePath = rootDir + `/ts/src/test/static/${requestOrResponse}/${exchangeId}.json`;
-    const defaultStructure = {"exchange":exchangeId, "skipKeys": [], "options": {}, "methods": {}};
-    if (requestOrResponse === 'request') {
-        (defaultStructure as any).outputType = 'both';
+    const subFolder = isPrediction ? 'prediction/' : '';
+    const filePath = rootDir + `/ts/src/test/static/${requestOrResponse}/${subFolder}${exchangeId}.json`;
+    let defaultStructure;
+    if (isPrediction) {
+        defaultStructure = {"exchange":exchangeId, "asyncOnly": true, "skipKeys": [], "outputType": "json", "options": {"loadAllOutcomes": true}, "methods": {}};
+    } else {
+        defaultStructure = {"exchange":exchangeId, "skipKeys": [], "options": {}, "methods": {}};
+        if (requestOrResponse === 'request') {
+            (defaultStructure as any).outputType = 'both';
+        }
     }
     const fileContent = readFileInit (filePath, jsonStringify(defaultStructure));
     // auto-detect 2 or 4 spaces used (just for backward compatibility)

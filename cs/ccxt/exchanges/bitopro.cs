@@ -1045,7 +1045,7 @@ public partial class bitopro : Exchange
             { "4", "canceled" },
             { "6", "canceled" },
         };
-        return this.safeString(statuses, status);
+        return ((bool) isTrue((isEqual(status, null)))) ? null : this.safeString(statuses, status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1841,7 +1841,7 @@ public partial class bitopro : Exchange
             object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
             object requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
-            object networkId = this.safeString(networks, requestedNetwork);
+            object networkId = ((bool) isTrue((isEqual(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
             if (isTrue(isEqual(networkId, null)))
             {
                 throw new ExchangeError ((string)add(add(this.id, " invalid network "), requestedNetwork)) ;

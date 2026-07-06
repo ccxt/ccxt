@@ -20,7 +20,7 @@ async function testWatchBidsAsksHelper(exchange, skippedProperties, argSymbols, 
     while (now < ends) {
         let success = true;
         let shouldReturn = false;
-        let response = undefined;
+        let response = {};
         try {
             response = await exchange.watchBidsAsks(argSymbols, argParams);
         }

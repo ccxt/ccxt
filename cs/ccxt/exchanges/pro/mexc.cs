@@ -1432,6 +1432,11 @@ public partial class mexc : ccxt.mexc
         if (isTrue(getValue(market, "spot")))
         {
             parsed = this.parseWsOrder(data, market);
+            object sendTime = this.safeInteger(message, "sendTime");
+            if (isTrue(!isEqual(sendTime, null)))
+            {
+                ((IDictionary<string,object>)parsed)["lastTradeTimestamp"] = sendTime;
+            }
         } else
         {
             parsed = this.parseOrder(data, market);

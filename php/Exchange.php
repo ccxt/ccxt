@@ -5414,7 +5414,7 @@ class Exchange {
     public function safe_ticker(array $ticker, ?array $market = null) {
         $open = $this->omit_zero($this->safe_string($ticker, 'open'));
         $close = $this->omit_zero($this->safe_string_2($ticker, 'close', 'last'));
-        $change = $this->omit_zero($this->safe_string($ticker, 'change'));
+        $change = $this->safe_string($ticker, 'change'); // $change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
         $vwap = $this->safe_string($ticker, 'vwap');
@@ -6029,7 +6029,7 @@ class Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
-    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, ?string $marketIdKey = null) {
         // $marketIdKey should only be null when $response is a dictionary.
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
@@ -6041,7 +6041,7 @@ class Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             for ($i = 0; $i < count($response); $i++) {
                 $item = $response[$i];
-                $id = $this->safe_string($item, $marketIdKey);
+                $id = ($marketIdKey === null) ? null : $this->safe_string($item, $marketIdKey);
                 $market = $this->safe_market($id, null, null, 'swap');
                 $symbol = $market['symbol'];
                 $contract = $this->safe_bool($market, 'contract', false);
@@ -6081,7 +6081,7 @@ class Exchange {
 
     public function safe_position(array $position) {
         // simplified version of => /pull/12765/
-        $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         //
         // PERCENTAGE
@@ -7825,7 +7825,7 @@ class Exchange {
                 return $this->safe_dict($addressStructures, $network);
             } else {
                 $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
-                $key = $this->safe_string($keys, 0);
+                $key = $keys[0];
                 return $this->safe_dict($addressStructures, $key);
             }
         } else {
@@ -8771,7 +8771,7 @@ class Exchange {
         }
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, ?string $currencyIdKey = null) {
         /**
          * @ignore
          * @param {object[]|array} $response unparsed $response from the exchange
@@ -8788,7 +8788,10 @@ class Exchange {
         for ($i = 0; $i < count($responseKeys); $i++) {
             $entry = $responseKeys[$i];
             $dictionary = $isArray ? $entry : $response[$entry];
-            $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
+            $currencyId = $entry;
+            if ($isArray) {
+                $currencyId = ($currencyIdKey === null) ? null : $this->safe_string($dictionary, $currencyIdKey);
+            }
             $currency = $this->safe_currency($currencyId);
             $code = $this->safe_string($currency, 'code');
             if (($codes === null) || ($this->in_array($code, $codes))) {
@@ -9146,7 +9149,7 @@ class Exchange {
                     $index = $responseLength - $j - 1;
                     $entry = $this->safe_dict($response, $index);
                     $info = $this->safe_dict($entry, 'info');
-                    $cursor = $this->safe_value($info, $cursorReceived);
+                    $cursor = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
                     if ($cursor !== null) {
                         $cursorValue = $cursor;
                         break;
@@ -9361,9 +9364,9 @@ class Exchange {
         $optionStructures = array();
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $currencyId = $this->safe_string($info, $currencyKey);
+            $currencyId = ($currencyKey === null) ? null : $this->safe_string($info, $currencyKey);
             $currency = $this->safe_currency($currencyId);
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, 'option');
             $optionStructures[$market['symbol']] = $this->parse_option($info, $currency, $market);
         }
@@ -9377,7 +9380,7 @@ class Exchange {
         }
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
                 $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($info, $market);
@@ -9397,7 +9400,7 @@ class Exchange {
         }
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
                 $leverageStructures[$market['symbol']] = $this->parse_leverage($info, $market);
@@ -9417,8 +9420,8 @@ class Exchange {
         $toCurrency = null;
         for ($i = 0; $i < count($conversions); $i++) {
             $entry = $conversions[$i];
-            $fromId = $this->safe_string($entry, $fromCurrencyKey);
-            $toId = $this->safe_string($entry, $toCurrencyKey);
+            $fromId = ($fromCurrencyKey === null) ? null : $this->safe_string($entry, $fromCurrencyKey);
+            $toId = ($toCurrencyKey === null) ? null : $this->safe_string($entry, $toCurrencyKey);
             if ($fromId !== null) {
                 $fromCurrency = $this->safe_currency($fromId);
             }
@@ -9560,7 +9563,7 @@ class Exchange {
         $marginModifications = array();
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
                 $marginModifications[] = $this->parse_margin_modification($info, $market);

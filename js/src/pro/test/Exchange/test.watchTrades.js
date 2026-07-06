@@ -11,7 +11,7 @@ async function testWatchTrades(exchange, skippedProperties, symbol) {
     let now = exchange.milliseconds();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response = [];
         let success = true;
         try {
             response = await exchange.watchTrades(symbol);

@@ -1,0 +1,392 @@
+[
+    {
+        "id": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+        "event": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+        "slug": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+        "markets": [
+            {
+                "id": "KXELONMARS-99",
+                "symbol": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                "base": "USD",
+                "quote": "USD",
+                "baseId": "KXELONMARS-99",
+                "quoteId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "contract": false,
+                "expiry": 4089884400000,
+                "expiryDatetime": "2099-08-08T15:00:00Z",
+                "taker": 0.07,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 1,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "id": "KXELONMARS-99",
+                        "symbol": "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
+                        "marketSymbol": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "label": "YES",
+                        "active": true,
+                        "info": {
+                            "ticker": "KXELONMARS-99",
+                            "eventTicker": "KXELONMARS-99",
+                            "seriesTicker": "KXELONMARS",
+                            "subtitle": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                            "outcomeLabel": "YES"
+                        }
+                    },
+                    {
+                        "id": "KXELONMARS-99-NO",
+                        "symbol": "ELON_MUSK_VISIT_MARS_AUG_1_2099:NO",
+                        "marketSymbol": "ELON_MUSK_VISIT_MARS_AUG_1_2099",
+                        "label": "NO",
+                        "active": true,
+                        "info": {
+                            "ticker": "KXELONMARS-99",
+                            "eventTicker": "KXELONMARS-99",
+                            "seriesTicker": "KXELONMARS",
+                            "subtitle": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                            "outcomeLabel": "NO"
+                        }
+                    }
+                ],
+                "info": {
+                    "can_close_early": true,
+                    "close_time": "2099-08-01T04:59:00Z",
+                    "created_time": "2025-08-28T20:40:16.168768Z",
+                    "early_close_condition": "This market will close and expire early if the event occurs.",
+                    "event_ticker": "KXELONMARS-99",
+                    "expected_expiration_time": "2099-08-01T15:00:00Z",
+                    "expiration_time": "2099-08-08T15:00:00Z",
+                    "expiration_value": "",
+                    "fractional_trading_enabled": true,
+                    "last_price_dollars": "0.1000",
+                    "latest_expiration_time": "2099-08-08T15:00:00Z",
+                    "liquidity_dollars": "0.0000",
+                    "market_type": "binary",
+                    "no_ask_dollars": "0.9200",
+                    "no_bid_dollars": "0.8800",
+                    "no_sub_title": "Mars",
+                    "notional_value_dollars": "1.0000",
+                    "open_interest_fp": "32746.17",
+                    "open_time": "2025-08-28T20:45:00Z",
+                    "previous_price_dollars": "0.0800",
+                    "previous_yes_ask_dollars": "0.1000",
+                    "previous_yes_bid_dollars": "0.0800",
+                    "price_level_structure": "linear_cent",
+                    "price_ranges": [
+                        {
+                            "end": "1.0000",
+                            "start": "0.0000",
+                            "step": "0.0100"
+                        }
+                    ],
+                    "response_price_units": "usd_cent",
+                    "result": "",
+                    "rules_primary": "If Elon Musk visits Mars before the earlier of his death or Aug 1, 2099, then the market resolves to Yes.",
+                    "rules_secondary": "",
+                    "settlement_timer_seconds": "1800",
+                    "status": "active",
+                    "ticker": "KXELONMARS-99",
+                    "title": "Will Elon Musk visit Mars before Aug 1, 2099?",
+                    "updated_time": "2026-04-09T09:31:16.616867Z",
+                    "volume_24h_fp": "19.74",
+                    "volume_fp": "94884.62",
+                    "yes_ask_dollars": "0.1200",
+                    "yes_ask_size_fp": "1967.33",
+                    "yes_bid_dollars": "0.0800",
+                    "yes_bid_size_fp": "444.32",
+                    "yes_sub_title": "Mars",
+                    "eventTicker": "KXELONMARS-99",
+                    "seriesTicker": "KXELONMARS",
+                    "subtitle": "Will Elon Musk visit Mars before Aug 1, 2099?"
+                }
+            }
+        ]
+    },
+    {
+        "id": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+        "event": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+        "slug": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+        "markets": [
+            {
+                "id": "KXWARMING-50",
+                "symbol": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+                "base": "USD",
+                "quote": "USD",
+                "baseId": "KXWARMING-50",
+                "quoteId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "contract": false,
+                "expiry": 2525266800000,
+                "expiryDatetime": "2050-01-08T15:00:00Z",
+                "taker": 0.07,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 1,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "id": "KXWARMING-50",
+                        "symbol": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050:YES",
+                        "marketSymbol": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+                        "label": "YES",
+                        "active": true,
+                        "info": {
+                            "ticker": "KXWARMING-50",
+                            "eventTicker": "KXWARMING-50",
+                            "seriesTicker": "KXWARMING",
+                            "subtitle": "Will the world pass 2 degrees Celsius over pre-industrial levels before 2050?",
+                            "outcomeLabel": "YES"
+                        }
+                    },
+                    {
+                        "id": "KXWARMING-50-NO",
+                        "symbol": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050:NO",
+                        "marketSymbol": "WORLD_PASS_2_DEGREES_CELSIUS_OVER_PRE_INDUSTRIAL_LEVELS_2050",
+                        "label": "NO",
+                        "active": true,
+                        "info": {
+                            "ticker": "KXWARMING-50",
+                            "eventTicker": "KXWARMING-50",
+                            "seriesTicker": "KXWARMING",
+                            "subtitle": "Will the world pass 2 degrees Celsius over pre-industrial levels before 2050?",
+                            "outcomeLabel": "NO"
+                        }
+                    }
+                ],
+                "info": {
+                    "can_close_early": true,
+                    "close_time": "2050-01-01T04:59:00Z",
+                    "created_time": "2025-06-05T16:28:27.496599Z",
+                    "early_close_condition": "This market will close and expire early if the event occurs.",
+                    "event_ticker": "KXWARMING-50",
+                    "expected_expiration_time": "2050-01-01T15:00:00Z",
+                    "expiration_time": "2050-01-08T15:00:00Z",
+                    "expiration_value": "",
+                    "fractional_trading_enabled": true,
+                    "last_price_dollars": "0.7700",
+                    "latest_expiration_time": "2050-01-08T15:00:00Z",
+                    "liquidity_dollars": "0.0000",
+                    "market_type": "binary",
+                    "no_ask_dollars": "0.2400",
+                    "no_bid_dollars": "0.2300",
+                    "no_sub_title": "Before 2050",
+                    "notional_value_dollars": "1.0000",
+                    "open_interest_fp": "5280.92",
+                    "open_time": "2025-06-05T16:45:00Z",
+                    "previous_price_dollars": "0.7700",
+                    "previous_yes_ask_dollars": "0.7700",
+                    "previous_yes_bid_dollars": "0.7600",
+                    "price_level_structure": "linear_cent",
+                    "price_ranges": [
+                        {
+                            "end": "1.0000",
+                            "start": "0.0000",
+                            "step": "0.0100"
+                        }
+                    ],
+                    "response_price_units": "usd_cent",
+                    "result": "",
+                    "rules_primary": "If the annual global mean surface temperature anomaly has reached or exceeded +2.0°C above pre-industrial levels (1850-1900 average) in any calendar year before",
+                    "rules_secondary": "At least two of the Source Agencies must report that we have hit the 2.0°C threshold.",
+                    "settlement_timer_seconds": "1800",
+                    "status": "active",
+                    "ticker": "KXWARMING-50",
+                    "title": "Will the world pass 2 degrees Celsius over pre-industrial levels before 2050?",
+                    "updated_time": "2026-04-09T09:18:53.966868Z",
+                    "volume_24h_fp": "12.22",
+                    "volume_fp": "14301.86",
+                    "yes_ask_dollars": "0.7700",
+                    "yes_ask_size_fp": "2.76",
+                    "yes_bid_dollars": "0.7600",
+                    "yes_bid_size_fp": "5.00",
+                    "yes_sub_title": "Before 2050",
+                    "eventTicker": "KXWARMING-50",
+                    "seriesTicker": "KXWARMING",
+                    "subtitle": "Will the world pass 2 degrees Celsius over pre-industrial levels before 2050?"
+                }
+            }
+        ]
+    },
+    {
+        "id": "HUMANS_COLONIZE_MARS_2050",
+        "event": "HUMANS_COLONIZE_MARS_2050",
+        "slug": "HUMANS_COLONIZE_MARS_2050",
+        "markets": [
+            {
+                "id": "KXCOLONIZEMARS-50",
+                "symbol": "HUMANS_COLONIZE_MARS_2050",
+                "base": "USD",
+                "quote": "USD",
+                "baseId": "KXCOLONIZEMARS-50",
+                "quoteId": "USD",
+                "type": "prediction",
+                "spot": false,
+                "margin": false,
+                "swap": false,
+                "future": false,
+                "option": false,
+                "prediction": true,
+                "active": true,
+                "contract": false,
+                "expiry": 2525266800000,
+                "expiryDatetime": "2050-01-08T15:00:00Z",
+                "taker": 0.07,
+                "maker": 0,
+                "percentage": true,
+                "tierBased": false,
+                "feeSide": "get",
+                "precision": {
+                    "amount": 1,
+                    "price": 0.01
+                },
+                "limits": {
+                    "leverage": {
+                        "min": 1,
+                        "max": 1
+                    },
+                    "amount": {
+                        "min": 1
+                    },
+                    "price": {
+                        "min": 0.01,
+                        "max": 0.99
+                    },
+                    "cost": {}
+                },
+                "outcomes": [
+                    {
+                        "id": "KXCOLONIZEMARS-50",
+                        "symbol": "HUMANS_COLONIZE_MARS_2050:YES",
+                        "marketSymbol": "HUMANS_COLONIZE_MARS_2050",
+                        "label": "YES",
+                        "active": true,
+                        "info": {
+                            "ticker": "KXCOLONIZEMARS-50",
+                            "eventTicker": "KXCOLONIZEMARS-50",
+                            "seriesTicker": "KXCOLONIZEMARS",
+                            "subtitle": "Will humans colonize Mars before 2050?",
+                            "outcomeLabel": "YES"
+                        }
+                    },
+                    {
+                        "id": "KXCOLONIZEMARS-50-NO",
+                        "symbol": "HUMANS_COLONIZE_MARS_2050:NO",
+                        "marketSymbol": "HUMANS_COLONIZE_MARS_2050",
+                        "label": "NO",
+                        "active": true,
+                        "info": {
+                            "ticker": "KXCOLONIZEMARS-50",
+                            "eventTicker": "KXCOLONIZEMARS-50",
+                            "seriesTicker": "KXCOLONIZEMARS",
+                            "subtitle": "Will humans colonize Mars before 2050?",
+                            "outcomeLabel": "NO"
+                        }
+                    }
+                ],
+                "info": {
+                    "can_close_early": true,
+                    "close_time": "2050-01-01T04:59:00Z",
+                    "created_time": "2025-06-27T16:35:35.36594Z",
+                    "early_close_condition": "This market will close and expire early if the event occurs.",
+                    "event_ticker": "KXCOLONIZEMARS-50",
+                    "expected_expiration_time": "2050-01-01T15:00:00Z",
+                    "expiration_time": "2050-01-08T15:00:00Z",
+                    "expiration_value": "",
+                    "fractional_trading_enabled": true,
+                    "last_price_dollars": "0.1950",
+                    "latest_expiration_time": "2050-01-08T15:00:00Z",
+                    "liquidity_dollars": "0.0000",
+                    "market_type": "binary",
+                    "no_ask_dollars": "0.8370",
+                    "no_bid_dollars": "0.8050",
+                    "no_sub_title": "Before 2050",
+                    "notional_value_dollars": "1.0000",
+                    "open_interest_fp": "9086.00",
+                    "open_time": "2025-06-27T20:45:00Z",
+                    "previous_price_dollars": "0.1950",
+                    "previous_yes_ask_dollars": "0.1950",
+                    "previous_yes_bid_dollars": "0.1630",
+                    "price_level_structure": "deci_cent",
+                    "price_ranges": [
+                        {
+                            "end": "1.0000",
+                            "start": "0.0000",
+                            "step": "0.0010"
+                        }
+                    ],
+                    "response_price_units": "usd_cent",
+                    "result": "",
+                    "rules_primary": "If humans have a self-sufficient colony of at least 10 people reside on Mars for at least one Earth year before Jan 1, 2050, then the market resolves to Yes.",
+                    "rules_secondary": "",
+                    "settlement_timer_seconds": "1800",
+                    "status": "active",
+                    "ticker": "KXCOLONIZEMARS-50",
+                    "title": "Will humans colonize Mars before 2050?",
+                    "updated_time": "2026-04-09T10:33:10.234054Z",
+                    "volume_24h_fp": "141.68",
+                    "volume_fp": "21041.39",
+                    "yes_ask_dollars": "0.1950",
+                    "yes_ask_size_fp": "98.53",
+                    "yes_bid_dollars": "0.1630",
+                    "yes_bid_size_fp": "30.97",
+                    "yes_sub_title": "Before 2050",
+                    "eventTicker": "KXCOLONIZEMARS-50",
+                    "seriesTicker": "KXCOLONIZEMARS",
+                    "subtitle": "Will humans colonize Mars before 2050?"
+                }
+            }
+        ]
+    }
+]

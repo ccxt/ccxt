@@ -421,7 +421,7 @@ class coinspot(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         response = await self.publicGetLatest(params)
-        id = market['id']
+        id = self.safe_string(market, 'id', '')
         id = id.lower()
         prices = self.safe_dict(response, 'prices', {})
         #
@@ -436,7 +436,7 @@ class coinspot(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        ticker = self.safe_dict(prices, id)
+        ticker = self.safe_dict(prices, id, {})
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -647,6 +647,8 @@ class coinspot(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets()
+        if side is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a side argument')
         sideUpper = side.upper()
         if type == 'market':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')

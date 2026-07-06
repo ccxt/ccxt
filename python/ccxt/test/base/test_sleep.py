@@ -23,11 +23,13 @@ async def test_sleep():
     await exchange.sleep(sleep_amount)
     end = exchange.milliseconds()
     elapsed = end - start
-    # Allow a small margin of error due to execution time
+    # Allow a small margin of error due to execution time and timer jitter
+    # (some runtimes, e.g. .NET Task.Delay, may return a few ms early)
     margin_of_error = 20
+    min_elapsed = sleep_amount - margin_of_error
     max_elapsed = sleep_amount + margin_of_error
-    elapsed_bigger_than_sleep = elapsed >= sleep_amount
+    elapsed_bigger_than_sleep = elapsed >= min_elapsed
     elapsed_less_than_max = elapsed <= max_elapsed
-    assert elapsed_bigger_than_sleep, 'Elapsed time ' + str(elapsed) + 'ms is less than sleep amount ' + str(sleep_amount) + 'ms'
+    assert elapsed_bigger_than_sleep, 'Elapsed time ' + str(elapsed) + 'ms is less than minimum ' + str(min_elapsed) + 'ms (sleep amount ' + str(sleep_amount) + 'ms)'
     assert elapsed_less_than_max, 'Elapsed time ' + str(elapsed) + 'ms exceeds sleep amount ' + str(max_elapsed) + 'ms'
     return True

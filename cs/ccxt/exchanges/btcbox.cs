@@ -233,8 +233,8 @@ public partial class btcbox : Exchange
         {
             object marketId = getValue(marketIds, i);
             object symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object baseCurr = this.safeString(symbolParts, 0);
-            object quote = this.safeString(symbolParts, 1);
+            object baseCurr = this.safeString(symbolParts, 0, "");
+            object quote = this.safeString(symbolParts, 1, "");
             object quoteId = ((string)quote).ToLower();
             object id = ((string)baseCurr).ToLower();
             object res = getValue(response1, marketId);
@@ -413,7 +413,7 @@ public partial class btcbox : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -465,7 +465,7 @@ public partial class btcbox : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -544,7 +544,7 @@ public partial class btcbox : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -638,6 +638,10 @@ public partial class btcbox : Exchange
             { "closed", "closed" },
             { "no", "closed" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -748,6 +752,10 @@ public partial class btcbox : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         // a special case for btcbox – default symbol is BTC/JPY
+        if (isTrue(isEqual(symbol, null)))
+        {
+            symbol = "BTC/JPY";
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", type },

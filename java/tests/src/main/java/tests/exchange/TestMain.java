@@ -1650,6 +1650,26 @@ public class TestMain extends BaseTest
                 Object isComputedUndefined = (Helpers.isEqual(sanitizedNewOutput, null));
                 Object isStoredUndefined = (Helpers.isEqual(sanitizedStoredOutput, null));
                 Object shouldBeSame = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isComputedBool, isStoredBool))) && Helpers.isTrue((Helpers.isEqual(isComputedString, isStoredString)))) && Helpers.isTrue((Helpers.isEqual(isComputedUndefined, isStoredUndefined)));
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(shouldBeSame) && Helpers.isTrue((Helpers.isEqual(this.lang, "PY")))) && !Helpers.isTrue(isComputedBool)) && !Helpers.isTrue(isStoredBool)) && !Helpers.isTrue(isComputedUndefined)) && !Helpers.isTrue(isStoredUndefined)))
+                {
+                    // python parses json numbers natively (arbitrary-precision ints), while fixtures
+                    // captured under number-quoting store them as strings - compare numerically like C#/GO
+                    Object isNumber = false;
+                    try
+                    {
+                        exchange.parseToNumeric(newOutputString);
+                        exchange.parseToNumeric(storedOutputString);
+                        isNumber = true;
+                    } catch(Exception e)
+                    {
+                        isNumber = false;
+                    }
+                    if (Helpers.isTrue(isNumber))
+                    {
+                        this.AssertStaticError(Helpers.isEqual(exchange.parseToNumeric(newOutputString), exchange.parseToNumeric(storedOutputString)), messageError, storedOutput, newOutput, AssertingKey);
+                        return true;
+                    }
+                }
                 this.AssertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, AssertingKey);
                 Object isBoolean = Helpers.isTrue(isComputedBool) || Helpers.isTrue(isStoredBool);
                 Object isString = Helpers.isTrue(isComputedString) || Helpers.isTrue(isStoredString);
