@@ -1061,7 +1061,7 @@ export default class bitso extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1294,7 +1294,7 @@ export default class bitso extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
         // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1365,7 +1365,7 @@ export default class bitso extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'oid': id,
         };

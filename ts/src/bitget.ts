@@ -7714,7 +7714,7 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         let request: Dict = {};
         [ request, params ] = this.handleUntilOption ('endTime', request, params);
         if (since !== undefined) {
@@ -11161,7 +11161,7 @@ export default class bitget extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'symbol': market['id'],
         };

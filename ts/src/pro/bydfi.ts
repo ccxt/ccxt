@@ -348,8 +348,8 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const channels = [];
-        const messageHashes = [];
+        const channels: List = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);
@@ -385,8 +385,8 @@ export default class bydfi extends bydfiRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const channels = [];
-        const messageHashes = [];
+        const channels: List = [];
+        const messageHashes: List = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
             const symbolAndTimeframe = symbolsAndTimeframes[i];
             const marketId = this.safeString (symbolAndTimeframe, 0);

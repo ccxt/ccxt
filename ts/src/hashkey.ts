@@ -2383,7 +2383,7 @@ export default class hashkey extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const currency = this.currency (code);
+        const currency = this.currency (code as string);
         const request = {};
         request['startTime'] = since;
         if (limit !== undefined) {

@@ -814,7 +814,7 @@ export default class bitbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -861,7 +861,7 @@ export default class bitbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'order_id': id,
             'pair': market['id'],
@@ -908,7 +908,7 @@ export default class bitbank extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const market = this.market (symbol);
+        const market = this.market (symbol as string);
         const request: Dict = {
             'pair': market['id'],
         };

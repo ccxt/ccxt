@@ -2899,7 +2899,7 @@ export default class bitmart extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const ordersRequests = [];
+        const ordersRequests: List = [];
         let symbol: Str = undefined;
         let market: Market = undefined;
         for (let i = 0; i < orders.length; i++) {
