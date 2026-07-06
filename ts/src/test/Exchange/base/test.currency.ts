@@ -2,7 +2,7 @@ import assert from 'assert';
 import { Currency, Exchange } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) 
+function testCurrency (exchange: Exchange, skippedProperties: object, method: string, entry: Currency) {
     const baseFormat = {
         'info': {},
         'id': 'btc', // string literal for referencing within an exchange
