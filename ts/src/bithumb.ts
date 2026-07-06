@@ -1049,7 +1049,22 @@ export default class bithumb extends Exchange {
             }
         } else {
             const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
-            const quotes = Object.keys (quoteCurrencies);
+            let quotes = Object.keys (quoteCurrencies);
+            if (symbols !== undefined) {
+                const requiredQuotes: Dict = {};
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
+                    const market = this.market (symbol);
+                    const quoteId = this.safeString (market, 'quoteId');
+                    if ((quoteId !== undefined) && (quoteId in quoteCurrencies)) {
+                        requiredQuotes[quoteId] = true;
+                    }
+                }
+                const requiredQuoteIds = Object.keys (requiredQuotes);
+                if (requiredQuoteIds.length > 0) {
+                    quotes = requiredQuoteIds;
+                }
+            }
             const promises: any[] = [];
             for (let i = 0; i < quotes.length; i++) {
                 request['quoteId'] = quotes[i];
