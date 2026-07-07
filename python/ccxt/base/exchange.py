@@ -156,7 +156,7 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
-class Exchange(object):
+class BaseExchange(object):
     """Base exchange class"""
     id = 'Exchange'
     name = None
@@ -7913,6 +7913,9 @@ class Exchange(object):
 
     def is_uta_enabled(self, params={}):
         return False  # stub
+
+
+class Exchange(BaseExchange):
 
     def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')

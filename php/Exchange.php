@@ -61,7 +61,7 @@ const TICK_SIZE = 4;
 const NO_PADDING = 5;
 const PAD_WITH_ZERO = 6;
 
-class Exchange {
+class BaseExchange {
 
     const VERSION = '4.5.64';
 
@@ -9317,6 +9317,9 @@ class Exchange {
     public function is_uta_enabled($params = array()) {
         return false; // stub
     }
+}
+
+class Exchange extends BaseExchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchTrades() is not supported yet');

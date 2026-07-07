@@ -29,7 +29,7 @@ from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest,
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.exchange import Exchange as SyncExchange, ArgumentsRequired
+from ccxt.base.exchange import BaseExchange as SyncExchange, ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
@@ -2040,6 +2040,9 @@ class BaseExchange(SyncExchange):
     async def is_uta_enabled(self, params={}):
         return False  # stub
 
+
+class Exchange(BaseExchange):
+
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
@@ -2443,7 +2446,3 @@ class BaseExchange(SyncExchange):
             raise NotSupported(self.id + ' fetchTradingFee() is not supported yet')
         fees = await self.fetch_trading_fees(params)
         return self.safe_dict(fees, symbol)
-
-
-class Exchange(BaseExchange):
-    pass

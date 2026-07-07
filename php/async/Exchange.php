@@ -48,7 +48,7 @@ use Exception;
 
 $version = '4.5.64';
 
-class BaseExchange extends \ccxt\Exchange {
+class BaseExchange extends \ccxt\BaseExchange {
 
     const VERSION = '4.5.64';
 
@@ -7022,6 +7022,9 @@ class BaseExchange extends \ccxt\Exchange {
     public function is_uta_enabled($params = array()) {
         return false; // stub
     }
+}
+
+class Exchange extends BaseExchange {
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
@@ -7595,7 +7598,4 @@ class BaseExchange extends \ccxt\Exchange {
             return $this->safe_dict($fees, $symbol);
         })();
     }
-}
-
-class Exchange extends BaseExchange {
 }

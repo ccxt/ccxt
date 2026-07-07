@@ -1963,13 +1963,15 @@ class Transpiler {
             const secondPart = parts[1]
             const methods = secondPart.trim ().split (/\n\s*\n/)
             // fine split: the symbol-based trading methods live in a separate `Exchange extends
-            // BaseExchange` class in the TS source (so the standalone-typed prediction tier does not
-            // inherit them). Python/PHP are dynamically typed with no return-covariance constraint,
-            // so recombine those methods into the transpiled base — prediction still shadows them
-            // with its own outcome-typed versions. (C#/Java keep the two tiers separate.)
+            // BaseExchange` class in the TS source so the standalone-typed prediction tier does not
+            // inherit them. We keep the two tiers separate in every language (matching C#/Java): the
+            // base methods stay on BaseExchange, and the 62 symbol methods go into a thin
+            // `Exchange extends BaseExchange` subclass that regular venues extend. PredictionExchange
+            // extends BaseExchange (never Exchange), so it does not see the symbol methods.
+            let exMethods: string[] = []
             const exClassMatch = contents.match (/export default class Exchange extends BaseExchange \{([\s\S]*?)\n\}/)
             if (exClassMatch) {
-                const exMethods = exClassMatch[1].trim ().split (/\n\s*\n/).filter ((m: string) => {
+                exMethods = exClassMatch[1].trim ().split (/\n\s*\n/).filter ((m: string) => {
                     if (m.trim ().length === 0) {
                         return false
                     }
@@ -1980,9 +1982,6 @@ class Transpiler {
                     }
                     return true
                 })
-                for (let mi = 0; mi < exMethods.length; mi++) {
-                    methods.push (exMethods[mi])
-                }
             }
             const {
                 python2,
@@ -1990,18 +1989,29 @@ class Transpiler {
                 php,
                 phpAsync,
             } = this.transpileMethodsToAllLanguages (className, methods)
-            // trim away sync methods from python async
-            // since it already inherits those methods
-            const python3Async: string[] = []
-            if (this.buildPython) {
-                python3.forEach ((line, i, arr) => {
+            const {
+                python2: python2Ex,
+                python3: python3Ex,
+                php: phpEx,
+                phpAsync: phpAsyncEx,
+            } = this.transpileMethodsToAllLanguages (className, exMethods)
+            // trim away sync methods from python async since the async BaseExchange already inherits
+            // them from SyncExchange. (the 62 Exchange-tier methods are all async, so pickAsync keeps
+            // all of them — the async Exchange subclass cannot inherit sync copies from the sibling
+            // sync Exchange, so they must be emitted here.)
+            const pickAsync = (arr: string[]): string[] => {
+                const out: string[] = []
+                arr.forEach ((line, i) => {
                     if (line.match (/^\s+async def/)) {
-                        python3Async.push ('')
-                        python3Async.push (line)
-                        python3Async.push (arr[i+1])
+                        out.push ('')
+                        out.push (line)
+                        out.push (arr[i+1])
                     }
                 })
+                return out
             }
+            const python3Async: string[] = this.buildPython ? pickAsync (python3) : []
+            const python3AsyncEx: string[] = this.buildPython ? pickAsync (python3Ex) : []
 
             const pythonDelimiter = '# ' + delimiter + '\n'
             const phpDelimiter = '// ' + delimiter + '\n'
@@ -2013,21 +2023,25 @@ class Transpiler {
 
             if (this.buildPython) {
                 log.magenta ('→', python2File.yellow)
-                replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
+                // sync BaseExchange holds the shared infra; the 62 symbol methods go into a thin
+                // `Exchange(BaseExchange)` subclass that regular sync venues extend (prediction is
+                // async-only and extends the async BaseExchange, so it never sees these).
+                replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n\n\nclass Exchange(BaseExchange):\n' + python2Ex.join ('\n') + '\n')
                 log.magenta ('→', python3File.yellow)
-                // the async base class is BaseExchange (shared infra); Exchange is a thin concrete
-                // tier so the prediction base can extend BaseExchange as an independent sibling.
-                // the transpiler owns marker→EOF, so the thin Exchange is appended here.
-                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n\n\nclass Exchange(BaseExchange):\n    pass\n')
+                // the async base class is BaseExchange (shared infra); Exchange is the concrete tier
+                // carrying the 62 symbol methods so the prediction base can extend BaseExchange as an
+                // independent sibling. the transpiler owns marker→EOF, so Exchange is appended here.
+                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n\n\nclass Exchange(BaseExchange):\n' + python3AsyncEx.join ('\n') + '\n')
             }
 
             if (this.buildPHP) {
                 log.magenta ('→', phpFile.yellow)
-                replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
+                // sync BaseExchange + thin `Exchange extends BaseExchange` (the 62 symbol methods)
+                replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n\nclass Exchange extends BaseExchange {\n' + phpEx.join ('\n') + '\n}\n')
                 log.magenta ('→', phpAsyncFile.yellow)
-                // async base class is BaseExchange (shared infra); Exchange is the thin concrete tier
-                // so the prediction base can extend BaseExchange as an independent sibling (see python above)
-                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n\nclass Exchange extends BaseExchange {\n}\n')
+                // async BaseExchange (shared infra) + concrete `Exchange extends BaseExchange` with the
+                // 62 symbol methods; the prediction base extends BaseExchange as an independent sibling
+                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n\nclass Exchange extends BaseExchange {\n' + phpAsyncEx.join ('\n') + '\n}\n')
             }
         }
     }
