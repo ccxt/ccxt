@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import NotSupported
@@ -506,7 +506,7 @@ class bitrue(ccxt.async_support.bitrue):
             messageHash = 'trades:' + symbol
             client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         symbol = market['symbol']
         timestamp = self.safe_integer(trade, 'ts')
         sideLower = self.safe_string_lower(trade, 'side')
@@ -613,7 +613,7 @@ class bitrue(ccxt.async_support.bitrue):
         messageHash = 'ohlcv:' + symbol + ':' + timeframe
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, tick, market=None) -> list:
+    def parse_ws_ohlcv(self, tick, market: Market = None) -> list:
         symbol = market['symbol']
         idSeconds = self.safe_integer(tick, 'id')
         timestamp = None if (idSeconds is None) else idSeconds * 1000

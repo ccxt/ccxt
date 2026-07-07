@@ -182,6 +182,7 @@ type ICoreExchange interface {
 	FetchOrderBooks(optionalArgs ...any) <-chan any
 	FetchTickers(optionalArgs ...any) <-chan any
 	FetchTrades(symbol any, optionalArgs ...any) <-chan any
+	FetchTransfers(optionalArgs ...any) <-chan any
 	FetchWithdrawals(optionalArgs ...any) <-chan any
 	Currency(code any) any
 	ParseDate(datetime2 any) any
@@ -328,6 +329,8 @@ type ICoreExchange interface {
 	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any
 	Close(cleanInstanceCache ...any) []error
+	CleanWsData()
+	CleanRestData()
 	ParseTimeframe(timeframe any) any
 }
 

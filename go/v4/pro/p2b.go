@@ -126,9 +126,11 @@ func  (this *P2bCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes978 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes978)
+                retRes9812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes9812)
+            }
             var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any {})
             var channel any = this.SafeInteger(timeframes, timeframe)
             if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
@@ -168,9 +170,11 @@ func  (this *P2bCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1288 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1288)
+                retRes13112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes13112)
+            }
             var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
             var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
             nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
@@ -183,9 +187,9 @@ func  (this *P2bCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any {
             var request any = ccxt.ObjectKeys(tickerSubs)
             var messageHash any = ccxt.Add(ccxt.Add(name, "::"), ccxt.GetValue(market, "symbol"))
         
-                retRes13815 :=  (<-this.Subscribe(ccxt.Add(name, ".subscribe"), messageHash, request, params))
-                ccxt.PanicOnError(retRes13815)
-                ch <- retRes13815
+                retRes14215 :=  (<-this.Subscribe(ccxt.Add(name, ".subscribe"), messageHash, request, params))
+                ccxt.PanicOnError(retRes14215)
+                ch <- retRes14215
                 return nil
         
             }()
@@ -211,9 +215,11 @@ func  (this *P2bCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1538)
+                retRes15812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes15812)
+            }
             symbols = this.MarketSymbols(symbols, nil, false)
             var watchTickerOptions any = this.SafeDict(this.Options, "watchTicker")
             var name any = this.SafeString(watchTickerOptions, "name", "state") // or price
@@ -234,8 +240,8 @@ func  (this *P2bCore) WatchTickers(optionalArgs ...any) <- chan any {
                 "id": this.Milliseconds(),
             }
         
-            retRes1718 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
-            ccxt.PanicOnError(retRes1718)
+            retRes1778 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes))
+            ccxt.PanicOnError(retRes1778)
         
             ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
             return nil
@@ -266,9 +272,9 @@ func  (this *P2bCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes18715 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes18715)
-                ch <- retRes18715
+                retRes19315 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes19315)
+                ch <- retRes19315
                 return nil
         
             }()
@@ -296,9 +302,11 @@ func  (this *P2bCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <-
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2028)
+                retRes20912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes20912)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true, true)
             var messageHashes any = []any{}
             if ccxt.IsTrue(!ccxt.IsEqual(symbols, nil)) {
@@ -338,7 +346,7 @@ func  (this *P2bCore) WatchTradesForSymbols(symbols any, optionalArgs ...any) <-
  * @param {int} [limit] 1-100, default=100
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *P2bCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -349,9 +357,11 @@ func  (this *P2bCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2398)
+                retRes24812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes24812)
+            }
             var market any = this.Market(symbol)
             var name any = "depth.subscribe"
             var messageHash any = ccxt.Add("orderbook::", ccxt.GetValue(market, "symbol"))

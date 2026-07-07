@@ -124,7 +124,7 @@ class bitmex(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchVolatilityHistory': False,
-                'index': True,
+                'index': False,
                 'reduceMargin': None,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -147,7 +147,7 @@ class bitmex(Exchange, ImplicitAPI):
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
+                'logo': 'https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -842,7 +842,7 @@ class bitmex(Exchange, ImplicitAPI):
                 contractSize = Precise.string_abs(self.safe_string(market, 'multiplier'))
             expiryDatetime = self.safe_string_2(market, 'expiry', 'closingTimestamp')
             expiry = self.parse8601(expiryDatetime)
-            if expiry is not None:
+            if expiry is not None and future:
                 symbol = symbol + '-' + self.yymmdd(expiry)
         else:
             # for index/exotic markets, default to id
@@ -1044,7 +1044,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)

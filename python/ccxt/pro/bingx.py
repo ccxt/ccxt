@@ -521,7 +521,7 @@ class bingx(ccxt.async_support.bingx):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -573,7 +573,7 @@ class bingx(ccxt.async_support.bingx):
 
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -943,7 +943,7 @@ class bingx(ccxt.async_support.bingx):
             messageHash += ':' + symbol
         uuid = self.uuid()
         baseUrl = None
-        request = {}
+        request = None
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchOrders is not supported for inverse swap markets yet')
@@ -1046,12 +1046,14 @@ class bingx(ccxt.async_support.bingx):
         swapMessageHash = 'swap:balance'
         messageHash = spotMessageHash if isSpot else swapMessageHash
         subscriptionHash = spotSubHash if isSpot else swapSubHash
-        request = {}
+        request = None
         baseUrl = None
         uuid = self.uuid()
         if type == 'swap':
             if subType == 'inverse':
                 raise NotSupported(self.id + ' watchBalance is not supported for inverse swap markets yet')
+            # swap balance updates are pushed automatically over the listenKey connection,
+            # so we must not send a subscription message(an empty one is rejected with 80014)
             baseUrl = self.safe_string(self.urls['api']['ws'], subType)
         else:
             baseUrl = self.safe_string(self.urls['api']['ws'], type)

@@ -67,9 +67,11 @@ func  (this *IndependentreserveCore) WatchTrades(symbol any, optionalArgs ...any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes538)
+                retRes5412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes5412)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "?subscribe=ticker-"), ccxt.GetValue(market, "base")), "-"), ccxt.GetValue(market, "quote"))
@@ -158,7 +160,7 @@ func  (this *IndependentreserveCore) ParseWsTrade(trade any, optionalArgs ...any
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func  (this *IndependentreserveCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
@@ -169,9 +171,11 @@ func  (this *IndependentreserveCore) WatchOrderBook(symbol any, optionalArgs ...
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1398)
+                retRes14212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes14212)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
@@ -323,7 +327,7 @@ func  (this *IndependentreserveCore) HandleMessage(client any, message any)  {
         "OrderBookSnapshot": this.HandleOrderBook,
         "OrderBookChange": this.HandleOrderBook,
     }
-    var handler any = this.SafeValue(handlers, event)
+    var handler any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(handlers, event))
     if ccxt.IsTrue(!ccxt.IsEqual(handler, nil)) {
         ccxt.CallDynamically(handler, client, message)
         return

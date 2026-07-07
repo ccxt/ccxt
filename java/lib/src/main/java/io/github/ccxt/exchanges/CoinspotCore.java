@@ -453,7 +453,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -529,7 +529,7 @@ public class CoinspotCore extends CoinspotApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             Object response = (this.publicGetLatest(parameters)).join();
-            Object id = Helpers.GetValue(market, "id");
+            Object id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             //
@@ -544,7 +544,7 @@ public class CoinspotCore extends CoinspotApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(prices, id);
+            Object ticker = this.safeDict(prices, id, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         });
 
@@ -807,14 +807,20 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
+        final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
+            Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(side, null)))
+            {
+                throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
+            }
             Object sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {

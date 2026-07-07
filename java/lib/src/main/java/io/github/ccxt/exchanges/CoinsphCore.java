@@ -261,6 +261,7 @@ public class CoinsphCore extends CoinsphApi
                         put( "openapi/wallet/v1/withdraw/apply", 600 );
                         put( "openapi/v1/order/test", 1 );
                         put( "openapi/v1/order", 1 );
+                        put( "openapi/v1/order/cancelReplace", 1 );
                         put( "openapi/v1/capital/withdraw/apply", 1 );
                         put( "openapi/v1/capital/deposit/apply", 1 );
                         put( "openapi/v3/payment-request/payment-requests", 1 );
@@ -271,14 +272,20 @@ public class CoinsphCore extends CoinsphApi
                         put( "merchant-api/v1/invoices-cancel", 1 );
                         put( "openapi/convert/v1/get-supported-trading-pairs", 1 );
                         put( "openapi/convert/v1/get-quote", 1 );
-                        put( "openapi/convert/v1/accpet-quote", 1 );
+                        put( "openapi/convert/v1/accept-quote", 1 );
                         put( "openapi/convert/v1/query-order-history", 1 );
+                        put( "openapi/otc-trade/v1/get-supported-trading-pairs", 1 );
+                        put( "openapi/otc-trade/v1/create-rfq", 1 );
+                        put( "openapi/otc-trade/v1/accept-rfq", 1 );
+                        put( "openapi/otc-trade/v1/manual-settle", 1 );
+                        put( "openapi/otc-trade/v1/query-order-history", 1 );
                         put( "openapi/fiat/v1/support-channel", 1 );
                         put( "openapi/fiat/v1/cash-out", 1 );
                         put( "openapi/fiat/v1/history", 1 );
                         put( "openapi/migration/v4/sellorder", 1 );
                         put( "openapi/migration/v4/validate-field", 1 );
                         put( "openapi/transfer/v3/transfers", 1 );
+                        put( "openapi/transfer/v4/transfers", 1 );
                         put( "openapi/v1/sub-account/create", 30 );
                         put( "openapi/v1/sub-account/transfer/universal-transfer", 100 );
                         put( "openapi/v1/sub-account/transfer/sub-to-master", 100 );
@@ -706,7 +713,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://coins-docs.github.io/rest-api/#test-connectivity
+     * @see https://docs.coins.ph/rest-api/#test-connectivity
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
@@ -732,7 +739,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://coins-docs.github.io/rest-api/#check-server-time
+     * @see https://docs.coins.ph/rest-api/#check-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -755,7 +762,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchMarkets
      * @description retrieves data on all markets for coinsph
-     * @see https://coins-docs.github.io/rest-api/#exchange-information
+     * @see https://docs.coins.ph/rest-api/#exchange-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -902,9 +909,9 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+     * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -932,7 +939,7 @@ public class CoinsphCore extends CoinsphApi
             Object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Object options = this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
             Object method = this.safeString(options, "method", defaultMethod);
-            Object tickers = null;
+            Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
             {
                 tickers = (this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, parameters))).join();
@@ -952,9 +959,9 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics
-     * @see https://coins-docs.github.io/rest-api/#symbol-price-ticker
-     * @see https://coins-docs.github.io/rest-api/#symbol-order-book-ticker
+     * @see https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics
+     * @see https://docs.coins.ph/rest-api/#symbol-price-ticker
+     * @see https://docs.coins.ph/rest-api/#symbol-order-book-ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -973,7 +980,7 @@ public class CoinsphCore extends CoinsphApi
             Object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Object options = this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
             Object method = this.safeString(options, "method", defaultMethod);
-            Object ticker = null;
+            Object ticker = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
             {
                 ticker = (this.publicGetOpenapiQuoteV1TickerPrice(this.extend(request, parameters))).join();
@@ -1076,11 +1083,11 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://coins-docs.github.io/rest-api/#order-book
+     * @see https://docs.coins.ph/rest-api/#order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return (default 100, max 200)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -1123,7 +1130,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchOHLCV
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://coins-docs.github.io/rest-api/#klinecandlestick-data
+     * @see https://docs.coins.ph/rest-api/#klinecandlestick-data
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1209,7 +1216,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://coins-docs.github.io/rest-api/#recent-trades-list
+     * @see https://docs.coins.ph/rest-api/#recent-trades-list
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch (default 500, max 1000)
@@ -1263,7 +1270,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchMyTrades
      * @description fetch all trades made by the user
-     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve (default 500, max 1000)
@@ -1307,7 +1314,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://coins-docs.github.io/rest-api/#account-trade-list-user_data
+     * @see https://docs.coins.ph/rest-api/#account-trade-list-user_data
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1385,7 +1392,7 @@ public class CoinsphCore extends CoinsphApi
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "qty");
         Object type = null;
-        Object fee = null;
+        Object fee = new java.util.HashMap<String, Object>() {{}};
         Object feeCost = this.safeString(trade, "commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1439,7 +1446,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://coins-docs.github.io/rest-api/#accept-the-quote
+     * @see https://docs.coins.ph/rest-api/#accept-the-quote
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1502,7 +1509,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#createOrder
      * @description create a trade order
-     * @see https://coins-docs.github.io/rest-api/#new-order--trade
+     * @see https://docs.coins.ph/rest-api/#new-order--trade
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
      * @param {string} side 'buy' or 'sell'
@@ -1600,7 +1607,7 @@ public class CoinsphCore extends CoinsphApi
             }
             Helpers.addElementToObject(request, "newOrderRespType", newOrderRespType);
             parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
-            Object response = null;
+            Object response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(testOrder))
             {
                 response = (this.privatePostOpenapiV1OrderTest(this.extend(request, parameters))).join();
@@ -1644,7 +1651,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchOrder
      * @description fetches information on an order made by the user
-     * @see https://coins-docs.github.io/rest-api/#query-order-user_data
+     * @see https://docs.coins.ph/rest-api/#query-order-user_data
      * @param {int|string} id order id
      * @param {string} symbol not used by coinsph fetchOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1678,7 +1685,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchOpenOrders
      * @description fetch all unfilled currently open orders
-     * @see https://coins-docs.github.io/rest-api/#current-open-orders-user_data
+     * @see https://docs.coins.ph/rest-api/#current-open-orders-user_data
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1712,7 +1719,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
-     * @see https://coins-docs.github.io/rest-api/#history-orders-user_data
+     * @see https://docs.coins.ph/rest-api/#history-orders-user_data
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve (default 500, max 1000)
@@ -1756,7 +1763,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#cancelOrder
      * @description cancels an open order
-     * @see https://coins-docs.github.io/rest-api/#cancel-order-trade
+     * @see https://docs.coins.ph/rest-api/#cancel-order-trade
      * @param {string} id order id
      * @param {string} symbol not used by coinsph cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1790,7 +1797,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#cancelAllOrders
      * @description cancel open orders of market
-     * @see https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade
+     * @see https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1934,6 +1941,10 @@ public class CoinsphCore extends CoinsphApi
             put( "BUY", "buy" );
             put( "SELL", "sell" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1943,6 +1954,10 @@ public class CoinsphCore extends CoinsphApi
             put( "buy", "BUY" );
             put( "sell", "SELL" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1957,6 +1972,10 @@ public class CoinsphCore extends CoinsphApi
             put( "TAKE_PROFIT", "market" );
             put( "TAKE_PROFIT_LIMIT", "limit" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1971,6 +1990,10 @@ public class CoinsphCore extends CoinsphApi
             put( "take_profit", "TAKE_PROFIT" );
             put( "take_profit_limit", "TAKE_PROFIT_LIMIT" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1984,6 +2007,10 @@ public class CoinsphCore extends CoinsphApi
             put( "PARTIALLY_CANCELED", "canceled" );
             put( "REJECTED", "rejected" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1994,6 +2021,10 @@ public class CoinsphCore extends CoinsphApi
             put( "FOK", "FOK" );
             put( "IOC", "IOC" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -2001,7 +2032,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
@@ -2037,7 +2068,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
+     * @see https://docs.coins.ph/rest-api/#trade-fee-user_data
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
@@ -2068,7 +2099,10 @@ public class CoinsphCore extends CoinsphApi
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(response, i));
                 Object symbol = Helpers.GetValue(fee, "symbol");
-                Helpers.addElementToObject(result, symbol, fee);
+                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                {
+                    Helpers.addElementToObject(result, symbol, fee);
+                }
             }
             return result;
         });
@@ -2102,7 +2136,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#withdraw
      * @description make a withdrawal to coins_ph account
-     * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
+     * @see https://docs.coins.ph/rest-api/#withdrawuser_data
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address not used by coinsph withdraw ()
@@ -2124,7 +2158,7 @@ public class CoinsphCore extends CoinsphApi
                 throw new InvalidAddress((String)Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
             Object networkCode = this.safeString(parameters, "network");
-            Object networkId = this.networkCodeToId(networkCode, code);
+            Object networkId = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() require network parameter")) ;
@@ -2153,7 +2187,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://coins-docs.github.io/rest-api/#deposit-history-user_data
+     * @see https://docs.coins.ph/rest-api/#deposit-history-user_data
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -2224,7 +2258,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://coins-docs.github.io/rest-api/#withdraw-history-user_data
+     * @see https://docs.coins.ph/rest-api/#withdraw-history-user_data
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -2413,6 +2447,10 @@ public class CoinsphCore extends CoinsphApi
             put( "2", "failed" );
             put( "3", "pending" );
         }};
+        if (Helpers.isTrue(Helpers.isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -2420,7 +2458,7 @@ public class CoinsphCore extends CoinsphApi
      * @method
      * @name coinsph#fetchDepositAddress
      * @description fetch the deposit address for a currency associated with this account
-     * @see https://coins-docs.github.io/rest-api/#deposit-address-user_data
+     * @see https://docs.coins.ph/rest-api/#deposit-address-user_data
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] network for fetch deposit address
@@ -2433,7 +2471,7 @@ public class CoinsphCore extends CoinsphApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object networkCode = this.safeString(parameters, "network");
-            Object networkId = this.networkCodeToId(networkCode, code);
+            Object networkId = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddress() require network parameter")) ;

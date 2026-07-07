@@ -2,7 +2,7 @@
 
 import extendedRest from '../extended.js';
 import { ExchangeError, InvalidNonce } from '../base/errors.js';
-import type { Balances, Bool, Dict, FundingRate, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
@@ -53,10 +53,12 @@ export default class extended extends extendedRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] set to '1' to receive best bid and ask snapshots only
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
@@ -139,7 +141,7 @@ export default class extended extends extendedRest {
         }
     }
 
-    async watchPrivate (messageHash: string, subscription = undefined) {
+    async watchPrivate (messageHash: string, subscription: NullableDict = undefined) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'] + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
@@ -178,7 +180,9 @@ export default class extended extends extendedRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -204,7 +208,9 @@ export default class extended extends extendedRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         return await this.watchPrivate ('balance', params);
     }
 
@@ -280,7 +286,9 @@ export default class extended extends extendedRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -339,7 +347,7 @@ export default class extended extends extendedRest {
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (rawTrades[i]);
             const symbol = this.safeString (trade, 'symbol');
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             stored.append (trade);
         }
         const keys = Object.keys (symbols);
@@ -369,7 +377,9 @@ export default class extended extends extendedRest {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         let messageHash = 'positions';
         if (symbols !== undefined) {
@@ -487,10 +497,10 @@ export default class extended extends extendedRest {
         if (first === undefined) {
             return;
         }
-        for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder (rawOrders[i]);
+        for (let i = 0; i < (rawOrders as any[]).length; i++) {
+            const order = this.parseOrder ((rawOrders as any[])[i]);
             const symbol = this.safeString (order, 'symbol');
-            symbols[symbol] = true;
+            symbols[symbol as string] = true;
             orders.append (order);
         }
         const keys = Object.keys (symbols);
@@ -518,7 +528,9 @@ export default class extended extends extendedRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'fundingRate:' + symbol;
@@ -548,12 +560,12 @@ export default class extended extends extendedRest {
         const data = this.safeDict (message, 'data', {});
         const fundingRate = this.parseWsFundingRate (data, undefined, message);
         const symbol = this.safeString (fundingRate, 'symbol');
-        this.fundingRates[symbol] = fundingRate;
+        this.fundingRates[symbol as string] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve (fundingRate, messageHash);
     }
 
-    parseWsFundingRate (fundingRate, market = undefined, message = undefined): FundingRate {
+    parseWsFundingRate (fundingRate, market: Market = undefined, message = undefined): FundingRate {
         const marketId = this.safeString (fundingRate, 'm');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (message, 'ts');
@@ -590,7 +602,9 @@ export default class extended extends extendedRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'markPrice:' + symbol;
@@ -651,7 +665,9 @@ export default class extended extends extendedRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
@@ -733,7 +749,9 @@ export default class extended extends extendedRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const price = this.safeString (params, 'price');
@@ -792,13 +810,13 @@ export default class extended extends extendedRest {
         const candleType = this.safeString (subscription, 'candleType');
         const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
         const messageHash = this.safeString (subscription, 'messageHash');
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], cacheKey);
+        this.ohlcvs[symbol as string] = this.safeValue (this.ohlcvs, symbol as string, {});
+        let stored = this.safeValue (this.ohlcvs[symbol as string], cacheKey as string);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][cacheKey] = stored;
+            this.ohlcvs[symbol as string][cacheKey as string] = stored;
         }
         const previousNonce = this.safeInteger (subscription, 'nonce');
         const nonce = this.safeInteger (message, 'seq');

@@ -115,7 +115,7 @@ class bitmex extends bitmex$1["default"] {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchVolatilityHistory': false,
-                'index': true,
+                'index': false,
                 'reduceMargin': undefined,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -138,7 +138,7 @@ class bitmex extends bitmex$1["default"] {
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
+                'logo': 'https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -850,7 +850,7 @@ class bitmex extends bitmex$1["default"] {
             }
             expiryDatetime = this.safeString2(market, 'expiry', 'closingTimestamp');
             expiry = this.parse8601(expiryDatetime);
-            if (expiry !== undefined) {
+            if (expiry !== undefined && future) {
                 symbol = symbol + '-' + this.yymmdd(expiry);
             }
         }
@@ -994,7 +994,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'currency': 'all',
         };
@@ -1056,10 +1058,12 @@ class bitmex extends bitmex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1130,7 +1134,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate');
         if (paginate) {
@@ -1211,7 +1217,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -1421,7 +1429,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'start': 123,
         };
@@ -1473,7 +1483,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'currency': 'all',
             // 'start': 123,
@@ -1591,7 +1603,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1613,7 +1627,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetInstrumentActiveAndIndices(params);
         // same response as under "fetchMarkets"
@@ -1702,7 +1718,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
@@ -2019,7 +2037,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -2092,7 +2112,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let orderType = this.capitalize(type);
         const capitalizeOrderType = orderType;
@@ -2182,7 +2204,9 @@ class bitmex extends bitmex$1["default"] {
         return this.parseOrder(response, market);
     }
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let trailingAmount = this.safeString2(params, 'trailingAmount', 'pegOffsetValue');
         const isTrailingAmountOrder = trailingAmount !== undefined;
@@ -2252,7 +2276,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // https://github.com/ccxt/ccxt/issues/6507
         const clientOrderId = this.safeValue2(params, 'clOrdID', 'clientOrderId');
         const request = {};
@@ -2285,7 +2311,9 @@ class bitmex extends bitmex$1["default"] {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         // return await this.cancelOrder (ids, symbol, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // https://github.com/ccxt/ccxt/issues/6507
         const clientOrderId = this.safeValue2(params, 'clOrdID', 'clientOrderId');
         const request = {};
@@ -2309,7 +2337,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2368,7 +2398,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'timeout': (timeout > 0) ? this.parseToInt(timeout / 1000) : 0,
         };
@@ -2391,7 +2423,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const leverages = await this.fetchPositions(symbols, params);
         return this.parseLeverages(leverages, symbols, 'symbol');
     }
@@ -2415,7 +2449,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetPosition(params);
         //
         //     [
@@ -2679,7 +2715,9 @@ class bitmex extends bitmex$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const qty = this.convertFromRealAmount(code, amount);
         let networkCode = undefined;
@@ -2725,7 +2763,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetInstrumentActiveAndIndices(params);
         // same response as under "fetchMarkets"
         const filteredResponse = [];
@@ -2785,7 +2825,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol in this.currencies) {
@@ -2871,7 +2913,9 @@ class bitmex extends bitmex$1["default"] {
         if ((leverage < 0.01) || (leverage > 100)) {
             throw new errors.BadRequest(this.id + ' leverage should be between 0.01 and 100');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['type'] !== 'swap' && market['type'] !== 'future') {
             throw new errors.BadSymbol(this.id + ' setLeverage() supports future and swap contracts only');
@@ -2900,7 +2944,9 @@ class bitmex extends bitmex$1["default"] {
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap and future contracts only');
@@ -2923,7 +2969,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         if (networkCode === undefined) {
@@ -3021,7 +3069,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const assets = await this.publicGetWalletAssets(params);
         //
         //    [
@@ -3064,7 +3114,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let response = undefined;
         response = await this.publicGetStats(this.extend(request, params));
@@ -3145,7 +3197,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLiquidations', 'paginate');
         if (paginate) {
@@ -3210,7 +3264,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
     async fetchPositionsADLRank(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const response = await this.privateGetPosition(params);
         //
@@ -3479,7 +3535,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
     async fetchSettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // symbol string Instrument symbol. Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
         // filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
@@ -3559,7 +3617,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],

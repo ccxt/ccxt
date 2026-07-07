@@ -284,7 +284,7 @@ export default class kucoin extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleTriggerPrices(params: any): any[];
@@ -882,7 +882,7 @@ export default class kucoin extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchUtaOrder(id: Str, symbol?: Str, params?: {}): Promise<Order>;
-    handleTradeType(isContractMarket?: boolean, marginMode?: any, isUnified?: boolean, params?: {}): string;
+    handleTradeType(isContractMarket?: boolean, marginMode?: Str, isUnified?: boolean, params?: {}): string;
     parseOrder(order: Dict, market?: Market): Order;
     parseContractOrder(order: Dict, market?: Market): Order;
     parseSpotOrder(order: Dict, market?: Market): Order;
@@ -1539,7 +1539,7 @@ export default class kucoin extends Exchange {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     fetchMarginMode(symbol: string, params?: {}): Promise<MarginMode>;
-    parseMarginMode(marginMode: Dict, market?: any): MarginMode;
+    parseMarginMode(marginMode: Dict, market?: Market): MarginMode;
     /**
      * @method
      * @name kucoin#setMarginMode

@@ -133,7 +133,7 @@ class dydx(Exchange, ImplicitAPI):
                 '1d': '1DAY',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1',
+                'logo': 'https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d',
                 'api': {
                     'indexer': 'https://indexer.dydx.trade/v4',
                     'nodeRpc': 'https://dydx-ops-rpc.kingnodes.com',
@@ -577,7 +577,7 @@ class dydx(Exchange, ImplicitAPI):
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
-        retrieves data on all markets for hyperliquid
+        retrieves data on all markets for dydx
 
         https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
 
@@ -660,7 +660,7 @@ class dydx(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+        https://docs.dydx.xyz/indexer-client/http#get-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1618,7 +1618,7 @@ class dydx(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)

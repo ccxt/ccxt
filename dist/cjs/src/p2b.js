@@ -145,9 +145,8 @@ class p2b extends p2b$1["default"] {
                 '1d': '1d',
             },
             'urls': {
-                'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo': 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -440,7 +439,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers(params);
         //
         //    {
@@ -480,7 +481,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -581,10 +584,12 @@ class p2b extends p2b$1["default"] {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -635,7 +640,9 @@ class p2b extends p2b$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const lastId = this.safeInteger(params, 'lastId');
         if (lastId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTrades () requires an extra parameter params["lastId"]');
@@ -753,7 +760,9 @@ class p2b extends p2b$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -819,7 +828,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostAccountBalances(params);
         //
         //    {
@@ -886,7 +897,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (type === 'market') {
             throw new errors.BadRequest(this.id + ' createOrder () can only accept orders with type "limit"');
         }
@@ -937,7 +950,9 @@ class p2b extends p2b$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -987,7 +1002,9 @@ class p2b extends p2b$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders () requires the symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1040,7 +1057,9 @@ class p2b extends p2b$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.safeMarket(symbol);
         const request = {
             'orderId': id,
@@ -1095,7 +1114,9 @@ class p2b extends p2b$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         if (until === undefined) {
@@ -1170,7 +1191,9 @@ class p2b extends p2b$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let until = this.safeInteger(params, 'until');
         params = this.omit(params, 'until');
         let market = undefined;

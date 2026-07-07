@@ -9,12 +9,13 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
  * @class Exchange
  */
 export default class Exchange {
+    static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
     api: Dictionary<any>;
     certified: boolean;
     pro: boolean;
-    countries: Str[];
+    countries: Strings;
     proxy: any;
     proxyUrl: Str;
     proxy_url: Str;
@@ -34,10 +35,10 @@ export default class Exchange {
     socks_proxy_callback: any;
     userAgent: {
         'User-Agent': string;
-    } | false;
+    } | false | undefined;
     user_agent: {
         'User-Agent': string;
-    } | false;
+    } | false | undefined;
     wsProxy: Str;
     ws_proxy: Str;
     wssProxy: Str;
@@ -50,7 +51,6 @@ export default class Exchange {
     origin: string;
     MAX_VALUE: number;
     agent: any;
-    nodeHttpModuleLoaded: boolean;
     httpAgent: any;
     httpsAgent: any;
     minFundingAddressLength: number;
@@ -62,6 +62,12 @@ export default class Exchange {
     fetchImplementation: any;
     AbortError: any;
     FetchError: any;
+    fetchImplementationLoading: Promise<any>;
+    fetchIsNative: boolean;
+    undiciModule: any;
+    zlibModule: any;
+    httpStatusTexts: any;
+    fetchDispatcher: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
     timeout: number;
@@ -82,13 +88,13 @@ export default class Exchange {
     tickers: Dictionary<Ticker>;
     fundingRates: Dictionary<FundingRate>;
     bidsasks: Dictionary<Ticker>;
-    orders: ArrayCache;
+    orders: ArrayCache | undefined;
     triggerOrders: ArrayCache;
     trades: Dictionary<ArrayCache>;
     transactions: Dictionary<Transaction>;
     ohlcvs: Dictionary<Dictionary<ArrayCacheByTimestamp>>;
     myLiquidations: any;
-    myTrades: ArrayCache;
+    myTrades: ArrayCache | undefined;
     positions: any;
     urls: {
         logo?: string;
@@ -118,6 +124,8 @@ export default class Exchange {
     last_request_body: any;
     last_request_url: string;
     last_request_path: string;
+    fetchHistoryCache: Dictionary<any>[];
+    fetchHistoryCacheSize: number;
     id: string;
     markets: Dictionary<any>;
     has: Dictionary<boolean | 'emulated' | undefined>;
@@ -194,6 +202,7 @@ export default class Exchange {
     socksProxyAgentModule: any;
     socksProxyAgentModuleChecked: boolean;
     proxyDictionaries: Dictionary<any>;
+    proxyDictionariesMaxSize: number;
     proxiesModulesLoading: Promise<any>;
     alias: boolean;
     clients: Dictionary<WsClient>;
@@ -302,7 +311,6 @@ export default class Exchange {
     loadExchangeSpecificFiles(): Promise<void>;
     uuid5(namespace: string, name: string): string;
     encodeURIComponent(...args: any[]): string;
-    checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
     throttle(cost?: Num): any;
     initThrottler(): void;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -312,12 +320,119 @@ export default class Exchange {
     setProxyAgents(httpProxy: any, httpsProxy: any, socksProxy: any): any;
     loadHttpProxyAgent(): Promise<any>;
     getHttpAgentIfNeeded(url: any): any;
+    addFetchCache(data: any): void;
+    getFetchCache(): Dictionary<any>[];
     isBinaryMessage(msg: any): msg is ArrayBuffer | Uint8Array<ArrayBufferLike>;
     stringToBinary(content: any): Uint8Array<ArrayBufferLike>;
     binaryToString(binary: any): string;
     decodeProtoMsg(data: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#loadFetchImplementation
+     * @description resolves the fetch implementation once per instance - the platform-native fetch is used everywhere (undici in node, native fetch in bun / browsers / deno), a user-supplied this.fetchImplementation always takes precedence
+     * @returns {Promise<any>} a promise that resolves when the fetch client is ready
+     */
+    loadFetchImplementation(): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getDispatcherOptions
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
+     * @returns {object} undici dispatcher options
+     */
+    getDispatcherOptions(isPlainAgent?: boolean): {
+        keepAliveTimeout: number;
+        keepAliveMaxTimeout: number;
+        connections: number;
+        pipelining: number;
+        allowH2: boolean;
+    };
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#shouldValidateServerSsl
+     * @description whether server certificates should be validated, honoring both this.validateServerSsl and legacy agents constructed with rejectUnauthorized false
+     * @returns {boolean} true when server ssl certificates must be validated
+     */
+    shouldValidateServerSsl(): boolean;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#extractProxyFromAgent
+     * @description backwards compatibility helper - http-proxy-agent, https-proxy-agent and socks-proxy-agent instances all carry their target on a `proxy` property (URL object or string), extract it so it can be passed to the native fetch
+     * @param {object} [agent] a legacy proxy-carrying agent object
+     * @returns {string|undefined} the proxy url, or undefined when the agent does not carry one
+     */
+    extractProxyFromAgent(agent: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#cacheProxyDictionary
+     * @description stores a per-proxy-url transport handle (undici dispatcher or legacy node-style agent) in this.proxyDictionaries, evicting the oldest entry beyond proxyDictionariesMaxSize so rotating-proxy setups cannot grow the cache without bound - evicted or replaced undici dispatchers are closed gracefully (in-flight requests finish first), legacy agents are just dropped because live ws connections may still hold them
+     * @param {string} proxyUrl the proxy url the handle serves
+     * @param {any} value an undici dispatcher or a node-style agent
+     * @returns {any} the cached value
+     */
+    cacheProxyDictionary(proxyUrl: any, value: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#releaseProxyDictionaryEntry
+     * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
+     * @param {any} entry the evicted or replaced proxyDictionaries value
+     */
+    releaseProxyDictionaryEntry(entry: any): void;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getFetchProxyDispatcher
+     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; dispatchers share this.proxyDictionaries with the legacy node-style agents (entries are distinguished by the 'dispatch' method) and the cache is FIFO-capped at proxyDictionariesMaxSize entries so rotating-proxy setups cannot grow it without bound
+     * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
+     * @returns {any} an undici dispatcher
+     */
+    getFetchProxyDispatcher(proxyUrl: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciRequest
+     * @description dispatches through the low-level undici.request api and adapts the result to the minimal fetch-Response surface that handleRestResponse consumes - profiled ~2x faster end-to-end than undici.fetch (node streams instead of the WHATWG Response/Headers/web-streams machinery)
+     * @param {string} url the request url
+     * @param {object} params fetch-style request params ('method', 'headers', 'body', 'signal', 'dispatcher')
+     * @returns {Promise<object>} an object with 'status', 'statusText', 'headers' (plain object), 'text' and 'arrayBuffer' methods
+     */
+    undiciRequest(url: any, params: any): Promise<{
+        status: any;
+        statusText: any;
+        headers: any;
+        text: () => Promise<any>;
+        arrayBuffer: () => Promise<any>;
+    }>;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciBody
+     * @description reads an undici.request response body, transparently decompressing gzip/br/deflate content-encodings via node:zlib (undici.request performs no decompression, unlike fetch)
+     * @param {object} res an undici.request response
+     * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
+     * @returns {Promise<any>} the response body
+     */
+    undiciBody(res: any, binary?: boolean): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#setFetchProxyOptions
+     * @description attaches per-platform proxy transport options to the native fetch request params - undici dispatcher on node, the built-in `proxy` option on bun; the shared keep-alive dispatcher is attached when no proxy applies
+     * @param {object} params the fetch RequestInit params, mutated in place
+     * @param {string} [httpProxy] unified httpProxy setting
+     * @param {string} [httpsProxy] unified httpsProxy setting
+     * @param {string} [socksProxy] unified socksProxy setting
+     */
+    setFetchProxyOptions(params: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     jsonStringifyWithNull(obj: any): string;
+    hasUnsafeInteger(value: any): boolean;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
@@ -356,7 +471,7 @@ export default class Exchange {
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
-    ping(client: Client): any;
+    ping(client: Client): Dict | Str;
     client(url: string): WsClient;
     watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: string, messageHash: string, message?: any, subscribeHash?: any, subscription?: any): any;
@@ -367,7 +482,7 @@ export default class Exchange {
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];
-    valueIsDefined(value: any): boolean;
+    valueIsDefined<T>(value: T): value is NonNullable<T>;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
     setProperty(obj: any, property: any, defaultValue?: any): void;
@@ -390,7 +505,7 @@ export default class Exchange {
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     loadDydxProtos(): Promise<void>;
     toDydxLong(numStr: string): object;
-    retrieveDydxCredentials(entropy: string): object;
+    retrieveDydxCredentials(privateKey: string): object;
     encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
     encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;
@@ -447,10 +562,10 @@ export default class Exchange {
     getCacheIndex(orderbook: any, deltas: any): number;
     arraysConcat(arraysOfArrays: any[]): any[];
     findTimeframe(timeframe: any, timeframes?: NullableDict): string;
-    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;
+    checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): string;
     urlEncoderForProxyUrl(targetUrl: string): string;
-    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
-    checkWsProxySettings(): any[];
+    checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): string[];
+    checkWsProxySettings(): string[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
     checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
@@ -471,7 +586,12 @@ export default class Exchange {
      * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
      */
     enableDemoTrading(enable: boolean): void;
-    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {};
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
+        url: any;
+        method: any;
+        headers: any;
+        body: any;
+    };
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     fetchTradesWs(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -699,7 +819,7 @@ export default class Exchange {
     safeNumber2(dictionary: object, key1: IndexType, key2: IndexType, d?: any): number;
     parseOrderBook(orderbook: object, symbol: string, timestamp?: Int, bidsKey?: string, asksKey?: string, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): OrderBook;
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int, tail?: Bool): OHLCV[];
-    parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): LeverageTiers;
+    parseLeverageTiers(response: any, symbols?: Strings, marketIdKey?: Str): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
     safePosition(position: Dict): Position;
     parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];
@@ -1006,7 +1126,7 @@ export default class Exchange {
     convertTypeToAccount(account: any): any;
     checkRequiredArgument(methodName: string, argument: any, argumentName: any, options?: any[]): void;
     checkRequiredMarginArgument(methodName: string, symbol: Str, marginMode: string): void;
-    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): any;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: Str): any;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     depositWithdrawFee(info: any): any;
     assignDefaultDepositWithdrawFees(fee: any, currency?: Currency): any;

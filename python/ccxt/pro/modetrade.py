@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -101,7 +101,7 @@ class modetrade(ccxt.async_support.modetrade):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         name = 'orderbook'
@@ -172,7 +172,7 @@ class modetrade(ccxt.async_support.modetrade):
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -335,11 +335,13 @@ class modetrade(ccxt.async_support.modetrade):
         result = []
         for i in range(0, len(data)):
             ticker = self.parse_ws_bid_ask(self.extend(data[i], {'ts': timestamp}))
-            self.tickers[ticker['symbol']] = ticker
+            symbol = ticker['symbol']
+            if symbol is not None:
+                self.tickers[symbol] = ticker
             result.append(ticker)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -411,6 +413,8 @@ class modetrade(ccxt.async_support.modetrade):
         symbol = market['symbol']
         interval = self.safe_string(data, 'type')
         timeframe = self.find_timeframe(interval)
+        if timeframe is None:
+            return
         parsed = [
             self.safe_integer(data, 'startTime'),
             self.safe_number(data, 'open'),
@@ -484,7 +488,7 @@ class modetrade(ccxt.async_support.modetrade):
         self.trades[symbol] = trades
         client.resolve(trades, topic)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ADA_USDC",
@@ -533,7 +537,7 @@ class modetrade(ccxt.async_support.modetrade):
         maker = self.safe_bool(trade, 'maker')
         if maker is not None:
             takerOrMaker = 'maker' if maker else 'taker'
-        fee = None
+        fee = {}
         feeValue = self.safe_string(trade, 'fee')
         if feeValue is not None:
             fee = {
@@ -691,7 +695,7 @@ class modetrade(ccxt.async_support.modetrade):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -759,7 +763,7 @@ class modetrade(ccxt.async_support.modetrade):
         #
         orderId = self.safe_string(order, 'orderId')
         marketId = self.safe_string(order, 'symbol')
-        market = self.market(marketId)
+        market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer(order, 'timestamp')
         fee = {
@@ -844,13 +848,15 @@ class modetrade(ccxt.async_support.modetrade):
             # algoexecutionreport
             for i in range(0, len(data)):
                 order = data[i]
-                tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+                tradeIdStr = self.safe_string(data, 'tradeId')
+                tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
                 if tradeId is not None:
                     self.handle_my_trade(client, order)
                 self.handle_order(client, order, topic)
         else:
             # executionreport
-            tradeId = self.omit_zero(self.safe_string(data, 'tradeId'))
+            tradeIdStr = self.safe_string(data, 'tradeId')
+            tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
             if tradeId is not None:
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
@@ -865,7 +871,7 @@ class modetrade(ccxt.async_support.modetrade):
                 self.orders = ArrayCacheBySymbolById(limit)
             cachedOrders = self.orders
             orders = self.safe_dict(cachedOrders.hashmap, symbol, {})
-            order = self.safe_dict(orders, orderId)
+            order = None if (orderId is None) else self.safe_dict(orders, orderId)
             if order is not None:
                 fee = self.safe_value(order, 'fee')
                 if fee is not None:
@@ -873,7 +879,7 @@ class modetrade(ccxt.async_support.modetrade):
                 fees = self.safe_list(order, 'fees')
                 if fees is not None:
                     parsed['fees'] = fees
-                parsed['trades'] = self.safe_list(order, 'trades')
+                parsed['trades'] = self.safe_list(order, 'trades', [])
                 parsed['timestamp'] = self.safe_integer(order, 'timestamp')
                 parsed['datetime'] = self.safe_string(order, 'datetime')
             cachedOrders.append(parsed)
@@ -940,7 +946,7 @@ class modetrade(ccxt.async_support.modetrade):
         await self.load_markets()
         messageHashes = []
         symbols = self.market_symbols(symbols)
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 messageHashes.append('positions::' + symbol)
@@ -1038,7 +1044,7 @@ class modetrade(ccxt.async_support.modetrade):
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ETH_USDC",
@@ -1222,7 +1228,7 @@ class modetrade(ccxt.async_support.modetrade):
             'bbos': self.handle_bid_ask,
         }
         event = self.safe_string(message, 'event')
-        method = self.safe_value(methods, event)
+        method = None if (event is None) else self.safe_value(methods, event)
         if method is not None:
             method(client, message)
             return
@@ -1236,6 +1242,8 @@ class modetrade(ccxt.async_support.modetrade):
             splitLength = len(splitTopic)
             if splitLength == 2:
                 name = self.safe_string(splitTopic, 1)
+                if name is None:
+                    return
                 method = self.safe_value(methods, name)
                 if method is not None:
                     method(client, message)
@@ -1243,7 +1251,8 @@ class modetrade(ccxt.async_support.modetrade):
                 splitName = name.split('_')
                 splitNameLength = len(splitTopic)
                 if splitNameLength == 2:
-                    method = self.safe_value(methods, self.safe_string(splitName, 0))
+                    splitNameFirst = self.safe_string(splitName, 0)
+                    method = None if (splitNameFirst is None) else self.safe_value(methods, splitNameFirst)
                     if method is not None:
                         method(client, message)
 

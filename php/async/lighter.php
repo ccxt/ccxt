@@ -12,11 +12,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class lighter extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'lighter',
@@ -30,7 +29,7 @@ class lighter extends Exchange {
             'quoteJsonNumbers' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -146,7 +145,7 @@ class lighter extends Exchange {
             ),
             'hostname' => 'zklighter.elliot.ai',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/478f648a-05e4-4b09-a841-e7fced3846c0',
+                'logo' => 'https://github.com/user-attachments/assets/5aa1158d-0734-49fc-9155-501d94b76a0b',
                 'api' => array(
                     'root' => 'https://mainnet.{hostname}',
                     'public' => 'https://mainnet.{hostname}',
@@ -381,7 +380,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function load_account($chainId, $privateKey, string $apiKeyIndex, string $accountIndex, $params = array ()) {
+    public function load_account($chainId, $privateKey, string $apiKeyIndex, string $accountIndex, $params = array()) {
         return Async\async(function () use ($chainId, $privateKey, $apiKeyIndex, $accountIndex, $params) {
             $this->init_auth_object($accountIndex, $apiKeyIndex);
             $cachedAuths = $this->safe_dict($this->options['auths'][$accountIndex], $apiKeyIndex);
@@ -411,7 +410,7 @@ class lighter extends Exchange {
                 return $res;
             }
             return $signer;
-        }) ();
+        })();
     }
 
     public function init_auth_object(string $strAccountIndex, string $strApiKeyIndex) {
@@ -447,7 +446,7 @@ class lighter extends Exchange {
         return $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'];
     }
 
-    public function pre_load_lighter_library($params = array ()) {
+    public function pre_load_lighter_library($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * if the required credentials are available in options, it will pre-load the lighter Signer to avoid delaying sensitive calls like createOrder the first time they're executed
@@ -471,7 +470,7 @@ class lighter extends Exchange {
             $signer = Async\await($this->load_account($this->options['chainId'], $this->get_lighter_private_key($strAccountIndex, $strApiKeyIndex), $strApiKeyIndex, $strAccountIndex));
             Async\await($this->handle_builder_fee_approval($accountIndex, $apiKeyIndex));
             return ($signer !== null);
-        }) ();
+        })();
     }
 
     public function handle_api_key_index(array $params, string $methodName1, string $optionName1, string $optionName2, $defaultValue = null): array {
@@ -500,7 +499,7 @@ class lighter extends Exchange {
                 if ($walletAddress === null || $walletAddress === '') {
                     throw new ArgumentsRequired($this->id . ' ' . $methodName1 . '() requires an ' . $optionName1 . '/' . $optionName2 . ' parameter or $walletAddress to fetch $accountIndex-> Alternatively set privateKey in credentials to enable automatic $walletAddress detection.');
                 }
-                $res = Async\await($this->publicGetAccountsByL1Address (array( 'l1_address' => $walletAddress )));
+                $res = Async\await($this->publicGetAccountsByL1Address(array( 'l1_address' => $walletAddress )));
                 //
                 // {
                 //     "code" => 200,
@@ -535,10 +534,10 @@ class lighter extends Exchange {
                 }
             }
             return array( $this->parse_to_int($accountIndex), $params );
-        }) ();
+        })();
     }
 
-    public function create_sub_account(string $name, $params = array ()) {
+    public function create_sub_account(string $name, $params = array()) {
         return Async\async(function () use ($name, $params) {
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'createSubAccount', 'apiKeyIndex', 'api_key_index');
@@ -558,11 +557,11 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            return Async\await($this->publicPostSendTx ($request));
-        }) ();
+            return Async\await($this->publicPostSendTx($request));
+        })();
     }
 
-    public function create_auth($params = array ()) {
+    public function create_auth($params = array()) {
         // don't omit [$accountIndex, $apiKeyIndex], $request may need them
         $apiKeyIndex = $this->safe_string_2($params, 'apiKeyIndex', 'api_key_index');
         if ($apiKeyIndex === null) {
@@ -660,10 +659,10 @@ class lighter extends Exchange {
                 $this->options['builderFee'] = false;
             }
             return true;
-        }) ();
+        })();
     }
 
-    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, array $params = array ()) {
+    public function approve_builder_fee(float $builder, float $takerFeeRate, float $makerFeeRate, float $accountIndex, float $apiKeyIndex, array $params = array()) {
         return Async\async(function () use ($builder, $takerFeeRate, $makerFeeRate, $accountIndex, $apiKeyIndex, $params) {
             $strAccountIndex = $this->number_to_string($accountIndex);
             $strApiKeyIndex = $this->number_to_string($apiKeyIndex);
@@ -685,12 +684,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $newTxInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $response;
-        }) ();
+        })();
     }
 
-    public function change_api_key(array $params = array ()) {
+    public function change_api_key(array $params = array()) {
         return Async\async(function () use ($params) {
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'changeApiKey', 'apiKeyIndex', 'api_key_index');
@@ -715,12 +714,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $newTxInfo,
             );
-            Async\await($this->publicPostSendTx ($request));
+            Async\await($this->publicPostSendTx($request));
             $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['lighterPrivateKey'] = $privateKey;
             $this->options['auths'][$strAccountIndex][$strApiKeyIndex]['signer'] = $signer; // reassign $signer in go
             Async\await($this->handle_builder_fee_approval($accountIndex, $apiKeyIndex));
             return $signer;
-        }) ();
+        })();
     }
 
     public function set_sandbox_mode(bool $enable) {
@@ -729,7 +728,7 @@ class lighter extends Exchange {
         $this->options['chainId'] = $enable ? 300 : 304;
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * helper function to build the $request
@@ -886,7 +885,7 @@ class lighter extends Exchange {
         return $orders;
     }
 
-    public function fetch_nonce($accountIndex, $apiKeyIndex, $params = array ()) {
+    public function fetch_nonce($accountIndex, $apiKeyIndex, $params = array()) {
         return Async\async(function () use ($accountIndex, $apiKeyIndex, $params) {
             if (($accountIndex === null) || ($apiKeyIndex === null)) {
                 throw new ArgumentsRequired($this->id . ' fetchNonce() requires $accountIndex and $apiKeyIndex->');
@@ -904,12 +903,12 @@ class lighter extends Exchange {
             if ($skipNonce) {
                 return $this->milliseconds();
             }
-            $response = Async\await($this->publicGetNextNonce (array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex )));
+            $response = Async\await($this->publicGetNextNonce(array( 'account_index' => $accountIndex, 'api_key_index' => $apiKeyIndex )));
             return $this->safe_integer($response, 'nonce');
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -974,7 +973,7 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             //
             // {
             //     "code" => 200,
@@ -984,10 +983,10 @@ class lighter extends Exchange {
             // }
             //
             return $this->parse_order($this->deep_extend($response, $order), $market);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): PromiseInterface {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * cancels an order and places a new order
@@ -1035,21 +1034,23 @@ class lighter extends Exchange {
                 'nonce' => $nonce,
                 'api_key_index' => $apiKeyIndex,
                 'account_index' => $accountIndex,
-                'integrator_account_index' => $this->options['integratorAccountIndex'],
-                'integrator_taker_fee' => $this->options['integratorTakerFee'],
-                'integrator_maker_fee' => $this->options['integratorMakerFee'],
             );
+            if ($this->safe_bool($this->options, 'builderFee', true)) {
+                $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
+                $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
+                $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+            }
             list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $params));
             $request = array(
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -1059,7 +1060,7 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            $response = Async\await($this->rootGet ($params));
+            $response = Async\await($this->rootGet($params));
             //
             //     {
             //         "status" => "1",
@@ -1075,10 +1076,10 @@ class lighter extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1088,7 +1089,7 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->rootGet ($params));
+            $response = Async\await($this->rootGet($params));
             //
             //     {
             //         "status" => "1",
@@ -1097,10 +1098,10 @@ class lighter extends Exchange {
             //     }
             //
             return $this->safe_timestamp($response, 'timestamp');
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for lighter
@@ -1110,7 +1111,7 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetOrderBookDetails ($params));
+            $response = Async\await($this->publicGetOrderBookDetails($params));
             //
             //    {
             //        "code" => "200",
@@ -1271,10 +1272,10 @@ class lighter extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -1284,7 +1285,7 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetAssetDetails ($params));
+            $response = Async\await($this->publicGetAssetDetails($params));
             if ($this->check_required_credentials(false)) {
                 Async\await($this->pre_load_lighter_library());
             }
@@ -1308,7 +1309,7 @@ class lighter extends Exchange {
             //
             $data = $this->safe_list($response, 'asset_details', array());
             return $this->parse_currencies($data);
-        }) ();
+        })();
     }
 
     public function parse_currency(array $rawCurrency): array {
@@ -1347,7 +1348,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1357,7 +1358,7 @@ class lighter extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
@@ -1369,9 +1370,9 @@ class lighter extends Exchange {
                 'limit' => 100,
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 100);
+                $request['limit'] = min($limit, 100);
             }
-            $response = Async\await($this->publicGetOrderBookOrders ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOrderBookOrders($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1403,7 +1404,7 @@ class lighter extends Exchange {
             //
             $result = $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'remaining_base_amount');
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1504,7 +1505,7 @@ class lighter extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1523,7 +1524,7 @@ class lighter extends Exchange {
             $request = array(
                 'market_id' => $market['id'],
             );
-            $response = Async\await($this->publicGetOrderBookDetails ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetOrderBookDetails($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1573,10 +1574,10 @@ class lighter extends Exchange {
             $tickers = $this->array_concat($spotTickers, $swapTickers);
             $first = $this->safe_dict($tickers, 0, array());
             return $this->parse_ticker($first, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -1589,12 +1590,12 @@ class lighter extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetOrderBookDetails ($params));
+            $response = Async\await($this->publicGetOrderBookDetails($params));
             $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
             $swapTickers = $this->safe_list($response, 'order_book_details', array());
             $tickers = $this->array_concat($spotTickers, $swapTickers);
             return $this->parse_tickers($tickers, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1624,7 +1625,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1675,7 +1676,7 @@ class lighter extends Exchange {
                 'start_timestamp' => $startTs,
                 'end_timestamp' => $endTs,
             );
-            $response = Async\await($this->publicGetCandles ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetCandles($this->extend($request, $params)));
             //
             // {
             //     "code" => 200,
@@ -1700,7 +1701,7 @@ class lighter extends Exchange {
             //
             $ohlcvs = $this->safe_list($response, 'c', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -1735,7 +1736,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the current funding rate for multiple $symbols
@@ -1747,7 +1748,7 @@ class lighter extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetFundingRates ($this->extend($params)));
+            $response = Async\await($this->publicGetFundingRates($this->extend($params)));
             //
             //     {
             //         "code" => 200,
@@ -1770,10 +1771,10 @@ class lighter extends Exchange {
                 }
             }
             return $this->parse_funding_rates($result, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for $balance and get the amount of funds available for trading or funds locked in orders
@@ -1795,7 +1796,7 @@ class lighter extends Exchange {
                 'by' => $this->safe_string($params, 'by', 'index'),
                 'value' => $accountIndex,
             );
-            $response = Async\await($this->publicGetAccount ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200",
@@ -1867,10 +1868,10 @@ class lighter extends Exchange {
                 }
             }
             return $this->safe_balance($result);
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on an open position
@@ -1885,10 +1886,10 @@ class lighter extends Exchange {
              */
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             return $this->safe_dict($positions, 0, array());
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
@@ -1908,7 +1909,7 @@ class lighter extends Exchange {
                 'by' => $this->safe_string($params, 'by', 'index'),
                 'value' => $accountIndex,
             );
-            $response = Async\await($this->publicGetAccount ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -1968,7 +1969,7 @@ class lighter extends Exchange {
                 }
             }
             return $this->parse_positions($allPositions, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2038,7 +2039,7 @@ class lighter extends Exchange {
         ));
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the $accounts associated with a profile
@@ -2057,7 +2058,7 @@ class lighter extends Exchange {
                 'by' => $this->safe_string($params, 'by', 'index'),
                 'value' => $accountIndex,
             );
-            $response = Async\await($this->publicGetAccount ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetAccount($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200",
@@ -2091,7 +2092,7 @@ class lighter extends Exchange {
             //
             $accounts = $this->safe_list($response, 'accounts', array());
             return $this->parse_accounts($accounts, $params);
-        }) ();
+        })();
     }
 
     public function parse_account($account) {
@@ -2129,7 +2130,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2159,7 +2160,7 @@ class lighter extends Exchange {
                 'market_id' => $market['id'],
                 'account_index' => $accountIndex,
             );
-            $response = Async\await($this->privateGetAccountActiveOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountActiveOrders($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2204,10 +2205,10 @@ class lighter extends Exchange {
             //
             $data = $this->safe_list($response, 'orders', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently closed orders
@@ -2239,9 +2240,9 @@ class lighter extends Exchange {
                 'limit' => 100, // required, max 100
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 100);
+                $request['limit'] = min($limit, 100);
             }
-            $response = Async\await($this->privateGetAccountInactiveOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetAccountInactiveOrders($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2286,7 +2287,7 @@ class lighter extends Exchange {
             //
             $data = $this->safe_list($response, 'orders', array());
             return $this->parse_orders($data, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -2476,7 +2477,7 @@ class lighter extends Exchange {
         return $this->safe_string($timeInForces, (string) $tifInteger);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -2531,12 +2532,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $this->parse_transfer($response);
-        }) ();
+        })();
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account
@@ -2571,7 +2572,7 @@ class lighter extends Exchange {
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->privateGetTransferHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTransferHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2602,7 +2603,7 @@ class lighter extends Exchange {
                 $rows[0]['cursor'] = $cursor;
             }
             return $this->parse_transfers($rows, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -2641,7 +2642,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2684,7 +2685,7 @@ class lighter extends Exchange {
                 $currency = $this->currency($code);
                 $request['coin'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetDepositHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDepositHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2708,10 +2709,10 @@ class lighter extends Exchange {
                 $data[0]['cursor'] = $cursor;
             }
             return $this->parse_transactions($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2747,7 +2748,7 @@ class lighter extends Exchange {
                 $currency = $this->currency($code);
                 $request['coin'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetWithdrawHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWithdrawHistory($this->extend($request, $params)));
             //
             //     {
             //         "code" => "200",
@@ -2772,7 +2773,7 @@ class lighter extends Exchange {
                 $data[0]['cursor'] = $cursor;
             }
             return $this->parse_transactions($data, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -2839,7 +2840,7 @@ class lighter extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -2885,12 +2886,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $this->parse_transaction($response);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -2925,7 +2926,7 @@ class lighter extends Exchange {
                 'account_index' => $accountIndex,
             );
             if ($limit !== null) {
-                $request['limit'] = min ($limit, 100);
+                $request['limit'] = min($limit, 100);
             }
             $until = null;
             list($until, $params) = $this->handle_option_and_params_2($params, 'fetchMyTrades', 'until', 'from');
@@ -2937,7 +2938,7 @@ class lighter extends Exchange {
                 $market = $this->market($symbol);
                 $request['market_id'] = $market['id'];
             }
-            $response = Async\await($this->privateGetTrades ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetTrades($this->extend($request, $params)));
             //
             //     {
             //         "code" => 200,
@@ -2979,7 +2980,7 @@ class lighter extends Exchange {
                 $data[0]['next_cursor'] = $nextCursor;
             }
             return $this->parse_trades($data, $market, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -3049,7 +3050,7 @@ class lighter extends Exchange {
         ), $market);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a market
@@ -3070,10 +3071,10 @@ class lighter extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires an $marginMode parameter');
             }
             return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
-        }) ();
+        })();
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($marginMode, $symbol, $params) {
             /**
              * set margin mode to 'cross' or 'isolated'
@@ -3094,10 +3095,10 @@ class lighter extends Exchange {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires an $leverage parameter');
             }
             return Async\await($this->modify_leverage_and_margin_mode($leverage, $marginMode, $symbol, $params));
-        }) ();
+        })();
     }
 
-    public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $marginMode, $symbol, $params) {
             Async\await($this->load_markets());
             if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
@@ -3128,11 +3129,11 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            return Async\await($this->publicPostSendTx ($request));
-        }) ();
+            return Async\await($this->publicPostSendTx($request));
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -3176,12 +3177,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -3212,12 +3213,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $this->parse_orders(array( $response ));
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()) {
         return Async\async(function () use ($timeout, $params) {
             /**
              * dead man's switch, cancel all orders after the given $timeout
@@ -3249,12 +3250,12 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $response;
-        }) ();
+        })();
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -3267,10 +3268,10 @@ class lighter extends Exchange {
                 'direction' => 1,
             );
             return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -3283,10 +3284,10 @@ class lighter extends Exchange {
                 'direction' => 0,
             );
             return Async\await($this->set_margin($symbol, $amount, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function set_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
@@ -3330,9 +3331,9 @@ class lighter extends Exchange {
                 'tx_type' => $txType,
                 'tx_info' => $txInfo,
             );
-            $response = Async\await($this->publicPostSendTx ($request));
+            $response = Async\await($this->publicPostSendTx($request));
             return $this->parse_margin_modification($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
@@ -3351,7 +3352,7 @@ class lighter extends Exchange {
         );
     }
 
-    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array (), ?array $headers = null, mixed $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $url = null;
         if ($api === 'root') {
             $url = $this->implode_hostname($this->urls['api']['public']);

@@ -43,7 +43,7 @@ class bullish(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': False,
@@ -914,7 +914,7 @@ class bullish(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return(not used by bullish)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1465,7 +1465,7 @@ class bullish(Exchange, ImplicitAPI):
             request['_pageSize'] = self.get_closest_limit(limit)
         method = 'privateGetV2HistoryOrders'
         method, params = self.handle_option_and_params(params, 'fetchOrders', 'method', method)
-        response = None
+        response = []
         if method == 'privateGetV2Orders':
             #
             #     [

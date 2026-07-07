@@ -25,6 +25,7 @@ yarn.lock
 keys.local.json
 nbproject/
 vendor/
+.php-cs-fixer.cache
 python/build
 python/dist
 python/package-lock.json

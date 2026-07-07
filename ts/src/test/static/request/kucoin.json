@@ -13,6 +13,39 @@
         "uta": false
     },
     "methods": {
+        "fetchPremiumIndexOHLCV": [
+            {
+                "description": "fetchPremiumIndexOHLCV",
+                "method": "fetchPremiumIndexOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=ETHUSDTM-premium-index&interval=1min&endAt=1782827354&tradeType=FUTURES",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=ETHUSDTM-index-price&interval=1min&endAt=1782827309&tradeType=FUTURES",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=ETHUSDTM-mark-price&interval=1min&endAt=1782827278&tradeType=FUTURES",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchCrossBorrowRate": [
             {
                 "description": "fetch cross borrow rate",

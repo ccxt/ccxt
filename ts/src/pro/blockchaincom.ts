@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Market, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -136,7 +136,9 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -189,11 +191,11 @@ export default class blockchaincom extends blockchaincomRest {
             const timeframe = this.findTimeframe (timeframeId);
             const ohlcv = this.safeValue (message, 'price', []);
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-            let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+            let stored = this.safeValue (this.ohlcvs[symbol], timeframe as string);
             if (stored === undefined) {
                 const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
                 stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol][timeframe] = stored;
+                this.ohlcvs[symbol][timeframe as string] = stored;
             }
             stored.append (ohlcv);
             client.resolve (stored, messageHash);
@@ -212,7 +214,9 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -269,7 +273,7 @@ export default class blockchaincom extends blockchaincomRest {
             ticker = this.parseWsUpdatedTicker (message, lastTicker, market);
         }
         const messageHash = 'ticker:' + symbol;
-        this.tickers[symbol] = ticker;
+        this.tickers[symbol] = ticker as Ticker;
         client.resolve (ticker, messageHash);
     }
 
@@ -322,7 +326,9 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -424,7 +430,9 @@ export default class blockchaincom extends blockchaincomRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -581,7 +589,7 @@ export default class blockchaincom extends blockchaincomRest {
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const tradeId = this.safeString (order, 'tradeId');
-        const trades = [];
+        const trades: List = [];
         if (tradeId !== '0') {
             trades.push ({ 'id': tradeId });
         }
@@ -636,10 +644,12 @@ export default class blockchaincom extends blockchaincomRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {objectConstructor} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.type] accepts l2 or l3 for level 2 or level 3 order book
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const url = this.urls['api']['ws'];
         const type = this.safeString (params, 'type', 'l2');
@@ -743,7 +753,7 @@ export default class blockchaincom extends blockchaincomRest {
             'balances': this.handleBalance,
             'trading': this.handleOrders,
         };
-        const handler = this.safeValue (handlers, channel);
+        const handler = this.safeValue (handlers, channel as string);
         if (handler !== undefined) {
             handler.call (this, client, message);
             return;

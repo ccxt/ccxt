@@ -806,14 +806,15 @@ class binance(Exchange, ImplicitAPI):
                         'order': 1,
                         'openOrder': 1,
                         'openOrders': {'cost': 1, 'noSymbol': 5},
-                        'allOrders': {'cost': 20, 'noSymbol': 40},
+                        'openAlgoOrders': {'cost': 1, 'noSymbol': 40},
+                        'allOrders': 5,
                         'balance': 1,
                         'account': 5,
                         'positionMargin/history': 1,
                         'positionRisk': 1,
-                        'userTrades': {'cost': 20, 'noSymbol': 40},
+                        'userTrades': 5,
                         'income': 20,
-                        'leverageBracket': 1,
+                        'leverageBracket': {'cost': 2, 'noSymbol': 2},
                         'forceOrders': {'cost': 20, 'noSymbol': 50},
                         'adlQuantile': 5,
                         'commissionRate': 20,
@@ -829,6 +830,7 @@ class binance(Exchange, ImplicitAPI):
                     'post': {
                         'positionSide/dual': 1,
                         'order': 4,
+                        'algoOrder': 1,
                         'batchOrders': 5,
                         'countdownCancelAll': 10,
                         'leverage': 1,
@@ -843,6 +845,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         'order': 1,
+                        'algoOrder': 1,
                         'allOpenOrders': 1,
                         'batchOrders': 5,
                         'listenKey': 1,
@@ -1358,6 +1361,7 @@ class binance(Exchange, ImplicitAPI):
                 'defaultSubType': None,  # 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': False,
                 'warnOnFetchOpenOrdersWithoutSymbol': True,
+                'warnOnSTPForInverse': True,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 # not an error
                 # https://github.com/ccxt/ccxt/issues/11268
@@ -1419,7 +1423,6 @@ class binance(Exchange, ImplicitAPI):
                     'XRP': 'XRP',
                     'EOS': 'EOS',
                     'DOGE': 'DOGE',
-                    'SPL': 'SOL',  # temporarily keep support for SPL(old name)
                     'SOL': 'SOL',  # we shouldn't rename SOL
                     'SONIC': 'SONIC',
                     # 'FIAT': 'FIAT_MONEY',  # not unified atm
@@ -4032,7 +4035,7 @@ class binance(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.rpi]: *future only* set to True to use the RPI endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
@@ -5348,6 +5351,9 @@ class binance(Exchange, ImplicitAPI):
         return self.extend(request, params)
 
     def edit_contract_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        if (price is None) and not ('priceMatch' in params):
+            # moved here from editContractOrder for warning in case of calling editOrderWs() without price argument for swap orders
+            raise ArgumentsRequired(self.id + ' editOrder() and editOrderWs() require a price argument for swap orders')
         market = self.market(symbol)
         if not market['contract']:
             raise NotSupported(self.id + ' editContractOrder() does not support ' + market['type'] + ' orders')
@@ -5388,9 +5394,6 @@ class binance(Exchange, ImplicitAPI):
         market = self.market(symbol)
         isPortfolioMargin = None
         isPortfolioMargin, params = self.handle_option_and_params_2(params, 'editContractOrder', 'papi', 'portfolioMargin', False)
-        if market['linear'] or isPortfolioMargin:
-            if (price is None) and not ('priceMatch' in params):
-                raise ArgumentsRequired(self.id + ' editOrder() requires a price argument for portfolio margin and linear orders')
         request = self.edit_contract_order_request(id, symbol, type, side, amount, price, params)
         response = None
         if market['linear']:
@@ -6338,7 +6341,11 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     response = self.papiPostCmOrder(request)
             else:
-                response = self.dapiPrivatePostOrder(request)
+                if isConditional:
+                    request['algoType'] = 'CONDITIONAL'
+                    response = self.dapiPrivatePostAlgoOrder(request)
+                else:
+                    response = self.dapiPrivatePostOrder(request)
         elif marketType == 'margin' or marginMode is not None or isPortfolioMargin:
             if isPortfolioMargin:
                 response = self.papiPostMarginOrder(request)
@@ -6589,7 +6596,7 @@ class binance(Exchange, ImplicitAPI):
                 if trailingDelta is None and stopPrice is None and trailingPercent is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
-                if market['linear'] and market['swap'] and not isPortfolioMargin:
+                if market['swap'] and not isPortfolioMargin:
                     request['triggerPrice'] = self.price_to_precision(symbol, stopPrice)
                 else:
                     request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
@@ -6610,8 +6617,9 @@ class binance(Exchange, ImplicitAPI):
         selfTradePrevention = None
         selfTradePrevention, params = self.handle_option_and_params(params, 'createOrder', 'selfTradePrevention')
         if selfTradePrevention is not None:
-            if market['spot']:
-                request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums(but needs uppercase)
+            if market['inverse'] and self.options['warnOnSTPForInverse']:
+                raise NotSupported(self.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable self warning set the "warnOnSTPForInverse" option to False.')
+            request['selfTradePreventionMode'] = selfTradePrevention.upper()  # binance enums exactly match the unified ccxt enums(but needs uppercase)
         # unified iceberg
         icebergAmount = self.safe_number(params, 'icebergAmount')
         if icebergAmount is not None:
@@ -7090,7 +7098,10 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     response = self.papiGetCmOpenOrders(self.extend(request, params))
             else:
-                response = self.dapiPrivateGetOpenOrders(self.extend(request, params))
+                if isConditional:
+                    response = self.dapiPrivateGetOpenAlgoOrders(self.extend(request, params))
+                else:
+                    response = self.dapiPrivateGetOpenOrders(self.extend(request, params))
         elif type == 'margin' or marginMode is not None or isPortfolioMargin:
             if isPortfolioMargin:
                 response = self.papiGetMarginOpenOrders(self.extend(request, params))
@@ -7439,7 +7450,7 @@ class binance(Exchange, ImplicitAPI):
         if clientOrderId is not None:
             if market['option']:
                 request['clientOrderId'] = clientOrderId
-            elif market['linear'] and market['swap'] and isConditional and not isPortfolioMargin:
+            elif market['swap'] and isConditional and not isPortfolioMargin:
                 request['clientAlgoId'] = clientOrderId
             else:
                 if isPortfolioMargin and isConditional:
@@ -7449,7 +7460,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             if isPortfolioMargin and isConditional:
                 request['strategyId'] = id
-            elif market['linear'] and market['swap'] and isConditional and not isPortfolioMargin:
+            elif market['swap'] and isConditional and not isPortfolioMargin:
                 request['algoId'] = id
             else:
                 request['orderId'] = id
@@ -7475,7 +7486,10 @@ class binance(Exchange, ImplicitAPI):
                 else:
                     response = self.papiDeleteCmOrder(self.extend(request, params))
             else:
-                response = self.dapiPrivateDeleteOrder(self.extend(request, params))
+                if isConditional:
+                    response = self.dapiPrivateDeleteAlgoOrder(self.extend(request, params))
+                else:
+                    response = self.dapiPrivateDeleteOrder(self.extend(request, params))
         elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
             if isPortfolioMargin:
                 response = self.papiDeleteMarginOrder(self.extend(request, params))
@@ -12904,12 +12918,12 @@ class binance(Exchange, ImplicitAPI):
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositionMode', market, params)
         response = None
-        if subType == 'linear':
-            response = self.fapiPrivateGetPositionSideDual(params)
-        elif subType == 'inverse':
+        # we still have two working endpoints but positionMode is common for linear and inverse markets
+        # thus we do not raise an error if the subType is not specified and default to linear for now
+        if subType == 'inverse':
             response = self.dapiPrivateGetPositionSideDual(params)
         else:
-            raise BadRequest(self.id + ' fetchPositionMode requires either a symbol argument or params["subType"]')
+            response = self.fapiPrivateGetPositionSideDual(params)
         #
         #    {
         #        dualSidePosition: False

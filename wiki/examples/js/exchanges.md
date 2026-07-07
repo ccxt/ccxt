@@ -6,6 +6,7 @@ import asTable from 'as-table';
 import ololog from 'ololog';
 import ansicolor from 'ansicolor';
 const log = ololog.configure({ locate: false });
+// @ts-expect-error
 ansicolor.nice;
 process.on('uncaughtException', e => { log.bright.red.error(e); process.exit(1); });
 process.on('unhandledRejection', e => { log.bright.red.error(e); process.exit(1); });

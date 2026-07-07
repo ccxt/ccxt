@@ -62,7 +62,7 @@ export default class bitopro extends bitoproRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if (limit !== undefined) {
@@ -70,7 +70,9 @@ export default class bitopro extends bitoproRest {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
             }
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
@@ -133,7 +135,9 @@ export default class bitopro extends bitoproRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'TRADE' + ':' + symbol;
@@ -196,7 +200,9 @@ export default class bitopro extends bitoproRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         this.checkRequiredCredentials ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market (symbol);
@@ -338,7 +344,9 @@ export default class bitopro extends bitoproRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'TICKER' + ':' + symbol;
@@ -423,7 +431,9 @@ export default class bitopro extends bitoproRest {
      */
     async watchBalance (params = {}): Promise<Balances> {
         this.checkRequiredCredentials ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const messageHash = 'ACCOUNT_BALANCE';
         const url = this.urls['ws']['private'] + '/' + 'account-balance';
         this.authenticate (url);

@@ -152,7 +152,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             put( "ticketInfo", "handleMyTrade");
             put( "outboundContractPositionInfo", "handlePositions");
         }};
-        Object method = this.safeValue(methods, topic);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(topic, null))))) ? null : this.safeValue(methods, topic);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -163,7 +163,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 Object item = Helpers.GetValue(message, i);
                 Object eventVar = this.safeString(item, "e");
-                Object method2 = this.safeValue(methods, eventVar);
+                Object method2 = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
                 if (Helpers.isTrue(!Helpers.isEqual(method2, null)))
                 {
                     Helpers.callDynamically(this, method2, new Object[] {client, item});
@@ -605,7 +605,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBook(Object symbol, Object... optionalArgs)
     {
@@ -627,7 +627,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrderBookForSymbols(Object symbols2, Object... optionalArgs)
     {

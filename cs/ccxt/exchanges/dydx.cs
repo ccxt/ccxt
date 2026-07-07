@@ -119,7 +119,7 @@ public partial class dydx : Exchange
                 { "1d", "1DAY" },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/617ea0c1-f05a-4d26-9fcb-a0d1d4091ae1" },
+                { "logo", "https://github.com/user-attachments/assets/def0a54a-020a-4286-ba95-0f84e50a944d" },
                 { "api", new Dictionary<string, object>() {
                     { "indexer", "https://indexer.dydx.trade/v4" },
                     { "nodeRpc", "https://dydx-ops-rpc.kingnodes.com" },
@@ -564,7 +564,7 @@ public partial class dydx : Exchange
     /**
      * @method
      * @name dydx#fetchMarkets
-     * @description retrieves data on all markets for hyperliquid
+     * @description retrieves data on all markets for dydx
      * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -649,7 +649,7 @@ public partial class dydx : Exchange
      * @method
      * @name dydx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.dydx.xyz/indexer-client/http#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -1791,7 +1791,7 @@ public partial class dydx : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {

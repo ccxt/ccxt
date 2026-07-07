@@ -258,7 +258,7 @@ public partial class bitflyer : Exchange
         {
             object market = getValue(markets, i);
             object id = this.safeString(market, "product_code");
-            object currencies = ((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+            object currencies = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object marketType = this.safeString(market, "market_type");
             object swap = (isEqual(marketType, "FX"));
             object future = (isEqual(marketType, "Futures"));
@@ -285,18 +285,18 @@ public partial class bitflyer : Exchange
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = slice(id, 0, 3);
-                    quoteId = slice(id, 3, 6);
+                    baseId = slice(((string)id), 0, 3);
+                    quoteId = slice(((string)id), 3, 6);
                     // last 9 chars are expiry date
-                    object expiryDate = slice(id, -9, null);
+                    object expiryDate = slice(((string)id), -9, null);
                     expiry = this.parseExpiryDate(expiryDate);
                 } else
                 {
                     object splitAlias = ((string)alias).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
                     object currencyIds = this.safeString(splitAlias, 0);
-                    baseId = slice(currencyIds, 0, -3);
-                    quoteId = slice(currencyIds, -3, null);
-                    object splitId = ((string)id).Split(new [] {((string)currencyIds)}, StringSplitOptions.None).ToList<object>();
+                    baseId = slice(((string)currencyIds), 0, -3);
+                    quoteId = slice(((string)currencyIds), -3, null);
+                    object splitId = ((string)((string)id)).Split(new [] {((string)((string)currencyIds))}, StringSplitOptions.None).ToList<object>();
                     object expiryDate = this.safeString(splitId, 1);
                     expiry = this.parseExpiryDate(expiryDate);
                 }
@@ -435,7 +435,7 @@ public partial class bitflyer : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -664,7 +664,7 @@ public partial class bitflyer : Exchange
         object request = new Dictionary<string, object>() {
             { "product_code", this.marketId(symbol) },
             { "child_order_type", ((string)type).ToUpper() },
-            { "side", ((string)side).ToUpper() },
+            { "side", ((string)((string)side)).ToUpper() },
             { "price", price },
             { "size", amount },
         };
@@ -717,7 +717,7 @@ public partial class bitflyer : Exchange
             { "EXPIRED", "canceled" },
             { "REJECTED", "canceled" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)

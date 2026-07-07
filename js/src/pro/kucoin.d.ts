@@ -1,5 +1,5 @@
 import kucoinRest from '../kucoin.js';
-import type { Balances, Bool, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Bool, FundingRate, Int, Market, NullableDict, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kucoin extends kucoinRest {
     describe(): any;
@@ -178,7 +178,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -193,7 +193,7 @@ export default class kucoin extends kucoinRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), default is false
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -210,7 +210,7 @@ export default class kucoin extends kucoinRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -226,7 +226,7 @@ export default class kucoin extends kucoinRest {
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' or '/contractMarket/level2' or '/contractMarket/level2Depth5' or '/contractMarket/level2Depth50' default is '/market/level2' for spot and '/contractMarket/level2' for futures
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     handleOrderBook(client: Client, message: any): void;
@@ -330,6 +330,48 @@ export default class kucoin extends kucoinRest {
     handlePosition(client: Client, message: any): void;
     handleUtaPosition(client: Client, message: any): void;
     parseWsUtaPosition(position: any, market?: Market): Position;
+    /**
+     * @method
+     * @name kucoin#watchFundingRate
+     * @description watch the current funding rate
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    /**
+     * @method
+     * @name kucoin#unWatchFundingRate
+     * @description unWatches the current funding rate for a symbol
+     * @see https://www.kucoin.com/docs-new/3470270w0
+     * @param {string} symbol unified symbol of the market
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    unWatchFundingRate(symbol: string, params?: {}): Promise<any>;
+    handleUtaFundingRate(client: Client, message: any): void;
+    parseWsFundingRate(data: any, market?: Market): FundingRate;
+    /**
+     * @method
+     * @name kucoin#watchMarkPrice
+     * @description watches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    watchMarkPrice(symbol: string, params?: {}): Promise<Ticker>;
+    /**
+     * @method
+     * @name kucoin#unWatchMarkPrice
+     * @description unWatches a mark price for a specific market
+     * @see https://www.kucoin.com/docs-new/3470272w0
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    unWatchMarkPrice(symbol: string, params?: {}): Promise<any>;
     handleSubject(client: Client, message: any): void;
     ping(client: Client): {
         id: any;

@@ -19,7 +19,6 @@ def test_fetch_transfers(exchange, skipped_properties, code):
     method = 'fetchTransfers'
     transfers = exchange.fetch_transfers(code)
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, transfers, code)
-    now = exchange.milliseconds()
     for i in range(0, len(transfers)):
         test_transfer(exchange, skipped_properties, method, transfers[i], code)
     test_shared_methods.assert_timestamp_order(exchange, method, code, transfers)
