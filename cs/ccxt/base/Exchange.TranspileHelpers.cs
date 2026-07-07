@@ -6,7 +6,7 @@ using System.Reflection;
 using dict = Dictionary<string, object>;
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     // tmp most of these methods are going to be re-implemented in the future to be more generic and efficient

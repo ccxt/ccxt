@@ -22,6 +22,7 @@ import io.github.ccxt.errors.AuthenticationError;
 
 // import io.github.ccxt.wrappers.Binance;
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.MetaData;
 import io.github.ccxt.Version;
 
@@ -55,7 +56,7 @@ public class Main {
     public static String exchangesPath = FileSystems.getDefault().getPath("").toAbsolutePath() + "../../../../.." + "/exchanges.json";
 
 
-    public static void InitOptions(Exchange instance, String[] args) {
+    public static void InitOptions(BaseExchange instance, String[] args) {
 
         if (args.length > 0) {
             for (String arg : args) {
@@ -108,7 +109,7 @@ public class Main {
     }
 
 
-    public static void setCredentials(Exchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
+    public static void setCredentials(BaseExchange instance) throws IllegalArgumentException, IllegalAccessException, IOException {
         var basePath = FileSystems.getDefault().getPath("").toAbsolutePath().toString();
         var prefix = (basePath.endsWith("cli")) ? "/../../" : "/../";
         var keysJsonPath = basePath + prefix + "keys.json";
@@ -166,7 +167,7 @@ public class Main {
         }
     }
 
-    private static void setProperty(Exchange instance, String key, String value)
+    private static void setProperty(BaseExchange instance, String key, String value)
             throws IllegalArgumentException, IllegalAccessException {
 
         Class<?> clazz = instance.getClass();

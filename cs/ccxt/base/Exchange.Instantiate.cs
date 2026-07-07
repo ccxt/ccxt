@@ -2,9 +2,9 @@ using System.Reflection;
 
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
-    public static Exchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false, bool forcePrediction = false)
+    public static BaseExchange DynamicallyCreateInstance(string className, object args = null, bool isWs = false, bool forcePrediction = false)
     {
         var assembly = Assembly.GetExecutingAssembly();
 
@@ -34,14 +34,14 @@ public partial class Exchange
         // Type type2 = Type.GetType(className);
         ConstructorInfo constructor = type.GetConstructor(new Type[] { typeof(object) });
         object classInstance = constructor.Invoke(new object[] { args });
-        return classInstance as Exchange;
+        return classInstance as BaseExchange;
         // }
         // return Activator.CreateInstance(type) as Exchange;
     }
     //     return Activator.CreateInstance(type) as Exchange;
     // }
 
-    public static object DynamicallyCallMethod(Exchange instance, string methodName, object[] parameters)
+    public static object DynamicallyCallMethod(BaseExchange instance, string methodName, object[] parameters)
     {
         var method = instance.GetType().GetMethod(methodName);
         var paramsLength = method.GetParameters().Count();

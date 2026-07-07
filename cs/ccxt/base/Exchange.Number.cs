@@ -14,7 +14,7 @@ namespace ccxt;
 // omitZero,
 // precisionConstants,
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public static int ROUND = 1;                // rounding mode

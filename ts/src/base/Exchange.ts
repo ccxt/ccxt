@@ -183,7 +183,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 /**
  * @class Exchange
  */
-export default class Exchange {
+export class BaseExchange {
     // this is updated by vss.js when building
     static ccxtVersion = '4.5.64';
 
@@ -9734,6 +9734,12 @@ export default class Exchange {
         return false; // stub
     }
 }
+
+// Exchange is a thin concrete tier over BaseExchange (which holds all shared infra). Regular
+// exchanges extend Exchange; the prediction tier (PredictionExchange) extends BaseExchange as an
+// independent sibling — so a prediction instance is NOT `instanceof Exchange`, while still reusing
+// every base helper via BaseExchange.
+export default class Exchange extends BaseExchange {}
 
 export {
     Exchange,

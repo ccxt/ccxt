@@ -295,7 +295,7 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 	return encodedHex, nil
 }
 
-func (this *Exchange) EthEncodeStructuredData(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
+func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
 
 	useDynamicStruct := true // Set to false for hardcoded struct-based approach
 	if useDynamicStruct {
@@ -358,7 +358,7 @@ func (this *Exchange) EthEncodeStructuredData(domain2 any, messageTypes2 any, me
 	return this.Base16ToBinary(hexData)
 }
 
-func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
+func (this *BaseExchange) EthEncodeStructuredDataDynamically(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
 	domain := domain2.(map[string]any)
 	messageTypes := messageTypes2.(map[string]any)
 	messageData := messageData2.(map[string]any)
@@ -377,7 +377,7 @@ func (this *Exchange) EthEncodeStructuredDataDynamically(domain2 any, messageTyp
 	return this.Base16ToBinary(hexData)
 }
 
-func (this *Exchange) EthAbiEncode(types2 any, args2 any) any {
+func (this *BaseExchange) EthAbiEncode(types2 any, args2 any) any {
 	typesList, ok1 := types2.([]any)
 	argsList, ok2 := args2.([]any)
 	if !ok1 || !ok2 || len(typesList) != len(argsList) {
@@ -566,7 +566,7 @@ func ConvertInt64ToInt(data any) any { // these functions change in place the ob
 // 	}
 // }
 
-func (this *Exchange) Packb(data any) []uint8 {
+func (this *BaseExchange) Packb(data any) []uint8 {
 
 	var dataObj any = nil
 	dataJson := this.Json(data)
@@ -859,7 +859,7 @@ func SafeInt(v any) int64 {
 
 // it's necessary to load lighter library in python
 // we create client with the given api credential in this function
-func (this *Exchange) LoadLighterLibrary(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
+func (this *BaseExchange) LoadLighterLibrary(path any, chainId any, privateKey any, apiKeyIndex any, accountIndex any, createClient bool) <-chan any {
 	ch := make(chan any)
 	go func() {
 		ch <- this.loadLighterLibraryHelper(path.(string), uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)), createClient)
@@ -867,7 +867,7 @@ func (this *Exchange) LoadLighterLibrary(path any, chainId any, privateKey any, 
 	return ch
 }
 
-func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64, createClient bool) any {
+func (this *BaseExchange) loadLighterLibraryHelper(path string, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64, createClient bool) any {
 	if createClient {
 		txClient := this.lighterCreateClient(nil, chainId, privateKey, apiKeyIndex, accountIndex)
 		return txClient
@@ -875,11 +875,11 @@ func (this *Exchange) loadLighterLibraryHelper(path string, chainId uint32, priv
 	return nil
 }
 
-func (this *Exchange) LighterCreateClient(signer any, chainId any, privateKey any, apiKeyIndex any, accountIndex any) any {
+func (this *BaseExchange) LighterCreateClient(signer any, chainId any, privateKey any, apiKeyIndex any, accountIndex any) any {
 	return this.lighterCreateClient(signer, uint32(SafeInt(chainId)), privateKey.(string), uint8(SafeInt(apiKeyIndex)), int64(SafeInt(accountIndex)))
 }
 
-func (this *Exchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
+func (this *BaseExchange) lighterCreateClient(signer any, chainId uint32, privateKey string, apiKeyIndex uint8, accountIndex int64) any {
 	url := this.ImplodeHostname(GetValue(GetValue(this.Urls, "api"), "public")).(string)
 
 	httpClient := http.NewClient(url)
@@ -891,7 +891,7 @@ func (this *Exchange) lighterCreateClient(signer any, chainId uint32, privateKey
 	return txClient
 }
 
-func (this *Exchange) lighterL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
+func (this *BaseExchange) lighterL2TxAttr(integratorAccountIndex int64, integratorTakerFee uint32, integratorMakerFee uint32, skipNonce uint8) types.L2TxAttributes {
 	l2TxAttr := types.L2TxAttributes{}
 	if integratorAccountIndex > 0 && integratorTakerFee > 0 && integratorMakerFee > 0 {
 		l2TxAttr.IntegratorAccountIndex = &integratorAccountIndex
@@ -904,11 +904,11 @@ func (this *Exchange) lighterL2TxAttr(integratorAccountIndex int64, integratorTa
 	return l2TxAttr
 }
 
-func (this *Exchange) LighterSignCreateGroupedOrders(signer any, request any) any {
+func (this *BaseExchange) LighterSignCreateGroupedOrders(signer any, request any) any {
 	return this.lighterSignCreateGroupedOrders(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignCreateGroupedOrders(signer *client.TxClient, request map[string]any) any {
 	ordersRaw, ok := request["orders"]
 	if !ok {
 		panic("Missing 'orders' in request")
@@ -976,11 +976,11 @@ func (this *Exchange) lighterSignCreateGroupedOrders(signer *client.TxClient, re
 	return res
 }
 
-func (this *Exchange) LighterSignCreateOrder(signer any, request any) any {
+func (this *BaseExchange) LighterSignCreateOrder(signer any, request any) any {
 	return this.lighterSignCreateOrder(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignCreateOrder(signer *client.TxClient, request map[string]any) any {
 	orderExpiry := int64(SafeInt(request["order_expiry"]))
 	if orderExpiry == -1 {
 		orderExpiry = time.Now().Add(time.Hour * 24 * 28).UnixMilli() // 28 days
@@ -1022,11 +1022,11 @@ func (this *Exchange) lighterSignCreateOrder(signer *client.TxClient, request ma
 	return res
 }
 
-func (this *Exchange) LighterSignCancelOrder(signer any, request any) any {
+func (this *BaseExchange) LighterSignCancelOrder(signer any, request any) any {
 	return this.lighterSignCancelOrder(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignCancelOrder(signer *client.TxClient, request map[string]any) any {
 	tx := &types.CancelOrderTxReq{
 		MarketIndex: int16(SafeInt(request["market_index"])),
 		Index:       int64(SafeInt(request["order_index"])),
@@ -1053,11 +1053,11 @@ func (this *Exchange) lighterSignCancelOrder(signer *client.TxClient, request ma
 	return res
 }
 
-func (this *Exchange) LighterSignWithdraw(signer any, request any) any {
+func (this *BaseExchange) LighterSignWithdraw(signer any, request any) any {
 	return this.lighterSignWithdraw(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignWithdraw(signer *client.TxClient, request map[string]any) any {
 	tx := &types.WithdrawTxReq{
 		AssetIndex: int16(SafeInt(request["asset_index"])),
 		RouteType:  uint8(SafeInt(request["route_type"])),
@@ -1085,11 +1085,11 @@ func (this *Exchange) lighterSignWithdraw(signer *client.TxClient, request map[s
 	return res
 }
 
-func (this *Exchange) LighterSignCreateSubAccount(signer any, request any) any {
+func (this *BaseExchange) LighterSignCreateSubAccount(signer any, request any) any {
 	return this.lighterSignCreateSubAccount(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignCreateSubAccount(signer *client.TxClient, request map[string]any) any {
 	nonce := int64(SafeInt(request["nonce"]))
 	l2TxAttr := this.lighterL2TxAttr(0, uint32(0), uint32(0), uint8(1))
 	ops := &types.TransactOpts{
@@ -1112,11 +1112,11 @@ func (this *Exchange) lighterSignCreateSubAccount(signer *client.TxClient, reque
 	return res
 }
 
-func (this *Exchange) LighterSignCancelAllOrders(signer any, request any) any {
+func (this *BaseExchange) LighterSignCancelAllOrders(signer any, request any) any {
 	return this.lighterSignCancelAllOrders(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignCancelAllOrders(signer *client.TxClient, request map[string]any) any {
 	tx := &types.CancelAllOrdersTxReq{
 		TimeInForce: uint8(SafeInt(request["time_in_force"])),
 		Time:        int64(SafeInt(request["time"])),
@@ -1143,11 +1143,11 @@ func (this *Exchange) lighterSignCancelAllOrders(signer *client.TxClient, reques
 	return res
 }
 
-func (this *Exchange) LighterSignModifyOrder(signer any, request any) any {
+func (this *BaseExchange) LighterSignModifyOrder(signer any, request any) any {
 	return this.lighterSignModifyOrder(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignModifyOrder(signer *client.TxClient, request map[string]any) any {
 	tx := &types.ModifyOrderTxReq{
 		MarketIndex:  int16(SafeInt(request["market_index"])),
 		Index:        int64(SafeInt(request["index"])),
@@ -1177,11 +1177,11 @@ func (this *Exchange) lighterSignModifyOrder(signer *client.TxClient, request ma
 	return res
 }
 
-func (this *Exchange) LighterSignTransfer(signer any, request any) any {
+func (this *BaseExchange) LighterSignTransfer(signer any, request any) any {
 	return this.lighterSignTransfer(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignTransfer(signer *client.TxClient, request map[string]any) any {
 	var memoArr [32]byte
 	bs := []byte(request["memo"].(string))
 	if len(bs) != 32 {
@@ -1221,11 +1221,11 @@ func (this *Exchange) lighterSignTransfer(signer *client.TxClient, request map[s
 	return res
 }
 
-func (this *Exchange) LighterSignUpdateLeverage(signer any, request any) any {
+func (this *BaseExchange) LighterSignUpdateLeverage(signer any, request any) any {
 	return this.lighterSignUpdateLeverage(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignUpdateLeverage(signer *client.TxClient, request map[string]any) any {
 	tx := &types.UpdateLeverageTxReq{
 		MarketIndex:           int16(SafeInt(request["market_index"])),
 		InitialMarginFraction: uint16(SafeInt(request["initial_margin_fraction"])),
@@ -1253,11 +1253,11 @@ func (this *Exchange) lighterSignUpdateLeverage(signer *client.TxClient, request
 	return res
 }
 
-func (this *Exchange) LighterCreateAuthToken(signer any, request any) any {
+func (this *BaseExchange) LighterCreateAuthToken(signer any, request any) any {
 	return this.lighterCreateAuthToken(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterCreateAuthToken(signer *client.TxClient, request map[string]any) any {
 	deadline := time.Unix(int64(SafeInt(request["deadline"])), 0)
 
 	auth, err := signer.GetAuthToken(deadline)
@@ -1268,11 +1268,11 @@ func (this *Exchange) lighterCreateAuthToken(signer *client.TxClient, request ma
 	return auth
 }
 
-func (this *Exchange) LighterSignUpdateMargin(signer any, request any) any {
+func (this *BaseExchange) LighterSignUpdateMargin(signer any, request any) any {
 	return this.lighterSignUpdateMargin(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignUpdateMargin(signer *client.TxClient, request map[string]any) any {
 	tx := &types.UpdateMarginTxReq{
 		MarketIndex: int16(SafeInt(request["market_index"])),
 		USDCAmount:  int64(SafeInt(request["usdc_amount"])),
@@ -1300,11 +1300,11 @@ func (this *Exchange) lighterSignUpdateMargin(signer *client.TxClient, request m
 	return res
 }
 
-func (this *Exchange) LighterSignApproveIntegrator(signer any, request any) any {
+func (this *BaseExchange) LighterSignApproveIntegrator(signer any, request any) any {
 	return this.lighterSignApproveIntegrator(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignApproveIntegrator(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignApproveIntegrator(signer *client.TxClient, request map[string]any) any {
 	tx := &types.ApproveIntegratorTxReq{
 		IntegratorAccountIndex: int64(SafeInt(request["integrator_account_index"])),
 		MaxPerpsTakerFee:       uint32(SafeInt(request["integrator_taker_fee"])),
@@ -1336,7 +1336,7 @@ func (this *Exchange) lighterSignApproveIntegrator(signer *client.TxClient, requ
 	return res
 }
 
-func (this *Exchange) LighterGenerateApiKey(signer any) any {
+func (this *BaseExchange) LighterGenerateApiKey(signer any) any {
 	privateKey, publicKey, _ := client.GenerateAPIKey()
 	res := make([]any, 0)
 	res = append(res, privateKey)
@@ -1344,11 +1344,11 @@ func (this *Exchange) LighterGenerateApiKey(signer any) any {
 	return res
 }
 
-func (this *Exchange) LighterSignChangePubkey(signer any, request any) any {
+func (this *BaseExchange) LighterSignChangePubkey(signer any, request any) any {
 	return this.lighterSignChangePubkey(signer.(*client.TxClient), request.(map[string]any))
 }
 
-func (this *Exchange) lighterSignChangePubkey(signer *client.TxClient, request map[string]any) any {
+func (this *BaseExchange) lighterSignChangePubkey(signer *client.TxClient, request map[string]any) any {
 	decPubkey, err := hexutil.Decode(request["pubkey"].(string))
 	if err != nil {
 		panic(err)
@@ -1381,7 +1381,7 @@ func (this *Exchange) lighterSignChangePubkey(signer *client.TxClient, request m
 	return res
 }
 
-func (this *Exchange) EthGetAddressFromPrivateKey(privateKey any) string {
+func (this *BaseExchange) EthGetAddressFromPrivateKey(privateKey any) string {
 	// Convert any to string
 	privateKeyStr, ok := privateKey.(string)
 	if !ok {
@@ -1458,7 +1458,7 @@ func BuildTypedDataFromJS(primaryType string, domain map[string]any, rawTypes ma
 }
 
 // EncodeTypedData returns the EIP-712 digest "\x19\x01" + domainSeparator + hashStruct(message)
-func (this *Exchange) EncodeTypedData(td apitypes.TypedData) ([]byte, error) {
+func (this *BaseExchange) EncodeTypedData(td apitypes.TypedData) ([]byte, error) {
 	domainSeparator, err := td.HashStruct("EIP712Domain", td.Domain.Map())
 	if err != nil {
 		return []byte{}, err

@@ -14,14 +14,14 @@ func NewMyriad(userConfig map[string]any) *Myriad {
 	return &Myriad{
 		MyriadCore:    p,
 		Core:          p,
-		exchangeTyped: ccxt.NewExchangeTyped(&p.Exchange),
+		exchangeTyped: ccxt.NewExchangeTypedFromBase(&p.BaseExchange),
 	}
 }
 func NewMyriadFromCore(core *MyriadCore) *Myriad {
 	return &Myriad{
 		MyriadCore:    core,
 		Core:          core,
-		exchangeTyped: ccxt.NewExchangeTyped(&core.Exchange),
+		exchangeTyped: ccxt.NewExchangeTypedFromBase(&core.BaseExchange),
 	}
 }
 

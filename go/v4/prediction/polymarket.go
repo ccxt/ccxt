@@ -16,7 +16,7 @@ func NewPolymarketCore() *PolymarketCore {
 }
 
 func (this *PolymarketCore) Describe() any {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
+	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "polymarket",
 		"name":      "Polymarket",
 		"countries": []any{"US"},
@@ -899,7 +899,7 @@ func (this *PolymarketCore) FetchOutcome(outcomeSymbol any) <-chan any {
 			}
 		}
 
-		retRes83615 := (<-this.Exchange.FetchOutcome(outcomeSymbol))
+		retRes83615 := (<-this.BaseExchange.FetchOutcome(outcomeSymbol))
 		ccxt.PanicOnError(retRes83615)
 		ch <- retRes83615
 		return nil
@@ -3892,7 +3892,7 @@ func (this *PolymarketCore) ParsePolyTimestamp(raw any) any {
 }
 
 func (this *PolymarketCore) Init(userConfig map[string]any) {
-	this.Exchange = ccxt.Exchange{}
-	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange = ccxt.BaseExchange{}
+	this.BaseExchange.DerivedExchange = this
+	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

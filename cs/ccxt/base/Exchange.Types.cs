@@ -4,7 +4,7 @@ namespace ccxt;
 // Exchange Types that are used in the Exchange.Wrappers.cs file to type the generic methods
 //
 
-// public partial class Exchange
+// public partial class BaseExchange
 // {
 
 class Helper

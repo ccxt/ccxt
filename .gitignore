@@ -46,3 +46,4 @@ __debug*
 .custom_gitignore
 go/main
 go/tests/main
+go/cli/cli

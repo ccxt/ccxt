@@ -690,7 +690,7 @@ console.log(`\nGenerated ${generated} typed exchange wrappers in ${EXCHANGES_FOL
 // Safety net: verify Exchange.java has an Object... varargs alias for every
 // whitelisted method. Missing aliases produced the silent CI break that
 // motivated this whitelist; loud-failing here prevents the same trap.
-const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
 if (fs.existsSync(EXCHANGE_BASE_FILE)) {
     const baseSrc = fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
     const missing: string[] = [];

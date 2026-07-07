@@ -13,7 +13,7 @@ using Org.BouncyCastle.Security;
 
 namespace ccxt;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public static string sha1() => "sha1";

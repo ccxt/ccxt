@@ -16,7 +16,7 @@ func NewHyperliquidCore() *HyperliquidCore {
 }
 
 func (this *HyperliquidCore) Describe() any {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
+	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "hyperliquid",
 		"name":      "Hyperliquid",
 		"countries": []any{},
@@ -141,7 +141,7 @@ func (this *HyperliquidCore) Describe() any {
 	})
 }
 func (this *HyperliquidCore) SetSandboxMode(enabled any) {
-	this.Exchange.SetSandboxMode(enabled)
+	this.BaseExchange.SetSandboxMode(enabled)
 	ccxt.AddElementToObject(this.Options, "sandboxMode", enabled)
 }
 
@@ -2544,7 +2544,7 @@ func (this *HyperliquidCore) CalculateRateLimiterCost(api any, method any, path 
 }
 
 func (this *HyperliquidCore) Init(userConfig map[string]any) {
-	this.Exchange = ccxt.Exchange{}
-	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange = ccxt.BaseExchange{}
+	this.BaseExchange.DerivedExchange = this
+	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

@@ -14,14 +14,14 @@ func NewKalshi(userConfig map[string]any) *Kalshi {
 	return &Kalshi{
 		KalshiCore:    p,
 		Core:          p,
-		exchangeTyped: ccxt.NewExchangeTyped(&p.Exchange),
+		exchangeTyped: ccxt.NewExchangeTypedFromBase(&p.BaseExchange),
 	}
 }
 func NewKalshiFromCore(core *KalshiCore) *Kalshi {
 	return &Kalshi{
 		KalshiCore:    core,
 		Core:          core,
-		exchangeTyped: ccxt.NewExchangeTyped(&core.Exchange),
+		exchangeTyped: ccxt.NewExchangeTypedFromBase(&core.BaseExchange),
 	}
 }
 

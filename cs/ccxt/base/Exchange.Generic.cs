@@ -5,7 +5,7 @@ using System.Globalization;
 using dict = IDictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public List<object> sortBy(object array, object value1, object desc2 = null, object defaultValue2 = null)
     {

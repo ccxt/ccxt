@@ -1427,7 +1427,7 @@ class NewTranspiler {
             params = 'params...';
         }
 
-        const accessor = isExchange ? 'this.Exchange.' : 'this.Core.';
+        const accessor = isExchange ? 'this.BaseExchange.' : 'this.Core.';
         const body = [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
@@ -1528,7 +1528,7 @@ class NewTranspiler {
 
             exchangeStruct = [
                 `type ExchangeTyped struct {`,
-                `   *Exchange`,
+                `   *BaseExchange`,
                 `}`
             ].join('\n');
 
@@ -1561,12 +1561,20 @@ class NewTranspiler {
             newMethod = [
                 'func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {',
                 `   return &ExchangeTyped{`,
-                `       Exchange: exchangePointer,`,
+                `       BaseExchange: &exchangePointer.BaseExchange,`,
+                `   }`,
+                '}',
+                '',
+                '// NewExchangeTypedFromBase wraps a bare *BaseExchange (used by prediction venues, which',
+                '// embed BaseExchange directly rather than the concrete Exchange).',
+                'func NewExchangeTypedFromBase(base *BaseExchange) *ExchangeTyped {',
+                `   return &ExchangeTyped{`,
+                `       BaseExchange: base,`,
                 `   }`,
                 '}',
                 '',
                 'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
-                '	res := <-this.Exchange.LoadMarkets(params...)',
+                '	res := <-this.BaseExchange.LoadMarkets(params...)',
                 '	if IsError(res) {',
                 '		return nil, CreateReturnError(res)',
                 '	}',
@@ -1580,7 +1588,9 @@ class NewTranspiler {
             let exTyped = '';
             if (!isWs) {
                 if (!isAlias) {
-                    exTyped = this.isPrediction ? 'ccxt.NewExchangeTyped(&p.Exchange)' : 'NewExchangeTyped(&p.Exchange)';
+                    // prediction cores embed BaseExchange (via PredictionExchange), not the concrete
+                    // Exchange, so wrap the bare base pointer through NewExchangeTypedFromBase
+                    exTyped = this.isPrediction ? 'ccxt.NewExchangeTypedFromBase(&p.BaseExchange)' : 'NewExchangeTyped(&p.Exchange)';
                 } else {
                     const parent = this.isAlias(exchange) ? this.getParentExchange(exchange) : '';
                     exTyped = `New${capitalize(this.getParentExchange(exchange))}FromCore(&(p.${capitalize(parent)}Core))`;
@@ -1605,14 +1615,15 @@ class NewTranspiler {
 
             if (!isWs) {
 
-                const exchangeTypedFactory = this.isPrediction ? 'ccxt.NewExchangeTyped' : 'NewExchangeTyped';
+                const exchangeTypedFactory = this.isPrediction ? 'ccxt.NewExchangeTypedFromBase' : 'NewExchangeTyped';
+                const exchangeTypedArg = this.isPrediction ? '&core.BaseExchange' : '&core.Exchange';
                 const coreExchange = !isAlias ? `${capitizedName}` : `${capitalize(this.getParentExchange(exchange))}`;
                 fromCoreMethod = [
                     `func New${capitizedName}FromCore(core *${coreExchange}Core) *${coreExchange} {`,
                     `   return &${coreExchange}{`,
                     `       ${coreExchange}Core: core,`,
                     `       Core:  core,`,
-                    `       exchangeTyped: ${exchangeTypedFactory}(&core.Exchange),`,
+                    `       exchangeTyped: ${exchangeTypedFactory}(${exchangeTypedArg}),`,
                     `   }`,
                     '}',
                 ].join('\n');
@@ -1823,8 +1834,14 @@ ${constStatements.join('\n')}
             [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
-            // Fix setMarketsFromExchange parameter type
-            [/func\s+\(this \*Exchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *Exchange) SetMarketsFromExchange(sourceExchange *Exchange)'],
+            // Fix setMarketsFromExchange parameter type (base methods now hang off *BaseExchange)
+            [/func\s+\(this \*BaseExchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange)'],
+            // the empty `class Exchange extends BaseExchange {}` transpiles to a thin struct +
+            // a NewExchange constructor; both are hand-written in exchange.go (where NewExchange
+            // returns ICoreExchange so the base tests can type-assert `.(*ccxt.Exchange)`), so drop
+            // the auto-generated duplicates to avoid redeclaration.
+            [/type Exchange struct \{\s*BaseExchange\s*\}/g, ''],
+            [/func NewExchange\(\) \*Exchange \{[\s\S]*?\n\}/g, ''],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
@@ -1871,8 +1888,8 @@ ${constStatements.join('\n')}
             [/callDynamically\(/gm, 'this.CallDynamically('],
             [/throwDynamicException\(/gm, 'ThrowDynamicException('],
             [/NewNotSupported/g, 'NotSupported'],
-            // super.method() in the outcome-stub overrides → the embedded Exchange
-            [/\bbase\./gm, 'this.Exchange.'],
+            // super.method() in the outcome-stub overrides → the embedded BaseExchange
+            [/\bbase\./gm, 'this.BaseExchange.'],
         ]);
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -1880,7 +1897,7 @@ ${constStatements.join('\n')}
             const methods = parts[1];
             const structDef = [
                 'type PredictionExchange struct {',
-                '   Exchange',
+                '   BaseExchange',
                 '   Outcomes any',
                 '   Outcomes_by_id any',
                 '   Events any',
@@ -2488,9 +2505,12 @@ ${caseStatements.join('\n')}
                 [/for (\w+) := ([a-zA-Z_]\w*); /g, 'for $1 := int(ParseInt($2)); '],
             ]);
             if (this.isPrediction) {
-                // prediction cores embed PredictionExchange (which embeds Exchange) instead
+                // prediction cores embed PredictionExchange (which embeds BaseExchange) instead
                 // of Exchange directly, so they inherit the prediction methods + state
                 content = content.replace(/(type \w+ struct \{\s*\n\s*)Exchange\b/, '$1PredictionExchange');
+                // the shared `base.` fixup rewrote base-method calls to `this.Exchange.`, but a
+                // prediction core reaches the embedded base as `this.BaseExchange.`
+                content = content.replace(/\bthis\.Exchange\./g, 'this.BaseExchange.');
                 // prediction exchanges merge REST + WS in one class, so apply the WS transforms
                 // (orderbook/side casts, client/future resolve, append, limit, ...) here too
                 content = this.regexAll (content, this.getWsRegexes());
@@ -2526,14 +2546,16 @@ ${caseStatements.join('\n')}
             content = content.replace(/this.Exchange.Describe/gm, `this.${baseClass}.Describe`);
         }
 
-        const exchangeStructName = (this.isPrediction || ws) ? 'ccxt.Exchange' : 'Exchange';
+        // prediction cores embed BaseExchange directly (independent of the concrete Exchange)
+        const baseField = this.isPrediction ? 'BaseExchange' : 'Exchange';
+        const exchangeStructName = this.isPrediction ? 'ccxt.BaseExchange' : (ws ? 'ccxt.Exchange' : 'Exchange');
         let initMethod = '';
         if (!isAlias && !isWs) {
             initMethod = `
 func (this *${className}) Init(userConfig map[string]any) {
-    this.Exchange = ${exchangeStructName}{}
-    this.Exchange.DerivedExchange = this
-    this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+    this.${baseField} = ${exchangeStructName}{}
+    this.${baseField}.DerivedExchange = this
+    this.${baseField}.InitParent(userConfig, this.Describe().(map[string]any), this)
 }\n`;
         } else {
             initMethod = `

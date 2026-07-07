@@ -4,7 +4,7 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public async Task<Currencies> FetchCurrenciesWs(Dictionary<string, object> parameters = null)
     {

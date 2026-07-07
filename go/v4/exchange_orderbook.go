@@ -30,9 +30,9 @@ type WsOrderBook struct {
 	Nonce     any            `json:"nonce"`
 	Symbol    string         `json:"symbol"`
 	// prediction-market identity (nil for crypto exchanges)
-	Outcome   any            `json:"outcome"`
-	OutcomeId any            `json:"outcomeId"`
-	Market    any            `json:"market"`
+	Outcome   any `json:"outcome"`
+	OutcomeId any `json:"outcomeId"`
+	Market    any `json:"market"`
 }
 
 func strOrNil(s string) any {

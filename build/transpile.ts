@@ -1714,7 +1714,7 @@ class Transpiler {
             // example: async fetchTickers(): Promise<any> { ---> async fetchTickers() {
             // and remove parameters types
             // example: myFunc (name: string | number = undefined) ---> myFunc(name = undefined)
-            if (className === 'Exchange' || className === 'PredictionExchange') {
+            if (className === 'Exchange' || className === 'BaseExchange' || className === 'PredictionExchange') {
                 signature = this.regexAll(signature, this.getTypescripSignaturetRemovalRegexes())
             }
 
@@ -1991,14 +1991,19 @@ class Transpiler {
                 log.magenta ('→', python2File.yellow)
                 replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
                 log.magenta ('→', python3File.yellow)
-                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n')
+                // the async base class is BaseExchange (shared infra); Exchange is a thin concrete
+                // tier so the prediction base can extend BaseExchange as an independent sibling.
+                // the transpiler owns marker→EOF, so the thin Exchange is appended here.
+                replaceInFile (python3File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python3Async.join ('\n') + '\n\n\nclass Exchange(BaseExchange):\n    pass\n')
             }
 
             if (this.buildPHP) {
                 log.magenta ('→', phpFile.yellow)
                 replaceInFile (phpFile,      new RegExp (phpDelimiter + restOfFile),    phpDelimiter + php.join ('\n') + '\n}\n')
                 log.magenta ('→', phpAsyncFile.yellow)
-                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n')
+                // async base class is BaseExchange (shared infra); Exchange is the thin concrete tier
+                // so the prediction base can extend BaseExchange as an independent sibling (see python above)
+                replaceInFile (phpAsyncFile, new RegExp (phpDelimiter + restOfFile),    phpDelimiter + phpAsync.join ('\n') + '\n}\n\nclass Exchange extends BaseExchange {\n}\n')
             }
         }
     }
@@ -3220,7 +3225,7 @@ class Transpiler {
     }
 
     checkIfMethodLacksParser (className: string, methodName: string, methodContent: string) {
-        if (className === 'Exchange') {
+        if (className === 'Exchange' || className === 'BaseExchange') {
             return;
         }
         // before base class, the check is not needed

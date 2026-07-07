@@ -1,4 +1,4 @@
-import { Exchange } from './Exchange.js';
+import { BaseExchange } from './Exchange.js';
 import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
@@ -7,7 +7,7 @@ import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, P
  * prediction-specific state (events / outcomes) and helpers, and re-declares the
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
  */
-export default class PredictionExchange extends Exchange {
+export default class PredictionExchange extends BaseExchange {
     outcomes: Dictionary<any>;
     outcomes_by_id: Dictionary<any>;
     events: Dictionary<any>;

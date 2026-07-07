@@ -26,7 +26,7 @@ public static class Program
     public static List<string> exchangesId;
     public static List<Exchange> exchanges = new List<Exchange>();
 
-    public static void InitOptions(Exchange instance, IEnumerable<string> args)
+    public static void InitOptions(BaseExchange instance, IEnumerable<string> args)
     {
         if (args.Contains("--verbose"))
         {
@@ -48,7 +48,7 @@ public static class Program
         }
     }
 
-    public static void SetCredentials(Exchange instance)
+    public static void SetCredentials(BaseExchange instance)
     {
         JObject localKeys = null;
         try

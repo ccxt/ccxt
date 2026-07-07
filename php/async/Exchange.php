@@ -48,7 +48,7 @@ use Exception;
 
 $version = '4.5.64';
 
-class Exchange extends \ccxt\Exchange {
+class BaseExchange extends \ccxt\Exchange {
 
     const VERSION = '4.5.64';
 
@@ -7595,4 +7595,7 @@ class Exchange extends \ccxt\Exchange {
     public function is_uta_enabled($params = array()) {
         return false; // stub
     }
+}
+
+class Exchange extends BaseExchange {
 }

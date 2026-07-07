@@ -14,14 +14,14 @@ func NewLimitless(userConfig map[string]any) *Limitless {
 	return &Limitless{
 		LimitlessCore: p,
 		Core:          p,
-		exchangeTyped: ccxt.NewExchangeTyped(&p.Exchange),
+		exchangeTyped: ccxt.NewExchangeTypedFromBase(&p.BaseExchange),
 	}
 }
 func NewLimitlessFromCore(core *LimitlessCore) *Limitless {
 	return &Limitless{
 		LimitlessCore: core,
 		Core:          core,
-		exchangeTyped: ccxt.NewExchangeTyped(&core.Exchange),
+		exchangeTyped: ccxt.NewExchangeTypedFromBase(&core.BaseExchange),
 	}
 }
 

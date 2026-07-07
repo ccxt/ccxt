@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Functions;
@@ -680,7 +681,11 @@ public class BaseTest {
 
         // the --prediction flag forces the prediction-markets package for ids present in both (e.g. hyperliquid)
         boolean forcePrediction = getCliArgValue("--prediction");
-        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
+        // dynamicallyCreateInstance now returns the shared BaseExchange supertype (prediction venues
+        // are no longer `instanceof Exchange`). The generated TestMain harness is still typed on
+        // Exchange, so downcast here; prediction venues run through the CLI (BaseExchange-typed) —
+        // migrating the harness handle to BaseExchange is the cross-language follow-up.
+        return (Exchange) BaseExchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
     }
 
     public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {

@@ -10,7 +10,7 @@ using MiniMessagePack;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
 
     public object base16ToBinary(object str2)

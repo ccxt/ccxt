@@ -8,7 +8,7 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 /**
  * @class Exchange
  */
-export default class Exchange {
+export declare class BaseExchange {
     static ccxtVersion: string;
     options: Dict;
     isSandboxModeEnabled: boolean;
@@ -1186,5 +1186,7 @@ export default class Exchange {
     cleanCache(subscription: Dict): void;
     timeframeFromMilliseconds(ms: number): string;
     isUTAEnabled(params?: {}): Promise<boolean>;
+}
+export default class Exchange extends BaseExchange {
 }
 export { Exchange, };

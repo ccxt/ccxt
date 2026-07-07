@@ -1,6 +1,6 @@
 package examples;
 
-import io.github.ccxt.Exchange;
+import io.github.ccxt.BaseExchange;
 
 import java.util.Map;
 
@@ -27,7 +27,7 @@ public class CompareExchanges {
 
         for (String id : exchangeIds) {
             try {
-                Exchange exchange = Exchange.dynamicallyCreateInstance(id, null);
+                BaseExchange exchange = BaseExchange.dynamicallyCreateInstance(id, null);
                 exchange.loadMarkets(false).join();
 
                 // Untyped: fetchTicker returns CompletableFuture<Object>

@@ -7,7 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from typing import Any, List
-from ccxt.async_support.base.exchange import Exchange
+from ccxt.async_support.base.exchange import BaseExchange
 from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
@@ -15,7 +15,7 @@ from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ArgumentsRequired
 
 
-class PredictionExchange(Exchange):
+class PredictionExchange(BaseExchange):
     outcomes = None
     outcomes_by_id = None
     events = None

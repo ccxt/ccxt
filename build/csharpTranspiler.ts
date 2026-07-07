@@ -473,9 +473,9 @@ class NewTranspiler {
         const op = isOptional ? '?' : '';
         let paramType: any = undefined;
         
-        // Special case for setMarketsFromExchange method
+        // Special case for setMarketsFromExchange method — base tier accepts any exchange
         if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'Exchange';
+            paramType = 'BaseExchange';
         } else if (param.type == undefined) {
             paramType = 'object';
         } else {
@@ -690,7 +690,7 @@ class NewTranspiler {
 
     createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
         const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
-        const shouldCreateClassWrappers = exchange === 'Exchange';
+        const shouldCreateClassWrappers = exchange === 'BaseExchange';
         const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
         // const exchangeName = ws ? exchange + 'Ws' : exchange;
         const namespace = this.getNamespace (ws);
@@ -797,8 +797,9 @@ class NewTranspiler {
         removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
-        // create wrappers with specific types
-        this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        // create wrappers with specific types — emitted on BaseExchange so both the thin Exchange
+        // tier and the sibling PredictionExchange tier inherit the typed method wrappers
+        this.createCSharpWrappers('BaseExchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
 
 
         // custom transformations needed for c#
@@ -808,8 +809,9 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll("((object)this).number = float;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replaceAll(/(\w+)(\.storeArray\(.+\))/gm, '($1 as ccxt.pro.IOrderBookSide)$2'); // tmp fix for c#
         
-        // Fix setMarketsFromExchange parameter type
-        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual Exchange setMarketsFromExchange(Exchange sourceExchange)');
+        // Fix setMarketsFromExchange parameter type — typed as BaseExchange so it lives on the base
+        // tier (returning `this`) and accepts both Exchange and PredictionExchange source instances
+        baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -827,10 +829,13 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            const baseMethods = parts[1]
+            // the TS default export `class Exchange extends BaseExchange {}` transpiles to a trailing
+            // empty `class Exchange : BaseExchange { }` — drop it here; the concrete thin tier is
+            // provided by the hand-written cs/ccxt/base/Exchange.Thin.cs partial instead
+            const baseMethods = parts[1].replace (/\s*class Exchange\s*:\s*BaseExchange\s*\{\s*\}\s*$/, '\n')
             const fileHeader = this.getCsharpImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
-                "public partial class Exchange\n{\n\n"
+                "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
 
             const file = fileHeader + baseMethods + "\n";
@@ -864,7 +869,7 @@ class NewTranspiler {
             ].join('\n')
             const fileHeader = this.getCsharpImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
-                "public partial class PredictionExchange : Exchange\n{\n\n"
+                "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
             // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
             // venue that does NOT override a unified method still exposes the prediction-typed signature

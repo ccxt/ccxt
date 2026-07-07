@@ -29,7 +29,7 @@ from ccxt.base.types import ConstructorArgs, OrderType, OrderSide, OrderRequest,
 
 # -----------------------------------------------------------------------------
 
-from ccxt.base.exchange import Exchange as BaseExchange, ArgumentsRequired
+from ccxt.base.exchange import Exchange as SyncExchange, ArgumentsRequired
 
 # -----------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ except ImportError:
 # -----------------------------------------------------------------------------
 
 
-class Exchange(BaseExchange):
+class BaseExchange(SyncExchange):
     synchronous = False
     streaming = {
         'maxPingPongMisses': 2,
@@ -93,7 +93,7 @@ class Exchange(BaseExchange):
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
         self.throttler = None
-        super(Exchange, self).__init__(config)
+        super(BaseExchange, self).__init__(config)
         self.markets_loading = None
         self.reloading_markets = False
 
@@ -2443,3 +2443,7 @@ class Exchange(BaseExchange):
 
     async def is_uta_enabled(self, params={}):
         return False  # stub
+
+
+class Exchange(BaseExchange):
+    pass

@@ -16,7 +16,7 @@ func NewKalshiCore() *KalshiCore {
 }
 
 func (this *KalshiCore) Describe() any {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
+	return this.DeepExtend(this.BaseExchange.Describe(), map[string]any{
 		"id":        "kalshi",
 		"name":      "Kalshi",
 		"countries": []any{"US"},
@@ -3038,7 +3038,7 @@ func (this *KalshiCore) Sign(path any, optionalArgs ...any) any {
 }
 
 func (this *KalshiCore) Init(userConfig map[string]any) {
-	this.Exchange = ccxt.Exchange{}
-	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
+	this.BaseExchange = ccxt.BaseExchange{}
+	this.BaseExchange.DerivedExchange = this
+	this.BaseExchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

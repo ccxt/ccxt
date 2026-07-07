@@ -12,7 +12,7 @@ import io.github.ccxt.ws.*;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class PredictionExchange extends Exchange {
+public class PredictionExchange extends BaseExchange {
     public volatile Object outcomes = null;
     public volatile Object outcomes_by_id = null;
     public volatile Object events = null;

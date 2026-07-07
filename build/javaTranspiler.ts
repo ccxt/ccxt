@@ -149,7 +149,7 @@ const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
-const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
@@ -575,7 +575,7 @@ class NewTranspiler {
         let paramType: any = undefined;
 
         if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'Exchange';
+            paramType = 'BaseExchange';
         } else if (param.type == undefined) {
             paramType = 'Object';
         } else {
@@ -914,16 +914,18 @@ class NewTranspiler {
         removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
-        // custom transformations needed for Java
-        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1Exchange.$2");
+        // the transpiled base methods now live on `BaseExchange` (Exchange is a thin subclass), so
+        // the qualified-this used inside anonymous-class initializers must name the enclosing class
+        // BaseExchange, not Exchange.
+        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1BaseExchange.$2");
         baseClass = this.regexAll(baseClass, [
             [/\(Object client, /g, '(Client client, '],
             [/Object client = (.+)/g, 'Client client = (Client)$1'],
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
-            [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
+            [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
 
-            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1Exchange.$2"],
-            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(Exchange sourceExchange)"]
+            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1BaseExchange.$2"],
+            [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"]
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
         baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
@@ -951,8 +953,16 @@ class NewTranspiler {
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
         if (parts.length > 1) {
+            // ts/src/base/Exchange.ts declares two classes — `class BaseExchange { ... }` and the
+            // thin `class Exchange extends BaseExchange {}` — so the ast-transpiler appends a trailing
+            // `class Exchange extends BaseExchange { }` after BaseExchange's closing brace. Java allows
+            // only one public top-level class per file and the thin Exchange needs its own constructors,
+            // so it lives hand-written in Exchange.java; strip the emitted remnant (keeping BaseExchange's
+            // closing brace) before injecting into BaseExchange.java.
+            let baseMethods = parts[1];
+            baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
             log.magenta('→', (javaExchangeBase as any).yellow)
-            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + parts[1].trim() + '\n')
+            replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + baseMethods.trim() + '\n')
         }
     }
 
@@ -963,7 +973,9 @@ class NewTranspiler {
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
         const baseFile: any = this.transpiler.transpileJavaByPath(predictionBaseFile);
         let baseClass = baseFile.content as any;
-        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1Exchange.$2");
+        // qualified-this inside anonymous-class initializers names the lexically enclosing class,
+        // which for these methods is PredictionExchange (not Exchange/BaseExchange).
+        baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1PredictionExchange.$2");
         baseClass = this.regexAll(baseClass, [
             [/\(Object client, /g, '(Client client, '],
             [/Object client = (.+)/g, 'Client client = (Client)$1'],

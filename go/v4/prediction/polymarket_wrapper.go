@@ -14,14 +14,14 @@ func NewPolymarket(userConfig map[string]any) *Polymarket {
 	return &Polymarket{
 		PolymarketCore: p,
 		Core:           p,
-		exchangeTyped:  ccxt.NewExchangeTyped(&p.Exchange),
+		exchangeTyped:  ccxt.NewExchangeTypedFromBase(&p.BaseExchange),
 	}
 }
 func NewPolymarketFromCore(core *PolymarketCore) *Polymarket {
 	return &Polymarket{
 		PolymarketCore: core,
 		Core:           core,
-		exchangeTyped:  ccxt.NewExchangeTyped(&core.Exchange),
+		exchangeTyped:  ccxt.NewExchangeTypedFromBase(&core.BaseExchange),
 	}
 }
 

@@ -14,14 +14,14 @@ func NewHyperliquid(userConfig map[string]any) *Hyperliquid {
 	return &Hyperliquid{
 		HyperliquidCore: p,
 		Core:            p,
-		exchangeTyped:   ccxt.NewExchangeTyped(&p.Exchange),
+		exchangeTyped:   ccxt.NewExchangeTypedFromBase(&p.BaseExchange),
 	}
 }
 func NewHyperliquidFromCore(core *HyperliquidCore) *Hyperliquid {
 	return &Hyperliquid{
 		HyperliquidCore: core,
 		Core:            core,
-		exchangeTyped:   ccxt.NewExchangeTyped(&core.Exchange),
+		exchangeTyped:   ccxt.NewExchangeTypedFromBase(&core.BaseExchange),
 	}
 }
 

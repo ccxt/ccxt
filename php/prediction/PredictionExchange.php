@@ -16,7 +16,7 @@ use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise;
 
-class PredictionExchange extends \ccxt\async\Exchange {
+class PredictionExchange extends \ccxt\async\BaseExchange {
     public $outcomes = null;
     public $outcomes_by_id = null;
     public $events = null;

@@ -46,7 +46,10 @@ public partial class testMainClass : BaseTest
             exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
         }
         var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
-        return exchange;
+        // regular venues return an Exchange; the shared test harness types the variable as Exchange,
+        // so prediction instances (which extend BaseExchange, not Exchange) are exercised through the
+        // cli / dedicated prediction paths rather than this Exchange-typed cast
+        return exchange as Exchange;
     }
 
     public static bool getCliArgValue(string option)

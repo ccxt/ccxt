@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using dict = Dictionary<string, object>;
 using list = List<object>;
 
-public partial class Exchange
+public partial class BaseExchange
 {
     public HttpClient httpClient { get; set; }
     public object fetchResponse = null; // tmp for response tests

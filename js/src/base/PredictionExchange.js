@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 // ----------------------------------------------------------------------------
-import { Exchange } from './Exchange.js';
+import { BaseExchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
 // ----------------------------------------------------------------------------
 /**
@@ -15,7 +15,7 @@ import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './err
  * prediction-specific state (events / outcomes) and helpers, and re-declares the
  * single-market unified methods using an `outcome` symbol instead of a `symbol`.
  */
-export default class PredictionExchange extends Exchange {
+export default class PredictionExchange extends BaseExchange {
     constructor() {
         super(...arguments);
         this.outcomes = undefined;
