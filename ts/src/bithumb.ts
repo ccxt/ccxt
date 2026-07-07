@@ -993,12 +993,23 @@ export default class bithumb extends Exchange {
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
+            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
+            // so we aggregate one market per request only when symbols are not provided.
+            let marketIds = [];
             if (symbols === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchTickers() with generation=2 requires a symbols argument');
+                marketIds = this.marketIds (this.symbols);
+            } else {
+                marketIds = this.marketIds (symbols);
+                request['markets'] = marketIds.join (',');
             }
-            const marketIds = this.marketIds (symbols);
-            request['markets'] = marketIds.join (',');
-            const response = await this.publicGetV1Ticker (this.extend (request, params));
+            const promises = [];
+            if (symbols === undefined) {
+                for (let i = 0; i < marketIds.length; i++) {
+                    promises.push (this.publicGetV1Ticker (this.extend ({ 'markets': marketIds[i] }, params)));
+                }
+            } else {
+                promises.push (this.publicGetV1Ticker (this.extend (request, params)));
+            }
             //
             //     [
             //         {
@@ -1031,18 +1042,47 @@ export default class bithumb extends Exchange {
             //         },
             //     ]
             //
-            for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
-                const marketId = this.safeString (entry, 'market');
-                if (marketId === undefined) {
-                    continue;
+            const responses = await Promise.all (promises);
+            for (let i = 0; i < responses.length; i++) {
+                let response = responses[i];
+                if (this.isDictionary (response) && ('data' in response) && (response['data'] !== undefined)) {
+                    response = response['data'];
                 }
-                const market = this.safeMarket (marketId);
-                const symbol = this.safeSymbol (marketId, market);
-                if (symbol === undefined) {
-                    continue;
+                let expectedMarketId = undefined;
+                if (symbols === undefined) {
+                    expectedMarketId = marketIds[i];
                 }
-                result[symbol] = this.parseTicker (entry, market);
+                let tickers = [];
+                if (Array.isArray (response)) {
+                    tickers = response;
+                } else if (this.isDictionary (response)) {
+                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
+                        tickers = [ response ];
+                    } else {
+                        const ids = Object.keys (response);
+                        for (let j = 0; j < ids.length; j++) {
+                            const id = ids[j];
+                            const ticker = this.safeDict (response, id);
+                            if (ticker !== undefined) {
+                                ticker['market'] = this.safeString (ticker, 'market', id);
+                                tickers.push (ticker);
+                            }
+                        }
+                    }
+                }
+                for (let j = 0; j < tickers.length; j++) {
+                    const entry = tickers[j];
+                    const marketId = this.safeString (entry, 'market', expectedMarketId);
+                    if (marketId === undefined) {
+                        continue;
+                    }
+                    const market = this.safeMarket (marketId);
+                    const symbol = this.safeSymbol (marketId, market);
+                    if (symbol === undefined) {
+                        continue;
+                    }
+                    result[symbol] = this.parseTicker (entry, market);
+                }
             }
         } else {
             const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
