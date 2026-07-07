@@ -999,9 +999,40 @@ export default class bithumb extends Exchange {
             const marketIds = this.marketIds (symbols);
             request['markets'] = marketIds.join (',');
             const response = await this.publicGetV1Ticker (this.extend (request, params));
-            const tickers = this.safeList (response, []);
-            for (let i = 0; i < tickers.length; i++) {
-                const entry = tickers[i];
+            //
+            //     [
+            //         {
+            //             "market": "BTC-USDC",
+            //             "trade_date": "20260701",
+            //             "trade_time": "233533",
+            //             "trade_date_kst": "20260702",
+            //             "trade_time_kst": "083533",
+            //             "trade_timestamp": 1782981333650,
+            //             "opening_price": 0.00001667,
+            //             "high_price": 0.00001667,
+            //             "low_price": 0.00001645,
+            //             "trade_price": 0.00001659,
+            //             "prev_closing_price": 0.00001673,
+            //             "change": "FALL",
+            //             "change_price": 1.4E-7,
+            //             "change_rate": 0.0084,
+            //             "signed_change_price": -1.4E-7,
+            //             "signed_change_rate": -0.0084,
+            //             "trade_volume": 1.43724182,
+            //             "acc_trade_price": 0.77934383561689,
+            //             "acc_trade_price_24h": 1.76373410121466379999997512,
+            //             "acc_trade_volume": 47175.3220805,
+            //             "acc_trade_volume_24h": 104565.90238645676844763,
+            //             "highest_52_week_price": 0.00006592,
+            //             "highest_52_week_date": "2025-11-05",
+            //             "lowest_52_week_price": 0.00000782,
+            //             "lowest_52_week_date": "2026-02-22",
+            //             "timestamp": 1782981333650
+            //         },
+            //     ]
+            //
+            for (let i = 0; i < response.length; i++) {
+                const entry = response[i];
                 const marketId = this.safeString (entry, 'market');
                 if (marketId === undefined) {
                     continue;
