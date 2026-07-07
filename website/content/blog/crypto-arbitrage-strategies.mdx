@@ -62,7 +62,23 @@ execution costs two spreads.
 for backtesting the carry, unified derivatives symbols (`BTC/USDT:USDT` is the linear perp),
 plus position and margin data on the private side. A funding scanner is a few lines:
 
-```python
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+for (const id of ['binance', 'bybit', 'okx', 'gate']) {
+    const exchange = new ccxt[id]();
+    const rates = await exchange.fetchFundingRates();
+    for (const [symbol, entry] of Object.entries(rates)) {
+        if (entry.fundingRate && Math.abs(entry.fundingRate) > 0.0005) {
+            console.log(id.padEnd(10), symbol.padEnd(22),
+                `${(entry.fundingRate * 100).toFixed(4)}%`);
+        }
+    }
+    await exchange.close();
+}
+```
+
+```python tab="Python"
 import ccxt
 
 for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
@@ -72,6 +88,89 @@ for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
         rate = entry['fundingRate']
         if rate and abs(rate) > 0.0005:          # 0.05% per interval
             print(f'{exchange_id:10} {symbol:22} {rate * 100:+.4f}%')
+```
+
+```php tab="PHP"
+<?php
+foreach (['binance', 'bybit', 'okx', 'gate'] as $id) {
+    $class = "\\ccxt\\{$id}";
+    $exchange = new $class();
+    $rates = $exchange->fetch_funding_rates();
+    foreach ($rates as $symbol => $entry) {
+        $rate = $entry['fundingRate'];
+        if ($rate && abs($rate) > 0.0005) {      // 0.05% per interval
+            printf("%-10s %-22s %+.4f%%\n", $id, $symbol, $rate * 100);
+        }
+    }
+}
+```
+
+```csharp tab="C#"
+using ccxt;
+
+foreach (var id in new[] { "binance", "bybit", "okx", "gate" })
+{
+    var exchange = Exchange.DynamicallyCreateInstance(id);
+    var rates = await exchange.FetchFundingRates();
+    foreach (var (symbol, entry) in rates.fundingRates)
+    {
+        if (entry.fundingRate is double rate && Math.Abs(rate) > 0.0005)
+        {
+            Console.WriteLine($"{id,-10} {symbol,-22} {rate * 100:+0.0000;-0.0000}%");
+        }
+    }
+}
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "math"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    for _, id := range []string{"binance", "bybit", "okx", "gate"} {
+        exchange := ccxt.CreateExchange(id, nil)
+        rates, err := exchange.FetchFundingRates()
+        if err != nil {
+            panic(err)
+        }
+        for symbol, entry := range rates.FundingRates {
+            if entry.FundingRate != nil && math.Abs(*entry.FundingRate) > 0.0005 {
+                fmt.Printf("%-10s %-22s %+.4f%%\n", id, symbol, *entry.FundingRate*100)
+            }
+        }
+    }
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.Exchange;
+
+import java.util.Map;
+
+public class FundingScanner {
+
+    @SuppressWarnings("unchecked")
+    public static void main(String[] args) {
+        for (var id : new String[] { "binance", "bybit", "okx", "gate" }) {
+            var exchange = Exchange.dynamicallyCreateInstance(id, null);
+            var rates = (Map<String, Object>) exchange.fetchFundingRates().join();
+            for (var entry : rates.entrySet()) {
+                var data = (Map<String, Object>) entry.getValue();
+                var rate = (Number) data.get("fundingRate");
+                if (rate != null && Math.abs(rate.doubleValue()) > 0.0005) {
+                    System.out.printf("%-10s %-22s %+.4f%%%n",
+                            id, entry.getKey(), rate.doubleValue() * 100);
+                }
+            }
+        }
+    }
+}
 ```
 
 At 0.05% every 8 hours, the gross annualized carry is roughly 55% — which is why crowded

@@ -13,27 +13,76 @@ bite you.
 
 ## 1. Doing money math with floats
 
-```javascript
-0.1 + 0.2
+```javascript tab="JavaScript"
+console.log(0.1 + 0.2);
 // 0.30000000000000004
 ```
 
-Binary floats cannot represent most decimal fractions. In trading code that's not a trivia
-point — it produces order amounts the exchange rejects, or worse, quietly wrong position
-sizes that compound over thousands of trades.
+```python tab="Python"
+print(0.1 + 0.2)
+# 0.30000000000000004
+```
+
+```php tab="PHP"
+var_dump(0.1 + 0.2 == 0.3);
+// bool(false)
+```
+
+```csharp tab="C#"
+Console.WriteLine(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+```go tab="Go"
+fmt.Println(0.1 + 0.2)
+// 0.30000000000000004
+```
+
+```java tab="Java"
+System.out.println(0.1 + 0.2);
+// 0.30000000000000004
+```
+
+Binary floats cannot represent most decimal fractions — in every language. In trading code
+that's not a trivia point: it produces order amounts the exchange rejects, or worse, quietly
+wrong position sizes that compound over thousands of trades.
 
 Internally, all CCXT arithmetic runs through `Precise` — decimal string math with no float
 in sight, in every language. For your own code the important tools are the precision
 helpers, which round any value to exactly what the exchange accepts:
 
-```python
+```javascript tab="JavaScript"
+const amount = exchange.amountToPrecision('BTC/USDT', rawAmount);
+const price = exchange.priceToPrecision('BTC/USDT', rawPrice);
+```
+
+```python tab="Python"
 amount = exchange.amount_to_precision('BTC/USDT', raw_amount)
 price = exchange.price_to_precision('BTC/USDT', raw_price)
 ```
 
+```php tab="PHP"
+$amount = $exchange->amount_to_precision('BTC/USDT', $rawAmount);
+$price = $exchange->price_to_precision('BTC/USDT', $rawPrice);
+```
+
+```csharp tab="C#"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
+```go tab="Go"
+amount := exchange.AmountToPrecision("BTC/USDT", rawAmount)
+price := exchange.PriceToPrecision("BTC/USDT", rawPrice)
+```
+
+```java tab="Java"
+var amount = exchange.amountToPrecision("BTC/USDT", rawAmount);
+var price = exchange.priceToPrecision("BTC/USDT", rawPrice);
+```
+
 Every market also carries its `precision` and `limits` (minimum amount, minimum cost) in
-`exchange.markets[symbol]` — check them before ordering instead of parsing rejection errors
-after.
+the market structure — check them before ordering instead of parsing rejection errors after.
 
 ## 2. Ignoring rate limits until the ban
 
@@ -58,9 +107,34 @@ write `BTC/USDT` everywhere (derivatives have unified forms too: `BTC/USDT:USDT`
 linear perpetual swap), and the library maps to the exchange's ID internally. If you ever
 need the raw ID — say, for an exchange-specific endpoint — derive it, don't hardcode it:
 
-```python
+```javascript tab="JavaScript"
+const market = exchange.market('BTC/USDT');
+console.log(market.id);   // 'BTCUSDT' on binance, 'XBTUSDT' elsewhere
+```
+
+```python tab="Python"
 market = exchange.market('BTC/USDT')
 print(market['id'])   # 'BTCUSDT' on binance, 'XBTUSDT' elsewhere
+```
+
+```php tab="PHP"
+$market = $exchange->market('BTC/USDT');
+echo $market['id'];   // 'BTCUSDT' on binance, 'XBTUSDT' elsewhere
+```
+
+```csharp tab="C#"
+var markets = await exchange.LoadMarkets();
+Console.WriteLine(markets["BTC/USDT"].id);   // 'BTCUSDT' on binance
+```
+
+```go tab="Go"
+markets, _ := exchange.LoadMarkets()
+fmt.Println(*markets["BTC/USDT"].Id)   // 'BTCUSDT' on binance
+```
+
+```java tab="Java"
+var markets = exchange.loadMarkets(false);
+System.out.println(markets.get("BTC/USDT").id);   // 'BTCUSDT' on binance
 ```
 
 ## 4. Treating all errors the same
@@ -78,7 +152,19 @@ policy, not string matching:
   `BadSymbol`. Your request is wrong or your state is. Retrying identical input gives an
   identical failure — fix the cause instead.
 
-```python
+```javascript tab="JavaScript"
+try {
+    const order = await exchange.createOrder(symbol, 'limit', side, amount, price);
+} catch (e) {
+    if (e instanceof ccxt.NetworkError) {
+        checkIfItWentThrough();   // see below, then maybe retry
+    } else if (e instanceof ccxt.ExchangeError) {
+        logAndStop(e);            // do NOT blind-retry these
+    }
+}
+```
+
+```python tab="Python"
 import ccxt
 
 try:
@@ -87,6 +173,57 @@ except ccxt.NetworkError:
     check_if_it_went_through()   # see below, then maybe retry
 except ccxt.ExchangeError as e:
     log_and_stop(e)              # do NOT blind-retry these
+```
+
+```php tab="PHP"
+try {
+    $order = $exchange->create_order($symbol, 'limit', $side, $amount, $price);
+} catch (\ccxt\NetworkError $e) {
+    check_if_it_went_through();   // see below, then maybe retry
+} catch (\ccxt\ExchangeError $e) {
+    log_and_stop($e);             // do NOT blind-retry these
+}
+```
+
+```csharp tab="C#"
+try
+{
+    var order = await exchange.CreateOrder(symbol, "limit", side, amount, price);
+}
+catch (NetworkError e)
+{
+    CheckIfItWentThrough();   // see below, then maybe retry
+}
+catch (ExchangeError e)
+{
+    LogAndStop(e);            // do NOT blind-retry these
+}
+```
+
+```go tab="Go"
+order, err := exchange.CreateOrder(symbol, "limit", side, amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    if ccxtErr, ok := err.(*ccxt.Error); ok {
+        switch ccxtErr.Type {
+        case ccxt.RequestTimeoutErrType, ccxt.RateLimitExceededErrType,
+            ccxt.ExchangeNotAvailableErrType:
+            checkIfItWentThrough() // transient — then maybe retry
+        default:
+            logAndStop(ccxtErr) // do NOT blind-retry these
+        }
+    }
+}
+```
+
+```java tab="Java"
+try {
+    var order = exchange.createOrder(symbol, "limit", side, amount, price, null);
+} catch (io.github.ccxt.errors.NetworkError e) {
+    checkIfItWentThrough();   // see below, then maybe retry
+} catch (io.github.ccxt.errors.ExchangeError e) {
+    logAndStop(e);            // do NOT blind-retry these
+}
 ```
 
 The subtle case is a **timeout on `createOrder`**: the exchange may have accepted the order
@@ -113,7 +250,17 @@ authentication failures that come and go — classically on a VPS or Raspberry P
 Run NTP. And most exchanges wired for it in CCXT accept an option that measures and corrects
 the offset for you:
 
-```python
+```javascript tab="JavaScript"
+const exchange = new ccxt.binance({
+    apiKey: KEY,
+    secret: SECRET,
+    options: {
+        adjustForTimeDifference: true,
+    },
+});
+```
+
+```python tab="Python"
 exchange = ccxt.binance({
     'apiKey': KEY,
     'secret': SECRET,
@@ -121,6 +268,44 @@ exchange = ccxt.binance({
         'adjustForTimeDifference': True,
     },
 })
+```
+
+```php tab="PHP"
+$exchange = new \ccxt\binance([
+    'apiKey' => $key,
+    'secret' => $secret,
+    'options' => [
+        'adjustForTimeDifference' => true,
+    ],
+]);
+```
+
+```csharp tab="C#"
+var exchange = new Binance(new Dictionary<string, object>() {
+    { "apiKey", key },
+    { "secret", secret },
+    { "options", new Dictionary<string, object>() {
+        { "adjustForTimeDifference", true },
+    } },
+});
+```
+
+```go tab="Go"
+exchange := ccxt.NewBinance(map[string]interface{}{
+    "apiKey": key,
+    "secret": secret,
+    "options": map[string]interface{}{
+        "adjustForTimeDifference": true,
+    },
+})
+```
+
+```java tab="Java"
+var config = new java.util.HashMap<String, Object>();
+config.put("apiKey", key);
+config.put("secret", secret);
+config.put("options", java.util.Map.of("adjustForTimeDifference", true));
+var exchange = new Binance(config);
 ```
 
 ## 7. Testing with real money

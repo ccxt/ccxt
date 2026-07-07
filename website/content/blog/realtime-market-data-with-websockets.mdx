@@ -44,28 +44,62 @@ async def main():
 asyncio.run(main())
 ```
 
+```php tab="PHP"
+<?php
+use function React\Async\await;
+
+$exchange = new \ccxt\pro\binance();
+
+while (true) {
+    $orderbook = await($exchange->watch_order_book('BTC/USDT'));
+    echo json_encode($orderbook['bids'][0]), ' ', json_encode($orderbook['asks'][0]), "\n";
+}
+```
+
 ```csharp tab="C#"
+using ccxt;
+
 var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {});
 
 while (true)
 {
     var orderbook = await exchange.WatchOrderBook("BTC/USDT");
-    Console.WriteLine($"{orderbook.bids[0]} {orderbook.asks[0]}");
+    Console.WriteLine($"{orderbook.bids[0][0]} {orderbook.asks[0][0]}");
 }
 ```
 
 ```go tab="Go"
-import ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+package main
 
-exchange := ccxtpro.NewBinance(nil)
+import (
+    "fmt"
+    "log"
 
-for {
-    orderbook, err := exchange.WatchOrderBook("BTC/USDT")
-    if err != nil {
-        log.Println(err)
-        break
+    ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
+)
+
+func main() {
+    exchange := ccxtpro.NewBinance(nil)
+
+    for {
+        orderbook, err := exchange.WatchOrderBook("BTC/USDT")
+        if err != nil {
+            log.Println(err)
+            break
+        }
+        fmt.Println(orderbook.Bids[0], orderbook.Asks[0])
     }
-    fmt.Println(orderbook.Bids[0], orderbook.Asks[0])
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.pro.Binance;
+
+var exchange = new Binance();
+
+while (true) {
+    var orderbook = exchange.watchOrderBook("BTC/USDT");
+    System.out.println(orderbook.bids.get(0) + " " + orderbook.asks.get(0));
 }
 ```
 
@@ -91,14 +125,15 @@ wrong. When you call `watchOrderBook`, CCXT:
 
 ## Many symbols, many exchanges
 
-For dashboards, scanners, and market making you rarely want a single stream:
+For dashboards, scanners, and market making you rarely want a single stream. `watchTickers`
+subscribes to a list of symbols in one shot and returns a structure keyed by symbol, updated
+as events arrive:
 
 ```javascript tab="JavaScript"
-// one exchange, many symbols in one subscription
 const symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
 while (true) {
     const tickers = await exchange.watchTickers(symbols);
-    // tickers is keyed by symbol, updated as events arrive
+    console.log(tickers['BTC/USDT'].last);
 }
 ```
 
@@ -106,18 +141,65 @@ while (true) {
 symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT']
 while True:
     tickers = await exchange.watch_tickers(symbols)
-    # tickers is keyed by symbol, updated as events arrive
+    print(tickers['BTC/USDT']['last'])
+```
+
+```php tab="PHP"
+$symbols = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT'];
+while (true) {
+    $tickers = await($exchange->watch_tickers($symbols));
+    echo $tickers['BTC/USDT']['last'], "\n";
+}
+```
+
+```csharp tab="C#"
+var symbols = new List<string>() { "BTC/USDT", "ETH/USDT", "SOL/USDT" };
+while (true)
+{
+    var tickers = await exchange.WatchTickers(symbols);
+    Console.WriteLine(tickers["BTC/USDT"].last);
+}
+```
+
+```go tab="Go"
+symbols := []string{"BTC/USDT", "ETH/USDT", "SOL/USDT"}
+for {
+    tickers, err := exchange.WatchTickers(ccxt.WithWatchTickersSymbols(symbols))
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    fmt.Println(*tickers.Tickers["BTC/USDT"].Last)
+}
+```
+
+```java tab="Java"
+var symbols = java.util.List.of("BTC/USDT", "ETH/USDT", "SOL/USDT");
+while (true) {
+    var tickers = exchange.watchTickers(symbols, null);
+    System.out.println(tickers.tickers.get("BTC/USDT").last);
+}
 ```
 
 There are `...ForSymbols` variants (`watchTradesForSymbols`, `watchOrderBookForSymbols`,
 `watchOHLCVForSymbols`) when you need one loop over many markets, and running several
 exchanges concurrently is just multiple loops — one async task per exchange in
-JavaScript/Python/C#/Java, one goroutine per exchange in Go.
+JavaScript/Python/PHP/C#/Java, one goroutine per exchange in Go.
 
 ## Watching your own orders
 
 The same mechanism covers private data, which is how bots track fills without polling
 `fetchOrder`:
+
+```javascript tab="JavaScript"
+const exchange = new ccxt.pro.binance({ apiKey: KEY, secret: SECRET });
+while (true) {
+    const orders = await exchange.watchOrders();
+    for (const order of orders) {
+        console.log(order.id, order.status, order.filled);
+    }
+}
+```
 
 ```python tab="Python"
 exchange = ccxt.pro.binance({'apiKey': KEY, 'secret': SECRET})
@@ -127,12 +209,54 @@ while True:
         print(order['id'], order['status'], order['filled'])
 ```
 
-```javascript tab="JavaScript"
-const exchange = new ccxt.pro.binance({ apiKey: KEY, secret: SECRET });
+```php tab="PHP"
+$exchange = new \ccxt\pro\binance(['apiKey' => $key, 'secret' => $secret]);
 while (true) {
-    const orders = await exchange.watchOrders();
-    for (const order of orders) {
-        console.log(order.id, order.status, order.filled);
+    $orders = await($exchange->watch_orders());
+    foreach ($orders as $order) {
+        echo $order['id'], ' ', $order['status'], ' ', $order['filled'], "\n";
+    }
+}
+```
+
+```csharp tab="C#"
+var exchange = new ccxt.pro.binance(new Dictionary<string, object>() {
+    { "apiKey", key }, { "secret", secret },
+});
+while (true)
+{
+    var orders = await exchange.WatchOrders();
+    foreach (var order in orders)
+    {
+        Console.WriteLine($"{order.id} {order.status} {order.filled}");
+    }
+}
+```
+
+```go tab="Go"
+exchange := ccxtpro.NewBinance(nil)
+exchange.ApiKey = key
+exchange.Secret = secret
+for {
+    orders, err := exchange.WatchOrders()
+    if err != nil {
+        log.Println(err)
+        break
+    }
+    for _, order := range orders {
+        fmt.Println(*order.Id, *order.Status, *order.Filled)
+    }
+}
+```
+
+```java tab="Java"
+var exchange = new Binance();
+exchange.apiKey = key;
+exchange.secret = secret;
+while (true) {
+    var orders = exchange.watchOrders();
+    for (var order : orders) {
+        System.out.println(order.id + " " + order.status + " " + order.filled);
     }
 }
 ```
