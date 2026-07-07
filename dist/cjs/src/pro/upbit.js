@@ -36,7 +36,9 @@ class upbit extends upbit$1["default"] {
         });
     }
     async watchPublicMultiple(symbols, channel, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -411,7 +413,9 @@ class upbit extends upbit$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const channel = 'myOrder';
         const messageHash = 'myOrder';
         const orders = await this.watchPrivate(symbol, channel, messageHash);
@@ -432,7 +436,9 @@ class upbit extends upbit$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const channel = 'myOrder';
         const messageHash = 'myTrades';
         const trades = await this.watchPrivate(symbol, channel, messageHash);
@@ -621,7 +627,9 @@ class upbit extends upbit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const channel = 'myAsset';
         const messageHash = 'myAsset';
         return await this.watchPrivate(undefined, channel, messageHash);

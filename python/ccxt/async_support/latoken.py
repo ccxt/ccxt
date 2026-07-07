@@ -564,7 +564,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetAuthAccount(params)
         #
         #     [
@@ -629,7 +630,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['baseId'],
@@ -713,7 +715,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'base': market['baseId'],
@@ -752,7 +755,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetTicker(params)
         #
         #    [
@@ -871,7 +875,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['baseId'],
@@ -914,7 +919,8 @@ class latoken(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' not support self method')
 
     async def fetch_public_trading_fee(self, symbol: str, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['baseId'],
@@ -939,7 +945,8 @@ class latoken(Exchange, ImplicitAPI):
         }
 
     async def fetch_private_trading_fee(self, symbol: str, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currency': market['baseId'],
@@ -976,7 +983,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
@@ -1152,7 +1160,8 @@ class latoken(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response: dict
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, 'stop')
@@ -1206,7 +1215,8 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if fetching trigger orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
@@ -1269,7 +1279,8 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if fetching a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'id': id,
         }
@@ -1322,7 +1333,8 @@ class latoken(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: [0 .. 50] characters, client's custom order id(free field for your convenience)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1374,7 +1386,8 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if cancelling a trigger order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'id': id,
         }
@@ -1408,7 +1421,8 @@ class latoken(Exchange, ImplicitAPI):
         :param boolean [params.trigger]: True if cancelling trigger orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             # 'currency': market['baseId'],
             # 'quote': market['quoteId'],
@@ -1455,7 +1469,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             # 'page': '1',
             # 'size': 100,
@@ -1585,7 +1600,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         response = await self.privateGetAuthTransfer(params)
         #
@@ -1637,7 +1653,8 @@ class latoken(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],

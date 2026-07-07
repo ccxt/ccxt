@@ -97,7 +97,8 @@ class p2b(ccxt.async_support.p2b):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         timeframes = self.safe_value(self.options, 'timeframes', {})
         channel = self.safe_integer(timeframes, timeframe)
         if channel is None:
@@ -125,7 +126,8 @@ class p2b(ccxt.async_support.p2b):
         :param dict [params.method]: 'state'(default) or 'price'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
@@ -149,7 +151,8 @@ class p2b(ccxt.async_support.p2b):
         :param dict [params.method]: 'state'(default) or 'price'
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
@@ -195,7 +198,8 @@ class p2b(ccxt.async_support.p2b):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True, True)
         messageHashes = []
         if symbols is not None:
@@ -228,7 +232,8 @@ class p2b(ccxt.async_support.p2b):
         :param float [params.interval]: 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'depth.subscribe'
         messageHash = 'orderbook::' + market['symbol']

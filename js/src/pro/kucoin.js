@@ -332,7 +332,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         let messageHash = 'ticker:' + symbol;
@@ -368,7 +370,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const isFuturesMethod = market['contract'];
@@ -421,7 +425,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -498,7 +504,9 @@ export default class kucoin extends kucoinRest {
         return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
     }
     async watchUtaTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true);
         const messageHash = 'uta:ticker';
         const messageHashes = [];
@@ -733,7 +741,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const firstMarket = this.getMarketFromSymbols(symbols);
         const isFuturesMethod = firstMarket['contract'];
@@ -750,7 +760,9 @@ export default class kucoin extends kucoinRest {
         return this.filterByArray(this.bidsasks, 'symbol', symbols);
     }
     async watchMultiHelper(methodName, channelName, isFuturesChannel, symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, false);
         const length = symbols.length;
         if (length > 100) {
@@ -867,7 +879,9 @@ export default class kucoin extends kucoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -913,7 +927,9 @@ export default class kucoin extends kucoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         let uta = false;
@@ -1121,7 +1137,9 @@ export default class kucoin extends kucoinRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         const isFuturesMethod = firstMarket['contract'];
@@ -1159,7 +1177,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true);
         const marketIds = this.marketIds(symbols);
         const firstMarket = this.getMarketFromSymbols(symbols);
@@ -1470,7 +1490,9 @@ export default class kucoin extends kucoinRest {
                 throw new ExchangeError(this.id + " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100");
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
         const firstMarket = this.getMarketFromSymbols(symbols);
@@ -1525,7 +1547,9 @@ export default class kucoin extends kucoinRest {
     async unWatchOrderBookForSymbols(symbols, params = {}) {
         const limit = this.safeInteger(params, 'limit');
         params = this.omit(params, 'limit');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true);
         const marketIds = this.marketIds(symbols);
         const firstMarket = this.getMarketFromSymbols(symbols);
@@ -1891,7 +1915,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let uta = await this.isUTAEnabled();
         [uta, params] = this.handleOptionAndParams(params, 'watchOrders', 'uta', uta);
         let market = undefined;
@@ -2281,7 +2307,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
         let market = undefined;
         if (symbol !== undefined) {
@@ -2500,7 +2528,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let uta = await this.isUTAEnabled();
         [uta, params] = this.handleOptionAndParams(params, 'watchBalance', 'uta', uta);
         let defaultType = uta ? 'unified' : 'spot';
@@ -2739,7 +2769,9 @@ export default class kucoin extends kucoinRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchPosition() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = await this.negotiate(true);
         const market = this.market(symbol);
         const topic = '/contract/position:' + market['id'];
@@ -2771,7 +2803,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let uta = await this.isUTAEnabled();
         [uta, params] = this.handleOptionAndParams(params, 'watchPositions', 'uta', uta);
         const tradeType = uta ? 'UNIFIED' : 'TRADE';
@@ -3103,7 +3137,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async watchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const channel = 'funding-fee';
         const messageHash = 'fundingRate:' + symbol;
@@ -3119,7 +3155,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async unWatchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const channel = 'funding-fee';
         const subMessageHash = 'fundingRate:' + symbol;
@@ -3203,7 +3241,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const channel = 'mark-price';
         const messageHash = 'uta:ticker:' + symbol;
@@ -3219,7 +3259,9 @@ export default class kucoin extends kucoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         const channel = 'mark-price';
         const subMessageHash = 'uta:ticker:' + symbol;

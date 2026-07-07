@@ -103,7 +103,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
         topic = market['id'] + '@' + name
@@ -160,7 +161,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
         symbol = market['symbol']
@@ -247,7 +249,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
@@ -301,7 +304,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
@@ -370,7 +374,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise NotSupported(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
         market = self.market(symbol)
@@ -445,7 +450,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
@@ -643,7 +649,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreport' if (trigger) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
@@ -676,7 +683,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param bool [params.trigger]: True if trigger order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreport' if (trigger) else 'executionreport'
         params = self.omit(params, 'stop')
@@ -943,7 +951,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHashes = []
         symbols = self.market_symbols(symbols)
         if (symbols is not None) and not self.is_empty(symbols):
@@ -1124,7 +1133,8 @@ class modetrade(ccxt.async_support.modetrade):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topic = 'balance'
         messageHash = topic
         request = {

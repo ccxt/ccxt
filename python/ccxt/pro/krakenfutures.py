@@ -118,7 +118,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the krakenfutures api
         :returns dict: data from the websocket stream
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         subscribe = {
             'event': 'subscribe',
@@ -148,7 +149,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the krakenfutures api
         :returns dict: data from the websocket stream
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']
         subscribe = {
@@ -171,7 +173,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -186,7 +189,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         ticker = await self.watch_multi_helper('ticker', 'ticker', symbols, None, params)
         if self.newUpdates:
@@ -270,7 +274,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = ''
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
@@ -398,7 +403,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'open_orders'
         messageHash = 'orders'
         if symbol is not None:
@@ -421,7 +427,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'fills'
         messageHash = 'myTrades'
         if symbol is not None:
@@ -442,7 +449,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         :param str [params.account]: can be either 'futures' or 'flex_futures'
         :returns dict} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'balances'
         messageHash = name
         account = None
@@ -1436,7 +1444,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         })
 
     async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs=None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         # symbols are required
         symbols = self.market_symbols(symbols, None, False, True, False)

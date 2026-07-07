@@ -367,7 +367,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetV3AccountBalance($params));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_balance($data);
@@ -394,7 +396,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetV3Account($params));
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_account($data);
@@ -789,7 +793,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id2'],
@@ -812,7 +818,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->publicGetV3DataAllTickerInfo($params));
             $tickers = $this->safe_list($response, 'data', array());
             return $this->parse_tickers($tickers, $symbols);
@@ -834,7 +842,9 @@ class apex extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -891,7 +901,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id2'],
@@ -950,7 +962,9 @@ class apex extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically paginate by calling this endpoint multiple times
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id2'],
@@ -1035,7 +1049,9 @@ class apex extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id2'],
@@ -1098,7 +1114,9 @@ class apex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -1367,7 +1385,9 @@ class apex extends Exchange {
              * @param {string} [$params->clientOrderId] a unique id for the order
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $orderType = strtoupper($type);
             $orderSide = strtoupper($side);
@@ -1466,7 +1486,9 @@ class apex extends Exchange {
              * @param {string} [$params->transferId] UUID, which is unique across the platform
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $configResponse = Async\await($this->publicGetV3Symbols($params));
             $configData = $this->safe_dict($configResponse, 'data', array());
             $contractConfig = $this->safe_dict($configData, 'contractConfig', array());
@@ -1624,7 +1646,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
@@ -1679,7 +1703,9 @@ class apex extends Exchange {
              * @param {string} [$params->clientOrderId] a unique $id for the order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $clientOrderId = $this->safe_string_n($params, array( 'clientId', 'clientOrderId', 'client_order_id' ));
             $response = null;
@@ -1709,7 +1735,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetV3OpenOrders($params));
             $orders = $this->safe_list($response, 'data', array());
             return $this->parse_orders($orders, null, $since, $limit);
@@ -1735,7 +1763,9 @@ class apex extends Exchange {
              * @param {boolean} [$params->page] Page numbers start from 0
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -1774,7 +1804,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'clientId');
             if ($clientOrderId !== null) {
@@ -1807,7 +1839,9 @@ class apex extends Exchange {
              * @param {boolean} [$params->page] Page numbers start from 0
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -1848,7 +1882,9 @@ class apex extends Exchange {
              * @param {boolean} [$params->page] Page numbers start from 0
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -1919,7 +1955,9 @@ class apex extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $leverageString = $this->number_to_string($leverage);
             $initialMarginRate = Precise::string_div('1', $leverageString, 4);
@@ -1944,7 +1982,9 @@ class apex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetV3Account($params));
             $data = $this->safe_dict($response, 'data', array());
             $positions = $this->safe_list($data, 'positions', array());

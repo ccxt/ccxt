@@ -184,7 +184,9 @@ class weex extends \ccxt\async\weex {
              * @param {string} [$params->name] stream to use can be ticker or miniTicker
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -203,7 +205,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isContract = $firstMarket['contract'];
@@ -256,7 +260,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isContract = $firstMarket['contract'];
@@ -400,7 +406,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isContract = $firstMarket['contract'];
@@ -437,7 +445,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
         })();
     }
@@ -454,7 +464,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isContract = $firstMarket['contract'];
@@ -591,7 +603,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $callerMethodName = $this->safe_string($params, 'callerMethodName', 'watchOHLCVForSymbols');
             $params = $this->omit($params, 'callerMethodName');
             $channels = array();
@@ -658,7 +672,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $callerMethodName = $this->safe_string($params, 'callerMethodName', 'unWatchOHLCVForSymbols');
             $params = $this->omit($params, 'callerMethodName');
             $channels = array();
@@ -811,7 +827,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isContract = $firstMarket['contract'];
@@ -868,7 +886,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isContract = $firstMarket['contract'];
@@ -962,7 +982,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             if ($firstMarket['contract']) {
@@ -999,7 +1021,9 @@ class weex extends \ccxt\async\weex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             if ($firstMarket['contract']) {
@@ -1079,7 +1103,9 @@ class weex extends \ccxt\async\weex {
              * @param {string} [$params->type] spot or swap, default is spot if $symbol is not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             $market = null;
             if ($symbol !== null) {
@@ -1286,7 +1312,9 @@ class weex extends \ccxt\async\weex {
              * @param {string} [$params->type] spot or swap, default is spot if $symbol is not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1580,7 +1608,9 @@ class weex extends \ccxt\async\weex {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
             $isContract = ($type !== 'spot');
@@ -1733,7 +1763,9 @@ class weex extends \ccxt\async\weex {
              * @param {int} [$params->accountNumber] account number to query orders for, required
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['contract'] . '/private';
             $this->authenticate($url);
             $client = $this->client($url);

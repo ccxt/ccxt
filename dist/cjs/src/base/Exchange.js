@@ -28,7 +28,6 @@ var selector = require('../static_dependencies/starknet/utils/selector.js');
 var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
 var index$1 = require('../static_dependencies/starknet/utils/calldata/index.js');
 var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
-var onboarding = require('../static_dependencies/dydx-v4-client/onboarding.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
 var index$2 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 var io = require('./functions/io.js');
@@ -678,7 +677,7 @@ class Exchange {
                     this.fetchDispatcher = new undiciModule.Agent(this.getDispatcherOptions(true));
                     // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
                     // node:http for the reason phrases that undici.request responses do not carry
-                    this.zlibModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:zlib')); });
+                    this.zlibModule = await Promise.resolve().then(function () { return require(/* webpackIgnore: true */ 'node:zlib'); });
                     const httpModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'node:http')); });
                     this.httpStatusTexts = httpModule.STATUS_CODES;
                     this.fetchIsNative = true;
@@ -1809,15 +1808,13 @@ class Exchange {
     toDydxLong(numStr) {
         return index$2["default"].fromString(numStr);
     }
-    retrieveDydxCredentials(entropy) {
-        let credentials = undefined;
-        if (entropy.indexOf(' ') > 0) {
-            credentials = onboarding.deriveHDKeyFromMnemonic(entropy);
-            credentials['mnemonic'] = entropy;
-            return credentials;
-        }
-        credentials = onboarding.exportMnemonicAndPrivateKey(this.base16ToBinary(entropy));
-        return credentials;
+    retrieveDydxCredentials(privateKey) {
+        const privateKeyBytes = this.base16ToBinary(this.remove0xPrefix(privateKey));
+        const publicKeyBytes = secp256k1_js.secp256k1.getPublicKey(privateKeyBytes, true);
+        return {
+            'privateKey': privateKeyBytes,
+            'publicKey': publicKeyBytes,
+        };
     }
     encodeDydxTxForSimulation(message, memo, sequence, publicKey) {
         if (!encodeAsAny) {

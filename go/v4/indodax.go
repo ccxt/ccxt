@@ -475,9 +475,11 @@ func (this *IndodaxCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4638 := (<-this.LoadMarkets())
-		PanicOnError(retRes4638)
+			retRes46412 := (<-this.LoadMarkets())
+			PanicOnError(retRes46412)
+		}
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)
@@ -538,9 +540,11 @@ func (this *IndodaxCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5098 := (<-this.LoadMarkets())
-		PanicOnError(retRes5098)
+			retRes51212 := (<-this.LoadMarkets())
+			PanicOnError(retRes51212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -615,9 +619,11 @@ func (this *IndodaxCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5708 := (<-this.LoadMarkets())
-		PanicOnError(retRes5708)
+			retRes57512 := (<-this.LoadMarkets())
+			PanicOnError(retRes57512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -666,9 +672,11 @@ func (this *IndodaxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6048 := (<-this.LoadMarkets())
-		PanicOnError(retRes6048)
+			retRes61112 := (<-this.LoadMarkets())
+			PanicOnError(retRes61112)
+		}
 		//
 		// {
 		//     "tickers": {
@@ -749,9 +757,11 @@ func (this *IndodaxCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6678 := (<-this.LoadMarkets())
-		PanicOnError(retRes6678)
+			retRes67612 := (<-this.LoadMarkets())
+			PanicOnError(retRes67612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -807,9 +817,11 @@ func (this *IndodaxCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any 
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7108 := (<-this.LoadMarkets())
-		PanicOnError(retRes7108)
+			retRes72112 := (<-this.LoadMarkets())
+			PanicOnError(retRes72112)
+		}
 		var market any = this.Market(symbol)
 		var selectedTimeframe any = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var now any = this.Seconds()
@@ -981,9 +993,11 @@ func (this *IndodaxCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8678 := (<-this.LoadMarkets())
-		PanicOnError(retRes8678)
+			retRes88012 := (<-this.LoadMarkets())
+			PanicOnError(retRes88012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":     GetValue(market, "id"),
@@ -1029,9 +1043,11 @@ func (this *IndodaxCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8928 := (<-this.LoadMarkets())
-		PanicOnError(retRes8928)
+			retRes90712 := (<-this.LoadMarkets())
+			PanicOnError(retRes90712)
+		}
 		var market any = nil
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(symbol, nil)) {
@@ -1099,9 +1115,11 @@ func (this *IndodaxCore) FetchClosedOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9378 := (<-this.LoadMarkets())
-		PanicOnError(retRes9378)
+			retRes95412 := (<-this.LoadMarkets())
+			PanicOnError(retRes95412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair": GetValue(market, "id"),
@@ -1141,9 +1159,11 @@ func (this *IndodaxCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9628 := (<-this.LoadMarkets())
-		PanicOnError(retRes9628)
+			retRes98112 := (<-this.LoadMarkets())
+			PanicOnError(retRes98112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"pair":  GetValue(market, "id"),
@@ -1230,9 +1250,11 @@ func (this *IndodaxCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(side, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires an extra \"side\" param")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10348 := (<-this.LoadMarkets())
-		PanicOnError(retRes10348)
+			retRes105512 := (<-this.LoadMarkets())
+			PanicOnError(retRes105512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"order_id": id,
@@ -1286,9 +1308,11 @@ func (this *IndodaxCore) FetchTransactionFee(code any, optionalArgs ...any) <-ch
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10758 := (<-this.LoadMarkets())
-		PanicOnError(retRes10758)
+			retRes109812 := (<-this.LoadMarkets())
+			PanicOnError(retRes109812)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency": GetValue(currency, "id"),
@@ -1344,9 +1368,11 @@ func (this *IndodaxCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan an
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11128 := (<-this.LoadMarkets())
-		PanicOnError(retRes11128)
+			retRes113712 := (<-this.LoadMarkets())
+			PanicOnError(retRes113712)
+		}
 		var request any = map[string]any{}
 		if IsTrue(!IsEqual(since, nil)) {
 			var startTime any = this.Yyyymmdd(since)
@@ -1468,9 +1494,11 @@ func (this *IndodaxCore) Withdraw(code any, amount any, address any, optionalArg
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12178 := (<-this.LoadMarkets())
-		PanicOnError(retRes12178)
+			retRes124412 := (<-this.LoadMarkets())
+			PanicOnError(retRes124412)
+		}
 		var currency any = this.Currency(code)
 		// Custom string you need to provide to identify each withdrawal.
 		// Will be passed to callback URL (assigned via website to the API key)
@@ -1617,9 +1645,11 @@ func (this *IndodaxCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13498 := (<-this.LoadMarkets())
-		PanicOnError(retRes13498)
+			retRes137812 := (<-this.LoadMarkets())
+			PanicOnError(retRes137812)
+		}
 
 		response := (<-this.PrivatePostGetInfo(params))
 		PanicOnError(response)

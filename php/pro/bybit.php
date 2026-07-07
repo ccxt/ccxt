@@ -272,7 +272,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $params, true);
             $url = $this->urls['api']['ws']['private']['trade'];
             Async\await($this->authenticate($url));
@@ -319,7 +321,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} [$params->tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $orderRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $url = $this->urls['api']['ws']['private']['trade'];
             Async\await($this->authenticate($url));
@@ -354,7 +358,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} [$params->orderFilter] *spot only* 'Order' or 'StopOrder' or 'tpslOrder'
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
             }
@@ -392,7 +398,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ticker:' . $symbol;
@@ -421,7 +429,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
@@ -457,7 +467,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $options = $this->safe_value($this->options, 'watchTickers', array());
             $topic = $this->safe_string($options, 'name', 'tickers');
@@ -489,7 +501,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->un_watch_tickers(array( $symbol ), $params));
         })();
     }
@@ -653,7 +667,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchBidsAsks', $params));
@@ -727,7 +743,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
             $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
             $firstSymbol = $marketSymbols[0];
@@ -764,7 +782,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
             $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
             $firstSymbol = $marketSymbols[0];
@@ -917,7 +937,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -969,7 +991,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = 'orderbook.';
             $limit = $this->safe_integer($params, 'limit');
@@ -1009,7 +1033,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$params->limit] orderbook limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->un_watch_order_book_for_symbols(array( $symbol ), $params));
         })();
     }
@@ -1128,7 +1154,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -1167,7 +1195,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'unWatchTradesForSymbols', $params));
             $messageHashes = array();
@@ -1197,7 +1227,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
         })();
     }
@@ -1344,7 +1376,9 @@ class bybit extends \ccxt\async\bybit {
              */
             $method = 'watchMyTrades';
             $messageHash = 'myTrades';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
@@ -1387,7 +1421,9 @@ class bybit extends \ccxt\async\bybit {
             $method = 'watchMyTrades';
             $messageHash = 'unsubscribe:myTrades';
             $subHash = 'myTrades';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 throw new NotSupported($this->id . ' unWatchMyTrades() does not support a $symbol parameter, you must unwatch all my trades');
             }
@@ -1553,7 +1589,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $method = 'watchPositions';
             $messageHash = '';
             if (($symbols !== null) && !$this->is_empty($symbols)) {
@@ -1715,7 +1753,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} status of the unwatch request
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $method = 'watchPositions';
             $messageHash = 'unsubscribe:positions';
             $subHash = 'positions';
@@ -1743,7 +1783,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} [$params->method] exchange specific $method, supported => liquidation, allLiquidation
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
@@ -1872,7 +1914,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $method = 'watchOrders';
             $messageHash = 'orders';
             if ($symbol !== null) {
@@ -1907,7 +1951,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {boolean} [$params->unifiedMargin] use unified margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $method = 'watchOrders';
             $messageHash = 'unsubscribe:orders';
             $subHash = 'orders';
@@ -2083,7 +2129,9 @@ class bybit extends \ccxt\async\bybit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $method = 'watchBalance';
             $messageHash = 'balances';
             $type = null;

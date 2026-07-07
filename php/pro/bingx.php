@@ -156,7 +156,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = null;
             $subType = null;
@@ -199,7 +201,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $dataType = $market['id'] . '@ticker';
             $subMessageHash = $this->get_message_hash('ticker', $market['symbol']);
@@ -372,7 +376,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $marketType = null;
@@ -427,7 +433,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $dataType = $market['id'] . '@trade';
             $subMessageHash = $this->get_message_hash('trade', $market['symbol']);
@@ -559,7 +567,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = null;
             $subType = null;
@@ -617,7 +627,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
             $depth = $this->safe_integer($options, 'depth', 100);
@@ -902,7 +914,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = null;
             $subType = null;
@@ -959,7 +973,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $options = $this->safe_value($this->options, $market['type'], array());
             $timeframes = $this->safe_value($options, 'timeframes', array());
@@ -989,7 +1005,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $type = null;
             $subType = null;
@@ -1054,7 +1072,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $type = null;
             $subType = null;
@@ -1116,7 +1136,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $type = null;
             $subType = null;
@@ -1206,7 +1228,9 @@ class bingx extends \ccxt\async\bingx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = null;
             $messageHash = '';

@@ -402,7 +402,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privatePostBalance(params)
         return self.parse_balance(response)
 
@@ -417,7 +418,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {}
         numSymbols = 0 if (self.symbols is None) else len(self.symbols)
@@ -462,7 +464,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {}
         numSymbols = 0 if (self.symbols is None) else len(self.symbols)
@@ -478,7 +481,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
@@ -529,7 +533,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {}
         numSymbols = 0 if (self.symbols is None) else len(self.symbols)
@@ -563,7 +568,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'amount': amount,
@@ -591,7 +597,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
             symbol = 'BTC/JPY'
@@ -684,7 +691,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
             symbol = 'BTC/JPY'
@@ -709,7 +717,8 @@ class btcbox(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     async def fetch_orders_by_type(self, type, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
             symbol = 'BTC/JPY'

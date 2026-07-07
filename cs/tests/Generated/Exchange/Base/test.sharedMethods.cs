@@ -742,6 +742,34 @@ public partial class testMainClass : BaseTest
             object keyUpper = exchange.capitalize(((object)key).ToString());
             return exchange.getProperty(exchange, keyUpper, defaultValue);
         }
+        async public Task validateTickerExceptionForPercentage(object ex, Exchange exchange, object ticker)
+        {
+            // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+            object eMessage = exchange.exceptionMessage(ex, false);
+            if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be above"), 0)) || isTrue(isGreaterThanOrEqual(getIndexOf(eMessage, "percentage should be below"), 0))))
+            {
+                object symbol = getValue(ticker, "symbol");
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    // if it's not in markets, then maybe newly added symbol, so can can compromise there
+                    if (!isTrue((inOp(exchange.markets, symbol))))
+                    {
+                        return;
+                    }
+                    // if OHLCV supported
+                    if (isTrue(!isEqual(exchange.featureValue(symbol, "fetchOHLCV"), null)))
+                    {
+                        object ohlcv = await exchange.fetchOHLCV(symbol, "1d", null, 5);
+                        if (isTrue(isLessThanOrEqual(getArrayLength(ohlcv), 1)))
+                        {
+                            // if only 1 day, then allow it
+                            return;
+                        }
+                    }
+                }
+            }
+            assert(isEqual(eMessage, ""), eMessage); // trigger error
+        }
 
     }
 }

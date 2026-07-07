@@ -124,7 +124,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the krakenfutures api
              * @return {array} data from the websocket stream
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $subscribe = array(
                 'event' => 'subscribe',
@@ -160,7 +162,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the krakenfutures api
              * @return {array} data from the websocket stream
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $subscribe = array(
@@ -186,7 +190,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -204,7 +210,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbols, null, $params));
             if ($this->newUpdates) {
@@ -306,7 +314,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
@@ -446,7 +456,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'open_orders';
             $messageHash = 'orders';
             if ($symbol !== null) {
@@ -474,7 +486,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'fills';
             $messageHash = 'myTrades';
             if ($symbol !== null) {
@@ -500,7 +514,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
              * @return {array} a object of wallet types each with a balance structure array(@link https://docs.ccxt.com/?id=balance-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'balances';
             $messageHash = $name;
             $account = null;
@@ -1547,7 +1563,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
 
     public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array()) {
         return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             // $symbols are required
             $symbols = $this->market_symbols($symbols, null, false, true, false);

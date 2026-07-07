@@ -907,7 +907,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'createOrder', 'accountIndex', 'account_index');
         params['accountIndex'] = accountIndex;
@@ -981,7 +983,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'editOrder', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -1328,7 +1332,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderBook() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
@@ -1480,7 +1486,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTicker() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market_id': market['id'],
@@ -1546,7 +1554,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetOrderBookDetails(params);
         const spotTickers = this.safeList(response, 'spot_order_book_details', []);
@@ -1597,7 +1607,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['until']);
@@ -1701,7 +1713,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetFundingRates(this.extend(params));
         //
         //     {
@@ -1738,7 +1752,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchBalance', 'accountIndex', 'account_index');
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
@@ -1848,7 +1864,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchPositions', 'accountIndex', 'account_index');
         const request = {
@@ -1993,7 +2011,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=accounts-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchAccounts', 'accountIndex', 'account_index');
         const request = {
@@ -2085,7 +2105,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchOpenOrders', 'accountIndex', 'account_index');
         let apiKeyIndex = undefined;
@@ -2160,7 +2182,9 @@ class lighter extends lighter$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchClosedOrders', 'accountIndex', 'account_index');
         let apiKeyIndex = undefined;
@@ -2421,7 +2445,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'transfer', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -2480,7 +2506,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate');
         if (paginate) {
@@ -2582,7 +2610,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -2655,7 +2685,9 @@ class lighter extends lighter$1["default"] {
         }
         let accountIndex = undefined;
         [accountIndex, params] = await this.handleAccountIndex(params, 'fetchWithdrawals', 'accountIndex', 'account_index');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'account_index': accountIndex,
         };
@@ -2773,7 +2805,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'withdraw', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -2825,7 +2859,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -3013,7 +3049,9 @@ class lighter extends lighter$1["default"] {
         return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, params);
     }
     async modifyLeverageAndMarginMode(leverage, marginMode, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if ((marginMode !== 'cross') && (marginMode !== 'isolated')) {
             throw new errors.BadRequest(this.id + ' modifyLeverageAndMarginMode() requires a marginMode parameter that must be either cross or isolated');
         }
@@ -3056,7 +3094,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
         if (symbol === undefined) {
@@ -3105,7 +3145,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
         let accountIndex = undefined;
@@ -3138,7 +3180,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if ((timeout < 300000) || (timeout > 1296000000)) {
             throw new errors.BadRequest(this.id + ' timeout should be between 5 minutes and 15 days.');
         }
@@ -3207,7 +3251,9 @@ class lighter extends lighter$1["default"] {
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
     async setMargin(symbol, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let apiKeyIndex = undefined;
         [apiKeyIndex, params] = this.handleApiKeyIndex(params, 'setMargin', 'apiKeyIndex', 'api_key_index');
         const direction = this.safeInteger(params, 'direction'); // 1 increase margin 0 decrease margin

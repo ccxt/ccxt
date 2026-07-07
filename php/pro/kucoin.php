@@ -360,7 +360,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ticker:' . $symbol;
@@ -398,7 +400,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $isFuturesMethod = $market['contract'];
@@ -452,7 +456,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $marketType = null;
@@ -532,7 +538,9 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function watch_uta_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $messageHash = 'uta:ticker';
             $messageHashes = array();
@@ -772,7 +780,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, false);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isFuturesMethod = $firstMarket['contract'];
@@ -792,7 +802,9 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function watch_multi_helper($methodName, string $channelName, bool $isFuturesChannel, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($methodName, $channelName, $isFuturesChannel, $symbols, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, false);
             $length = count(($symbols));
             if ($length > 100) {
@@ -913,7 +925,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $period = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -961,7 +975,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), default is false
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $uta = false;
@@ -1176,7 +1192,9 @@ class kucoin extends \ccxt\async\kucoin {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $isFuturesMethod = $firstMarket['contract'];
@@ -1217,7 +1235,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $marketIds = $this->market_ids($symbols);
             $firstMarket = $this->get_market_from_symbols($symbols);
@@ -1543,7 +1563,9 @@ class kucoin extends \ccxt\async\kucoin {
                     throw new ExchangeError($this->id . " watchOrderBook 'limit' argument must be null, 5, 20, 50 or 100");
                 }
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $marketIds = $this->market_ids($symbols);
             $firstMarket = $this->get_market_from_symbols($symbols);
@@ -1601,7 +1623,9 @@ class kucoin extends \ccxt\async\kucoin {
              */
             $limit = $this->safe_integer($params, 'limit');
             $params = $this->omit($params, 'limit');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true);
             $marketIds = $this->market_ids($symbols);
             $firstMarket = $this->get_market_from_symbols($symbols);
@@ -1968,7 +1992,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot' if $symbol is not provided)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $uta = Async\await($this->is_uta_enabled());
             list($uta, $params) = $this->handle_option_and_params($params, 'watchOrders', 'uta', $uta);
             $market = null;
@@ -2364,7 +2390,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string} [$params->method] *classic (non-$uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrades';
             $market = null;
             if ($symbol !== null) {
@@ -2589,7 +2617,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {string} [$params->type] *classic (non-$uta) account only* 'spot' or 'swap' (default is 'spot')
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $uta = Async\await($this->is_uta_enabled());
             list($uta, $params) = $this->handle_option_and_params($params, 'watchBalance', 'uta', $uta);
             $defaultType = $uta ? 'unified' : 'spot';
@@ -2834,7 +2864,9 @@ class kucoin extends \ccxt\async\kucoin {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchPosition() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = Async\await($this->negotiate(true));
             $market = $this->market($symbol);
             $topic = '/contract/position:' . $market['id'];
@@ -2869,7 +2901,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta)
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $uta = Async\await($this->is_uta_enabled());
             list($uta, $params) = $this->handle_option_and_params($params, 'watchPositions', 'uta', $uta);
             $tradeType = $uta ? 'UNIFIED' : 'TRADE';
@@ -3214,7 +3248,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $channel = 'funding-fee';
             $messageHash = 'fundingRate:' . $symbol;
@@ -3233,7 +3269,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $channel = 'funding-fee';
             $subMessageHash = 'fundingRate:' . $symbol;
@@ -3322,7 +3360,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $channel = 'mark-price';
             $messageHash = 'uta:ticker:' . $symbol;
@@ -3341,7 +3381,9 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $channel = 'mark-price';
             $subMessageHash = 'uta:ticker:' . $symbol;

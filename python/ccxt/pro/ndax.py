@@ -54,7 +54,8 @@ class ndax(ccxt.async_support.ndax):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         name = 'SubscribeLevel1'
         messageHash = name + ':' + market['id']
@@ -122,7 +123,8 @@ class ndax(ccxt.async_support.ndax):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'SubscribeTrades'
@@ -201,7 +203,8 @@ class ndax(ccxt.async_support.ndax):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'SubscribeTicker'
@@ -322,7 +325,8 @@ class ndax(ccxt.async_support.ndax):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         name = 'SubscribeLevel2'

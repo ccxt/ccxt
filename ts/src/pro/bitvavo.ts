@@ -65,7 +65,9 @@ export default class bitvavo extends bitvavoRest {
     }
 
     async watchPublic (name, symbol, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
@@ -85,7 +87,9 @@ export default class bitvavo extends bitvavoRest {
     }
 
     async watchPublicMultiple (methodName, channelName: string, symbols, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const messageHashes = [ methodName ];
         const args: string[] = [];
@@ -130,7 +134,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const channel = 'ticker24h';
         const tickers = await this.watchPublicMultiple (channel, channel, symbols, params);
@@ -187,7 +193,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const channel = 'ticker24h';
         const tickers = await this.watchPublicMultiple ('bidask', channel, symbols, params);
@@ -238,7 +246,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const trades = await this.watchPublic ('trades', symbol, params);
         if (this.newUpdates) {
@@ -287,7 +297,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'candles';
@@ -381,7 +393,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'book';
@@ -583,7 +597,9 @@ export default class bitvavo extends bitvavoRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -621,7 +637,9 @@ export default class bitvavo extends bitvavoRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -670,7 +688,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         return await this.watchRequest ('privateCreateOrder', request) as Order;
@@ -691,7 +711,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         return await this.watchRequest ('privateUpdateOrder', request);
@@ -708,7 +730,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.cancelOrderRequest (id, symbol, params);
         return await this.watchRequest ('privateCancelOrder', request) as Order;
@@ -724,7 +748,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request: Dict = {};
         let operatorId: Str = undefined;
@@ -777,7 +803,9 @@ export default class bitvavo extends bitvavoRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.market (symbol);
         const request: Dict = {
@@ -802,7 +830,9 @@ export default class bitvavo extends bitvavoRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrdersWs() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.fetchOrdersRequest (symbol, since, limit, params);
         const orders = await this.watchRequest ('privateGetOrders', request);
@@ -836,7 +866,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request: Dict = {
             // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
@@ -865,7 +897,9 @@ export default class bitvavo extends bitvavoRest {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTradesWs() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.fetchMyTradesRequest (symbol, since, limit, params);
         const myTrades = await this.watchRequest ('privateGetTrades', request);
@@ -917,7 +951,9 @@ export default class bitvavo extends bitvavoRest {
     async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}) {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.withdrawRequest (code, amount, address, tag, params);
         return await this.watchRequest ('privateWithdrawAssets', request);
@@ -954,7 +990,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawalsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.fetchWithdrawalsRequest (code, since, limit, params);
         const withdraws = await this.watchRequest ('privateGetWithdrawalHistory', request);
@@ -998,7 +1036,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCVWs (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request = this.fetchOHLCVRequest (symbol, timeframe, since, limit, params);
         const action = 'getCandles';
         const ohlcv = await this.watchRequest (action, request);
@@ -1017,7 +1057,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWs (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const request = this.fetchDepositsRequest (code, since, limit, params);
         const deposits = await this.watchRequest ('privateGetDepositHistory', request);
@@ -1055,7 +1097,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFeesWs (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         return await this.watchRequest ('privateGetAccount', params);
     }
@@ -1081,7 +1125,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrenciesWs (params = {}): Promise<Currencies> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         return await this.watchRequest ('getAssets', params);
     }
 
@@ -1140,7 +1186,9 @@ export default class bitvavo extends bitvavoRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
      */
     async fetchBalanceWs (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         return await this.watchRequest ('privateGetBalance', params);
     }

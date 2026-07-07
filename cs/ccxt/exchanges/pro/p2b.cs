@@ -98,7 +98,10 @@ public partial class p2b : ccxt.p2b
     {
         timeframe ??= "15m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         object channel = this.safeInteger(timeframes, timeframe);
         if (isTrue(isEqual(channel, null)))
@@ -130,7 +133,10 @@ public partial class p2b : ccxt.p2b
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
         var nameparametersVariable = this.handleOptionAndParams(parameters, "method", "name", name);
@@ -159,7 +165,10 @@ public partial class p2b : ccxt.p2b
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object watchTickerOptions = this.safeDict(this.options, "watchTicker");
         object name = this.safeString(watchTickerOptions, "name", "state"); // or price
@@ -215,7 +224,10 @@ public partial class p2b : ccxt.p2b
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true, true);
         object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -257,7 +269,10 @@ public partial class p2b : ccxt.p2b
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = "depth.subscribe";
         object messageHash = add("orderbook::", getValue(market, "symbol"));

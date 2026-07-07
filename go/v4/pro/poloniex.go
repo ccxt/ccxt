@@ -259,12 +259,14 @@ func  (this *PoloniexCore) CreateOrderWs(symbol any, typeVar any, side any, amou
             _ = price
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2118 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2118)
+                retRes21212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes21212)
+            }
         
-            retRes2128 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes2128)
+            retRes2148 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes2148)
             var market any = this.Market(symbol)
             var uppercaseType any = ccxt.ToUpper(typeVar)
             var uppercaseSide any = ccxt.ToUpper(side)
@@ -373,19 +375,21 @@ func  (this *PoloniexCore) CancelOrdersWs(ids any, optionalArgs ...any) <- chan 
             _ = symbol
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2918)
+                retRes29412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes29412)
+            }
         
-            retRes2928 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes2928)
+            retRes2968 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes2968)
             var request any = map[string]any {
                 "orderIds": ids,
             }
         
-                retRes29615 :=  (<-this.TradeRequest("cancelOrders", this.Extend(request, params)))
-                ccxt.PanicOnError(retRes29615)
-                ch <- retRes29615
+                retRes30015 :=  (<-this.TradeRequest("cancelOrders", this.Extend(request, params)))
+                ccxt.PanicOnError(retRes30015)
+                ch <- retRes30015
                 return nil
         
             }()
@@ -409,16 +413,18 @@ func  (this *PoloniexCore) CancelAllOrdersWs(optionalArgs ...any) <- chan any {
             _ = symbol
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3098)
+                retRes31412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes31412)
+            }
         
-            retRes3108 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes3108)
+            retRes3168 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes3168)
         
-                retRes31115 :=  (<-this.TradeRequest("cancelAllOrders", params))
-                ccxt.PanicOnError(retRes31115)
-                ch <- retRes31115
+                retRes31715 :=  (<-this.TradeRequest("cancelAllOrders", params))
+                ccxt.PanicOnError(retRes31715)
+                ch <- retRes31715
                 return nil
         
             }()
@@ -471,9 +477,11 @@ func  (this *PoloniexCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3508)
+                retRes35712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes35712)
+            }
             var timeframes any = this.SafeValue(this.Options, "timeframes", map[string]any {})
             var channel any = this.SafeString(timeframes, timeframe, timeframe)
             if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
@@ -508,9 +516,11 @@ func  (this *PoloniexCore) WatchTicker(symbol any, optionalArgs ...any) <- chan 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3738 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3738)
+                retRes38212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes38212)
+            }
             symbol = this.Symbol(symbol)
         
             tickers:= (<-this.WatchTickers([]any{symbol}, params))
@@ -540,9 +550,11 @@ func  (this *PoloniexCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3898 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3898)
+                retRes40012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes40012)
+            }
             var name any = "ticker"
             symbols = this.MarketSymbols(symbols)
         
@@ -583,9 +595,9 @@ func  (this *PoloniexCore) WatchTrades(symbol any, optionalArgs ...any) <- chan 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes41115 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes41115)
-                ch <- retRes41115
+                retRes42315 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes42315)
+                ch <- retRes42315
                 return nil
         
             }()
@@ -613,9 +625,11 @@ func  (this *PoloniexCore) WatchTradesForSymbols(symbols any, optionalArgs ...an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4268 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4268)
+                retRes43912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes43912)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true, true)
             var name any = "trades"
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -666,9 +680,11 @@ func  (this *PoloniexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- ch
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4658)
+                retRes48012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes48012)
+            }
             var watchOrderBookOptions any = this.SafeValue(this.Options, "watchOrderBook")
             var name any = this.SafeString(watchOrderBookOptions, "name", "book_lv2")
             nameparamsVariable := this.HandleOptionAndParams(params, "method", "name", name)
@@ -708,13 +724,15 @@ func  (this *PoloniexCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4858)
+                retRes50212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes50212)
+            }
             var name any = "orders"
         
-            retRes4878 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes4878)
+            retRes5058 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes5058)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
             }
@@ -756,14 +774,16 @@ func  (this *PoloniexCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5118 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5118)
+                retRes53012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes53012)
+            }
             var name any = "orders"
             var messageHash any = "myTrades"
         
-            retRes5148 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes5148)
+            retRes5348 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes5348)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
             }
@@ -796,17 +816,19 @@ func  (this *PoloniexCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5358)
+                retRes55612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes55612)
+            }
             var name any = "balances"
         
-            retRes5378 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes5378)
+            retRes5598 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes5598)
         
-                retRes53815 :=  (<-this.Subscribe(name, name, true, nil, params))
-                ccxt.PanicOnError(retRes53815)
-                ch <- retRes53815
+                retRes56015 :=  (<-this.Subscribe(name, name, true, nil, params))
+                ccxt.PanicOnError(retRes56015)
+                ch <- retRes56015
                 return nil
         
             }()
@@ -1111,8 +1133,8 @@ func  (this *PoloniexCore) HandleOrder(client any, message any) any  {
                 if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
                     ccxt.AddElementToObject(previousOrder, "trades", []any{})
                 }
-                retRes84820 := ccxt.GetValue(previousOrder, "trades")
-                ccxt.AppendToArray(&retRes84820, trade)
+                retRes87020 := ccxt.GetValue(previousOrder, "trades")
+                ccxt.AppendToArray(&retRes87020, trade)
                 ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
                 var totalCost any = "0"
                 var totalAmount any = "0"

@@ -52,7 +52,9 @@ export default class ndax extends ndaxRest {
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
@@ -122,7 +124,9 @@ export default class ndax extends ndaxRest {
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'SubscribeTrades';
@@ -207,7 +211,9 @@ export default class ndax extends ndaxRest {
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'SubscribeTicker';
@@ -338,7 +344,9 @@ export default class ndax extends ndaxRest {
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const name = 'SubscribeLevel2';

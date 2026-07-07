@@ -563,7 +563,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->fetch_tickers(array( $symbol ), $params));
             return $this->safe_dict($response, $symbol, array());
         })();
@@ -580,7 +582,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($symbols !== null) {
                 $request['pairs'] = $this->market_ids($symbols);
@@ -657,7 +661,9 @@ class cex extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest entry
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
@@ -739,7 +745,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
@@ -789,7 +797,9 @@ class cex extends Exchange {
             if ($dataType === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
@@ -859,7 +869,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privatePostGetMyCurrentFee($params));
             //
             //    {
@@ -912,7 +924,9 @@ class cex extends Exchange {
 
     public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privatePostGetMyAccountStatusV3($params));
             //
             //    {
@@ -1038,7 +1052,9 @@ class cex extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest entry
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $isClosedOrders = ($status === 'closed');
             if ($isClosedOrders) {
@@ -1155,7 +1171,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => intval($id),
             );
@@ -1176,7 +1194,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => intval($id),
             );
@@ -1302,7 +1322,9 @@ class cex extends Exchange {
             if ($accountId === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() : API trading is now allowed from main account, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'clientOrderId' => $this->uuid(),
@@ -1392,7 +1414,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderId' => intval($id),
                 'cancelRequestId' => 'c_' . (string) ($this->milliseconds()),
@@ -1418,7 +1442,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privatePostDoCancelAllOrders($params));
             //
             //    {
@@ -1455,7 +1481,9 @@ class cex extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest ledger entry
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -1550,7 +1578,9 @@ class cex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -1665,7 +1695,9 @@ class cex extends Exchange {
 
     public function transfer_between_main_and_sub_account(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $fromMain = ($fromAccount === '');
             $targetAccount = $fromMain ? $toAccount : $fromAccount;
@@ -1702,7 +1734,9 @@ class cex extends Exchange {
 
     public function transfer_between_sub_accounts(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -1779,7 +1813,9 @@ class cex extends Exchange {
             if ($accountId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set $params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $currency = $this->currency($code);

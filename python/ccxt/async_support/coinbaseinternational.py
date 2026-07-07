@@ -380,7 +380,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v1PrivateGetPortfolios(params)
         #
         #    [
@@ -439,7 +440,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
@@ -510,7 +512,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         maxEntriesPerRequest = None
@@ -593,7 +596,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'type': 'FUNDING',
         }
@@ -666,7 +670,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'type': 'INTERNAL',
         }
@@ -752,7 +757,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.network]: unified network code to identify the blockchain network
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         method = None
         method, params = self.handle_option_and_params(params, 'createDepositAddress', 'method', 'v1PrivatePostTransfersAddress')
         portfolio = None
@@ -916,7 +922,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = None
         paginate, params = self.handle_option_and_params(params, 'fetchDepositsWithdrawals', 'paginate')
         maxEntriesPerRequest = None
@@ -982,7 +989,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('fetchPosition', params)
@@ -1067,7 +1075,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('fetchPositions', params)
         request = {
@@ -1114,7 +1123,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         params['type'] = 'WITHDRAW'
         return await self.fetch_deposits_withdrawals(code, since, limit, params)
 
@@ -1132,7 +1142,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         params['type'] = 'DEPOSIT'
         return await self.fetch_deposits_withdrawals(code, since, limit, params)
 
@@ -1474,7 +1485,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         instruments = await self.v1PublicGetInstruments(params)
         tickers = {}
@@ -1496,7 +1508,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument': self.market_id(symbol),
@@ -1558,7 +1571,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param boolean [params.v3]: default False, set True to use v3 api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('fetchBalance', params)
         request = {
@@ -1626,7 +1640,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
@@ -1669,7 +1684,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.stp_mode]: Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         typeId = type.upper()
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
@@ -1829,7 +1845,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('cancelOrder', params)
         request = {
@@ -1872,7 +1889,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('cancelAllOrders', params)
         request = {
@@ -1901,7 +1919,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'id': id,
@@ -1935,7 +1954,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1988,7 +2008,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str [params.event_type]: The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('fetchOpenOrders', params)
         paginate = False
@@ -2066,7 +2087,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         pageKey = 'ccxtPageKey'
@@ -2155,7 +2177,8 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         portfolio = None
         portfolio, params = await self.handle_portfolio_and_params('withdraw', params)
