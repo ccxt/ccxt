@@ -333,6 +333,7 @@ export default class bithumb extends Exchange {
                 },
             },
             'exceptions': {
+                '400': BadRequest,
                 'Bad Request(SSL)': BadRequest,
                 'Bad Request(Bad Method)': BadRequest,
                 'Bad Request.(Auth Data)': AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
@@ -346,6 +347,7 @@ export default class bithumb extends Exchange {
                 '5600': ExchangeError,
                 'Unknown Error': ExchangeError,
                 'After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions': ExchangeError, // {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
+                'Missing request parameter error. Check the required parameters!': BadRequest,
             },
             'timeframes': {
                 '1m': 1,
@@ -991,64 +993,25 @@ export default class bithumb extends Exchange {
         const request: Dict = {};
         const result: Dict = {};
         if (generation === 2) {
-            // Bithumb v2 ticker payloads are inconsistent for all-market calls,
-            // so we aggregate one market per request only when symbols are not provided.
-            let marketIds = [];
             if (symbols === undefined) {
-                marketIds = this.marketIds (this.symbols);
-            } else {
-                marketIds = this.marketIds (symbols);
-                request['markets'] = marketIds.join (',');
+                throw new ArgumentsRequired (this.id + ' fetchTickers() with generation=2 requires a symbols argument');
             }
-            const promises = [];
-            if (symbols === undefined) {
-                for (let i = 0; i < marketIds.length; i++) {
-                    promises.push (this.publicGetV1Ticker (this.extend ({ 'markets': marketIds[i] }, params)));
+            const marketIds = this.marketIds (symbols);
+            request['markets'] = marketIds.join (',');
+            const response = await this.publicGetV1Ticker (this.extend (request, params));
+            const tickers = this.safeList (response, []);
+            for (let i = 0; i < tickers.length; i++) {
+                const entry = tickers[i];
+                const marketId = this.safeString (entry, 'market');
+                if (marketId === undefined) {
+                    continue;
                 }
-            } else {
-                promises.push (this.publicGetV1Ticker (this.extend (request, params)));
-            }
-            const responses = await Promise.all (promises);
-            for (let i = 0; i < responses.length; i++) {
-                let response = responses[i];
-                if (this.isDictionary (response) && ('data' in response) && (response['data'] !== undefined)) {
-                    response = response['data'];
+                const market = this.safeMarket (marketId);
+                const symbol = this.safeSymbol (marketId, market);
+                if (symbol === undefined) {
+                    continue;
                 }
-                let expectedMarketId = undefined;
-                if (symbols === undefined) {
-                    expectedMarketId = marketIds[i];
-                }
-                let tickers = [];
-                if (Array.isArray (response)) {
-                    tickers = response;
-                } else if (this.isDictionary (response)) {
-                    if (('market' in response) || ('trade_date' in response) || ('trade_timestamp' in response)) {
-                        tickers = [ response ];
-                    } else {
-                        const ids = Object.keys (response);
-                        for (let j = 0; j < ids.length; j++) {
-                            const id = ids[j];
-                            const ticker = this.safeDict (response, id);
-                            if (ticker !== undefined) {
-                                ticker['market'] = this.safeString (ticker, 'market', id);
-                                tickers.push (ticker);
-                            }
-                        }
-                    }
-                }
-                for (let j = 0; j < tickers.length; j++) {
-                    const entry = tickers[j];
-                    const marketId = this.safeString (entry, 'market', expectedMarketId);
-                    if (marketId === undefined) {
-                        continue;
-                    }
-                    const market = this.safeMarket (marketId);
-                    const symbol = this.safeSymbol (marketId, market);
-                    if (symbol === undefined) {
-                        continue;
-                    }
-                    result[symbol] = this.parseTicker (entry, market);
-                }
+                result[symbol] = this.parseTicker (entry, market);
             }
         } else {
             const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
@@ -2976,7 +2939,25 @@ export default class bithumb extends Exchange {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
+        // generation 2:
+        //
+        //     {"error":{"name":400,"message":"Missing request parameter error. Check the required parameters!"}}
+        //
+        const error = this.safeDict (response, 'error');
+        if (error !== undefined) {
+            const errorName = this.safeString (error, 'name');
+            const message = this.safeString (error, 'message');
+            const feedback = this.id + ' ' + message;
+            if (errorName !== undefined) {
+                this.throwExactlyMatchedException (this.exceptions, errorName, feedback);
+            }
+            if (message !== undefined) {
+                this.throwExactlyMatchedException (this.exceptions, message, feedback);
+            }
+            throw new ExchangeError (feedback);
+        }
         if ('status' in response) {
+            // generation 1:
             //
             //     {"status":"5100","message":"After May 23th, recent_transactions is no longer, hence users will not be able to connect to recent_transactions"}
             //
