@@ -712,7 +712,7 @@ func (this *HyperliquidCore) FetchTicker(outcome any, optionalArgs ...any) <-cha
 			"book": response,
 		}, "book", map[string]any{})
 
-		ch <- this.ParseTicker(tickerData, outcomeObj)
+		ch <- this.ParsePredictionTicker(tickerData, outcomeObj)
 		return nil
 
 	}()
@@ -778,7 +778,7 @@ func (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <-chan any {
 				continue
 			}
 			// Build minimal ticker from mid price
-			var ticker any = this.ParseTicker(map[string]any{
+			var ticker any = this.ParsePredictionTicker(map[string]any{
 				"levels": []any{[]any{}, []any{}},
 				"mid":    mid,
 				"time":   this.Milliseconds(),
@@ -796,13 +796,13 @@ func (this *HyperliquidCore) FetchTickers(optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name hyperliquid#parseTicker
+ * @name hyperliquid#parsePredictionTicker
  * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
  * @param {object} raw l2Book response or { mid, time } object
  * @param {object} [market] the market the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *HyperliquidCore) ParseTicker(raw any, optionalArgs ...any) any {
+func (this *HyperliquidCore) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "coin": "#10",
@@ -1181,7 +1181,7 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <-chan any {
 			var enriched any = this.Extend(balance, map[string]any{
 				"markPx": this.SafeString(mids, tradeCoin),
 			})
-			ccxt.AppendToArray(&positions, this.ParsePosition(enriched, outcomeObj))
+			ccxt.AppendToArray(&positions, this.ParsePredictionPosition(enriched, outcomeObj))
 		}
 
 		ch <- positions
@@ -1194,13 +1194,13 @@ func (this *HyperliquidCore) FetchPositions(optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name hyperliquid#parsePosition
+ * @name hyperliquid#parsePredictionPosition
  * @description parses a spot balance entry for an outcome token into a unified position object
  * @param {object} position the raw balance entry
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *HyperliquidCore) ParsePosition(position any, optionalArgs ...any) any {
+func (this *HyperliquidCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	// `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
 	// enriched with the current mid price (markPx); hyperliquid does not return the position
 	// value / entry price / pnl for outcome tokens, so they are computed here
@@ -1839,7 +1839,7 @@ func (this *HyperliquidCore) FetchOrder(id any, optionalArgs ...any) <-chan any 
 		response := (<-this.PublicPostInfo(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
 		var orderWrapper any = this.SafeDict(response, "order", response)
-		var parsed any = this.ParseOrder(orderWrapper, nil)
+		var parsed any = this.ParsePredictionOrder(orderWrapper, nil)
 		if ccxt.IsTrue(!ccxt.IsEqual(outcome, nil)) {
 
 			retRes156112 := (<-this.LoadOutcome(outcome))
@@ -1861,13 +1861,13 @@ func (this *HyperliquidCore) FetchOrder(id any, optionalArgs ...any) <-chan any 
 /**
  * @ignore
  * @method
- * @name hyperliquid#parseOrder
+ * @name hyperliquid#parsePredictionOrder
  * @description parses a raw hyperliquid order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the market the order belongs to
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *HyperliquidCore) ParseOrder(order any, optionalArgs ...any) any {
+func (this *HyperliquidCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	//
 	// from frontendOpenOrders:
 	// {
@@ -2052,7 +2052,7 @@ func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 			outcomeHandle = this.SafeString(outcomeObj, "outcome")
 		} else {
 			// fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
-			// cache (one market load) so parseTrade can resolve the unified outcome identity
+			// cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
 
 			retRes173412 := (<-this.LoadOutcomes())
 			ccxt.PanicOnError(retRes173412)
@@ -2093,13 +2093,13 @@ func (this *HyperliquidCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name hyperliquid#parseTrade
+ * @name hyperliquid#parsePredictionTrade
  * @description parses a single hyperliquid fill into a unified trade object
  * @param {object} trade the raw fill object
  * @param {object} [market] the market the trade belongs to
  * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
  */
-func (this *HyperliquidCore) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *HyperliquidCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	//
 	// {
 	//   "closedPnl": "0.19343",

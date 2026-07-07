@@ -739,7 +739,7 @@ public partial class hyperliquid : PredictionExchange
         object tickerData = this.safeDict(new Dictionary<string, object>() {
             { "book", response },
         }, "book", new Dictionary<string, object>() {});
-        return this.parseTicker(tickerData, outcomeObj);
+        return this.parsePredictionTicker(tickerData, outcomeObj);
     }
 
     /**
@@ -751,7 +751,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -795,7 +795,7 @@ public partial class hyperliquid : PredictionExchange
                 continue;
             }
             // Build minimal ticker from mid price
-            object ticker = this.parseTicker(new Dictionary<string, object>() {
+            object ticker = this.parsePredictionTicker(new Dictionary<string, object>() {
                 { "levels", new List<object>() {new List<object>() {}, new List<object>() {}} },
                 { "mid", mid },
                 { "time", this.milliseconds() },
@@ -808,13 +808,13 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTicker
+     * @name hyperliquid#parsePredictionTicker
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override object parseTicker(object raw, object market = null)
+    public override object parsePredictionTicker(object raw, object market = null)
     {
         //
         //     {
@@ -1083,7 +1083,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.user] wallet address
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object requestedOutcomeSymbols = new Dictionary<string, object>() {};
@@ -1149,7 +1149,7 @@ public partial class hyperliquid : PredictionExchange
             object enriched = this.extend(balance, new Dictionary<string, object>() {
                 { "markPx", this.safeString(mids, tradeCoin) },
             });
-            ((IList<object>)positions).Add(this.parsePosition(enriched, outcomeObj));
+            ((IList<object>)positions).Add(this.parsePredictionPosition(enriched, outcomeObj));
         }
         return positions;
     }
@@ -1157,13 +1157,13 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parsePosition
+     * @name hyperliquid#parsePredictionPosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public override object parsePosition(object position, object market = null)
+    public override object parsePredictionPosition(object position, object market = null)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
@@ -1635,7 +1635,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.method] 'openOrders' | 'frontendOpenOrders' (default)
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1745,7 +1745,7 @@ public partial class hyperliquid : PredictionExchange
      * @param {string} [params.clientOrderId] fetch by client order id instead
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object userAddress = null;
@@ -1768,7 +1768,7 @@ public partial class hyperliquid : PredictionExchange
         }
         object response = await this.publicPostInfo(this.extend(request, parameters));
         object orderWrapper = this.safeDict(response, "order", response);
-        object parsed = this.parseOrder(orderWrapper, null);
+        object parsed = this.parsePredictionOrder(orderWrapper, null);
         if (isTrue(!isEqual(outcome, null)))
         {
             await this.loadOutcome(outcome);
@@ -1785,13 +1785,13 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseOrder
+     * @name hyperliquid#parsePredictionOrder
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public override object parseOrder(object order, object market = null)
+    public override object parsePredictionOrder(object order, object market = null)
     {
         //
         // from frontendOpenOrders:
@@ -1958,7 +1958,7 @@ public partial class hyperliquid : PredictionExchange
         } else
         {
             // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
-            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            // cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
             await this.loadOutcomes();
         }
         object userAddress = null;
@@ -1993,13 +1993,13 @@ public partial class hyperliquid : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTrade
+     * @name hyperliquid#parsePredictionTrade
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public override object parseTrade(object trade, object market = null)
+    public override object parsePredictionTrade(object trade, object market = null)
     {
         //
         // {

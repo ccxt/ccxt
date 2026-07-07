@@ -693,11 +693,7 @@ func (this *PredictionExchange) FetchTicker(outcome any, optionalArgs ...any) <-
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-
-		retRes59715 := (<-this.BaseExchange.FetchTicker(outcome, params))
-		PanicOnError(retRes59715)
-		ch <- retRes59715
-		return nil
+		panic(NotSupported(Add(this.Id, " fetchTicker() is not supported yet")))
 
 	}()
 	return ch
@@ -721,11 +717,7 @@ func (this *PredictionExchange) FetchOrderBook(outcome any, optionalArgs ...any)
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-
-		retRes61015 := (<-this.BaseExchange.FetchOrderBook(outcome, limit, params))
-		PanicOnError(retRes61015)
-		ch <- retRes61015
-		return nil
+		panic(NotSupported(Add(this.Id, " fetchOrderBook() is not supported yet")))
 
 	}()
 	return ch
@@ -786,11 +778,7 @@ func (this *PredictionExchange) FetchTrades(outcome any, optionalArgs ...any) <-
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
-
-		retRes63915 := (<-this.BaseExchange.FetchTrades(outcome, since, limit, params))
-		PanicOnError(retRes63915)
-		ch <- retRes63915
-		return nil
+		panic(NotSupported(Add(this.Id, " fetchTrades() is not supported yet")))
 
 	}()
 	return ch
@@ -817,11 +805,7 @@ func (this *PredictionExchange) CreateOrder(outcome any, typeVar any, side any, 
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-
-		retRes65515 := (<-this.BaseExchange.CreateOrder(outcome, typeVar, side, amount, price, params))
-		PanicOnError(retRes65515)
-		ch <- retRes65515
-		return nil
+		panic(NotSupported(Add(this.Id, " createOrder() is not supported yet")))
 
 	}()
 	return ch
@@ -845,11 +829,7 @@ func (this *PredictionExchange) CancelOrder(id any, optionalArgs ...any) <-chan 
 		_ = outcome
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-
-		retRes66815 := (<-this.BaseExchange.CancelOrder(id, outcome, params))
-		PanicOnError(retRes66815)
-		ch <- retRes66815
-		return nil
+		panic(NotSupported(Add(this.Id, " cancelOrder() is not supported yet")))
 
 	}()
 	return ch
@@ -870,11 +850,7 @@ func (this *PredictionExchange) WatchTicker(outcome any, optionalArgs ...any) <-
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-
-		retRes68015 := (<-this.BaseExchange.WatchTicker(outcome, params))
-		PanicOnError(retRes68015)
-		ch <- retRes68015
-		return nil
+		panic(NotSupported(Add(this.Id, " watchTicker() is not supported yet")))
 
 	}()
 	return ch
@@ -898,11 +874,7 @@ func (this *PredictionExchange) WatchOrderBook(outcome any, optionalArgs ...any)
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
-
-		retRes69315 := (<-this.BaseExchange.WatchOrderBook(outcome, limit, params))
-		PanicOnError(retRes69315)
-		ch <- retRes69315
-		return nil
+		panic(NotSupported(Add(this.Id, " watchOrderBook() is not supported yet")))
 
 	}()
 	return ch
@@ -929,11 +901,7 @@ func (this *PredictionExchange) WatchTrades(outcome any, optionalArgs ...any) <-
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
-
-		retRes70715 := (<-this.BaseExchange.WatchTrades(outcome, since, limit, params))
-		PanicOnError(retRes70715)
-		ch <- retRes70715
-		return nil
+		panic(NotSupported(Add(this.Id, " watchTrades() is not supported yet")))
 
 	}()
 	return ch
@@ -1400,6 +1368,31 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	// omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
 	return this.Omit(orderbook, "symbol")
 }
+func (this *PredictionExchange) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	panic(NotSupported(Add(this.Id, " parsePredictionTicker() is not supported yet")))
+}
+func (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	panic(NotSupported(Add(this.Id, " parsePredictionOrder() is not supported yet")))
+}
+func (this *PredictionExchange) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	panic(NotSupported(Add(this.Id, " parsePredictionTrade() is not supported yet")))
+}
+func (this *PredictionExchange) ParsePredictionPosition(position any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	panic(NotSupported(Add(this.Id, " parsePredictionPosition() is not supported yet")))
+}
+func (this *PredictionExchange) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
+	market := GetArg(optionalArgs, 0, nil)
+	_ = market
+	panic(NotSupported(Add(this.Id, " parsePredictionOpenInterest() is not supported yet")))
+}
 func (this *PredictionExchange) ToPredictionStructure(parsed any, raw any) any {
 	// the prediction identity is the `outcome` handle (never the base `symbol`); attach it
 	// and the other prediction fields (raw exchange id, label, parent market/event) that the
@@ -1421,7 +1414,7 @@ func (this *PredictionExchange) ToPredictionStructure(parsed any, raw any) any {
  * @ignore
  * @method
  * @name PredictionExchange#parsePredictionTrades
- * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+ * @description parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
  * @param {object[]} trades the raw trades
  * @param {object} [outcomeObj] the resolved outcome object the trades belong to
  * @param {int} [since] timestamp in ms of the earliest trade to return
@@ -1445,9 +1438,7 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	var rows any = this.ToArray(trades)
 	var results any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
-
-		var parsed any = this.DerivedExchange.ParseTrade(GetValue(rows, i), outcomeObj)
-		PanicOnError(parsed)
+		var parsed any = this.ParsePredictionTrade(GetValue(rows, i), outcomeObj)
 		var trade any = this.Extend(parsed, params)
 		AppendToArray(&results, trade)
 	}
@@ -1460,7 +1451,7 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
  * @ignore
  * @method
  * @name PredictionExchange#parsePredictionOrders
- * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+ * @description parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
  * @param {object[]} orders the raw orders
  * @param {object} [outcomeObj] the resolved outcome object the orders belong to
  * @param {int} [since] timestamp in ms of the earliest order to return
@@ -1481,9 +1472,7 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows any = this.ToArray(orders)
 	var results any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
-
-		var parsed any = this.DerivedExchange.ParseOrder(GetValue(rows, i), outcomeObj)
-		PanicOnError(parsed)
+		var parsed any = this.ParsePredictionOrder(GetValue(rows, i), outcomeObj)
 		var order any = this.Extend(parsed, params)
 		AppendToArray(&results, order)
 	}
@@ -1496,7 +1485,7 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
  * @ignore
  * @method
  * @name PredictionExchange#parsePredictionPositions
- * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+ * @description parses a list of raw positions with the exchange's parsePredictionPosition — the prediction analogue of the base parsePositions
  * @param {object[]} positions the raw positions
  * @param {object} [params] extra fields to merge into every parsed position
  * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
@@ -1511,9 +1500,7 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows any = this.ToArray(positions)
 	var results any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
-
-		var parsed any = this.DerivedExchange.ParsePosition(GetValue(rows, i))
-		PanicOnError(parsed)
+		var parsed any = this.ParsePredictionPosition(GetValue(rows, i))
 		var position any = this.Extend(parsed, params)
 		AppendToArray(&results, position)
 	}
@@ -1694,9 +1681,9 @@ func (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, from
 		var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
 		PanicOnError(signed)
 
-		retRes120515 := (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-		PanicOnError(retRes120515)
-		ch <- retRes120515
+		retRes122515 := (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+		PanicOnError(retRes122515)
+		ch <- retRes122515
 		return nil
 
 	}()
@@ -1720,8 +1707,8 @@ func (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash any
 				return nil
 			}
 
-			retRes121512 := (<-this.Sleep(2000))
-			PanicOnError(retRes121512)
+			retRes123512 := (<-this.Sleep(2000))
+			PanicOnError(retRes123512)
 		}
 		panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
 

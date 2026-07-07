@@ -4,15 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-// Native dedicated prediction-market type. The base OrderBook is final, so this
-// duplicates its fields (flat typed access) and adds the prediction identity
-// fields. The inherited `symbol` is left unpopulated — `outcome` (the
-// "MARKET:LABEL" handle) is the canonical identity. Mirrors the
-// `PredictionOrderBook extends OrderBook` interface in ts/src/base/types.ts.
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend OrderBook); holds its own copy of the base
+// fields (flat typed access) and adds the prediction identity
+// fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
+// `PredictionOrderBook` interface in ts/src/base/types.ts.
 public final class PredictionOrderBook {
     public List<List<Double>> bids;
     public List<List<Double>> asks;
-    public String symbol;
     public Long timestamp;
     public String datetime;
     public Long nonce;
@@ -27,7 +25,6 @@ public final class PredictionOrderBook {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.bids = parseEntries(data.get("bids"));
         this.asks = parseEntries(data.get("asks"));
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.nonce = TypeHelper.safeInteger(data, "nonce");

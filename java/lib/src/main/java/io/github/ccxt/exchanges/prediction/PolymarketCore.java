@@ -999,7 +999,7 @@ final Object finalMarketSymbol = marketSymbol;
             //         }
             //     }
             //
-            return this.parseTicker(response, outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         });
 
     }
@@ -1090,7 +1090,7 @@ final Object finalMarketSymbol = marketSymbol;
                         }} );
                         put( "book", book );
                     }};
-                    Object ticker = this.parseTicker(tickerInput, outcomeObj);
+                    Object ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
                     Object symbolKey = this.safeString(ticker, "outcome", tokenId);
                     Helpers.addElementToObject(result, symbolKey, ticker);
                 }
@@ -1104,13 +1104,13 @@ final Object finalMarketSymbol = marketSymbol;
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTicker
+     * @name polymarket#parsePredictionTicker
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1452,12 +1452,12 @@ final Object finalMarketSymbol = marketSymbol;
             //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
             //
             Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-            return this.parseOpenInterest(first, ((Object)outcomeObj));
+            return this.parsePredictionOpenInterest(first, ((Object)outcomeObj));
         });
 
     }
 
-    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    public Object parsePredictionOpenInterest(Object interest, Object... optionalArgs)
     {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
@@ -1571,7 +1571,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
             }
             // the trades are already narrowed to this outcome by asset id above;
-            // parseTrade resolves the outcome from each trade's asset id
+            // parsePredictionTrade resolves the outcome from each trade's asset id
             return this.parsePredictionTrades(filteredTrades, null, since, limit);
         });
 
@@ -1663,13 +1663,13 @@ final Object finalMarketSymbol = marketSymbol;
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTrade
+     * @name polymarket#parsePredictionTrade
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -1863,13 +1863,13 @@ final Object finalMarketSymbol = marketSymbol;
     /**
      * @ignore
      * @method
-     * @name polymarket#parsePosition
+     * @name polymarket#parsePredictionPosition
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object tokenId = this.safeString(position, "asset");
@@ -1977,7 +1977,7 @@ final Object finalMarketSymbol = marketSymbol;
                 put( "id", id );
             }};
             Object response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
-            return this.parseOrder(response);
+            return this.parsePredictionOrder(response);
         });
 
     }
@@ -1985,13 +1985,13 @@ final Object finalMarketSymbol = marketSymbol;
     /**
      * @ignore
      * @method
-     * @name polymarket#parseOrder
+     * @name polymarket#parsePredictionOrder
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         //
         // {
@@ -2104,7 +2104,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
             // request echo first so the response's real orderID/status/success win on overlap
             Object enriched = this.extend(this.safeDict(built, "request"), response);
-            Object order = this.parseOrder(enriched, ((Object)this.safeDict(built, "outcome")));
+            Object order = this.parsePredictionOrder(enriched, ((Object)this.safeDict(built, "outcome")));
             Helpers.addElementToObject(order, "info", response); // keep info the raw exchange response, not the request echo
             return order;
         });
@@ -2157,13 +2157,13 @@ final Object finalMarketSymbol = marketSymbol;
                 {
                     // request echo first so the response's real orderID/status win on overlap
                     Object enriched = this.extend(Helpers.GetValue(requests, i), Helpers.GetValue(response, i));
-                    Object parsedItem = this.parseOrder(enriched, ((Object)Helpers.GetValue(outcomes, i)));
+                    Object parsedItem = this.parsePredictionOrder(enriched, ((Object)Helpers.GetValue(outcomes, i)));
                     Helpers.addElementToObject(parsedItem, "info", Helpers.GetValue(response, i)); // keep info the raw exchange response
                     ((java.util.List<Object>)result).add(parsedItem);
                 }
             } else
             {
-                ((java.util.List<Object>)result).add(this.parseOrder(response));
+                ((java.util.List<Object>)result).add(this.parsePredictionOrder(response));
             }
             return result;
         });
@@ -2302,7 +2302,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "orderType", finalOrderTypeStr );
         }};
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        // (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+        // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         final Object finalPrice = price;
         Object requestEcho = new java.util.HashMap<String, Object>() {{
@@ -3763,7 +3763,7 @@ final Object finalOutcome = outcome;
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object parsed = this.parseOrder(eventVar);
+        Object parsed = this.parsePredictionOrder(eventVar);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "orders");
         Object outcome = this.safeString(parsed, "outcome");
@@ -3781,7 +3781,7 @@ final Object finalOutcome = outcome;
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object parsed = this.parseTrade(eventVar);
+        Object parsed = this.parsePredictionTrade(eventVar);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, "myTrades");
         Object outcome = this.safeString(parsed, "outcome");

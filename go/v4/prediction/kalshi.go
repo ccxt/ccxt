@@ -721,7 +721,7 @@ func (this *KalshiCore) FetchTicker(outcome any, optionalArgs ...any) <-chan any
 		//
 		var raw any = this.SafeValue(response, "market", response)
 
-		ch <- this.ParseTicker(raw, outcomeObj)
+		ch <- this.ParsePredictionTicker(raw, outcomeObj)
 		return nil
 
 	}()
@@ -793,13 +793,13 @@ func (this *KalshiCore) FetchOpenInterest(outcome any, optionalArgs ...any) <-ch
 		ccxt.PanicOnError(response)
 		var raw any = this.SafeDict(response, "market", response)
 
-		ch <- this.ParseOpenInterest(raw, outcomeObj)
+		ch <- this.ParsePredictionOpenInterest(raw, outcomeObj)
 		return nil
 
 	}()
 	return ch
 }
-func (this *KalshiCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *KalshiCore) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	//     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
 	//
@@ -825,13 +825,13 @@ func (this *KalshiCore) ParseOpenInterest(interest any, optionalArgs ...any) any
 /**
  * @ignore
  * @method
- * @name kalshi#parseTicker
+ * @name kalshi#parsePredictionTicker
  * @description parses a raw kalshi market object into a unified ticker object
  * @param {object} raw the raw market object
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *KalshiCore) ParseTicker(raw any, optionalArgs ...any) any {
+func (this *KalshiCore) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "market": {
@@ -1038,7 +1038,7 @@ func (this *KalshiCore) FetchTickers(optionalArgs ...any) <-chan any {
 				}
 				var grouped any = ccxt.GetValue(outcomesByTicker, marketTicker)
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(grouped)); j++ {
-					var ticker any = this.ParseTicker(raw, ccxt.GetValue(grouped, j))
+					var ticker any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
 					var symbolKey any = this.SafeString(ticker, "outcome")
 					if ccxt.IsTrue(!ccxt.IsEqual(symbolKey, nil)) {
 						ccxt.AddElementToObject(result, symbolKey, ticker)
@@ -1383,13 +1383,13 @@ func (this *KalshiCore) FetchTrades(outcome any, optionalArgs ...any) <-chan any
 /**
  * @ignore
  * @method
- * @name kalshi#parseTrade
+ * @name kalshi#parsePredictionTrade
  * @description parses a raw kalshi trade object into a unified trade object
  * @param {object} trade the raw trade object
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *KalshiCore) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *KalshiCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id any = this.SafeString(trade, "trade_id")
@@ -1852,13 +1852,13 @@ func (this *KalshiCore) ParseSettlement(settlement any, optionalArgs ...any) any
 /**
  * @ignore
  * @method
- * @name kalshi#parsePosition
+ * @name kalshi#parsePredictionPosition
  * @description parses a raw kalshi portfolio position into a unified position object
  * @param {object} position the raw position object
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *KalshiCore) ParsePosition(position any, optionalArgs ...any) any {
+func (this *KalshiCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var ticker any = this.SafeString(position, "ticker")
@@ -2068,7 +2068,7 @@ func (this *KalshiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		defer close(ch)
 		defer ccxt.ReturnPanicError(ch)
 		// outcome is only a labelling hint here — the request needs just the id, and
-		// parseOrder resolves identity cache-only, so don't force a full market scan
+		// parsePredictionOrder resolves identity cache-only, so don't force a full market scan
 		outcome := ccxt.GetArg(optionalArgs, 0, nil)
 		_ = outcome
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
@@ -2084,7 +2084,7 @@ func (this *KalshiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		}, params)))
 		ccxt.PanicOnError(response)
 
-		ch <- this.ParseOrder(this.SafeValue(response, "order", response))
+		ch <- this.ParsePredictionOrder(this.SafeValue(response, "order", response))
 		return nil
 
 	}()
@@ -2094,13 +2094,13 @@ func (this *KalshiCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name kalshi#parseOrder
+ * @name kalshi#parsePredictionOrder
  * @description parses a raw kalshi order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *KalshiCore) ParseOrder(order any, optionalArgs ...any) any {
+func (this *KalshiCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var id any = this.SafeString(order, "order_id")
@@ -2265,7 +2265,7 @@ func (this *KalshiCore) CreateOrder(outcome any, typeVar any, side any, amount a
 		ccxt.PanicOnError(response)
 		// the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
 		// the known order details and resolve the status from the remaining count
-		var order any = this.ParseOrder(response, outcomeObj)
+		var order any = this.ParsePredictionOrder(response, outcomeObj)
 		ccxt.AddElementToObject(order, "side", side)
 		ccxt.AddElementToObject(order, "amount", amount)
 		ccxt.AddElementToObject(order, "price", price)
@@ -2367,7 +2367,7 @@ func (this *KalshiCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			"order_id": id,
 		}, params)))
 		ccxt.PanicOnError(response)
-		var order any = this.ParseOrder(this.SafeDict(response, "order", response))
+		var order any = this.ParsePredictionOrder(this.SafeDict(response, "order", response))
 		// the delete response carries no id/status - backfill the requested id and the outcome
 		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(order, "id"), nil)) {
 			ccxt.AddElementToObject(order, "id", id)

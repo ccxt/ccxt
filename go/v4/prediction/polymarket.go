@@ -971,7 +971,7 @@ func (this *PolymarketCore) FetchTicker(outcome any, optionalArgs ...any) <-chan
 		//         }
 		//     }
 		//
-		ch <- this.ParseTicker(response, outcomeObj)
+		ch <- this.ParsePredictionTicker(response, outcomeObj)
 		return nil
 
 	}()
@@ -1058,7 +1058,7 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 					},
 					"book": book,
 				}
-				var ticker any = this.ParseTicker(tickerInput, outcomeObj)
+				var ticker any = this.ParsePredictionTicker(tickerInput, outcomeObj)
 				var symbolKey any = this.SafeString(ticker, "outcome", tokenId)
 				ccxt.AddElementToObject(result, symbolKey, ticker)
 			}
@@ -1075,13 +1075,13 @@ func (this *PolymarketCore) FetchTickers(optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name polymarket#parseTicker
+ * @name polymarket#parsePredictionTicker
  * @description parses a combined midpoint + order book response into a unified ticker object
  * @param {object} ticker a dict with midpoint and book entries
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *PolymarketCore) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *PolymarketCore) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "midpoint": {
@@ -1442,13 +1442,13 @@ func (this *PolymarketCore) FetchOpenInterest(outcome any, optionalArgs ...any) 
 		//
 		var first any = this.SafeDict(response, 0, map[string]any{})
 
-		ch <- this.ParseOpenInterest(first, outcomeObj)
+		ch <- this.ParsePredictionOpenInterest(first, outcomeObj)
 		return nil
 
 	}()
 	return ch
 }
-func (this *PolymarketCore) ParseOpenInterest(interest any, optionalArgs ...any) any {
+func (this *PolymarketCore) ParsePredictionOpenInterest(interest any, optionalArgs ...any) any {
 	//
 	//     { "market": "0x7976b8...92", "value": 4925662.470476 }
 	//
@@ -1574,7 +1574,7 @@ func (this *PolymarketCore) FetchTrades(outcome any, optionalArgs ...any) <-chan
 		}
 
 		// the trades are already narrowed to this outcome by asset id above
-		// parseTrade resolves the outcome from each trade's asset id
+		// parsePredictionTrade resolves the outcome from each trade's asset id
 		ch <- this.ParsePredictionTrades(filteredTrades, nil, since, limit)
 		return nil
 
@@ -1685,13 +1685,13 @@ func (this *PolymarketCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan
 /**
  * @ignore
  * @method
- * @name polymarket#parseTrade
+ * @name polymarket#parsePredictionTrade
  * @description parses a raw data API trade object into a unified trade object
  * @param {object} trade the raw trade object
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *PolymarketCore) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *PolymarketCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	// public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp'
 	// the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
 	market := ccxt.GetArg(optionalArgs, 0, nil)
@@ -1896,13 +1896,13 @@ func (this *PolymarketCore) FetchPosition(outcome any, optionalArgs ...any) <-ch
 /**
  * @ignore
  * @method
- * @name polymarket#parsePosition
+ * @name polymarket#parsePredictionPosition
  * @description parses a raw data API position object into a unified position object
  * @param {object} position the raw position object
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *PolymarketCore) ParsePosition(position any, optionalArgs ...any) any {
+func (this *PolymarketCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var tokenId any = this.SafeString(position, "asset")
@@ -2025,7 +2025,7 @@ func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		response := (<-this.ClobPrivateGetDataOrderId(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
 
-		ch <- this.ParseOrder(response)
+		ch <- this.ParsePredictionOrder(response)
 		return nil
 
 	}()
@@ -2035,13 +2035,13 @@ func (this *PolymarketCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name polymarket#parseOrder
+ * @name polymarket#parsePredictionOrder
  * @description parses a raw CLOB order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PolymarketCore) ParseOrder(order any, optionalArgs ...any) any {
+func (this *PolymarketCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	//
 	// {
 	//     "errorMsg":"",
@@ -2161,7 +2161,7 @@ func (this *PolymarketCore) CreateOrder(outcome any, typeVar any, side any, amou
 		ccxt.PanicOnError(response)
 		// request echo first so the response's real orderID/status/success win on overlap
 		var enriched any = this.Extend(this.SafeDict(built, "request"), response)
-		var order any = this.ParseOrder(enriched, this.SafeDict(built, "outcome"))
+		var order any = this.ParsePredictionOrder(enriched, this.SafeDict(built, "outcome"))
 		ccxt.AddElementToObject(order, "info", response) // keep info the raw exchange response, not the request echo
 
 		ch <- order
@@ -2219,12 +2219,12 @@ func (this *PolymarketCore) CreateOrders(orders any, optionalArgs ...any) <-chan
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(response)); i++ {
 				// request echo first so the response's real orderID/status win on overlap
 				var enriched any = this.Extend(ccxt.GetValue(requests, i), ccxt.GetValue(response, i))
-				var parsedItem any = this.ParseOrder(enriched, ccxt.GetValue(outcomes, i))
+				var parsedItem any = this.ParsePredictionOrder(enriched, ccxt.GetValue(outcomes, i))
 				ccxt.AddElementToObject(parsedItem, "info", ccxt.GetValue(response, i)) // keep info the raw exchange response
 				ccxt.AppendToArray(&result, parsedItem)
 			}
 		} else {
-			ccxt.AppendToArray(&result, this.ParseOrder(response))
+			ccxt.AppendToArray(&result, this.ParsePredictionOrder(response))
 		}
 
 		ch <- result
@@ -2355,7 +2355,7 @@ func (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side an
 		"orderType": orderTypeStr,
 	}
 	// the CLOB create response only echoes {orderID, status}; carry the submitted terms
-	// (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+	// (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
 	// them and return a fully-populated order instead of undefined side/price/amount
 	var requestEcho any = map[string]any{
 		"side":          sideStr,
@@ -3843,7 +3843,7 @@ func (this *PolymarketCore) HandleOrder(client any, event any) {
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
 	var stored any = this.Orders
-	var parsed any = this.ParseOrder(event)
+	var parsed any = this.ParsePredictionOrder(event)
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "orders")
 	var outcome any = this.SafeString(parsed, "outcome")
@@ -3857,7 +3857,7 @@ func (this *PolymarketCore) HandleMyTrade(client any, event any) {
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
 	var stored any = this.MyTrades
-	var parsed any = this.ParseTrade(event)
+	var parsed any = this.ParsePredictionTrade(event)
 	stored.(ccxt.Appender).Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 	var outcome any = this.SafeString(parsed, "outcome")

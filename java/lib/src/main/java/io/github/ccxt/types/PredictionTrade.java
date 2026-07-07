@@ -2,9 +2,9 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-// Native dedicated prediction-market type. The base Trade is final, so this
-// duplicates its fields (flat typed access) and adds the prediction identity
-// fields. Mirrors the `PredictionTrade extends Trade` interface in
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend Trade); holds its own copy of the base
+// fields (flat typed access) and adds the prediction identity
+// fields. Mirrors the standalone `PredictionTrade` interface in
 // ts/src/base/types.ts.
 public final class PredictionTrade {
     public Double amount;
@@ -14,7 +14,6 @@ public final class PredictionTrade {
     public String order;
     public Long timestamp;
     public String datetime;
-    public String symbol;
     public String type;
     public String side;
     public String takerOrMaker;
@@ -37,7 +36,6 @@ public final class PredictionTrade {
         this.order = TypeHelper.safeString(data, "order");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.type = TypeHelper.safeString(data, "type");
         this.side = TypeHelper.safeString(data, "side");
         this.takerOrMaker = TypeHelper.safeString(data, "takerOrMaker");

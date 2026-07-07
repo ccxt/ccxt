@@ -690,7 +690,7 @@ public partial class kalshi : PredictionExchange
         //     }
         //
         object raw = this.safeValue(response, "market", response);
-        return this.parseTicker(raw, ((object)outcomeObj));
+        return this.parsePredictionTicker(raw, ((object)outcomeObj));
     }
 
     /**
@@ -738,10 +738,10 @@ public partial class kalshi : PredictionExchange
         };
         object response = await this.kalshiPublicGetMarketsTicker(this.extend(request, parameters));
         object raw = this.safeDict(response, "market", response);
-        return this.parseOpenInterest(raw, ((object)outcomeObj));
+        return this.parsePredictionOpenInterest(raw, ((object)outcomeObj));
     }
 
-    public override object parseOpenInterest(object interest, object market = null)
+    public override object parsePredictionOpenInterest(object interest, object market = null)
     {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
@@ -760,19 +760,19 @@ public partial class kalshi : PredictionExchange
         ((IDictionary<string,object>)openInterest)["outcome"] = this.safeOutcomeSymbol(null, market);
         ((IDictionary<string,object>)openInterest)["outcomeId"] = this.safeString(market, "outcomeId");
         ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
-        return openInterest;
+        return ((object)openInterest);
     }
 
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTicker
+     * @name kalshi#parsePredictionTicker
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override object parseTicker(object raw, object market = null)
+    public override object parsePredictionTicker(object raw, object market = null)
     {
         //
         //     {
@@ -910,7 +910,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object targets = new List<object>() {};
@@ -984,7 +984,7 @@ public partial class kalshi : PredictionExchange
                 object grouped = (IList<object>)(getValue(outcomesByTicker, marketTicker));
                 for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
                 {
-                    object ticker = this.parseTicker(raw, getValue(grouped, j));
+                    object ticker = this.parsePredictionTicker(raw, getValue(grouped, j));
                     object symbolKey = this.safeString(ticker, "outcome");
                     if (isTrue(!isEqual(symbolKey, null)))
                     {
@@ -1291,13 +1291,13 @@ public partial class kalshi : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTrade
+     * @name kalshi#parsePredictionTrade
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public override object parseTrade(object trade, object market = null)
+    public override object parsePredictionTrade(object trade, object market = null)
     {
         object id = this.safeString(trade, "trade_id");
         object ts = this.parse8601(this.safeString(trade, "created_time"));
@@ -1555,7 +1555,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomesLength = 0;
@@ -1731,13 +1731,13 @@ public partial class kalshi : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name kalshi#parsePosition
+     * @name kalshi#parsePredictionPosition
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public override object parsePosition(object position, object market = null)
+    public override object parsePredictionPosition(object position, object market = null)
     {
         object ticker = this.safeString(position, "ticker");
         object outcomeObj = this.safeOutcome(ticker, ((object)market));
@@ -1792,7 +1792,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -1890,10 +1890,10 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         // outcome is only a labelling hint here — the request needs just the id, and
-        // parseOrder resolves identity cache-only, so don't force a full market scan
+        // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
         {
@@ -1902,19 +1902,19 @@ public partial class kalshi : PredictionExchange
         object response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters));
-        return this.parseOrder(this.safeValue(response, "order", response));
+        return this.parsePredictionOrder(this.safeValue(response, "order", response));
     }
 
     /**
      * @ignore
      * @method
-     * @name kalshi#parseOrder
+     * @name kalshi#parsePredictionOrder
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public override object parseOrder(object order, object market = null)
+    public override object parsePredictionOrder(object order, object market = null)
     {
         object id = this.safeString(order, "order_id");
         object ticker = this.safeString(order, "ticker");
@@ -2080,7 +2080,7 @@ public partial class kalshi : PredictionExchange
         object response = await this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
-        object order = this.parseOrder(response, ((object)outcomeObj));
+        object order = this.parsePredictionOrder(response, ((object)outcomeObj));
         ((IDictionary<string,object>)order)["side"] = side;
         ((IDictionary<string,object>)order)["amount"] = amount;
         ((IDictionary<string,object>)order)["price"] = price;
@@ -2111,7 +2111,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         // kalshi has no live amend endpoint (the V1 /amend path is 410 Gone with no V2 replacement),
         // so edit = cancel the resting order then place a fresh one with the new terms. validate the
@@ -2153,7 +2153,7 @@ public partial class kalshi : PredictionExchange
         object response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters));
-        object order = this.parseOrder(this.safeDict(response, "order", response));
+        object order = this.parsePredictionOrder(this.safeDict(response, "order", response));
         // the delete response carries no id/status - backfill the requested id and the outcome
         if (isTrue(isEqual(getValue(order, "id"), null)))
         {
@@ -2175,7 +2175,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
+    public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))

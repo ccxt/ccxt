@@ -2,12 +2,11 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-// Native dedicated prediction-market type. The base Position is final, so this
-// duplicates its fields (flat typed access) and adds the prediction identity
-// and settlement fields. Mirrors the `PredictionPosition extends Position`
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend Position); holds its own copy of the base
+// fields (flat typed access) and adds the prediction identity
+// and settlement fields. Mirrors the standalone `PredictionPosition`
 // interface in ts/src/base/types.ts.
 public final class PredictionPosition {
-    public String symbol;
     public String id;
     public Long timestamp;
     public String datetime;
@@ -50,7 +49,6 @@ public final class PredictionPosition {
     @SuppressWarnings("unchecked")
     public PredictionPosition(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");

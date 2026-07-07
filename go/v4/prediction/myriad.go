@@ -474,7 +474,7 @@ func (this *MyriadCore) FetchPositions(optionalArgs ...any) <-chan any {
 		var data any = this.SafeList(response, "data", []any{})
 		var result any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
-			ccxt.AppendToArray(&result, this.ParsePosition(ccxt.GetValue(data, i)))
+			ccxt.AppendToArray(&result, this.ParsePredictionPosition(ccxt.GetValue(data, i)))
 		}
 
 		ch <- this.FilterByArrayPositions(result, "outcome", outcomes, false)
@@ -487,13 +487,13 @@ func (this *MyriadCore) FetchPositions(optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name myriad#parsePosition
+ * @name myriad#parsePredictionPosition
  * @description parses a raw myriad portfolio entry into a unified position structure
  * @param {object} position the raw portfolio entry
  * @param {object} [market] not used by myriad
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *MyriadCore) ParsePosition(position any, optionalArgs ...any) any {
+func (this *MyriadCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketSlug any = this.SafeString(position, "marketSlug", "")
@@ -792,9 +792,9 @@ func (this *MyriadCore) CreateOrderbookOrder(outcome any, typeVar any, side any,
 			"timeInForce": timeInForce,
 		})
 		var outcomeObj any = this.Outcome(outcome)
-		var parsed any = this.ParseOrder(wrapper, outcomeObj)
+		var parsed any = this.ParsePredictionOrder(wrapper, outcomeObj)
 		// the POST /orders response is minimal (hash + status), so backfill the known request values
-		// side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+		// side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
 		var sideStr any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(side, nil))), nil, ccxt.ToLower(side))
 		var typeStr any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(typeVar, nil))), "limit", ccxt.ToLower(typeVar))
 		if ccxt.IsTrue(ccxt.IsEqual(this.SafeString(parsed, "side"), nil)) {
@@ -1232,7 +1232,7 @@ func (this *MyriadCore) ParseOrderStatus(status any) any {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *MyriadCore) ParseOrder(order any, optionalArgs ...any) any {
+func (this *MyriadCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var inner any = this.SafeDict(order, "order", map[string]any{})
@@ -1346,7 +1346,7 @@ func (this *MyriadCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 			market = this.Outcome(outcome)
 		}
 
-		ch <- this.ParseOrder(wrapper, market)
+		ch <- this.ParsePredictionOrder(wrapper, market)
 		return nil
 
 	}()
@@ -1504,7 +1504,7 @@ func (this *MyriadCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 			market = this.Outcome(outcome)
 		}
 
-		ch <- this.ParseOrder(response, market)
+		ch <- this.ParsePredictionOrder(response, market)
 		return nil
 
 	}()
@@ -2166,7 +2166,7 @@ func (this *MyriadCore) FetchTicker(outcome any, optionalArgs ...any) <-chan any
 		//         "externalSources": []
 		//     }
 		//
-		ch <- this.ParseTicker(response, outcomeObj)
+		ch <- this.ParsePredictionTicker(response, outcomeObj)
 		return nil
 
 	}()
@@ -2231,13 +2231,13 @@ func (this *MyriadCore) FetchTradingFee(outcome any, optionalArgs ...any) <-chan
 /**
  * @ignore
  * @method
- * @name myriad#parseTicker
+ * @name myriad#parsePredictionTicker
  * @description parses a raw myriad market object into a unified ticker for the specified outcome
  * @param {object} raw the raw myriad market object
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *MyriadCore) ParseTicker(raw any, optionalArgs ...any) any {
+func (this *MyriadCore) ParsePredictionTicker(raw any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": "756",
@@ -2768,7 +2768,7 @@ func (this *MyriadCore) FetchTickers(optionalArgs ...any) <-chan any {
 				var m any = this.ParseMyriadMarket(raw)
 				var outcomesList any = this.SafeList(m, "outcomes", []any{})
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(outcomesList)); j++ {
-					var ticker any = this.ParseTicker(raw, ccxt.GetValue(outcomesList, j))
+					var ticker any = this.ParsePredictionTicker(raw, ccxt.GetValue(outcomesList, j))
 					var symbolKey any = this.SafeString(ticker, "outcome")
 					if ccxt.IsTrue(!ccxt.IsEqual(symbolKey, nil)) {
 						ccxt.AddElementToObject(result, symbolKey, ticker)
@@ -2817,7 +2817,7 @@ func (this *MyriadCore) FetchTickers(optionalArgs ...any) <-chan any {
 			var grouped any = ccxt.GetValue(outcomesByMarket, key)
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(grouped)); j++ {
 				var outcomeObj any = ccxt.GetValue(grouped, j)
-				var ticker any = this.ParseTicker(response, outcomeObj)
+				var ticker any = this.ParsePredictionTicker(response, outcomeObj)
 				var symbolKey any = this.SafeString(ticker, "outcome")
 				if ccxt.IsTrue(!ccxt.IsEqual(symbolKey, nil)) {
 					ccxt.AddElementToObject(result, symbolKey, ticker)
@@ -2920,13 +2920,13 @@ func (this *MyriadCore) FetchTrades(outcome any, optionalArgs ...any) <-chan any
 /**
  * @ignore
  * @method
- * @name myriad#parseTrade
+ * @name myriad#parsePredictionTrade
  * @description parses a raw market action feed row into a unified trade object
  * @param {object} trade the raw action feed row
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *MyriadCore) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *MyriadCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.SafeTimestamp(trade, "timestamp")

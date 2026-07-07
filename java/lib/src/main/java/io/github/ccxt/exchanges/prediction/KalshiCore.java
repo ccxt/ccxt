@@ -729,7 +729,7 @@ final Object finalOi = oi;
             //     }
             //
             Object raw = this.safeValue(response, "market", response);
-            return this.parseTicker(raw, ((Object)outcomeObj));
+            return this.parsePredictionTicker(raw, ((Object)outcomeObj));
         });
 
     }
@@ -787,12 +787,12 @@ final Object finalOi = oi;
             }};
             Object response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
             Object raw = this.safeDict(response, "market", response);
-            return this.parseOpenInterest(raw, ((Object)outcomeObj));
+            return this.parsePredictionOpenInterest(raw, ((Object)outcomeObj));
         });
 
     }
 
-    public Object parseOpenInterest(Object interest, Object... optionalArgs)
+    public Object parsePredictionOpenInterest(Object interest, Object... optionalArgs)
     {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
@@ -818,13 +818,13 @@ final Object finalOi = oi;
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTicker
+     * @name kalshi#parsePredictionTicker
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parseTicker(Object raw, Object... optionalArgs)
+    public Object parsePredictionTicker(Object raw, Object... optionalArgs)
     {
         //
         //     {
@@ -1047,7 +1047,7 @@ final Object finalOi = oi;
                     Object grouped = (java.util.List<Object>)(Helpers.GetValue(outcomesByTicker, marketTicker));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(grouped)); j++)
                     {
-                        Object ticker = this.parseTicker(raw, Helpers.GetValue(grouped, j));
+                        Object ticker = this.parsePredictionTicker(raw, Helpers.GetValue(grouped, j));
                         Object symbolKey = this.safeString(ticker, "outcome");
                         if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                         {
@@ -1380,13 +1380,13 @@ final Object finalOi = oi;
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTrade
+     * @name kalshi#parsePredictionTrade
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(trade, "trade_id");
@@ -1868,13 +1868,13 @@ final Object finalOi = oi;
     /**
      * @ignore
      * @method
-     * @name kalshi#parsePosition
+     * @name kalshi#parsePredictionPosition
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object ticker = this.safeString(position, "ticker");
@@ -2060,7 +2060,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             // outcome is only a labelling hint here — the request needs just the id, and
-            // parseOrder resolves identity cache-only, so don't force a full market scan
+            // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
@@ -2070,7 +2070,7 @@ final Object finalOi = oi;
             Object response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            return this.parseOrder(this.safeValue(response, "order", response));
+            return this.parsePredictionOrder(this.safeValue(response, "order", response));
         });
 
     }
@@ -2078,13 +2078,13 @@ final Object finalOi = oi;
     /**
      * @ignore
      * @method
-     * @name kalshi#parseOrder
+     * @name kalshi#parsePredictionOrder
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "order_id");
@@ -2264,7 +2264,7 @@ final Object finalOi = oi;
             Object response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known order details and resolve the status from the remaining count
-            Object order = this.parseOrder(response, ((Object)outcomeObj));
+            Object order = this.parsePredictionOrder(response, ((Object)outcomeObj));
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "amount", amount);
             Helpers.addElementToObject(order, "price", price);
@@ -2350,7 +2350,7 @@ final Object finalOi = oi;
             Object response = (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
-            Object order = this.parseOrder(this.safeDict(response, "order", response));
+            Object order = this.parsePredictionOrder(this.safeDict(response, "order", response));
             // the delete response carries no id/status - backfill the requested id and the outcome
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "id"), null)))
             {

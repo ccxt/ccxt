@@ -50,6 +50,10 @@ if (platform === 'win32') {
 }
 
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
+// the fine-split moves the 62 symbol-based trading methods onto the concrete `Exchange` tier
+// (not BaseExchange), so the sibling PredictionExchange tier does not inherit them
+const GLOBAL_TRADING_WRAPPER_FILE = './cs/ccxt/base/Exchange.TradingWrappers.cs';
+const BASE_TRADING_METHODS_FILE = './cs/ccxt/base/Exchange.TradingMethods.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
@@ -785,6 +789,60 @@ class NewTranspiler {
 
     }
 
+    // the method names declared directly in the second (`export default class Exchange extends
+    // BaseExchange`) class of ts/src/base/Exchange.ts — the 62 symbol-based trading methods that the
+    // fine split moved off BaseExchange onto the concrete Exchange tier
+    getExchangeTierMethodNames (baseExchangeFile: string): Set<string> {
+        const src = fs.readFileSync (baseExchangeFile, 'utf8');
+        const markerIdx = src.indexOf ('export default class Exchange extends BaseExchange');
+        const names = new Set<string> ();
+        if (markerIdx === -1) {
+            return names;
+        }
+        const body = src.substring (markerIdx);
+        // top-level (4-space indented) method declarations only; deeper indentation = method bodies
+        const re = /^ {4}(?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm;
+        let m;
+        while ((m = re.exec (body)) !== null) {
+            names.add (m[1]);
+        }
+        return names;
+    }
+
+    // cut a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any) out of
+    // `body`, returning the remaining body and the removed method text (for relocation)
+    stripCSharpMethod (body: string, name: string): { body: string, method: string } {
+        const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
+        const m = sigRe.exec (body);
+        if (!m) {
+            return { 'body': body, 'method': '' };
+        }
+        let start = m.index; // the '\n' just before the signature line
+        const before = body.substring (0, start);
+        const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
+        if (docMatch) {
+            start = docMatch.index as number;
+        }
+        // brace-match the method body
+        let depth = 0;
+        let end = body.indexOf ('{', m.index + m[0].length - 1);
+        for (; end < body.length; end++) {
+            const c = body[end];
+            if (c === '{') {
+                depth++;
+            } else if (c === '}') {
+                depth--;
+                if (depth === 0) {
+                    end++;
+                    break;
+                }
+            }
+        }
+        const method = body.substring (start, end);
+        const newBody = body.substring (0, start) + body.substring (end);
+        return { 'body': newBody, 'method': method };
+    }
+
     transpileBaseMethods(baseExchangeFile: string) {
         const csharpExchangeBase = BASE_METHODS_FILE;
         const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
@@ -797,9 +855,25 @@ class NewTranspiler {
         removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
         let baseClass = baseFile.content as any;// remove this later
 
-        // create wrappers with specific types — emitted on BaseExchange so both the thin Exchange
-        // tier and the sibling PredictionExchange tier inherit the typed method wrappers
-        this.createCSharpWrappers('BaseExchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
+        // the 62 symbol-based trading methods declared in TS `class Exchange extends BaseExchange`
+        const exchangeTierNames = this.getExchangeTierMethodNames (baseExchangeFile);
+        // methods that TS places in `class Exchange` but which C#'s hand-written BaseExchange WS layer
+        // (cs/ccxt/ws/Exchange.WsBridge.cs) depends on, so they must remain reachable from BaseExchange:
+        //   loadOrderBook          — hand-written in WsBridge.cs (drop the transpiled copy)
+        //   fetchRestOrderBookSafe — called by BaseExchange.loadOrderBook
+        //   fetchOrderBook         — called by fetchRestOrderBookSafe (also overridden by every venue)
+        const droppedOnBase = [ 'loadOrderBook' ];
+        const retainedOnBase = [ 'fetchRestOrderBookSafe', 'fetchOrderBook' ];
+        const isExchangeTier = (methodName: string) => exchangeTierNames.has (methodName) && !retainedOnBase.includes (methodName) && !droppedOnBase.includes (methodName);
+
+        // create wrappers with specific types — base-tier wrappers stay on BaseExchange (inherited by
+        // both Exchange and the sibling PredictionExchange); the trading-tier wrappers land on the
+        // concrete Exchange tier so PredictionExchange does NOT inherit the crypto-typed wrappers
+        const allWrapperTypes = baseFile.methodsTypes || [];
+        const baseTierWrapperTypes = allWrapperTypes.filter ((w: any) => !isExchangeTier (w.name));
+        const exchangeTierWrapperTypes = allWrapperTypes.filter ((w: any) => isExchangeTier (w.name));
+        this.createCSharpWrappers('BaseExchange', GLOBAL_WRAPPER_FILE, baseTierWrapperTypes)
+        this.createCSharpWrappers('Exchange', GLOBAL_TRADING_WRAPPER_FILE, exchangeTierWrapperTypes)
 
 
         // custom transformations needed for c#
@@ -829,18 +903,49 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            // the TS default export `class Exchange extends BaseExchange {}` transpiles to a trailing
-            // empty `class Exchange : BaseExchange { }` — drop it here; the concrete thin tier is
-            // provided by the hand-written cs/ccxt/base/Exchange.Thin.cs partial instead
-            const baseMethods = parts[1].replace (/\s*class Exchange\s*:\s*BaseExchange\s*\{\s*\}\s*$/, '\n')
+            const rest = parts[1];
+            // parts[1] holds the BaseExchange methods below the delimiter, its closing brace, then the
+            // whole transpiled `class Exchange : BaseExchange { ...62 trading methods... }`. Split the
+            // two tiers apart: base methods go to Exchange.BaseMethods.cs (partial class BaseExchange),
+            // the trading methods to Exchange.TradingMethods.cs (partial class Exchange).
+            const exchangeClassMatch = /class Exchange\s*:\s*BaseExchange\s*\{/.exec (rest);
+            let baseMethods = rest;
+            let exchangeBody = '';
+            if (exchangeClassMatch) {
+                baseMethods = rest.substring (0, exchangeClassMatch.index); // BaseExchange methods + its closing }
+                exchangeBody = rest.substring (exchangeClassMatch.index + exchangeClassMatch[0].length).replace (/\}\s*$/, ''); // Exchange class body
+                // drop the hand-written-elsewhere method(s)
+                for (const name of droppedOnBase) {
+                    exchangeBody = this.stripCSharpMethod (exchangeBody, name).body;
+                }
+                // relocate the WS-bridge dependency methods back onto BaseExchange
+                for (const name of retainedOnBase) {
+                    const cut = this.stripCSharpMethod (exchangeBody, name);
+                    exchangeBody = cut.body;
+                    if (cut.method) {
+                        baseMethods = baseMethods.replace (/\}\s*$/, cut.method + '\n}\n');
+                    }
+                }
+            } else {
+                // no second class (older single-class layout): keep prior behaviour
+                baseMethods = rest.replace (/\s*class Exchange\s*:\s*BaseExchange\s*\{\s*\}\s*$/, '\n');
+            }
             const fileHeader = this.getCsharpImports(undefined).concat([
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-
             const file = fileHeader + baseMethods + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
+            if (exchangeClassMatch) {
+                const tradingHeader = this.getCsharpImports(undefined).concat([
+                    this.createGeneratedHeader().join('\n'),
+                    "public partial class Exchange\n{\n\n"
+                ]).join("\n");
+                const tradingFile = tradingHeader + exchangeBody + "\n}\n";
+                fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
+                log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
+            }
         }
     }
 

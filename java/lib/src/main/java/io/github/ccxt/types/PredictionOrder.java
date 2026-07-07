@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-// Native dedicated prediction-market type. The base Order is final, so this
-// duplicates its fields (flat typed access) and adds the prediction identity
-// fields. Mirrors the `PredictionOrder extends Order` interface in
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend Order); holds its own copy of the base
+// fields (flat typed access) and adds the prediction identity
+// fields. Mirrors the standalone `PredictionOrder` interface in
 // ts/src/base/types.ts.
 public final class PredictionOrder {
     public String id;
@@ -14,7 +14,6 @@ public final class PredictionOrder {
     public Long timestamp;
     public String datetime;
     public String lastTradeTimestamp;
-    public String symbol;
     public String type;
     public String timeInForce;
     public String side;
@@ -48,7 +47,6 @@ public final class PredictionOrder {
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.lastTradeTimestamp = TypeHelper.safeString(data, "lastTradeTimestamp");
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.type = TypeHelper.safeString(data, "type");
         this.timeInForce = TypeHelper.safeString(data, "timeInForce");
         this.side = TypeHelper.safeString(data, "side");

@@ -763,7 +763,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object tickerData = this.safeDict(new java.util.HashMap<String, Object>() {{
                 put( "book", response );
             }}, "book", new java.util.HashMap<String, Object>() {{}});
-            return this.parseTicker(tickerData, outcomeObj);
+            return this.parsePredictionTicker(tickerData, outcomeObj);
         });
 
     }
@@ -826,7 +826,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
                 // Build minimal ticker from mid price
                 final Object finalMid = mid;
-                Object ticker = this.parseTicker(new java.util.HashMap<String, Object>() {{
+                Object ticker = this.parsePredictionTicker(new java.util.HashMap<String, Object>() {{
                     put( "levels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList()), new java.util.ArrayList<Object>(java.util.Arrays.asList()))) );
                     put( "mid", finalMid );
                     put( "time", HyperliquidCore.this.milliseconds() );
@@ -841,13 +841,13 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTicker
+     * @name hyperliquid#parsePredictionTicker
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parseTicker(Object raw, Object... optionalArgs)
+    public Object parsePredictionTicker(Object raw, Object... optionalArgs)
     {
         //
         //     {
@@ -1212,7 +1212,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object enriched = this.extend(balance, new java.util.HashMap<String, Object>() {{
                     put( "markPx", HyperliquidCore.this.safeString(mids, tradeCoin) );
                 }});
-                ((java.util.List<Object>)positions).add(this.parsePosition(enriched, outcomeObj));
+                ((java.util.List<Object>)positions).add(this.parsePredictionPosition(enriched, outcomeObj));
             }
             return positions;
         });
@@ -1222,13 +1222,13 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parsePosition
+     * @name hyperliquid#parsePredictionPosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
@@ -1889,7 +1889,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             Object orderWrapper = this.safeDict(response, "order", response);
-            Object parsed = this.parseOrder(orderWrapper, null);
+            Object parsed = this.parsePredictionOrder(orderWrapper, null);
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
@@ -1908,13 +1908,13 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseOrder
+     * @name hyperliquid#parsePredictionOrder
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         //
         // from frontendOpenOrders:
@@ -2099,7 +2099,7 @@ public class HyperliquidCore extends HyperliquidApi
             } else
             {
                 // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
-                // cache (one market load) so parseTrade can resolve the unified outcome identity
+                // cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
                 (this.loadOutcomes()).join();
             }
             Object userAddress = null;
@@ -2137,13 +2137,13 @@ public class HyperliquidCore extends HyperliquidApi
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTrade
+     * @name hyperliquid#parsePredictionTrade
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         //
         // {

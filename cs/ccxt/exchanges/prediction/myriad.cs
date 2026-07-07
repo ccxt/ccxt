@@ -399,7 +399,7 @@ public partial class myriad : PredictionExchange
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
         // when no explicit walletAddress/param is set, so a privateKey-only config works for both
@@ -417,21 +417,21 @@ public partial class myriad : PredictionExchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            ((IList<object>)result).Add(this.parsePosition(getValue(data, i)));
+            ((IList<object>)result).Add(this.parsePredictionPosition(getValue(data, i)));
         }
-        return this.filterByArrayPositions(result, "outcome", outcomes, false);
+        return ((object)this.filterByArrayPositions(result, "outcome", outcomes, false));
     }
 
     /**
      * @ignore
      * @method
-     * @name myriad#parsePosition
+     * @name myriad#parsePredictionPosition
      * @description parses a raw myriad portfolio entry into a unified position structure
      * @param {object} position the raw portfolio entry
      * @param {object} [market] not used by myriad
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public override object parsePosition(object position, object market = null)
+    public override object parsePredictionPosition(object position, object market = null)
     {
         object marketSlug = this.safeString(position, "marketSlug", "");
         object outcomeTitle = this.safeString(position, "outcomeTitle", "");
@@ -678,9 +678,9 @@ public partial class myriad : PredictionExchange
             { "timeInForce", timeInForce },
         });
         object outcomeObj = this.outcome(outcome);
-        object parsed = this.parseOrder(wrapper, ((object)outcomeObj));
+        object parsed = this.parsePredictionOrder(wrapper, ((object)outcomeObj));
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         object sideStr = ((bool) isTrue((isEqual(side, null)))) ? null : ((string)((string)side)).ToLower();
         object typeStr = ((bool) isTrue((isEqual(type, null)))) ? "limit" : ((string)((string)type)).ToLower();
         if (isTrue(isEqual(this.safeString(parsed, "side"), null)))
@@ -838,7 +838,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
+    public async virtual Task<object> editOrder(object id, object outcome, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcomes();
@@ -1078,7 +1078,7 @@ public partial class myriad : PredictionExchange
         return this.safeString(statuses, status, status);
     }
 
-    public override object parseOrder(object order, object market = null)
+    public override object parsePredictionOrder(object order, object market = null)
     {
         object inner = this.safeDict(order, "order", new Dictionary<string, object>() {});
         object orderHash = this.safeString2(order, "orderHash", "hash");
@@ -1182,7 +1182,7 @@ public partial class myriad : PredictionExchange
             await this.loadOutcomes();
             market = this.outcome(outcome);
         }
-        return this.parseOrder(wrapper, ((object)market));
+        return this.parsePredictionOrder(wrapper, ((object)market));
     }
 
     /**
@@ -1194,7 +1194,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw response with the count of cancelled orders
      */
-    public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
+    public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.privateKey, null)))
@@ -1288,7 +1288,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object response = await this.myriadPublicGetOrdersHash(this.extend(new Dictionary<string, object>() {
@@ -1300,7 +1300,7 @@ public partial class myriad : PredictionExchange
             await this.loadOutcomes();
             market = this.outcome(outcome);
         }
-        return this.parseOrder(response, ((object)market));
+        return this.parsePredictionOrder(response, ((object)market));
     }
 
     /**
@@ -1358,7 +1358,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -1398,7 +1398,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchCanceledOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchCanceledOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object request = new Dictionary<string, object>() {
@@ -1875,7 +1875,7 @@ public partial class myriad : PredictionExchange
         //         "externalSources": []
         //     }
         //
-        return this.parseTicker(response, outcomeObj);
+        return this.parsePredictionTicker(response, outcomeObj);
     }
 
     /**
@@ -1923,13 +1923,13 @@ public partial class myriad : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name myriad#parseTicker
+     * @name myriad#parsePredictionTicker
      * @description parses a raw myriad market object into a unified ticker for the specified outcome
      * @param {object} raw the raw myriad market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override object parseTicker(object raw, object market = null)
+    public override object parsePredictionTicker(object raw, object market = null)
     {
         //
         //     {
@@ -2424,7 +2424,7 @@ public partial class myriad : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcomes();
@@ -2439,7 +2439,7 @@ public partial class myriad : PredictionExchange
                 object outcomesList = (IList<object>)(this.safeList(m, "outcomes", new List<object>() {}));
                 for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
                 {
-                    object ticker = this.parseTicker(raw, getValue(outcomesList, j));
+                    object ticker = this.parsePredictionTicker(raw, getValue(outcomesList, j));
                     object symbolKey = this.safeString(ticker, "outcome");
                     if (isTrue(!isEqual(symbolKey, null)))
                     {
@@ -2490,7 +2490,7 @@ public partial class myriad : PredictionExchange
             for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
             {
                 object outcomeObj = getValue(grouped, j);
-                object ticker = this.parseTicker(response, outcomeObj);
+                object ticker = this.parsePredictionTicker(response, outcomeObj);
                 object symbolKey = this.safeString(ticker, "outcome");
                 if (isTrue(!isEqual(symbolKey, null)))
                 {
@@ -2576,13 +2576,13 @@ public partial class myriad : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name myriad#parseTrade
+     * @name myriad#parsePredictionTrade
      * @description parses a raw market action feed row into a unified trade object
      * @param {object} trade the raw action feed row
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public override object parseTrade(object trade, object market = null)
+    public override object parsePredictionTrade(object trade, object market = null)
     {
         object timestamp = this.safeTimestamp(trade, "timestamp");
         object amountStr = this.safeString(trade, "shares");
@@ -3243,7 +3243,7 @@ public partial class myriad : PredictionExchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object trades = await this.watchTrades(outcome, since, limit, parameters);
-        object ohlcvc = this.buildOHLCVC(trades, timeframe, 0, 2147483647);
+        object ohlcvc = this.buildOHLCVC(((object)trades), timeframe, 0, 2147483647);
         object result = new List<object>() {};
         object ohlcvcLength = getArrayLength(ohlcvc);
         for (object i = 0; isLessThan(i, ohlcvcLength); postFixIncrement(ref i))
@@ -3302,7 +3302,7 @@ public partial class myriad : PredictionExchange
                 { "quoteVolume", null },
                 { "info", oc },
             }, market);
-            ((IDictionary<string,object>)this.tickers)[(string)sym] = ticker;
+            ((IDictionary<string,object>)this.tickers)[(string)sym] = ((object)ticker);
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, add("ticker::", sym)});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.tickers, "tickers"});

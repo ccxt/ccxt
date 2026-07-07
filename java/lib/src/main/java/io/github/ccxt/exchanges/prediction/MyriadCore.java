@@ -461,7 +461,7 @@ public class MyriadCore extends MyriadApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
+                ((java.util.List<Object>)result).add(this.parsePredictionPosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArrayPositions(result, "outcome", outcomes, false);
         });
@@ -471,13 +471,13 @@ public class MyriadCore extends MyriadApi
     /**
      * @ignore
      * @method
-     * @name myriad#parsePosition
+     * @name myriad#parsePredictionPosition
      * @description parses a raw myriad portfolio entry into a unified position structure
      * @param {object} position the raw portfolio entry
      * @param {object} [market] not used by myriad
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketSlug = this.safeString(position, "marketSlug", "");
@@ -757,9 +757,9 @@ public class MyriadCore extends MyriadApi
                 put( "timeInForce", timeInForce );
             }});
             Object outcomeObj = this.outcome(outcome);
-            Object parsed = this.parseOrder(wrapper, ((Object)outcomeObj));
+            Object parsed = this.parsePredictionOrder(wrapper, ((Object)outcomeObj));
             // the POST /orders response is minimal (hash + status), so backfill the known request values
-            // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+            // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
             Object sideStr = ((Helpers.isTrue((Helpers.isEqual(side, null))))) ? null : ((String)((String)side)).toLowerCase();
             Object typeStr = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "limit" : ((String)((String)type)).toLowerCase();
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(parsed, "side"), null)))
@@ -1186,7 +1186,7 @@ public class MyriadCore extends MyriadApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object inner = this.safeDict(order, "order", new java.util.HashMap<String, Object>() {{}});
@@ -1298,7 +1298,7 @@ public class MyriadCore extends MyriadApi
                 (this.loadOutcomes()).join();
                 market = this.outcome(outcome);
             }
-            return this.parseOrder(wrapper, ((Object)market));
+            return this.parsePredictionOrder(wrapper, ((Object)market));
         });
 
     }
@@ -1438,7 +1438,7 @@ public class MyriadCore extends MyriadApi
                 (this.loadOutcomes()).join();
                 market = this.outcome(outcome);
             }
-            return this.parseOrder(response, ((Object)market));
+            return this.parsePredictionOrder(response, ((Object)market));
         });
 
     }
@@ -2075,7 +2075,7 @@ final Object finalNetworkId = networkId;
             //         "externalSources": []
             //     }
             //
-            return this.parseTicker(response, outcomeObj);
+            return this.parsePredictionTicker(response, outcomeObj);
         });
 
     }
@@ -2130,13 +2130,13 @@ final Object finalNetworkId = networkId;
     /**
      * @ignore
      * @method
-     * @name myriad#parseTicker
+     * @name myriad#parsePredictionTicker
      * @description parses a raw myriad market object into a unified ticker for the specified outcome
      * @param {object} raw the raw myriad market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parseTicker(Object raw, Object... optionalArgs)
+    public Object parsePredictionTicker(Object raw, Object... optionalArgs)
     {
         //
         //     {
@@ -2669,7 +2669,7 @@ final Object finalNetworkId = networkId;
                     Object outcomesList = (java.util.List<Object>)(this.safeList(m, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
                     {
-                        Object ticker = this.parseTicker(raw, Helpers.GetValue(outcomesList, j));
+                        Object ticker = this.parsePredictionTicker(raw, Helpers.GetValue(outcomesList, j));
                         Object symbolKey = this.safeString(ticker, "outcome");
                         if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                         {
@@ -2720,7 +2720,7 @@ final Object finalNetworkId = networkId;
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(grouped)); j++)
                 {
                     Object outcomeObj = Helpers.GetValue(grouped, j);
-                    Object ticker = this.parseTicker(response, outcomeObj);
+                    Object ticker = this.parsePredictionTicker(response, outcomeObj);
                     Object symbolKey = this.safeString(ticker, "outcome");
                     if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                     {
@@ -2815,13 +2815,13 @@ final Object finalNetworkId = networkId;
     /**
      * @ignore
      * @method
-     * @name myriad#parseTrade
+     * @name myriad#parsePredictionTrade
      * @description parses a raw market action feed row into a unified trade object
      * @param {object} trade the raw action feed row
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(trade, "timestamp");
@@ -3553,7 +3553,7 @@ final Object finalNetworkId = networkId;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object trades = (this.watchTrades(outcome, since, limit, parameters)).join();
-            Object ohlcvc = this.buildOHLCVC(trades, timeframe, 0, 2147483647);
+            Object ohlcvc = this.buildOHLCVC(((Object)trades), timeframe, 0, 2147483647);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object ohlcvcLength = Helpers.getArrayLength(ohlcvc);
             for (var i = 0; Helpers.isLessThan(i, ohlcvcLength); i++)
@@ -3615,7 +3615,7 @@ final Object finalNetworkId = networkId;
                 put( "quoteVolume", null );
                 put( "info", oc );
             }}, market);
-            Helpers.addElementToObject(this.tickers, sym, ticker);
+            Helpers.addElementToObject(this.tickers, sym, ((Object)ticker));
             client.resolve(ticker, Helpers.add("ticker::", sym));
         }
         client.resolve(this.tickers, "tickers");

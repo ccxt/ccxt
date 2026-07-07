@@ -969,7 +969,7 @@ public class LimitlessCore extends LimitlessApi
                 put( "market", response );
                 put( "book", Helpers.GetValue(responses, 1) );
             }};
-            return this.parseTicker(tickerInput, outcomeObj);
+            return this.parsePredictionTicker(tickerInput, outcomeObj);
         });
 
     }
@@ -977,13 +977,13 @@ public class LimitlessCore extends LimitlessApi
     /**
      * @ignore
      * @method
-     * @name limitless#parseTicker
+     * @name limitless#parsePredictionTicker
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public Object parsePredictionTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1197,7 +1197,7 @@ public class LimitlessCore extends LimitlessApi
                     Object outcomesList = (java.util.List<Object>)(this.safeList(((Object)m), "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
                     {
-                        Object ticker = this.parseTicker(raw, Helpers.GetValue(outcomesList, j));
+                        Object ticker = this.parsePredictionTicker(raw, Helpers.GetValue(outcomesList, j));
                         Object symbolKey = this.safeString(ticker, "outcome");
                         if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                         {
@@ -1251,7 +1251,7 @@ public class LimitlessCore extends LimitlessApi
                 Object grouped = (java.util.List<Object>)(Helpers.GetValue(outcomesBySlug, slug));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(grouped)); j++)
                 {
-                    Object ticker = this.parseTicker(tickerInput, Helpers.GetValue(grouped, j));
+                    Object ticker = this.parsePredictionTicker(tickerInput, Helpers.GetValue(grouped, j));
                     Object symbolKey = this.safeString(ticker, "outcome");
                     if (Helpers.isTrue(!Helpers.isEqual(symbolKey, null)))
                     {
@@ -1639,9 +1639,9 @@ public class LimitlessCore extends LimitlessApi
             //         }
             //     ]
             //
-            // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
+            // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
             // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
-            // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
+            // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
             return this.parsePredictionOrders(response, null, since, limit);
         });
 
@@ -1899,13 +1899,13 @@ public class LimitlessCore extends LimitlessApi
     /**
      * @ignore
      * @method
-     * @name limitless#parseOrder
+     * @name limitless#parsePredictionOrder
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public Object parsePredictionOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -2399,7 +2399,7 @@ public class LimitlessCore extends LimitlessApi
                 Helpers.addElementToObject(request, "postOnly", postOnly);
             }
             Object response = (this.limitlessPrivatePostOrders(this.extend(request, parameters))).join();
-            Object parsedOrder = this.parseOrder(response, ((Object)outcomeObj));
+            Object parsedOrder = this.parsePredictionOrder(response, ((Object)outcomeObj));
             // the create-order response omits a status field; a freshly accepted order is open
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsedOrder, "status"), null)))
             {
@@ -2596,7 +2596,7 @@ public class LimitlessCore extends LimitlessApi
             }};
             Object response = (this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters))).join();
             // the delete response carries no order body, so backfill the id and the resulting status
-            Object order = this.parseOrder(response);
+            Object order = this.parsePredictionOrder(response);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "id"), null)))
             {
                 Helpers.addElementToObject(order, "id", id);
@@ -2879,13 +2879,13 @@ public class LimitlessCore extends LimitlessApi
     /**
      * @ignore
      * @method
-     * @name limitless#parseTrade
+     * @name limitless#parsePredictionTrade
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object matchedSize = this.safeString(trade, "matchedSize");
@@ -3178,7 +3178,7 @@ public class LimitlessCore extends LimitlessApi
         Object rawMarket = this.safeDict(entry, "market");
         Object slug = this.safeString(rawMarket, "slug");
         Object outcomeObj = this.getOutcomeBySlugAndLabel(slug, label);
-        Object parsed = this.parsePosition(position, outcomeObj);
+        Object parsed = this.parsePredictionPosition(position, outcomeObj);
         Helpers.addElementToObject(parsed, "contracts", this.parseNumber(this.applyScale(contracts)));
         Object latestTrade = this.safeDict(entry, "latestTrade");
         Object key = "latestYesPrice";
@@ -3194,13 +3194,13 @@ public class LimitlessCore extends LimitlessApi
     /**
      * @ignore
      * @method
-     * @name limitless#parsePosition
+     * @name limitless#parsePredictionPosition
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public Object parsePredictionPosition(Object position, Object... optionalArgs)
     {
         //
         //     {

@@ -940,19 +940,19 @@ public partial class limitless : PredictionExchange
             { "market", response },
             { "book", getValue(responses, 1) },
         };
-        return this.parseTicker(tickerInput, outcomeObj);
+        return this.parsePredictionTicker(tickerInput, outcomeObj);
     }
 
     /**
      * @ignore
      * @method
-     * @name limitless#parseTicker
+     * @name limitless#parsePredictionTicker
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override object parseTicker(object ticker, object market = null)
+    public override object parsePredictionTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1138,7 +1138,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object result = new Dictionary<string, object>() {};
@@ -1153,7 +1153,7 @@ public partial class limitless : PredictionExchange
                 object outcomesList = (IList<object>)(this.safeList(((object)m), "outcomes", new List<object>() {}));
                 for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
                 {
-                    object ticker = this.parseTicker(raw, getValue(outcomesList, j));
+                    object ticker = this.parsePredictionTicker(raw, getValue(outcomesList, j));
                     object symbolKey = this.safeString(ticker, "outcome");
                     if (isTrue(!isEqual(symbolKey, null)))
                     {
@@ -1206,7 +1206,7 @@ public partial class limitless : PredictionExchange
             object grouped = (IList<object>)(getValue(outcomesBySlug, slug));
             for (object j = 0; isLessThan(j, getArrayLength(grouped)); postFixIncrement(ref j))
             {
-                object ticker = this.parseTicker(tickerInput, getValue(grouped, j));
+                object ticker = this.parsePredictionTicker(tickerInput, getValue(grouped, j));
                 object symbolKey = this.safeString(ticker, "outcome");
                 if (isTrue(!isEqual(symbolKey, null)))
                 {
@@ -1564,9 +1564,9 @@ public partial class limitless : PredictionExchange
         //         }
         //     ]
         //
-        // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
+        // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
-        // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
+        // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return this.parsePredictionOrders(response, null, since, limit);
     }
 
@@ -1581,7 +1581,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(outcome, null)))
@@ -1775,7 +1775,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -1794,13 +1794,13 @@ public partial class limitless : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name limitless#parseOrder
+     * @name limitless#parsePredictionOrder
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public override object parseOrder(object order, object market = null)
+    public override object parsePredictionOrder(object order, object market = null)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
@@ -2268,7 +2268,7 @@ public partial class limitless : PredictionExchange
             ((IDictionary<string,object>)request)["postOnly"] = postOnly;
         }
         object response = await this.limitlessPrivatePostOrders(this.extend(request, parameters));
-        object parsedOrder = this.parseOrder(response, ((object)outcomeObj));
+        object parsedOrder = this.parsePredictionOrder(response, ((object)outcomeObj));
         // the create-order response omits a status field; a freshly accepted order is open
         if (isTrue(isEqual(getValue(parsedOrder, "status"), null)))
         {
@@ -2454,7 +2454,7 @@ public partial class limitless : PredictionExchange
         };
         object response = await this.limitlessPrivateDeleteOrdersOrderId(this.extend(request, parameters));
         // the delete response carries no order body, so backfill the id and the resulting status
-        object order = this.parseOrder(response);
+        object order = this.parsePredictionOrder(response);
         if (isTrue(isEqual(getValue(order, "id"), null)))
         {
             ((IDictionary<string,object>)order)["id"] = id;
@@ -2549,7 +2549,7 @@ public partial class limitless : PredictionExchange
      * @param {string} [params.slug] the market slug to cancel all orders for
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
+    public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(!isEqual(outcome, null)))
@@ -2708,13 +2708,13 @@ public partial class limitless : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name limitless#parseTrade
+     * @name limitless#parsePredictionTrade
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public override object parseTrade(object trade, object market = null)
+    public override object parsePredictionTrade(object trade, object market = null)
     {
         object matchedSize = this.safeString(trade, "matchedSize");
         if (isTrue(!isEqual(matchedSize, null)))
@@ -2858,7 +2858,7 @@ public partial class limitless : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object symbolsLength = 0;
@@ -2993,7 +2993,7 @@ public partial class limitless : PredictionExchange
         object rawMarket = this.safeDict(entry, "market");
         object slug = this.safeString(rawMarket, "slug");
         object outcomeObj = this.getOutcomeBySlugAndLabel(slug, label);
-        object parsed = this.parsePosition(position, outcomeObj);
+        object parsed = this.parsePredictionPosition(position, outcomeObj);
         ((IDictionary<string,object>)parsed)["contracts"] = this.parseNumber(this.applyScale(contracts));
         object latestTrade = this.safeDict(entry, "latestTrade");
         object key = "latestYesPrice";
@@ -3009,13 +3009,13 @@ public partial class limitless : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name limitless#parsePosition
+     * @name limitless#parsePredictionPosition
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public override object parsePosition(object position, object market = null)
+    public override object parsePredictionPosition(object position, object market = null)
     {
         //
         //     {

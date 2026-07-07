@@ -2,13 +2,11 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-// Native dedicated prediction-market type. The base TradingFeeInterface is final,
-// so this duplicates its fields (flat typed access) and adds the prediction
-// identity fields. The inherited `symbol` is left unpopulated — `outcome` (the
-// "MARKET:LABEL" handle) is the canonical identity. Mirrors the
-// `PredictionTradingFee extends TradingFeeInterface` interface in ts/src/base/types.ts.
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend TradingFeeInterface); holds its own copy
+// of the base fields (flat typed access) and adds the prediction
+// identity fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
+// `PredictionTradingFee` interface in ts/src/base/types.ts.
 public final class PredictionTradingFee {
-    public String symbol;
     public Double maker;
     public Double taker;
     public Boolean percentage;
@@ -22,7 +20,6 @@ public final class PredictionTradingFee {
     @SuppressWarnings("unchecked")
     public PredictionTradingFee(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.maker = TypeHelper.safeFloat(data, "maker");
         this.taker = TypeHelper.safeFloat(data, "taker");
         this.percentage = TypeHelper.safeBool(data, "percentage");

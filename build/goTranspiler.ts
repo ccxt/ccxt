@@ -1842,6 +1842,24 @@ ${constStatements.join('\n')}
             // the auto-generated duplicates to avoid redeclaration.
             [/type Exchange struct \{\s*BaseExchange\s*\}/g, ''],
             [/func NewExchange\(\) \*Exchange \{[\s\S]*?\n\}/g, ''],
+            // fine split recombine: the 62 symbol-based trading methods (createOrder/fetchTicker/
+            // fetchOrders/cancelOrder/watch*/… + convenience wrappers) were moved out of BaseExchange
+            // into `export default class Exchange extends BaseExchange` in the TS source so the
+            // standalone-typed prediction tier does not inherit them. They transpile with a *Exchange
+            // receiver, but the Go base + wrappers call them on *BaseExchange. Go embeds via BaseExchange
+            // and shadows by method name with no return-covariance constraint, so put them back on
+            // *BaseExchange (mirrors the Python/PHP recombine in build/transpile.ts). Prediction venues
+            // still shadow these with their own outcome-typed versions.
+            // loadOrderBook is the exception: it is hand-written on *BaseExchange in exchange.go (it uses
+            // WS cache primitives the transpiler cannot emit), so drop the transpiled *Exchange copy to
+            // avoid a redeclaration (and its untranspilable body). loadOrderBook is the first method of
+            // the Exchange class, always followed by another `func (this *Exchange)`.
+            [/func\s+\(this \*Exchange\)\s+LoadOrderBook\([\s\S]*?(?=\nfunc\s+\(this \*Exchange\))/g, ''],
+            // rewrite both the top-level receiver (`func  (this *Exchange)`) and the inner
+            // try/catch closures the transpiler types to the class name (`func(this *Exchange) any
+            // {…}(this)`) — the recombined methods now hang off *BaseExchange, so `this` is a
+            // *BaseExchange and every occurrence must agree. \s* matches both spacings.
+            [/func(\s*)\(this \*Exchange\)/g, 'func$1(this *BaseExchange)'],
         ]);
 
         const jsDelimiter = '// ' + delimiter;

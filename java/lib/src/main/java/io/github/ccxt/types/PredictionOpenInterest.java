@@ -2,13 +2,11 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-// Native dedicated prediction-market type. The base OpenInterest is final, so this
-// duplicates its fields (flat typed access) and adds the prediction identity
-// fields. The inherited `symbol` is left unpopulated — `outcome` (the
-// "MARKET:LABEL" handle) is the canonical identity. Mirrors the
-// `PredictionOpenInterest extends OpenInterest` interface in ts/src/base/types.ts.
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend OpenInterest); holds its own copy of the base
+// fields (flat typed access) and adds the prediction identity
+// fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
+// `PredictionOpenInterest` interface in ts/src/base/types.ts.
 public final class PredictionOpenInterest {
-    public String symbol;
     public Double openInterestAmount;
     public Double openInterestValue;
     public Double baseVolume;
@@ -24,7 +22,6 @@ public final class PredictionOpenInterest {
     @SuppressWarnings("unchecked")
     public PredictionOpenInterest(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.openInterestAmount = TypeHelper.safeFloat(data, "openInterestAmount");
         this.openInterestValue = TypeHelper.safeFloat(data, "openInterestValue");
         this.baseVolume = TypeHelper.safeFloat(data, "baseVolume");

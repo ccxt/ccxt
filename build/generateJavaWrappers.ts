@@ -687,21 +687,28 @@ if (fs.existsSync(PREDICTION_EXCHANGES_FOLDER)) {
 
 console.log(`\nGenerated ${generated} typed exchange wrappers in ${EXCHANGES_FOLDER}`);
 
-// Safety net: verify Exchange.java has an Object... varargs alias for every
-// whitelisted method. Missing aliases produced the silent CI break that
-// motivated this whitelist; loud-failing here prevents the same trap.
+// Safety net: verify an Object... varargs alias exists for every whitelisted
+// method. Missing aliases produced the silent CI break that motivated this
+// whitelist; loud-failing here prevents the same trap. The aliases are split
+// across two tiers after the base/Exchange split: base-infra methods (fetchBalance,
+// fetchTime, ...) keep their aliases on BaseExchange.java, while the trading methods
+// that moved to the Exchange tier (fetchOrders, fetchTickers, fetchPositions, ...)
+// carry their aliases on Exchange.java. Check both.
 const EXCHANGE_BASE_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
-if (fs.existsSync(EXCHANGE_BASE_FILE)) {
-    const baseSrc = fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
+const EXCHANGE_TIER_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
+{
+    let src = '';
+    if (fs.existsSync(EXCHANGE_BASE_FILE)) src += fs.readFileSync(EXCHANGE_BASE_FILE, 'utf-8');
+    if (fs.existsSync(EXCHANGE_TIER_FILE)) src += '\n' + fs.readFileSync(EXCHANGE_TIER_FILE, 'utf-8');
     const missing: string[] = [];
     for (const m of ZERO_REQUIRED_TYPED_WHITELIST) {
         const aliasRe = new RegExp(`\\b${m}Async\\s*\\(\\s*Object\\.\\.\\.\\s*\\w+\\s*\\)`);
-        if (!aliasRe.test(baseSrc)) missing.push(`${m}Async(Object... args)`);
+        if (!aliasRe.test(src)) missing.push(`${m}Async(Object... args)`);
     }
     if (missing.length > 0) {
-        console.error(`\nERROR: Exchange.java is missing untyped async aliases for ${missing.length} whitelisted method(s):`);
+        console.error(`\nERROR: BaseExchange.java / Exchange.java are missing untyped async aliases for ${missing.length} whitelisted method(s):`);
         for (const m of missing) console.error(`  - public CompletableFuture<Object> ${m} { return ${m.replace('Async', '').replace(/\(.*/, '')}(args); }`);
-        console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in ${EXCHANGE_BASE_FILE}.`);
+        console.error(`\nAdd them above the "METHODS BELOW THIS LINE ARE TRANSPILED" marker in the tier that declares the method.`);
         process.exit(1);
     }
 }

@@ -150,6 +150,12 @@ const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
+// Exchange is the thin concrete tier over BaseExchange. The 62 symbol-based trading
+// methods (createOrder/fetchTicker/fetchOrders/editOrder/... + watch*) live in the
+// TS `export default class Exchange extends BaseExchange` block and are injected here,
+// NOT into BaseExchange — so the prediction tier (extends BaseExchange) does not
+// inherit them and can declare its own standalone-typed versions.
+const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.java';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
@@ -167,6 +173,10 @@ class NewTranspiler {
     transpiler!: Transpiler;
     pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
+    // Cached transpiled body of the TS `Exchange extends BaseExchange` tier (the 62
+    // trading methods), reused by both the Exchange.java injection and the
+    // PredictionExchange.java convenience-method injection.
+    _exchangeTierBody: string | undefined;
 
     constructor() {
 
@@ -905,18 +915,15 @@ class NewTranspiler {
         // log.bright.cyan (message, (ERRORS_FILE as any).yellow)
     }
 
-    transpileBaseMethods(baseExchangeFile: string) {
-        const javaExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
-
-        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
-        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
-        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
-        let baseClass = baseFile.content as any;// remove this later
-
-        // the transpiled base methods now live on `BaseExchange` (Exchange is a thin subclass), so
+    // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts
+    // output (both the BaseExchange class and the trailing Exchange class). Factored
+    // out so the Exchange-tier body can be re-derived identically from either the
+    // base transpile or a standalone prediction transpile.
+    applyExchangeTierJavaFixes(baseClass: string): string {
+        // the transpiled base methods live on `BaseExchange` (Exchange is a thin subclass), so
         // the qualified-this used inside anonymous-class initializers must name the enclosing class
-        // BaseExchange, not Exchange.
+        // BaseExchange, not Exchange. (The Exchange-tier trading methods have no such put(...,this.X)
+        // initializers, so this is a no-op there.)
         baseClass = baseClass.replace(/(put\("\w+",\s*)(this\.\w+)/gm, "$1BaseExchange.$2");
         baseClass = this.regexAll(baseClass, [
             [/\(Object client, /g, '(Client client, '],
@@ -941,28 +948,112 @@ class NewTranspiler {
         // Pattern 2: if/else where the else throws, followed by return null before });
         // Only safe when else contains throw (not return) — throw always terminates
         baseClass = this.removeUnreachableReturnNull(baseClass);
-        // Pattern 2: } closing an if/else where both branches terminate, followed by return null
-        // This is unreachable but the lambda requires a return — Java compiler sees it as error
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
+        return baseClass;
+    }
 
-        // // WS fixes
-        // baseClass = baseClass.replace(/\(object client,/gm, '(WebSocketClient client,');
+    // Return the transpiled+fixed body (no outer braces) of the TS `Exchange extends
+    // BaseExchange` class — the 62 symbol-based trading methods. Cached on first call.
+    getExchangeTierBody(baseExchangeFile = './ts/src/base/Exchange.ts'): string {
+        if (this._exchangeTierBody !== undefined) {
+            return this._exchangeTierBody;
+        }
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
+        const baseClass = this.applyExchangeTierJavaFixes(baseFile.content as string);
+        const match = baseClass.match(/(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{([\s\S]*)\}\s*$/);
+        this._exchangeTierBody = match ? match[1] : '';
+        return this._exchangeTierBody;
+    }
+
+    // Names of every method declared directly in a transpiled Java class body
+    // (indentation level 1, e.g. `    public ... foo(...)`).
+    extractJavaMethodNames(classBody: string): Set<string> {
+        const names = new Set<string>();
+        const re = /\n {4}(?:@[\w.]+\s*(?:\([^)]*\))?\s*)*(?:public|private|protected)\b[^\n(]*?([A-Za-z_][A-Za-z0-9_]*)\s*\(/g;
+        let m;
+        while ((m = re.exec(classBody)) !== null) {
+            names.add(m[1]);
+        }
+        return names;
+    }
+
+    // Remove a whole method (signature + brace-matched body) from a transpiled Java
+    // class body, by method name (first match only — the base tier has no overloaded
+    // trading-method names).
+    removeJavaMethod(classBody: string, methodName: string): string {
+        const declRe = new RegExp('\\n {4}(?:@[\\w.]+\\s*(?:\\([^)]*\\))?\\s*)*(?:public|private|protected)\\b[^\\n(]*?\\b' + methodName + '\\s*\\(');
+        const m = declRe.exec(classBody);
+        if (!m) {
+            return classBody;
+        }
+        const start = m.index; // the '\n' before the declaration
+        let i = classBody.indexOf('{', m.index + m[0].length);
+        if (i < 0) {
+            return classBody;
+        }
+        let depth = 0;
+        let inStr: string | null = null;
+        let j = i;
+        for (; j < classBody.length; j++) {
+            const ch = classBody[j];
+            if (inStr) {
+                if (ch === '\\') { j++; continue; }
+                if (ch === inStr) inStr = null;
+                continue;
+            }
+            if (ch === '"' || ch === '\'') { inStr = ch; continue; }
+            if (ch === '{') depth++;
+            else if (ch === '}') { depth--; if (depth === 0) { j++; break; } }
+        }
+        return classBody.slice(0, start) + classBody.slice(j);
+    }
+
+    // String-safe file replace: unlike replaceInFile, the replacement is supplied via a
+    // callback so `$`-sequences in transpiled Java are treated literally.
+    replaceInFileLiteral(filename: string, regex: RegExp, replacement: string) {
+        const contents = fs.readFileSync(filename, 'utf8');
+        const newContents = contents.replace(regex, () => replacement);
+        fs.writeFileSync(filename, newContents);
+    }
+
+    transpileBaseMethods(baseExchangeFile: string) {
+        const javaExchangeBase = BASE_METHODS_FILE;
+        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
+
+        const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
+        const baseFile: any = this.transpiler.transpileJavaByPath(strippedBaseFile);
+        removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
+        let baseClass = this.applyExchangeTierJavaFixes(baseFile.content as string);
 
         const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
         if (parts.length > 1) {
             // ts/src/base/Exchange.ts declares two classes — `class BaseExchange { ... }` and the
-            // thin `class Exchange extends BaseExchange {}` — so the ast-transpiler appends a trailing
-            // `class Exchange extends BaseExchange { }` after BaseExchange's closing brace. Java allows
-            // only one public top-level class per file and the thin Exchange needs its own constructors,
-            // so it lives hand-written in Exchange.java; strip the emitted remnant (keeping BaseExchange's
-            // closing brace) before injecting into BaseExchange.java.
+            // `export default class Exchange extends BaseExchange { ...62 trading methods... }` — so
+            // the ast-transpiler appends the whole Exchange class after BaseExchange's closing brace.
+            // Java allows only one public top-level class per file, so the trading methods are injected
+            // into the hand-written Exchange.java below; strip the emitted Exchange class from the
+            // BaseExchange output (keeping BaseExchange's closing brace).
             let baseMethods = parts[1];
             baseMethods = baseMethods.replace(/\n\s*(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{[\s\S]*$/, '\n');
             log.magenta('→', (javaExchangeBase as any).yellow)
             replaceInFile(javaExchangeBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + baseMethods.trim() + '\n')
+        }
+
+        // Inject the Exchange-tier (62 trading methods) into Exchange.java below its delimiter.
+        const match = baseClass.match(/(?:public\s+)?class\s+Exchange\s+extends\s+BaseExchange\s*\{([\s\S]*)\}\s*$/);
+        if (match) {
+            let exchangeBody = match[1];
+            this._exchangeTierBody = exchangeBody;
+            // loadOrderBook is provided hand-written (void, WS-snapshot friendly) in Exchange.java;
+            // drop the transpiled CompletableFuture version to avoid a redundant overload.
+            exchangeBody = this.removeJavaMethod(exchangeBody, 'loadOrderBook');
+            log.magenta('→', (EXCHANGE_METHODS_FILE as any).yellow)
+            this.replaceInFileLiteral(EXCHANGE_METHODS_FILE, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + exchangeBody.trim() + '\n}\n');
         }
     }
 
@@ -990,8 +1081,31 @@ class NewTranspiler {
         const restOfFile = '([^\n]*\n)+'
         const parts = baseClass.split(javaDelimiter)
         if (parts.length > 1) {
+            // PredictionExchange extends BaseExchange (NOT Exchange), so it does not inherit the 62
+            // trading methods that were moved to the Exchange tier. PredictionExchange.ts freshly
+            // (re)defines the prediction-specific ones (createOrder/fetchTicker/... → Prediction* types),
+            // but the convenience/fallback methods (editOrder, createLimitOrder, createStopLossOrder,
+            // fetchL2OrderBook, ...) are not re-declared there. The prediction typed wrappers still call
+            // `super.<method>(...)` for the full trading surface, so inject those non-overlapping
+            // Exchange-tier methods here. Each delegates to prediction's own createOrder/cancelOrder/etc.
+            let predictionBody = parts[1].trim();
+            const predictionOwnNames = this.extractJavaMethodNames('\n' + predictionBody);
+            let extras = this.getExchangeTierBody();
+            // The ast-transpiler qualifies `this` inside anonymous-class initializers with the
+            // lexically-enclosing TS class name (`Exchange.this.sortBy(...)`). Re-home those to
+            // PredictionExchange, which is where these methods now physically live.
+            extras = extras.replace(/\bExchange\.this\b/g, 'PredictionExchange.this');
+            // loadOrderBook is WS-snapshot infra prediction never invokes; drop it (mirrors Exchange.java).
+            extras = this.removeJavaMethod(extras, 'loadOrderBook');
+            // Drop every Exchange-tier method PredictionExchange already declares (avoids duplicate defs).
+            for (const name of predictionOwnNames) {
+                extras = this.removeJavaMethod(extras, name);
+            }
+            // predictionBody ends with the class's closing brace — splice the extras in before it.
+            const withoutClose = predictionBody.replace(/\}\s*$/, '');
+            const merged = withoutClose.trimEnd() + '\n\n' + extras.trim() + '\n}\n';
             log.magenta('→', (javaPredictionBase as any).yellow)
-            replaceInFile(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + parts[1].trim() + '\n')
+            this.replaceInFileLiteral(javaPredictionBase, new RegExp(javaDelimiter + restOfFile), javaDelimiter + '\n' + merged);
         }
     }
 

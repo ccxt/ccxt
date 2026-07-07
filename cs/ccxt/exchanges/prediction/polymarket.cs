@@ -955,7 +955,7 @@ public partial class polymarket : PredictionExchange
         //         }
         //     }
         //
-        return this.parseTicker(response, outcomeObj);
+        return this.parsePredictionTicker(response, outcomeObj);
     }
 
     /**
@@ -968,7 +968,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public async override Task<object> fetchTickers(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchTickers(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadOutcomes();
@@ -1039,7 +1039,7 @@ public partial class polymarket : PredictionExchange
                     } },
                     { "book", book },
                 };
-                object ticker = this.parseTicker(tickerInput, outcomeObj);
+                object ticker = this.parsePredictionTicker(tickerInput, outcomeObj);
                 object symbolKey = this.safeString(ticker, "outcome", tokenId);
                 ((IDictionary<string,object>)result)[(string)symbolKey] = ticker;
             }
@@ -1051,13 +1051,13 @@ public partial class polymarket : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTicker
+     * @name polymarket#parsePredictionTicker
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public override object parseTicker(object ticker, object market = null)
+    public override object parsePredictionTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -1364,10 +1364,10 @@ public partial class polymarket : PredictionExchange
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         //
         object first = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        return this.parseOpenInterest(first, ((object)outcomeObj));
+        return this.parsePredictionOpenInterest(first, ((object)outcomeObj));
     }
 
-    public override object parseOpenInterest(object interest, object market = null)
+    public override object parsePredictionOpenInterest(object interest, object market = null)
     {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
@@ -1387,7 +1387,7 @@ public partial class polymarket : PredictionExchange
         ((IDictionary<string,object>)openInterest)["outcomeId"] = this.safeString(market, "outcomeId");
         ((IDictionary<string,object>)openInterest)["market"] = this.safeString(market, "market");
         ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
-        return openInterest;
+        return ((object)openInterest);
     }
 
     /**
@@ -1469,7 +1469,7 @@ public partial class polymarket : PredictionExchange
             }
         }
         // the trades are already narrowed to this outcome by asset id above;
-        // parseTrade resolves the outcome from each trade's asset id
+        // parsePredictionTrade resolves the outcome from each trade's asset id
         return this.parsePredictionTrades(filteredTrades, null, since, limit);
     }
 
@@ -1543,13 +1543,13 @@ public partial class polymarket : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTrade
+     * @name polymarket#parsePredictionTrade
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public override object parseTrade(object trade, object market = null)
+    public override object parsePredictionTrade(object trade, object market = null)
     {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -1658,7 +1658,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async override Task<object> fetchPositions(object outcomes = null, object parameters = null)
+    public async virtual Task<object> fetchPositions(object outcomes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object outcomesLength = 0;
@@ -1722,13 +1722,13 @@ public partial class polymarket : PredictionExchange
     /**
      * @ignore
      * @method
-     * @name polymarket#parsePosition
+     * @name polymarket#parsePredictionPosition
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public override object parsePosition(object position, object market = null)
+    public override object parsePredictionPosition(object position, object market = null)
     {
         object tokenId = this.safeString(position, "asset");
         object marketData = this.safeOutcome(tokenId, ((object)market));
@@ -1784,7 +1784,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
+    public async virtual Task<object> fetchOpenOrders(object outcome = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -1810,7 +1810,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
+    public async virtual Task<object> fetchOrder(object id, object outcome = null, object parameters = null)
     {
         // the request only needs the order id; the outcome is a labelling hint, so resolve it from
         // cache (no network) — fetchOrder stays a single request even on a cold cache.
@@ -1820,19 +1820,19 @@ public partial class polymarket : PredictionExchange
             { "id", id },
         };
         object response = await this.clobPrivateGetDataOrderId(this.extend(request, parameters));
-        return this.parseOrder(response);
+        return this.parsePredictionOrder(response);
     }
 
     /**
      * @ignore
      * @method
-     * @name polymarket#parseOrder
+     * @name polymarket#parsePredictionOrder
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public override object parseOrder(object order, object market = null)
+    public override object parsePredictionOrder(object order, object market = null)
     {
         //
         // {
@@ -1940,7 +1940,7 @@ public partial class polymarket : PredictionExchange
         object response = await this.clobPrivatePostOrder(this.safeDict(built, "body"));
         // request echo first so the response's real orderID/status/success win on overlap
         object enriched = this.extend(this.safeDict(built, "request"), response);
-        object order = this.parseOrder(enriched, ((object)this.safeDict(built, "outcome")));
+        object order = this.parsePredictionOrder(enriched, ((object)this.safeDict(built, "outcome")));
         ((IDictionary<string,object>)order)["info"] = response; // keep info the raw exchange response, not the request echo
         return order;
     }
@@ -1987,13 +1987,13 @@ public partial class polymarket : PredictionExchange
             {
                 // request echo first so the response's real orderID/status win on overlap
                 object enriched = this.extend(getValue(requests, i), getValue(response, i));
-                object parsedItem = this.parseOrder(enriched, ((object)getValue(outcomes, i)));
+                object parsedItem = this.parsePredictionOrder(enriched, ((object)getValue(outcomes, i)));
                 ((IDictionary<string,object>)parsedItem)["info"] = getValue(response, i); // keep info the raw exchange response
                 ((IList<object>)result).Add(parsedItem);
             }
         } else
         {
-            ((IList<object>)result).Add(this.parseOrder(response));
+            ((IList<object>)result).Add(this.parsePredictionOrder(response));
         }
         return result;
     }
@@ -2126,7 +2126,7 @@ public partial class polymarket : PredictionExchange
             { "orderType", orderTypeStr },
         };
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        // (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+        // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         object requestEcho = new Dictionary<string, object>() {
             { "side", sideStr },
@@ -2420,7 +2420,7 @@ public partial class polymarket : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async override Task<object> cancelAllOrders(object outcome = null, object parameters = null)
+    public async virtual Task<object> cancelAllOrders(object outcome = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadApiCredentials();
@@ -3471,7 +3471,7 @@ public partial class polymarket : PredictionExchange
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         object stored = this.orders;
-        object parsed = this.parseOrder(eventVar);
+        object parsed = this.parsePredictionOrder(eventVar);
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "orders"});
         object outcome = this.safeString(parsed, "outcome");
@@ -3489,7 +3489,7 @@ public partial class polymarket : PredictionExchange
             this.myTrades = new ArrayCacheByOutcomeById(limit);
         }
         object stored = this.myTrades;
-        object parsed = this.parseTrade(eventVar);
+        object parsed = this.parsePredictionTrade(eventVar);
         callDynamically(stored, "append", new object[] {parsed});
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "myTrades"});
         object outcome = this.safeString(parsed, "outcome");

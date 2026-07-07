@@ -959,7 +959,7 @@ func (this *LimitlessCore) FetchTicker(outcome any, optionalArgs ...any) <-chan 
 			"book":   ccxt.GetValue(responses, 1),
 		}
 
-		ch <- this.ParseTicker(tickerInput, outcomeObj)
+		ch <- this.ParsePredictionTicker(tickerInput, outcomeObj)
 		return nil
 
 	}()
@@ -969,13 +969,13 @@ func (this *LimitlessCore) FetchTicker(outcome any, optionalArgs ...any) <-chan 
 /**
  * @ignore
  * @method
- * @name limitless#parseTicker
+ * @name limitless#parsePredictionTicker
  * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
  * @param {object} ticker a raw limitless market object or a dict with market and book entries
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *LimitlessCore) ParseTicker(ticker any, optionalArgs ...any) any {
+func (this *LimitlessCore) ParsePredictionTicker(ticker any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": "36814",
@@ -1170,7 +1170,7 @@ func (this *LimitlessCore) FetchTickers(optionalArgs ...any) <-chan any {
 				var raw any = ccxt.GetValue(m, "info")
 				var outcomesList any = this.SafeList(m, "outcomes", []any{})
 				for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(outcomesList)); j++ {
-					var ticker any = this.ParseTicker(raw, ccxt.GetValue(outcomesList, j))
+					var ticker any = this.ParsePredictionTicker(raw, ccxt.GetValue(outcomesList, j))
 					var symbolKey any = this.SafeString(ticker, "outcome")
 					if ccxt.IsTrue(!ccxt.IsEqual(symbolKey, nil)) {
 						ccxt.AddElementToObject(result, symbolKey, ticker)
@@ -1223,7 +1223,7 @@ func (this *LimitlessCore) FetchTickers(optionalArgs ...any) <-chan any {
 			}
 			var grouped any = ccxt.GetValue(outcomesBySlug, slug)
 			for j := 0; ccxt.IsLessThan(j, ccxt.GetArrayLength(grouped)); j++ {
-				var ticker any = this.ParseTicker(tickerInput, ccxt.GetValue(grouped, j))
+				var ticker any = this.ParsePredictionTicker(tickerInput, ccxt.GetValue(grouped, j))
 				var symbolKey any = this.SafeString(ticker, "outcome")
 				if ccxt.IsTrue(!ccxt.IsEqual(symbolKey, nil)) {
 					ccxt.AddElementToObject(result, symbolKey, ticker)
@@ -1627,9 +1627,9 @@ func (this *LimitlessCore) FetchOrders(optionalArgs ...any) <-chan any {
 		//         }
 		//     ]
 		//
-		// pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
+		// pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
 		// lives under 'outcome', so the base outcome filter would drop every order; the per-slug
-		// endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
+		// endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
 		ch <- this.ParsePredictionOrders(response, nil, since, limit)
 		return nil
 
@@ -1920,13 +1920,13 @@ func (this *LimitlessCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name limitless#parseOrder
+ * @name limitless#parsePredictionOrder
  * @description parses a raw limitless order object into a unified order object
  * @param {object} order the raw order object
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *LimitlessCore) ParseOrder(order any, optionalArgs ...any) any {
+func (this *LimitlessCore) ParsePredictionOrder(order any, optionalArgs ...any) any {
 	//
 	// fetchOrders, fetchOpenOrders, fetchClosedOrders
 	//     {
@@ -2432,7 +2432,7 @@ func (this *LimitlessCore) CreateOrder(outcome any, typeVar any, side any, amoun
 
 		response := (<-this.LimitlessPrivatePostOrders(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
-		var parsedOrder any = this.ParseOrder(response, outcomeObj)
+		var parsedOrder any = this.ParsePredictionOrder(response, outcomeObj)
 		// the create-order response omits a status field; a freshly accepted order is open
 		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(parsedOrder, "status"), nil)) {
 			ccxt.AddElementToObject(parsedOrder, "status", "open")
@@ -2629,7 +2629,7 @@ func (this *LimitlessCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		response := (<-this.LimitlessPrivateDeleteOrdersOrderId(this.Extend(request, params)))
 		ccxt.PanicOnError(response)
 		// the delete response carries no order body, so backfill the id and the resulting status
-		var order any = this.ParseOrder(response)
+		var order any = this.ParsePredictionOrder(response)
 		if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(order, "id"), nil)) {
 			ccxt.AddElementToObject(order, "id", id)
 		}
@@ -2939,13 +2939,13 @@ func (this *LimitlessCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 /**
  * @ignore
  * @method
- * @name limitless#parseTrade
+ * @name limitless#parsePredictionTrade
  * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
  * @param {object} trade the raw trade object
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
  */
-func (this *LimitlessCore) ParseTrade(trade any, optionalArgs ...any) any {
+func (this *LimitlessCore) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var matchedSize any = this.SafeString(trade, "matchedSize")
@@ -3225,7 +3225,7 @@ func (this *LimitlessCore) GetPositionFromClobEntry(label any, optionalArgs ...a
 	var rawMarket any = this.SafeDict(entry, "market")
 	var slug any = this.SafeString(rawMarket, "slug")
 	var outcomeObj any = this.GetOutcomeBySlugAndLabel(slug, label)
-	var parsed any = this.ParsePosition(position, outcomeObj)
+	var parsed any = this.ParsePredictionPosition(position, outcomeObj)
 	ccxt.AddElementToObject(parsed, "contracts", this.ParseNumber(this.ApplyScale(contracts)))
 	var latestTrade any = this.SafeDict(entry, "latestTrade")
 	var key any = "latestYesPrice"
@@ -3240,13 +3240,13 @@ func (this *LimitlessCore) GetPositionFromClobEntry(label any, optionalArgs ...a
 /**
  * @ignore
  * @method
- * @name limitless#parsePosition
+ * @name limitless#parsePredictionPosition
  * @description parses a raw limitless portfolio position into a unified position object
  * @param {object} position the raw position object
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *LimitlessCore) ParsePosition(position any, optionalArgs ...any) any {
+func (this *LimitlessCore) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "cost": "995720",

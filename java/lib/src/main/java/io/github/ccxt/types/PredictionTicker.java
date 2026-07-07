@@ -2,13 +2,11 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-// Native dedicated prediction-market type. The base Ticker is final, so this
-// duplicates its fields (flat typed access) and adds the prediction identity
-// fields. The inherited `symbol` is left unpopulated — `outcome` (the
-// "MARKET:LABEL" handle) is the canonical identity. Mirrors the
-// `PredictionTicker extends Ticker` interface in ts/src/base/types.ts.
+// Native dedicated prediction-market type. Standalone typed mirror (does NOT extend Ticker); holds its own copy of the base
+// fields (flat typed access) and adds the prediction identity
+// fields. Identity is the `outcome` handle ("MARKET:LABEL"), no symbol. Mirrors the standalone
+// `PredictionTicker` interface in ts/src/base/types.ts.
 public final class PredictionTicker {
-    public String symbol;
     public Long timestamp;
     public String datetime;
     public Double high;
@@ -41,7 +39,6 @@ public final class PredictionTicker {
     @SuppressWarnings("unchecked")
     public PredictionTicker(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.symbol = TypeHelper.safeString(data, "symbol");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.high = TypeHelper.safeFloat(data, "high");
