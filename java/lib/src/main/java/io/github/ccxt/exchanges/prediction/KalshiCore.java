@@ -398,7 +398,7 @@ public class KalshiCore extends KalshiApi
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
-        // throw BadRequest instead of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (Helpers.isTrue(Helpers.isEqual(code, 400)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

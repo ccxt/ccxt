@@ -10,7 +10,6 @@ use ccxt\abstract\prediction\kalshi as Exchange;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
-use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -366,7 +365,7 @@ class kalshi extends Exchange {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorCode, $feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
-        // throw BadRequest instead of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable $error
         if ($code === 400) {
             $feedback = $this->id . ' ' . $body;
             throw new BadRequest($feedback);

@@ -2302,7 +2302,7 @@ final Object finalMarketSymbol = marketSymbol;
             put( "orderType", finalOrderTypeStr );
         }};
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
+        // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         final Object finalPrice = price;
         Object requestEcho = new java.util.HashMap<String, Object>() {{
@@ -2887,7 +2887,7 @@ final Object finalMarketSymbol = marketSymbol;
             active = Helpers.isTrue(rawActive) && !Helpers.isTrue(closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
         Object rawTags = this.safeList(rawEvent, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object rawTagsLength = Helpers.getArrayLength(rawTags);
         Object parsedTags = new java.util.ArrayList<Object>(java.util.Arrays.asList());

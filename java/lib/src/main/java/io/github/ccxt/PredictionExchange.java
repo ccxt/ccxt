@@ -129,7 +129,7 @@ public Object isPrediction()
         if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
-            // (reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             Object resultLength = Helpers.getArrayLength(result);
             Object sliceEnd = limit;
             if (Helpers.isTrue(Helpers.isGreaterThan(sliceEnd, resultLength)))
@@ -529,7 +529,7 @@ public Object isPrediction()
         // pass undefined — the body already collapses an absent event to just the market part.
         // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
-        // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        // — e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps" — do NOT collapse
         // to the same handle — a collision silently overwrites markets in this.markets and would
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
@@ -546,7 +546,7 @@ public Object isPrediction()
     public Object slugToOutcomeSymbol(Object eventSlug, Object marketSlug, Object outcome)
     {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-        // (both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
+        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
         return Helpers.add(Helpers.add(this.slugToMarketSymbol(eventSlug, marketSlug), ":"), ((String)outcome).toUpperCase());
     }
 
@@ -643,7 +643,7 @@ public Object isPrediction()
         // register a single event's markets into this.markets and rebuild the outcome cache so the
         // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
-        // (kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // BadSymbols because the outcome was never cached
         if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
         {

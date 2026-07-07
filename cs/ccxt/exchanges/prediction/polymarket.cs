@@ -2126,7 +2126,7 @@ public partial class polymarket : PredictionExchange
             { "orderType", orderTypeStr },
         };
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
+        // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         object requestEcho = new Dictionary<string, object>() {
             { "side", sideStr },
@@ -2671,7 +2671,7 @@ public partial class polymarket : PredictionExchange
             active = isTrue(rawActive) && !isTrue(closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
         object rawTags = this.safeList(rawEvent, "tags", new List<object>() {});
         object rawTagsLength = getArrayLength(rawTags);
         object parsedTags = new List<object>() {};

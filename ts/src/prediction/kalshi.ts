@@ -366,7 +366,7 @@ export default class kalshi extends Exchange {
             this.throwBroadlyMatchedException (this.exceptions['broad'], errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
-        // throw BadRequest instead of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if (code === 400) {
             const feedback = this.id + ' ' + body;
             throw new BadRequest (feedback);

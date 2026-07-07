@@ -404,7 +404,7 @@ func  (this *KalshiCore) HandleErrors(code any, reason any, url any, method any,
         this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions, "broad"), errorCode, feedback)
     }
     // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
-    // throw ccxt.BadRequest instead of letting the base map the bare 400 to a retryable ccxt.ExchangeNotAvailable
+    // throw ccxt.BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
     if ccxt.IsTrue(ccxt.IsEqual(code, 400)) {
         var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), body)
         panic(ccxt.BadRequest(feedback))

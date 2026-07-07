@@ -15,7 +15,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.precise import Precise
 
 
@@ -1304,7 +1303,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 pseudoTrades.append({'timestamp': pointTs, 'price': pointPrice, 'amount': 0})
         # the endpoint returns points NEWEST-first, so sort ascending by timestamp before bucketing —
         # otherwise candles come back descending and open/close are inverted within each bucket
-        #(the first point seen would be the latest, not the earliest). sortBy is stable, so equal
+        # — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
         # timestamps keep their relative order consistently across languages
         sorted = self.sort_by(pseudoTrades, 'timestamp')
         ms = self.parse_timeframe(timeframe) * 1000
@@ -2784,7 +2783,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         self.throw_broadly_matched_exception(self.exceptions['broad'], responseBody, feedback)
         # a 400 is a client-side bad request(bad params, or a business rule like "market not
         # resolved"), not a transport outage — raise BadRequest with the exchange message instead
-        # of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        # of letting the base map the bare 400 to a retryable network-unavailable error
         if statusCode == 400:
             raise BadRequest(feedback)
         return None

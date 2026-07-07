@@ -12,7 +12,6 @@ use ccxt\BadRequest;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
-use ccxt\ExchangeNotAvailable;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -1384,7 +1383,7 @@ class limitless extends Exchange {
             }
             // the endpoint returns points NEWEST-$first, so sort ascending by timestamp before bucketing —
             // otherwise $candles come back descending and open/close are inverted within each $bucket
-            // (the $first $point seen would be the latest, not the earliest). sortBy is stable, so equal
+            // — the $first $point seen would be the latest, not the earliest. sortBy is stable, so equal
             // timestamps keep their relative order consistently across languages
             $sorted = $this->sort_by($pseudoTrades, 'timestamp');
             $ms = $this->parse_timeframe($timeframe) * 1000;
@@ -3022,7 +3021,7 @@ class limitless extends Exchange {
         $this->throw_broadly_matched_exception($this->exceptions['broad'], $responseBody, $feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not
         // resolved"), not a transport outage — throw BadRequest with the exchange $message instead
-        // of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        // of letting the base map the bare 400 to a retryable network-unavailable error
         if ($statusCode === 400) {
             throw new BadRequest($feedback);
         }

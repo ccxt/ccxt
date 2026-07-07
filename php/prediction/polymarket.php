@@ -1972,7 +1972,7 @@ class polymarket extends Exchange {
             'orderType' => $orderTypeStr,
         );
         // the CLOB create response only echoes array(orderID, status); carry the submitted terms
-        // (keyed fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
+        // keyed fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         // them and return a fully-populated order instead of null side/price/amount
         $requestEcho = array(
             'side' => $sideStr,
@@ -2413,7 +2413,7 @@ class polymarket extends Exchange {
             $active = $rawActive && !$closed;
         }
         // surface gamma's tag objects top-level stringarray() so the unified `tags` filter
-        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
         $rawTags = $this->safe_list($rawEvent, 'tags', array());
         $rawTagsLength = count($rawTags);
         $parsedTags = array();

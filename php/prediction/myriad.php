@@ -403,7 +403,7 @@ class myriad extends Exchange {
             for ($i = 0; $i < count($data); $i++) {
                 $result[] = $this->parse_prediction_position($data[$i]);
             }
-            return $this->filter_by_array_positions($result, 'outcome', $outcomes, false);
+            return $this->filter_by_array($result, 'outcome', $outcomes, false);
         })();
     }
 

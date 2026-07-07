@@ -1806,7 +1806,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'orderType': orderTypeStr,
         }
         # the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        #(keyed fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
+        # keyed fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         # them and return a fully-populated order instead of None side/price/amount
         requestEcho = {
             'side': sideStr,
@@ -2208,7 +2208,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if rawActive is not None:
             active = rawActive and not closed
         # surface gamma's tag objects top-level string[] so the unified `tags` filter
-        #(filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        # — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
         rawTags = self.safe_list(rawEvent, 'tags', [])
         rawTagsLength = len(rawTags)
         parsedTags = []

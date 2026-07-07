@@ -104,7 +104,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $limit = $this->safe_integer($params, 'limit');
         if ($limit !== null) {
             // clamp to the $result length => arraySlice(x, 0, $limit) with $limit > length panics in Go
-            // (reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             $resultLength = count($result);
             $sliceEnd = $limit;
             if ($sliceEnd > $resultLength) {
@@ -410,7 +410,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // pass null — the body already collapses an absent event to just the market part.
         // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
-        // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        // — e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps" — do NOT collapse
         // to the same handle — a collision silently overwrites markets in $this->markets and would
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
@@ -425,7 +425,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     public function slug_to_outcome_symbol(?string $eventSlug, string $marketSlug, string $outcome) {
         // build on slugToMarketSymbol so the $outcome handle stays consistent with the market symbol
-        // (both event-qualified or both not) — otherwise a qualified market . unqualified $outcome mismatch
+        // — both event-qualified or both not — otherwise a qualified market . unqualified $outcome mismatch
         return $this->slug_to_market_symbol($eventSlug, $marketSlug) . ':' . strtoupper($outcome);
     }
 
@@ -506,7 +506,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         // register a single event's $markets into $this->markets and rebuild the outcome cache so the
         // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
-        // (kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // such, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // '\\ccxt\\BadSymbol's because the outcome was never cached
         if ($this->markets === null) {
             $this->markets = $this->create_safe_dictionary();

@@ -12,7 +12,6 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFillable
-from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.precise import Precise
 
 
@@ -344,7 +343,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_broadly_matched_exception(self.exceptions['broad'], errorCode, feedback)
         # a 400 is a client-side bad request(bad params, invalid order), not a transport outage —
-        # raise BadRequest instead of letting the base map the bare 400 to a retryable ExchangeNotAvailable
+        # raise BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
         if code == 400:
             feedback = self.id + ' ' + body
             raise BadRequest(feedback)

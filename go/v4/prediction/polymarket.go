@@ -2327,7 +2327,7 @@ func  (this *PolymarketCore) BuildClobOrderBody(outcome any, typeVar any, side a
         "orderType": orderTypeStr,
     }
     // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-    // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
+    // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
     // them and return a fully-populated order instead of undefined side/price/amount
     var requestEcho any = map[string]any {
         "side": sideStr,
@@ -2928,7 +2928,7 @@ func  (this *PolymarketCore) ParseEvent(rawEvent any) any  {
         active = ccxt.IsTrue(rawActive) && !ccxt.IsTrue(closed)
     }
     // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-    // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+    // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
     var rawTags any = this.SafeList(rawEvent, "tags", []any{})
     var rawTagsLength any =     ccxt.GetArrayLength(rawTags)
     var parsedTags any = []any{}

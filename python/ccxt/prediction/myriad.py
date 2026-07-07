@@ -377,7 +377,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         result = []
         for i in range(0, len(data)):
             result.append(self.parse_prediction_position(data[i]))
-        return self.filter_by_array_positions(result, 'outcome', outcomes, False)
+        return self.filter_by_array(result, 'outcome', outcomes, False)
 
     def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
