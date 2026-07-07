@@ -2610,7 +2610,7 @@ export default class Exchange {
         };
     }
 
-    async loadMarketsHelper (reload = false, params = {}) {
+    async loadMarketsHelper (reload: boolean = false, params: Dict = {}) {
         if (!reload && this.valueIsDefined (this.markets)) {
             if (!this.valueIsDefined (this.markets_by_id)) {
                 return this.setMarkets (this.markets);
