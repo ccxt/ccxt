@@ -13,21 +13,41 @@ type IPredictionDispatch interface {
 	ParsePredictionPosition(position any, optionalArgs ...any) any
 }
 
-// IFullExchange is ICoreExchange plus the 62 symbol-based methods that were trimmed from
-// ICoreExchange/IDerivedExchange so prediction cores (which lack them) can satisfy those
-// interfaces. Only regular venues satisfy IFullExchange; the base + test transpilers
-// type-assert the (regular-only) call sites of these methods to it.
-type IFullExchange interface {
-	ICoreExchange
-	CancelOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
-	CancelOrdersWithClientOrderIds(clientOrderIds any, optionalArgs ...any) <-chan any
+// Per-method interfaces for the 62 symbol-based methods that were trimmed from ICoreExchange/
+// IDerivedExchange so prediction cores (which lack them) can satisfy those interfaces. The base +
+// test transpilers type-assert individual call sites to the single-method interface for exactly the
+// method being called — NOT to a bundle. A prediction venue that overrides only some of these (e.g.
+// kalshi has FetchTickers but not FetchL2OrderBook) runs the has-gated test for the ones it has, and
+// each per-method assertion succeeds because it requires only that one method. Regular venues have
+// all of them, so their (regular-only) base dispatch sites satisfy the assertions too.
+type IEditOrder interface {
 	EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+}
+type IEditOrderWithClientOrderId interface {
 	EditOrderWithClientOrderId(clientOrderId any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any
+}
+type ICancelOrderWithClientOrderId interface {
+	CancelOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
+}
+type ICancelOrdersWithClientOrderIds interface {
+	CancelOrdersWithClientOrderIds(clientOrderIds any, optionalArgs ...any) <-chan any
+}
+type IFetchL2OrderBook interface {
 	FetchL2OrderBook(symbol any, optionalArgs ...any) <-chan any
+}
+type IFetchOpenOrders interface {
 	FetchOpenOrders(optionalArgs ...any) <-chan any
+}
+type IFetchOrder interface {
 	FetchOrder(id any, optionalArgs ...any) <-chan any
+}
+type IFetchOrderWithClientOrderId interface {
 	FetchOrderWithClientOrderId(clientOrderId any, optionalArgs ...any) <-chan any
+}
+type IFetchPositions interface {
 	FetchPositions(optionalArgs ...any) <-chan any
+}
+type IFetchTickers interface {
 	FetchTickers(optionalArgs ...any) <-chan any
 }
 

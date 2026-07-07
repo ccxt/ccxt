@@ -1913,8 +1913,8 @@ ${constStatements.join('\n')}
             // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
             // (see go/v4/exchange_interface.go) to let prediction cores satisfy it. These dispatch
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
-            // type-assert to IFullExchange, which every regular venue satisfies.
-            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers)\(/g, 'this.DerivedExchange.(IFullExchange).$1('],
+            // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
+            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers)\(/g, 'this.DerivedExchange.(I$1).$1('],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
@@ -2908,9 +2908,10 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/var (mockedExchange|exchange) any =/g, 'var $1 ccxt.ICoreExchange ='],
             [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
             // these 62 symbol-based methods are trimmed from ICoreExchange (so prediction cores satisfy
-            // it), so call sites in the harness must type-assert to IFullExchange, which regular venues
-            // satisfy. Prediction never reaches these calls (guarded by has-flags / prediction path).
-            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.IFullExchange).$1('],
+            // it), so call sites in the harness type-assert to the per-method interface (ccxt.I<Method>)
+            // for exactly the method called. A prediction venue that overrides only some of these runs
+            // the has-gated test for the ones it has, and each single-method assertion succeeds.
+            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.I$1).$1('],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
@@ -3007,9 +3008,10 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
                 [/exchange := (?:&)?ccxt\.Coinbase\{\}/g, 'exchange := ccxt.NewCoinbase()'],
                 [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
-                // 62 symbol-based methods trimmed from ICoreExchange → assert to IFullExchange (regular
-                // venues satisfy it; prediction never runs these per-method tests, guarded by has-flags)
-                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.IFullExchange).$1('],
+                // 62 symbol-based methods trimmed from ICoreExchange → assert to the per-method interface
+                // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
+                // only some of them satisfies each has-gated per-method assertion it actually runs.
+                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.I$1).$1('],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],

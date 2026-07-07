@@ -9697,7 +9697,7 @@ func  (this *Exchange) EditLimitOrder(id any, symbol any, side any, amount any, 
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes925815 :=  <-this.DerivedExchange.(IFullExchange).EditOrder(id, symbol, "limit", side, amount, price, params)
+                retRes925815 :=  <-this.DerivedExchange.(IEditOrder).EditOrder(id, symbol, "limit", side, amount, price, params)
                 PanicOnError(retRes925815)
                 ch <- retRes925815
                 return nil
@@ -9743,7 +9743,7 @@ func  (this *Exchange) EditOrderWithClientOrderId(clientOrderId any, symbol any,
                 "clientOrderId": clientOrderId,
             })
         
-                retRes926815 :=  <-this.DerivedExchange.(IFullExchange).EditOrder("", symbol, typeVar, side, amount, price, extendedParams)
+                retRes926815 :=  <-this.DerivedExchange.(IEditOrder).EditOrder("", symbol, typeVar, side, amount, price, extendedParams)
                 PanicOnError(retRes926815)
                 ch <- retRes926815
                 return nil
@@ -9833,7 +9833,7 @@ func  (this *Exchange) FetchTicker(symbol any, optionalArgs ...any) <- chan any 
                 PanicOnError(market)
                 symbol = GetValue(market, "symbol")
         
-                tickers:= <-this.DerivedExchange.(IFullExchange).FetchTickers([]any{symbol}, params)
+                tickers:= <-this.DerivedExchange.(IFetchTickers).FetchTickers([]any{symbol}, params)
                 PanicOnError(tickers)
                 var ticker any = this.SafeDict(tickers, symbol)
                 if IsTrue(IsEqual(ticker, nil)) {
@@ -9926,7 +9926,7 @@ func  (this *Exchange) FetchOrderWithClientOrderId(clientOrderId any, optionalAr
                 "clientOrderId": clientOrderId,
             })
         
-                retRes933115 :=  <-this.DerivedExchange.(IFullExchange).FetchOrder("", symbol, extendedParams)
+                retRes933115 :=  <-this.DerivedExchange.(IFetchOrder).FetchOrder("", symbol, extendedParams)
                 PanicOnError(retRes933115)
                 ch <- retRes933115
                 return nil
@@ -9946,7 +9946,7 @@ func  (this *Exchange) FetchOrderStatus(id any, optionalArgs ...any) <- chan any
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-            order:= <-this.DerivedExchange.(IFullExchange).FetchOrder(id, symbol, params)
+            order:= <-this.DerivedExchange.(IFetchOrder).FetchOrder(id, symbol, params)
             PanicOnError(order)
         
             ch <- GetValue(order, "status")
@@ -9963,7 +9963,7 @@ func  (this *Exchange) FetchUnifiedOrder(order any, optionalArgs ...any) <- chan
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes934215 :=  <-this.DerivedExchange.(IFullExchange).FetchOrder(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
+                retRes934215 :=  <-this.DerivedExchange.(IFetchOrder).FetchOrder(this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
                 PanicOnError(retRes934215)
                 ch <- retRes934215
                 return nil

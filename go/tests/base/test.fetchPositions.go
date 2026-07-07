@@ -14,7 +14,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 var now any = exchange.Milliseconds()
                 // without symbol
             
-                positions:= (<-exchange.(ccxt.IFullExchange).FetchPositions())
+                positions:= (<-exchange.(ccxt.IFetchPositions).FetchPositions())
                 PanicOnError(positions)
                 AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol)
                 for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
@@ -23,7 +23,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 // AssertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
                 // with symbol
             
-                positionsForSymbol:= (<-exchange.(ccxt.IFullExchange).FetchPositions([]any{symbol}))
+                positionsForSymbol:= (<-exchange.(ccxt.IFetchPositions).FetchPositions([]any{symbol}))
                 PanicOnError(positionsForSymbol)
                 Assert(IsArray(positionsForSymbol), Add(Add(Add(Add(exchange.GetId(), " "), method), " must return an array, returned "), exchange.Json(positionsForSymbol)))
                 var positionsForSymbolLength any =     GetArrayLength(positionsForSymbol)
