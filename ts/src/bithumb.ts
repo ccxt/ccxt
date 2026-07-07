@@ -410,11 +410,11 @@ export default class bithumb extends Exchange {
                 const symbol = symbols[i];
                 const market = this.safeDict (this.markets, symbol, {});
                 const parts = symbol.split ('/');
-                if (parts.length !== 2) {
+                const base = this.safeString (parts, 0);
+                const quote = this.safeString (parts, 1);
+                if ((base === undefined) || (quote === undefined)) {
                     continue;
                 }
-                const base = parts[0];
-                const quote = parts[1];
                 const baseId = this.safeString (market, 'baseId', base);
                 const quoteId = this.safeString (market, 'quoteId', quote);
                 market['symbol'] = base + '/' + quote;
@@ -441,8 +441,10 @@ export default class bithumb extends Exchange {
             const marketSymbols = Object.keys (this.markets);
             let hasGeneration1Ids = false;
             let hasGeneration2Ids = false;
-            const maxMarketsToCheck = Math.min (marketSymbols.length, 10);
-            for (let i = 0; i < maxMarketsToCheck; i++) {
+            for (let i = 0; i < marketSymbols.length; i++) {
+                if (i >= 10) {
+                    break;
+                }
                 const symbol = marketSymbols[i];
                 const market = this.safeDict (this.markets, symbol, {});
                 const marketId = this.safeString (market, 'id');
@@ -1064,7 +1066,8 @@ export default class bithumb extends Exchange {
                     }
                 }
                 const requiredQuoteIds = Object.keys (requiredQuotes);
-                if (requiredQuoteIds.length > 0) {
+                const populatedQuotes = this.safeString (requiredQuoteIds, 0);
+                if (populatedQuotes !== undefined) {
                     quotes = requiredQuoteIds;
                 }
             }
@@ -1919,7 +1922,17 @@ export default class bithumb extends Exchange {
         let datetime = this.safeString (order, 'created_at');
         let timestamp = undefined;
         if (datetime !== undefined) {
-            timestamp = this.parse8601 (datetime);
+            if (datetime.indexOf ('+09:00') > -1) {
+                const normalized = datetime.replace ('+09:00', 'Z');
+                const normalizedTimestamp = this.parse8601 (normalized);
+                if (normalizedTimestamp !== undefined) {
+                    timestamp = normalizedTimestamp - 9 * 3600000;
+                } else {
+                    timestamp = this.parse8601 (datetime);
+                }
+            } else {
+                timestamp = this.parse8601 (datetime);
+            }
         } else {
             timestamp = this.safeIntegerProduct (order, 'order_date', 0.001);
             datetime = this.iso8601 (timestamp);
@@ -2081,9 +2094,9 @@ export default class bithumb extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         let generation: Int = undefined;
-        [ generation, params ] = this.handleOptionAndParams (params, 'cancelOrders', 'generation', 2);
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'generation', 2);
         if (generation !== 2) {
-            throw new BadRequest (this.id + ' cancelOrders is only supported for the generation 2 API');
+            throw new BadRequest (this.id + ' fetchOrders is only supported for the generation 2 API');
         }
         await this.loadMarketsGeneration (generation);
         const request: Dict = {};
@@ -2432,10 +2445,18 @@ export default class bithumb extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const datetime = this.safeString (transaction, 'created_at');
+        let timestamp = this.parse8601 (datetime);
+        if ((datetime !== undefined) && (datetime.indexOf ('+09:00') > -1)) {
+            const normalized = datetime.replace ('+09:00', 'Z');
+            const normalizedTimestamp = this.parse8601 (normalized);
+            if (normalizedTimestamp !== undefined) {
+                timestamp = normalizedTimestamp - 9 * 3600000;
+            }
+        }
         return {
             'id': this.safeString (transaction, 'uuid'),
             'txid': this.safeString (transaction, 'txid'),
-            'timestamp': this.parse8601 (datetime),
+            'timestamp': timestamp,
             'datetime': datetime,
             'network': this.safeString (transaction, 'net_type'),
             'addressFrom': undefined,
@@ -2888,8 +2909,11 @@ export default class bithumb extends Exchange {
         const endpoint = '/' + this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][api]) + endpoint;
         const query = this.omit (params, this.extractParams (path));
+        const queryKeys = Object.keys (query);
+        const populatedQuery = this.safeString (queryKeys, 0);
+        const hasQuery = (populatedQuery !== undefined);
         if (api === 'public') {
-            if (Object.keys (query).length) {
+            if (hasQuery) {
                 url += '?' + this.urlencode (query);
             }
         } else {
@@ -2905,7 +2929,6 @@ export default class bithumb extends Exchange {
                     'timestamp': this.milliseconds (),
                 };
                 let auth = undefined;
-                const hasQuery = Object.keys (query).length;
                 const isBulkCancelEndpoint = (endpoint === '/v2/orders/cancel');
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     body = this.json (query);
