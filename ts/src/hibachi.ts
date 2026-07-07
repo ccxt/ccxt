@@ -84,6 +84,7 @@ export default class hibachi extends Exchange {
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMySettlementHistory': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': true,
@@ -2025,6 +2026,93 @@ export default class hibachi extends Exchange {
         const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
         const withdrawals = this.filterBy (transactions, 'type', 'withdrawal');
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
+    }
+
+    parseSettlement (settlement, market) {
+        //
+        //     {
+        //         "direction": "Long",
+        //         "indexPrice": "81.8781761",
+        //         "quantity": "0.10000000",
+        //         "settledAmount": "0.00005994405060281047",
+        //         "symbol": "SOL/USDT-P",
+        //         "timestamp": 1783389600,
+        //         "timestampNsPartial": 0
+        //     }
+        //
+        const timestamp = this.safeTimestamp (settlement, 'timestamp');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'indexPrice'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+    }
+
+    parseSettlements (settlements, market) {
+        const result = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        return result;
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchMySettlementHistory
+     * @description fetches historical settlement records of the user
+     * @see https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+     * @param {string} [symbol] unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms of the earliest settlement
+     * @param {int} [limit] the maximum number of settlements to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest settlement
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
+     */
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<object[]> {
+        await this.loadMarkets ();
+        let market: Market = undefined;
+        const request: Dict = {
+            'accountId': this.getAccountId (),
+        };
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['contractId'] = market['numericId'];
+            symbol = market['symbol'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, 'fetchMySettlementHistory', 'until');
+        if (until !== undefined) {
+            request['endTime'] = this.parseToInt (until / 1000);
+        }
+        const response = await this.privateGetTradeAccountSettlementsHistory (this.extend (request, params));
+        //
+        //     {
+        //         "settlements": [
+        //             {
+        //                 "direction": "Long",
+        //                 "indexPrice": "81.8781761",
+        //                 "quantity": "0.10000000",
+        //                 "settledAmount": "0.00005994405060281047",
+        //                 "symbol": "SOL/USDT-P",
+        //                 "timestamp": 1783389600,
+        //                 "timestampNsPartial": 0
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'settlements', []);
+        const settlements = this.parseSettlements (data, market);
+        const sorted = this.sortBy (settlements, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
     /**

@@ -309,6 +309,243 @@
                 }
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    1754040000000,
+                    null,
+                    {
+                        "until": 1754050000000
+                    }
+                ],
+                "httpResponse": {
+                    "hasMore": false,
+                    "orders": [
+                        {
+                            "accountId": 13787,
+                            "avgFillPrice": "2900.000000",
+                            "closedAt": 1777811627000,
+                            "createdAt": 1777811620000,
+                            "filledQuantity": "1.200000000",
+                            "orderFlags": null,
+                            "orderId": "596002791293190100",
+                            "orderType": "MARKET",
+                            "parentOrderId": null,
+                            "price": null,
+                            "side": "BID",
+                            "sourceType": "regular",
+                            "status": "Filled",
+                            "symbol": "SOL/USDT-P",
+                            "totalQuantity": "1.200000000",
+                            "triggerDirection": null,
+                            "triggerPrice": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 13787,
+                            "avgFillPrice": "2900.000000",
+                            "closedAt": 1777811627000,
+                            "createdAt": 1777811620000,
+                            "filledQuantity": "1.200000000",
+                            "orderFlags": null,
+                            "orderId": "596002791293190100",
+                            "orderType": "MARKET",
+                            "parentOrderId": null,
+                            "price": null,
+                            "side": "BID",
+                            "sourceType": "regular",
+                            "status": "Filled",
+                            "symbol": "SOL/USDT-P",
+                            "totalQuantity": "1.200000000",
+                            "triggerDirection": null,
+                            "triggerPrice": null
+                        },
+                        "id": "596002791293190100",
+                        "clientOrderId": null,
+                        "datetime": "2026-05-03T12:33:40.000Z",
+                        "timestamp": 1777811620000,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1777811627000,
+                        "status": "closed",
+                        "symbol": "SOL/USDT:USDT",
+                        "type": "market",
+                        "timeInForce": "GTC",
+                        "side": "buy",
+                        "price": 2900,
+                        "average": 2900,
+                        "amount": 1.2,
+                        "filled": 1.2,
+                        "remaining": 0,
+                        "cost": 3480,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "triggerPrice": null,
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "input": [
+                    "SOL/USDT:USDT",
+                    1754040000000,
+                    null,
+                    {
+                        "until": 1754050000000
+                    }
+                ],
+                "httpResponse": {
+                    "hasMore": false,
+                    "orders": [
+                        {
+                            "accountId": 13787,
+                            "avgFillPrice": null,
+                            "closedAt": 1777811627000,
+                            "createdAt": 1777811620000,
+                            "filledQuantity": "0.000000000",
+                            "orderFlags": null,
+                            "orderId": "596002791293190101",
+                            "orderType": "LIMIT",
+                            "parentOrderId": null,
+                            "price": "100.000000",
+                            "side": "ASK",
+                            "sourceType": "regular",
+                            "status": "Cancelled",
+                            "symbol": "SOL/USDT-P",
+                            "totalQuantity": "1.200000000",
+                            "triggerDirection": null,
+                            "triggerPrice": null
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": 13787,
+                            "avgFillPrice": null,
+                            "closedAt": 1777811627000,
+                            "createdAt": 1777811620000,
+                            "filledQuantity": "0.000000000",
+                            "orderFlags": null,
+                            "orderId": "596002791293190101",
+                            "orderType": "LIMIT",
+                            "parentOrderId": null,
+                            "price": "100.000000",
+                            "side": "ASK",
+                            "sourceType": "regular",
+                            "status": "Cancelled",
+                            "symbol": "SOL/USDT-P",
+                            "totalQuantity": "1.200000000",
+                            "triggerDirection": null,
+                            "triggerPrice": null
+                        },
+                        "id": "596002791293190101",
+                        "clientOrderId": null,
+                        "datetime": "2026-05-03T12:33:40.000Z",
+                        "timestamp": 1777811620000,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": 1777811627000,
+                        "status": "canceled",
+                        "symbol": "SOL/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "side": "sell",
+                        "price": 100,
+                        "average": null,
+                        "amount": 1.2,
+                        "filled": 0,
+                        "remaining": 1.2,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "triggerPrice": null,
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetch my settlement history",
+                "method": "fetchMySettlementHistory",
+                "input": [
+                    "SOL/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "settlements": [
+                        {
+                            "direction": "Long",
+                            "indexPrice": "81.8781761",
+                            "quantity": "0.10000000",
+                            "settledAmount": "0.00005994405060281047",
+                            "symbol": "SOL/USDT-P",
+                            "timestamp": 1783389600,
+                            "timestampNsPartial": 0
+                        },
+                        {
+                            "direction": "Long",
+                            "indexPrice": "82.3360075",
+                            "quantity": "0.10000000",
+                            "settledAmount": "0.00007317320923961233",
+                            "symbol": "SOL/USDT-P",
+                            "timestamp": 1783386000,
+                            "timestampNsPartial": 0
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "direction": "Long",
+                            "indexPrice": "82.3360075",
+                            "quantity": "0.10000000",
+                            "settledAmount": "0.00007317320923961233",
+                            "symbol": "SOL/USDT-P",
+                            "timestamp": 1783386000,
+                            "timestampNsPartial": 0
+                        },
+                        "symbol": "SOL/USDT:USDT",
+                        "price": 82.3360075,
+                        "timestamp": 1783386000000,
+                        "datetime": "2026-07-07T01:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "direction": "Long",
+                            "indexPrice": "81.8781761",
+                            "quantity": "0.10000000",
+                            "settledAmount": "0.00005994405060281047",
+                            "symbol": "SOL/USDT-P",
+                            "timestamp": 1783389600,
+                            "timestampNsPartial": 0
+                        },
+                        "symbol": "SOL/USDT:USDT",
+                        "price": 81.8781761,
+                        "timestamp": 1783389600000,
+                        "datetime": "2026-07-07T02:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "createOrder": [
             {
                 "description": "limit buy order",
@@ -3858,49 +4095,10 @@
                             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
                             "transactionType": "withdrawal",
                             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-                        },
-                        {
-                            "assetId": 1,
-                            "id": 167,
-                            "quantity": "10.000000",
-                            "srcAccountId": 175,
-                            "status": "completed",
-                            "timestampSec": 1732224729,
-                            "transactionType": "transfer-in"
                         }
                     ]
                 },
                 "parsedResponse": [
-                    {
-                        "info": {
-                            "assetId": 1,
-                            "id": 167,
-                            "quantity": "10.000000",
-                            "srcAccountId": 175,
-                            "status": "completed",
-                            "timestampSec": 1732224729,
-                            "transactionType": "transfer-in"
-                        },
-                        "id": "167",
-                        "txid": null,
-                        "timestamp": 1732224729000,
-                        "datetime": "2024-11-21T21:32:09.000Z",
-                        "network": "ARBITRUM",
-                        "address": null,
-                        "addressTo": null,
-                        "addressFrom": null,
-                        "tag": null,
-                        "tagTo": null,
-                        "tagFrom": null,
-                        "type": "transfer",
-                        "amount": 10,
-                        "currency": "USDT",
-                        "status": "ok",
-                        "updated": null,
-                        "internal": null,
-                        "comment": null,
-                        "fee": null
-                    },
                     {
                         "info": {
                             "assetId": 1,
