@@ -824,25 +824,23 @@ export default class bithumb extends Exchange {
             const result = this.safeDict (response, 0, {});
             timestamp = this.safeInteger (result, 'timestamp');
             const orderBookUnits = this.safeList (result, 'orderbook_units', []);
-            data = {
-                'bids': [],
-                'asks': [],
-            };
+            const bids = [];
+            const asks = [];
             for (let i = 0; i < orderBookUnits.length; i++) {
                 const entry = orderBookUnits[i];
-                const bidPrice = this.safeString (entry, 'bid_price');
-                const bidSize = this.safeString (entry, 'bid_size');
-                const askPrice = this.safeString (entry, 'ask_price');
-                const askSize = this.safeString (entry, 'ask_size');
-                data['bids'].push ({
-                    'price': bidPrice,
-                    'quantity': bidSize,
+                bids.push ({
+                    'price': this.safeString (entry, 'bid_price'),
+                    'quantity': this.safeString (entry, 'bid_size'),
                 });
-                data['asks'].push ({
-                    'price': askPrice,
-                    'quantity': askSize,
+                asks.push ({
+                    'price': this.safeString (entry, 'ask_price'),
+                    'quantity': this.safeString (entry, 'ask_size'),
                 });
             }
+            data = {
+                'bids': bids,
+                'asks': asks,
+            };
         } else {
             request['baseId'] = market['baseId'];
             request['quoteId'] = market['quoteId'];
