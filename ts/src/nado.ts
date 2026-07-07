@@ -40,6 +40,8 @@ export default class nado extends Exchange {
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
                 'fetchDeposits': true,
@@ -830,9 +832,91 @@ export default class nado extends Exchange {
 
     /**
      * @method
+     * @name nado#fetchOrders
+     * @description fetches information on multiple orders made by the user
+     * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+     * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol of the market orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        await this.loadMarkets ();
+        let productIds = [];
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            productIds.push (this.parseToInt (market['id']));
+        }
+        let subaccount = undefined;
+        [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'subaccount', 'default');
+        const sender = this.createSubaccount (this.walletAddress, subaccount);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'stop', 'trigger' ]);
+        if (!trigger) {
+            throw new NotSupported (this.id + ' fetchOrders only support trigger');
+        }
+        const tx = {
+            'sender': sender,
+            'recvTime': this.numberToString (this.milliseconds () + 10000),
+        };
+        const request = {
+            'tx': tx,
+            'type': 'list_trigger_orders',
+            'product_ids': productIds,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const contracts = await this.queryContracts ();
+        const chainId = this.safeString (contracts, 'chain_id');
+        const endpointAddress = this.safeString (contracts, 'endpoint_addr');
+        const signature = this.signFetchTriggerOrders (tx, chainId, endpointAddress);
+        request['signature'] = signature;
+        const response = await this.triggerPrivatePostQuery (this.extend (request, params));
+        //
+        // {
+        //     "status": "success",
+        //     "data": {
+        //         "orders": [{
+        //             "order": {
+        //                 "order": {
+        //                     "sender": "0x7a5ec2748e9065794491a8d29dcf3f9edb8d7c43000000000000000000000000",
+        //                     "priceX18": "1000000000000000000",
+        //                     "amount": "1000000000000000000",
+        //                     "expiration": "2000000000",
+        //                     "nonce": "1",
+        //                 },
+        //                 "signature": "0x...",
+        //                 "product_id": 1,
+        //                 "spot_leverage": true,
+        //                 "trigger": {
+        //                     "price_above": "1000000000000000000"
+        //                 },
+        //                 "digest": "0x..."
+        //             },
+        //             "status": "pending",
+        //             "placed_at": 1688768157000,
+        //             "updated_at": 1688768157050
+        //         }]
+        //     },
+        //     "request_type": "query_list_trigger_orders"
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const orders = this.safeList (data, 'orders', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    /**
+     * @method
      * @name nado#fetchOpenOrders
      * @description fetch all unfilled currently open orders
      * @see https://docs.nado.xyz/developer-resources/api/gateway/queries/orders
+     * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -845,50 +929,28 @@ export default class nado extends Exchange {
         if (this.walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires walletAddress');
         }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         let subaccount = undefined;
         [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
-        let request = {};
-        let response = undefined;
         if (trigger) {
-            const tx = {
-                'sender': sender,
-                'recvTime': this.numberToString (this.milliseconds () + 10000),
-            };
-            request = {
-                'tx': tx,
-                'type': 'list_trigger_orders',
-                'product_ids': [
-                    this.parseToInt (market['id']),
-                ],
+            return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
                 ],
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            const contracts = await this.queryContracts ();
-            const chainId = this.safeString (contracts, 'chain_id');
-            const endpointAddress = this.safeString (contracts, 'endpoint_addr');
-            const signature = this.signFetchTriggerOrders (tx, chainId, endpointAddress);
-            request['signature'] = signature;
-            response = await this.triggerPrivatePostQuery (this.extend (request, params));
-        } else {
-            request = {
-                'sender': sender,
-                'type': 'subaccount_orders',
-                'product_id': this.parseToInt (market['id']),
-            };
-            response = await this.gatewayPublicGetQuery (this.extend (request, params));
+            }));
         }
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        const request = {
+            'sender': sender,
+            'type': 'subaccount_orders',
+            'product_id': this.parseToInt (market['id']),
+        };
+        const response = await this.gatewayPublicGetQuery (this.extend (request, params));
         //
         // single product
         //
@@ -918,9 +980,6 @@ export default class nado extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const orders = this.safeList (data, 'orders', []);
-        if (trigger) {
-            return this.parseOrders (orders, market, since, limit);
-        }
         return this.parseOrders (orders, market, since, limit, { 'status': 'open' });
     }
 
@@ -929,6 +988,7 @@ export default class nado extends Exchange {
      * @name nado#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://docs.nado.xyz/developer-resources/api/archive-indexer/orders
+     * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} [symbol] unified market symbol of the market orders were made in
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders structures to retrieve
@@ -951,51 +1011,29 @@ export default class nado extends Exchange {
         [ subaccount, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'subaccount', 'default');
         const sender = this.createSubaccount (this.walletAddress, subaccount);
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
-        params = this.omit (params, [ 'stop', 'trigger' ]);
-        let request = {};
-        let response = undefined;
         if (trigger) {
-            const tx = {
-                'sender': sender,
-                'recvTime': this.numberToString (this.milliseconds () + 10000),
-            };
-            request = {
-                'tx': tx,
-                'type': 'list_trigger_orders',
-                'product_ids': [
-                    this.parseToInt (market['id']),
-                ],
+            return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ],
-            };
-            if (limit !== undefined) {
-                request['limit'] = limit;
-            }
-            const contracts = await this.queryContracts ();
-            const chainId = this.safeString (contracts, 'chain_id');
-            const endpointAddress = this.safeString (contracts, 'endpoint_addr');
-            const signature = this.signFetchTriggerOrders (tx, chainId, endpointAddress);
-            request['signature'] = signature;
-            response = await this.triggerPrivatePostQuery (this.extend (request, params));
-        } else {
-            let ordersRequest: Dict = {
-                'subaccounts': [
-                    sender,
-                ],
-            };
-            if (market !== undefined) {
-                ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
-            }
-            [ ordersRequest, params ] = this.handleUntilOption ('max_time', ordersRequest, params, 0.001);
-            if (limit !== undefined) {
-                ordersRequest['limit'] = Math.min (limit, 500);
-            }
-            request = {
-                'orders': ordersRequest,
-            };
-            response = await this.archivePost (this.deepExtend (request, params));
+            }));
         }
+        let ordersRequest: Dict = {
+            'subaccounts': [
+                sender,
+            ],
+        };
+        if (market !== undefined) {
+            ordersRequest['product_ids'] = [ this.parseToInt (market['id']) ];
+        }
+        [ ordersRequest, params ] = this.handleUntilOption ('max_time', ordersRequest, params, 0.001);
+        if (limit !== undefined) {
+            ordersRequest['limit'] = Math.min (limit, 500);
+        }
+        const request = {
+            'orders': ordersRequest,
+        };
+        const response = await this.archivePost (this.deepExtend (request, params));
         //
         //     {
         //         "orders": [
@@ -1016,19 +1054,54 @@ export default class nado extends Exchange {
         //     }
         //
         let closedOrders = [];
-        if (trigger) {
-            const data = this.safeDict (response, 'data', {});
-            closedOrders = this.safeList (data, 'orders', []);
-        } else {
-            const orders = this.safeList (response, 'orders', []);
-            for (let i = 0; i < orders.length; i++) {
-                const order = orders[i];
-                if (this.isArchiveOrderClosed (order)) {
-                    closedOrders.push (this.extend ({ 'status': 'closed' }, order));
-                }
+        const orders = this.safeList (response, 'orders', []);
+        for (let i = 0; i < orders.length; i++) {
+            const order = orders[i];
+            if (this.isArchiveOrderClosed (order)) {
+                closedOrders.push (this.extend ({ 'status': 'closed' }, order));
             }
         }
         return this.parseOrders (closedOrders, market, since, limit);
+    }
+
+    /**
+     * @method
+     * @name nado#fetchCanceledOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+            'status_types': [
+                'cancelled', 'internal_error',
+            ],
+        }));
+    }
+
+    /**
+     * @method
+     * @name nado#fetchCanceledAndClosedOrders
+     * @description fetches information on multiple canceled orders made by the user
+     * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
+     * @param {string} symbol unified market symbol of the market the orders were made in
+     * @param {int} [since] the earliest time in ms to fetch orders for
+     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        return await this.fetchOrders (symbol, since, undefined, this.extend (params, {
+            'status_types': [
+                'cancelled', 'internal_error', 'triggered', 'triggering', 'twap_executing', 'twap_completed',
+            ],
+        }));
     }
 
     /**
