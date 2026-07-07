@@ -1,0 +1,114 @@
+---
+title: "The most popular crypto arbitrage strategies — and how CCXT helps you run them"
+description: Cross-exchange, triangular, funding-rate, basis, and statistical arbitrage — how each one actually works, what the real risks are, and which CCXT methods power them.
+author: CCXT Team
+date: 2026-07-07T11:00:00Z
+tags: [arbitrage, strategies]
+---
+
+"Arbitrage" covers half a dozen genuinely different strategies, with different capital
+requirements, speed requirements, and risks. This post maps the popular ones — what the trade
+is, why the edge exists, and the CCXT machinery each one runs on. It pairs with the hands-on
+[spread scanner tutorial](/blog/scanning-100-exchanges-for-arbitrage-spreads); this is the
+strategy layer above it.
+
+## 1. Cross-exchange (spatial) arbitrage
+
+**The trade:** the same asset is cheaper on venue A than venue B. Buy on A, sell on B.
+
+The naive version — buy, withdraw, deposit, sell — rarely survives contact with reality:
+transfers take minutes to hours and the spread is gone long before the coins arrive. The
+version that works is **inventory-based**: hold both the asset and the quote currency on both
+venues in advance, execute the two legs simultaneously, and rebalance inventory occasionally
+during quiet periods (or accept the drift). No transfer sits on the critical path; the
+transfer cost becomes an amortized rebalancing cost.
+
+**Where the edge comes from:** fragmented liquidity. Smaller venues lag larger ones by
+seconds, and retail flow pushes prices around on venues where books are thin.
+
+**CCXT gives you:** one API across all venues — `fetchTickers` / `watchOrderBook` on both
+sides, `createOrder` on both sides, `fetchCurrencies` to check whether deposits/withdrawals
+on a network are live before you count on rebalancing through it. This strategy is *why*
+people reach for a multi-exchange library in the first place.
+
+## 2. Triangular arbitrage
+
+**The trade:** three markets on **one** exchange form a cycle — for example BTC/USDT,
+ETH/BTC, ETH/USDT. Multiply the implied rates around the loop; if the product beats 1.0
+after three sets of fees, convert around the cycle and end with more than you started.
+
+Because everything happens on one venue there's no transfer risk and no inventory split —
+but the loop must execute fast, the three legs are not atomic (leg two can fail after leg one
+filled), and on major exchanges these gaps are hunted by very fast players. Realistic
+opportunities cluster in less-liquid pairs, where slippage is the counterweight.
+
+**CCXT gives you:** `loadMarkets()` to build the currency graph and enumerate cycles,
+`watchOrderBookForSymbols` to stream all three books in one loop, and precision/limits
+metadata so each leg's amount is valid before you fire it.
+
+## 3. Funding-rate arbitrage (the crypto cash-and-carry)
+
+**The trade:** perpetual swaps pay **funding** between longs and shorts every few hours to
+keep the perp pinned to spot. When funding is positive (the common state in bull markets),
+shorts get paid. So: buy spot, short the same notional in the perp. Price risk nets to
+roughly zero; you collect funding.
+
+This is the institutional favorite because it scales and doesn't need speed. The risks are
+subtler: funding flips negative and the carry becomes a cost; the perp leg needs margin and
+can be liquidated if it's under-collateralized while the basis moves; and entry/exit
+execution costs two spreads.
+
+**CCXT gives you:** `fetchFundingRates()` for a venue-wide snapshot, `fetchFundingRateHistory`
+for backtesting the carry, unified derivatives symbols (`BTC/USDT:USDT` is the linear perp),
+plus position and margin data on the private side. A funding scanner is a few lines:
+
+```python
+import ccxt
+
+for exchange_id in ['binance', 'bybit', 'okx', 'gate']:
+    exchange = getattr(ccxt, exchange_id)()
+    rates = exchange.fetch_funding_rates()
+    for symbol, entry in rates.items():
+        rate = entry['fundingRate']
+        if rate and abs(rate) > 0.0005:          # 0.05% per interval
+            print(f'{exchange_id:10} {symbol:22} {rate * 100:+.4f}%')
+```
+
+At 0.05% every 8 hours, the gross annualized carry is roughly 55% — which is why crowded
+trades compress it quickly. Compare across venues: the same perp often funds very differently
+on different exchanges, and shorting where funding is highest is itself a selection edge.
+
+## 4. Spot–futures basis trades
+
+The dated-futures cousin of funding arbitrage: quarterly futures trade at a premium to spot,
+and the premium must converge to zero at expiry. Buy spot, short the future, hold to expiry,
+pocket the basis — a fixed-term, known-in-advance yield, at the cost of capital efficiency
+and margin management on the short leg. CCXT exposes dated futures as unified markets
+(`market['future']`) with expiry metadata, so scanning the term structure is the same
+`loadMarkets` + `fetchTickers` pattern as everything else.
+
+## 5. Statistical arbitrage
+
+Everything above is (near-)riskless in principle. Stat-arb is not: it bets that a historical
+price *relationship* — between correlated alts, or an alt and its sector — will mean-revert
+after diverging. Model the spread, enter at a z-score threshold, exit on reversion. The
+"arbitrage" in the name is aspirational: relationships break, and 2021's cointegration is
+2022's divergence.
+
+**CCXT gives you:** `fetchOHLCV` across hundreds of venues for research, and the same
+execution layer as everything else when the signal fires. The hard part here is the
+statistics, not the plumbing.
+
+## Honest advice on picking one
+
+- **Start with the funding-rate scan.** It's slow-paced, measurable in advance, and teaches
+  derivatives mechanics. Run it read-only; you'll learn the rhythm of the market's carry.
+- **Cross-exchange inventory arbitrage** is the classic CCXT use case, but treat it as an
+  execution-engineering project: the edge is in your latency, sizing, and venue selection,
+  not in the idea.
+- **Triangular on majors is mostly educational** in 2026 — build it to learn order-book
+  mechanics, don't expect it to pay.
+- Whatever you pick: fees first (`market['taker']`, `market['maker']`), depth before
+  tickers, testnets before mainnet, and the
+  [seven classic mistakes](/blog/seven-mistakes-crypto-exchange-api-developers-make) apply
+  double when two venues are involved.

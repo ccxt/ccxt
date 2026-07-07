@@ -1,0 +1,298 @@
+---
+title: "Build your first crypto trading bot — the same bot in six languages"
+description: Connect to an exchange, read balances and prices, and place your first order — in JavaScript, Python, PHP, C#, Go, and Java, with safety rails on from the start.
+author: CCXT Team
+date: 2026-07-07T15:00:00Z
+tags: [tutorials]
+---
+
+Every trading bot starts with the same four moves: connect to an exchange, load its markets,
+read some data, place an order. This tutorial does exactly that — and because CCXT ships the
+same API in six languages, every step below is shown in all of them. Pick your tab and stay
+in it.
+
+## Rule zero: don't learn with real money
+
+Before writing any code:
+
+- **Use a testnet.** Most major exchanges (Binance, Bybit, OKX, and others) offer sandbox or
+  demo environments with play money. CCXT switches to them with a single call —
+  `setSandboxMode(true)` — shown below.
+- **Create API keys with withdrawals disabled** and an IP allowlist. A trading bot never
+  needs withdrawal permissions.
+- **Start with the exchange's minimum order size**, even on testnet, so the habits transfer.
+
+## Step 1 — install
+
+```bash tab="JavaScript"
+npm install ccxt
+```
+
+```bash tab="Python"
+pip install ccxt
+```
+
+```bash tab="PHP"
+composer require ccxt/ccxt
+```
+
+```bash tab="C#"
+dotnet add package ccxt
+```
+
+```bash tab="Go"
+go get github.com/ccxt/ccxt/go/v4
+```
+
+```kotlin tab="Java"
+// build.gradle.kts
+implementation("io.github.ccxt:ccxt:4.5.64")
+```
+
+## Step 2 — connect and load markets
+
+`loadMarkets()` downloads the exchange's tradable symbols, precision rules, and limits. Call
+it once at startup; everything else builds on it.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const exchange = new ccxt.binance({
+    apiKey: process.env.API_KEY,
+    secret: process.env.SECRET,
+});
+exchange.setSandboxMode(true); // testnet — remove only when you mean it
+
+await exchange.loadMarkets();
+console.log(`${exchange.id}: ${Object.keys(exchange.markets).length} markets`);
+```
+
+```python tab="Python"
+import os
+import ccxt
+
+exchange = ccxt.binance({
+    'apiKey': os.environ['API_KEY'],
+    'secret': os.environ['SECRET'],
+})
+exchange.set_sandbox_mode(True)  # testnet — remove only when you mean it
+
+exchange.load_markets()
+print(exchange.id, len(exchange.markets), 'markets')
+```
+
+```php tab="PHP"
+<?php
+$exchange = new \ccxt\binance([
+    'apiKey' => getenv('API_KEY'),
+    'secret' => getenv('SECRET'),
+]);
+$exchange->set_sandbox_mode(true); // testnet — remove only when you mean it
+
+$exchange->load_markets();
+echo $exchange->id, ': ', count($exchange->markets), " markets\n";
+```
+
+```csharp tab="C#"
+using ccxt;
+
+var exchange = new Binance();
+exchange.apiKey = Environment.GetEnvironmentVariable("API_KEY");
+exchange.secret = Environment.GetEnvironmentVariable("SECRET");
+exchange.setSandboxMode(true); // testnet — remove only when you mean it
+
+await exchange.LoadMarkets();
+Console.WriteLine($"{exchange.id}: markets loaded");
+```
+
+```go tab="Go"
+package main
+
+import (
+    "fmt"
+    "os"
+
+    ccxt "github.com/ccxt/ccxt/go/v4"
+)
+
+func main() {
+    exchange := ccxt.NewBinance(nil)
+    exchange.ApiKey = os.Getenv("API_KEY")
+    exchange.Secret = os.Getenv("SECRET")
+    exchange.SetSandboxMode(true) // testnet — remove only when you mean it
+
+    exchange.LoadMarkets()
+    fmt.Println(exchange.Id, "markets loaded")
+}
+```
+
+```java tab="Java"
+import io.github.ccxt.exchanges.Binance;
+
+var exchange = new Binance();
+exchange.apiKey = System.getenv("API_KEY");
+exchange.secret = System.getenv("SECRET");
+exchange.setSandboxMode(true); // testnet — remove only when you mean it
+
+exchange.loadMarkets();
+System.out.println("markets loaded");
+```
+
+CCXT's rate limiter is **on by default** — requests are automatically spaced out to respect
+the exchange's limits, so a simple loop won't get your IP banned.
+
+## Step 3 — read the market and your balance
+
+```javascript tab="JavaScript"
+const ticker = await exchange.fetchTicker('BTC/USDT');
+console.log('last price:', ticker.last);
+
+const balance = await exchange.fetchBalance();
+console.log('free USDT:', balance['USDT'].free);
+```
+
+```python tab="Python"
+ticker = exchange.fetch_ticker('BTC/USDT')
+print('last price:', ticker['last'])
+
+balance = exchange.fetch_balance()
+print('free USDT:', balance['USDT']['free'])
+```
+
+```php tab="PHP"
+$ticker = $exchange->fetch_ticker('BTC/USDT');
+echo 'last price: ', $ticker['last'], "\n";
+
+$balance = $exchange->fetch_balance();
+echo 'free USDT: ', $balance['USDT']['free'], "\n";
+```
+
+```csharp tab="C#"
+var ticker = await exchange.FetchTicker("BTC/USDT");
+Console.WriteLine($"last price: {ticker.last}");
+
+var balance = await exchange.FetchBalance();
+Console.WriteLine($"free USDT: {balance["USDT"].Free}");
+```
+
+```go tab="Go"
+ticker, err := exchange.FetchTicker("BTC/USDT")
+if err != nil {
+    panic(err)
+}
+fmt.Println("last price:", *ticker.Last)
+
+balance, err := exchange.FetchBalance()
+if err != nil {
+    panic(err)
+}
+fmt.Println("free USDT:", *balance.Free["USDT"])
+```
+
+```java tab="Java"
+var ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println("last price: " + ticker.last);
+
+var balance = exchange.fetchBalance((java.util.Map<String, Object>) null);
+System.out.println(balance);
+```
+
+Notice the symbol: `BTC/USDT` is CCXT's **unified symbol** format. You write the same symbol
+on every exchange — CCXT translates it to whatever the exchange calls it internally
+(`BTCUSDT`, `XBTUSDT`, `BTC-USDT`, ...).
+
+## Step 4 — place a limit order, then cancel it
+
+We place a buy order 20% below the market so it won't fill while you experiment, then cancel
+it.
+
+```javascript tab="JavaScript"
+const price = exchange.priceToPrecision('BTC/USDT', ticker.last * 0.8);
+const amount = 0.001;
+
+const order = await exchange.createOrder('BTC/USDT', 'limit', 'buy', amount, price);
+console.log('placed:', order.id);
+
+await exchange.cancelOrder(order.id, 'BTC/USDT');
+console.log('canceled');
+```
+
+```python tab="Python"
+price = exchange.price_to_precision('BTC/USDT', ticker['last'] * 0.8)
+amount = 0.001
+
+order = exchange.create_order('BTC/USDT', 'limit', 'buy', amount, price)
+print('placed:', order['id'])
+
+exchange.cancel_order(order['id'], 'BTC/USDT')
+print('canceled')
+```
+
+```php tab="PHP"
+$price = $exchange->price_to_precision('BTC/USDT', $ticker['last'] * 0.8);
+$amount = 0.001;
+
+$order = $exchange->create_order('BTC/USDT', 'limit', 'buy', $amount, $price);
+echo 'placed: ', $order['id'], "\n";
+
+$exchange->cancel_order($order['id'], 'BTC/USDT');
+echo "canceled\n";
+```
+
+```csharp tab="C#"
+var price = (double)ticker.last * 0.8;
+var amount = 0.001;
+
+var order = await exchange.CreateOrder("BTC/USDT", "limit", "buy", amount, price);
+Console.WriteLine($"placed: {order.id}");
+
+await exchange.CancelOrder(order.id, "BTC/USDT");
+Console.WriteLine("canceled");
+```
+
+```go tab="Go"
+price := *ticker.Last * 0.8
+amount := 0.001
+
+order, err := exchange.CreateOrder("BTC/USDT", "limit", "buy", amount,
+    ccxt.WithCreateOrderPrice(price))
+if err != nil {
+    panic(err)
+}
+fmt.Println("placed:", *order.Id)
+
+_, err = exchange.CancelOrder(*order.Id, ccxt.WithCancelOrderSymbol("BTC/USDT"))
+if err != nil {
+    panic(err)
+}
+fmt.Println("canceled")
+```
+
+```java tab="Java"
+double price = ticker.last * 0.8;
+double amount = 0.001;
+
+var order = exchange.createOrder("BTC/USDT", "limit", "buy", amount, price, null);
+System.out.println("placed: " + order.id);
+
+exchange.cancelOrder(order.id, "BTC/USDT", null);
+System.out.println("canceled");
+```
+
+Two details that separate toy scripts from real bots, both visible here:
+
+- **Precision helpers.** `priceToPrecision` / `amountToPrecision` round values to what the
+  exchange actually accepts. Sending `26418.377777` raw gets your order rejected.
+- **Always pass the symbol to `cancelOrder`.** Many exchanges require it, and unified code
+  should assume it's needed.
+
+## Where to go next
+
+You now have the full loop: connect, read, act, undo. From here:
+
+- **Never poll in a loop for live prices** — use WebSockets instead, covered in
+  [Real-time market data with WebSockets](/blog/realtime-market-data-with-websockets).
+- **Read [Seven mistakes](/blog/seven-mistakes-crypto-exchange-api-developers-make)** before
+  putting real funds behind any of this.
+- The [Manual](/docs/manual) documents everything the unified API offers — 100+ exchanges,
+  spot and derivatives, public and private endpoints.

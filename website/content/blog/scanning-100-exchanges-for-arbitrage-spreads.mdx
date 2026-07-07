@@ -1,0 +1,156 @@
+---
+title: "Scanning exchanges for arbitrage spreads in 50 lines"
+description: A working cross-exchange spread scanner with CCXT — and the honest list of reasons most of the spreads it finds aren't free money.
+author: CCXT Team
+date: 2026-07-07T12:00:00Z
+tags: [tutorials, arbitrage]
+---
+
+The classic first "quant" project: the same asset trades at slightly different prices on
+different exchanges — find the gaps. Because CCXT gives every exchange the same API, the
+whole scanner fits in about fifty lines. We'll build it, then spend the second half of this
+post on why most of what it finds is *not* free money — which is the part that actually
+makes you better at this.
+
+## The scanner
+
+The efficient shape: load markets everywhere, find symbols listed on at least two venues,
+then make **one batched `fetchTickers` call per exchange** instead of hammering
+per-symbol endpoints.
+
+```javascript tab="JavaScript"
+import ccxt from 'ccxt';
+
+const ids = ['binance', 'kraken', 'okx', 'bybit', 'kucoin'];
+
+const exchanges = await Promise.all(ids.map(async (id) => {
+    const exchange = new ccxt[id]();
+    await exchange.loadMarkets();
+    return exchange;
+}));
+
+// spot USDT symbols listed on at least two venues
+const counts = {};
+for (const exchange of exchanges) {
+    for (const symbol in exchange.markets) {
+        const market = exchange.markets[symbol];
+        if (market.spot && market.active !== false && symbol.endsWith('/USDT')) {
+            counts[symbol] = (counts[symbol] ?? 0) + 1;
+        }
+    }
+}
+const shared = Object.keys(counts).filter((symbol) => counts[symbol] >= 2);
+
+// one batched call per exchange
+const perExchange = await Promise.all(exchanges.map((exchange) =>
+    exchange.fetchTickers(shared.filter((symbol) => symbol in exchange.markets))));
+
+const opportunities = [];
+for (const symbol of shared) {
+    const quotes = [];
+    exchanges.forEach((exchange, i) => {
+        const ticker = perExchange[i][symbol];
+        if (ticker && ticker.bid && ticker.ask) {
+            quotes.push({ id: exchange.id, bid: ticker.bid, ask: ticker.ask });
+        }
+    });
+    if (quotes.length < 2) continue;
+    const bestBid = quotes.reduce((a, b) => (b.bid > a.bid ? b : a));
+    const bestAsk = quotes.reduce((a, b) => (b.ask < a.ask ? b : a));
+    const spread = (bestBid.bid - bestAsk.ask) / bestAsk.ask;
+    if (spread > 0) {
+        opportunities.push({ symbol, buyOn: bestAsk.id, sellOn: bestBid.id, spread });
+    }
+}
+
+opportunities.sort((a, b) => b.spread - a.spread);
+for (const o of opportunities.slice(0, 10)) {
+    console.log(`${o.symbol}: buy ${o.buyOn}, sell ${o.sellOn}, ${(o.spread * 100).toFixed(3)}%`);
+}
+
+await Promise.all(exchanges.map((exchange) => exchange.close()));
+```
+
+```python tab="Python"
+import asyncio
+import ccxt.async_support as ccxt
+
+IDS = ['binance', 'kraken', 'okx', 'bybit', 'kucoin']
+
+
+async def main():
+    exchanges = [getattr(ccxt, exchange_id)() for exchange_id in IDS]
+    await asyncio.gather(*[exchange.load_markets() for exchange in exchanges])
+
+    # spot USDT symbols listed on at least two venues
+    counts = {}
+    for exchange in exchanges:
+        for symbol, market in exchange.markets.items():
+            if market['spot'] and market['active'] is not False and symbol.endswith('/USDT'):
+                counts[symbol] = counts.get(symbol, 0) + 1
+    shared = [symbol for symbol, count in counts.items() if count >= 2]
+
+    # one batched call per exchange
+    per_exchange = await asyncio.gather(*[
+        exchange.fetch_tickers([s for s in shared if s in exchange.markets])
+        for exchange in exchanges
+    ])
+
+    opportunities = []
+    for symbol in shared:
+        quotes = []
+        for exchange, tickers in zip(exchanges, per_exchange):
+            ticker = tickers.get(symbol)
+            if ticker and ticker['bid'] and ticker['ask']:
+                quotes.append((exchange.id, ticker['bid'], ticker['ask']))
+        if len(quotes) < 2:
+            continue
+        sell_on = max(quotes, key=lambda q: q[1])   # highest bid
+        buy_on = min(quotes, key=lambda q: q[2])    # lowest ask
+        spread = (sell_on[1] - buy_on[2]) / buy_on[2]
+        if spread > 0:
+            opportunities.append((symbol, buy_on[0], sell_on[0], spread))
+
+    for symbol, buy, sell, spread in sorted(opportunities, key=lambda o: -o[3])[:10]:
+        print(f'{symbol}: buy {buy}, sell {sell}, {spread * 100:.3f}%')
+
+    await asyncio.gather(*[exchange.close() for exchange in exchanges])
+
+asyncio.run(main())
+```
+
+Run it and you'll see a list of positive spreads, usually clustered in small-cap alts. Before
+you wire `createOrder` to the top row, read on.
+
+## Why most of those spreads aren't real
+
+**Fees eat the small ones.** You pay taker fees on both legs — commonly around 0.1% per side
+on majors, more on small venues. A 0.15% gross spread is a loss. Your threshold needs to be
+fees-in, and per-exchange fees live in `exchange.markets[symbol]['taker']`.
+
+**Tickers are top-of-book for one tick.** The bid you plan to hit has finite size, and the
+quote may be stale by the time you act. Before trusting a spread, look at depth with
+`fetchOrderBook(symbol)` and compute the *executable* price for your size, not the displayed
+one. For continuous monitoring, stream books over
+[WebSockets](/blog/realtime-market-data-with-websockets) instead of polling.
+
+**Moving coins is slow and costly.** The naive plan — buy on A, withdraw, deposit on B,
+sell — takes minutes to hours, during which the spread is gone. Withdrawal fees are often
+larger than the edge. And sometimes withdrawals are outright suspended, which is *why* the
+spread exists: nobody can close it. Check `fetchCurrencies()` — the unified currency
+structure carries per-network `active`, `deposit`, and `withdraw` flags plus fees.
+
+**The persistent spreads are persistent for a reason.** Venue risk, geographic restrictions,
+or an illiquid book that can't absorb size. The market is not leaving twenties on the
+sidewalk; it's charging for risks you haven't priced yet.
+
+## What the real version looks like
+
+Serious cross-exchange arbitrage pre-funds inventory on both venues and executes both legs
+simultaneously — no transfers on the critical path — then rebalances occasionally. That, plus
+funding-rate arbitrage and triangular arbitrage inside one venue, is the subject of the
+companion post: [The most popular crypto arbitrage strategies](/blog/crypto-arbitrage-strategies).
+
+The scanner above is still the right first step: it's how you learn where spreads live, how
+fast they close, and which venues systematically lag. Just let it run read-only for a week
+before any order leaves your machine.

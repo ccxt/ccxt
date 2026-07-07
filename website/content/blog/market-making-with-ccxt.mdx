@@ -1,0 +1,124 @@
+---
+title: "An introduction to market making with CCXT"
+description: How market makers earn the spread, why inventory is the real enemy, and a minimal quoting loop built on watchOrderBook, postOnly orders, and hard risk limits.
+author: CCXT Team
+date: 2026-07-07T10:00:00Z
+tags: [market-making, strategies]
+---
+
+Every trade needs a counterparty, and most of the time the counterparty is a market maker:
+someone continuously quoting both a buy price and a sell price, earning the gap between them.
+Exchanges want that liquidity so badly they charge makers lower fees than takers — often zero,
+sometimes negative (a rebate). This post explains the mechanics and builds a minimal quoting
+loop with CCXT — a **teaching skeleton**, not a production system, and market making with
+real size is a genuinely hard, competitive business.
+
+## The business model
+
+A market maker places a limit buy below the current price and a limit sell above it. When
+both fill — someone sells into your bid, someone else buys from your ask — you've bought low
+and sold high, capturing the spread, and you're back to flat. Repeat thousands of times.
+
+Three numbers govern the P&L:
+
+- **Spread captured** per round trip (your quoted spread, minus adverse price movement).
+- **Maker fees** — negotiate the tier; makers live and die on fee schedules. Check
+  `exchange.markets[symbol]['maker']`.
+- **Inventory losses** — the reason this isn't free money, and the subject of most of the
+  literature.
+
+## Inventory: the real enemy
+
+If price trends down, your bids keep filling and your asks don't — you accumulate the asset
+all the way down. This is **adverse selection**: the people trading with you know something
+(or are simply the front edge of a move), and you're systematically on the wrong side of it.
+
+Every serious market-making model is at heart an inventory-control policy. The classic
+reference is Avellaneda–Stoikov (2008): quote around a **reservation price** that leans away
+from your inventory — long inventory pushes both quotes down (eager to sell, reluctant to
+buy), short inventory pushes both up. Our skeleton below uses the simplest version of that
+idea: a linear skew.
+
+## A minimal quoting loop
+
+```python
+import asyncio
+import ccxt.pro as ccxtpro
+
+SYMBOL = 'BTC/USDT'
+SPREAD = 0.002            # 20 bps quoted spread, fees-inclusive
+ORDER_SIZE = 0.001
+MAX_INVENTORY = 0.005     # hard position bound, in base currency
+REFRESH = 5               # seconds between re-quotes
+
+
+async def main():
+    exchange = ccxtpro.binance({'apiKey': '...', 'secret': '...'})
+    exchange.set_sandbox_mode(True)          # learn on the testnet
+    await exchange.load_markets()
+    inventory = 0.0                          # track via watch_my_trades in real code
+    try:
+        while True:
+            book = await exchange.watch_order_book(SYMBOL)
+            mid = (book['bids'][0][0] + book['asks'][0][0]) / 2
+            # lean quotes against inventory (poor man's Avellaneda-Stoikov)
+            skew = -(inventory / MAX_INVENTORY) * (SPREAD / 2)
+            bid = exchange.price_to_precision(SYMBOL, mid * (1 - SPREAD / 2 + skew))
+            ask = exchange.price_to_precision(SYMBOL, mid * (1 + SPREAD / 2 + skew))
+            await exchange.cancel_all_orders(SYMBOL)
+            if inventory < MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'buy', ORDER_SIZE, bid,
+                                            {'postOnly': True})
+            if inventory > -MAX_INVENTORY:
+                await exchange.create_order(SYMBOL, 'limit', 'sell', ORDER_SIZE, ask,
+                                            {'postOnly': True})
+            await asyncio.sleep(REFRESH)
+    finally:
+        await exchange.cancel_all_orders(SYMBOL)   # never exit with quotes resting
+        await exchange.close()
+
+asyncio.run(main())
+```
+
+What the CCXT pieces are doing:
+
+- **`watch_order_book`** streams the book over WebSockets (see
+  [the WebSocket post](/blog/realtime-market-data-with-websockets)) — quoting off polled REST
+  data means quoting off stale prices.
+- **`postOnly: True`** guarantees your order rests as a maker. If it would cross the spread
+  and execute as a taker (paying taker fees and taking the wrong side), the exchange rejects
+  it instead. Non-negotiable for a maker strategy.
+- **`cancel_all_orders` + re-place** is the simple re-quote. Where the exchange supports it
+  (check `exchange.has['editOrder']`), `edit_order` amends price in place — fewer round
+  trips, and you often keep queue position on exchanges that preserve it for size-down
+  amendments.
+- **`price_to_precision`** because quotes at invalid ticks are rejected — see
+  [mistake #1](/blog/seven-mistakes-crypto-exchange-api-developers-make).
+
+What's deliberately missing: real inventory tracking (subscribe to `watch_my_trades` and
+update `inventory` on every fill), volatility-aware spread sizing, order-book-imbalance
+signals, and multi-level quoting. Those are your roadmap, in that order.
+
+## Risk controls that are not optional
+
+- **Hard inventory bounds** — the skeleton stops quoting one side at the bound. Real systems
+  also actively unwind back toward flat.
+- **A kill switch you have tested** — one command that cancels everything and flattens.
+  `cancelAllOrders` exists on the unified API for exactly this. Some exchanges also support
+  dead-man's-switch semantics (auto-cancel on disconnect) via exchange-specific parameters —
+  worth wiring up where available.
+- **Spread floors during volatility.** When the book thins out or trades start printing
+  through levels, widen or pull quotes. The makers who survive news events are the ones who
+  weren't quoting through them.
+- **Fee-aware spread.** Your quoted spread must exceed round-trip fees plus expected adverse
+  selection. If your maker fee is 0.02% per side, a 0.1% spread nets 0.06% *before* adverse
+  selection — which will claim most of it.
+
+## Where this goes next
+
+Run the skeleton on a testnet against a liquid pair and watch what happens to `inventory`
+during a trend — that lesson is worth more than any parameter tuning. Then read
+Avellaneda–Stoikov and the queue-position literature, and look at how the open-source
+market-making bots structure the same loop. The plumbing — books, quotes, cancels, fills —
+is the same six-language unified API throughout, which means your first market maker can be
+built in the language your team already speaks.
