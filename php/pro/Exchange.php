@@ -17,10 +17,8 @@ class Exchange extends \ccxt\async\Exchange {
 // todo: fix the conflict of ccxt.exchanges vs ccxtpro.exchanges
 
 Exchange::$exchanges = array(
-    'aftermath',
     'alpaca',
     'apex',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -60,6 +58,7 @@ Exchange::$exchanges = array(
     'exmo',
     'extended',
     'gate',
+    'gateeu',
     'gemini',
     'grvt',
     'hashkey',
@@ -71,12 +70,14 @@ Exchange::$exchanges = array(
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
     'okx',

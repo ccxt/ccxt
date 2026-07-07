@@ -135,7 +135,7 @@ public class BitsoCore extends BitsoApi
                 put( "withdraw", true );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975" );
+                put( "logo", "https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://bitso.com/api" );
                 }} );
@@ -486,7 +486,7 @@ public class BitsoCore extends BitsoApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 Object id = this.safeString(market, "book");
-                var baseIdquoteIdVariable = Helpers.split(id, "_");
+                var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = ((String)baseId).toUpperCase();
@@ -1119,7 +1119,7 @@ public class BitsoCore extends BitsoApi
             Object limit = Helpers.getArg(optionalArgs, 2, 25);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             // the don't support fetching trades starting from a date yet
             // use the `marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1325,7 +1325,7 @@ public class BitsoCore extends BitsoApi
             put( "queued", "open" );
             put( "completed", "closed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -1401,7 +1401,7 @@ public class BitsoCore extends BitsoApi
             Object limit = Helpers.getArg(optionalArgs, 2, 25);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             // the don't support fetching trades starting from a date yet
             // use the `marker` extra param for that
             // this is not a typo, the variable name is 'marker' (don't confuse with 'market')
@@ -1488,7 +1488,7 @@ public class BitsoCore extends BitsoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            Object market = this.market(((String)symbol));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
@@ -1628,9 +1628,9 @@ public class BitsoCore extends BitsoApi
             Object response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
             Object address = this.safeString(Helpers.GetValue(response, "payload"), "account_identifier");
             Object tag = null;
-            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(address, "?dt="), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)address), "?dt="), 0)))
             {
-                Object parts = Helpers.split(address, "?dt=");
+                Object parts = Helpers.split(((String)address), "?dt=");
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }
@@ -2066,7 +2066,7 @@ public class BitsoCore extends BitsoApi
             put( "complete", "ok" );
             put( "failed", "failed" );
         }};
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((String)status), status);
     }
 
     public Object nonce()

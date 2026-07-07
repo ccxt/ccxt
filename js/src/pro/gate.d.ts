@@ -3,6 +3,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 export default class gate extends gateRest {
     describe(): any;
+    describeData(): any;
     /**
      * @method
      * @name gate#createOrderWs

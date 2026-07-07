@@ -150,7 +150,7 @@ class apex(Exchange, ImplicitAPI):
             },
             'hostname': 'omni.apex.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/fef8f2f7-4265-46aa-965e-33a91881cb00',
+                'logo': 'https://github.com/user-attachments/assets/8ba7fbfa-0dd0-4ab9-8b72-ff60abe08ac6',
                 'api': {
                     'public': 'https://{hostname}/api',
                     'private': 'https://{hostname}/api',
@@ -368,7 +368,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetV3AccountBalance(params)
         data = self.safe_dict(response, 'data', {})
         return self.parse_balance(data)
@@ -391,7 +392,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetV3Account(params)
         data = self.safe_dict(response, 'data', {})
         return self.parse_account(data)
@@ -771,7 +773,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id2'],
@@ -791,7 +794,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetV3DataAllTickerInfo(params)
         tickers = self.safe_list(response, 'data', [])
         return self.parse_tickers(tickers, symbols)
@@ -810,7 +814,8 @@ class apex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -861,7 +866,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id2'],
@@ -916,7 +922,8 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id2'],
@@ -996,7 +1003,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id2'],
@@ -1054,7 +1062,8 @@ class apex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = self.market(symbol)
         request['symbol'] = market['id']
@@ -1295,7 +1304,8 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         orderType = type.upper()
         orderSide = side.upper()
@@ -1382,7 +1392,8 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.transferId]: UUID, which is unique across the platform
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         configResponse = await self.publicGetV3Symbols(params)
         configData = self.safe_dict(configResponse, 'data', {})
         contractConfig = self.safe_dict(configData, 'contractConfig', {})
@@ -1530,7 +1541,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         request = {}
         if symbol is not None:
@@ -1577,7 +1589,8 @@ class apex(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_n(params, ['clientId', 'clientOrderId', 'client_order_id'])
         response = None
@@ -1603,7 +1616,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetV3OpenOrders(params)
         orders = self.safe_list(response, 'data', [])
         return self.parse_orders(orders, None, since, limit)
@@ -1626,7 +1640,8 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.page]: Page numbers start from 0
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1658,7 +1673,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
         if clientOrderId is not None:
@@ -1687,7 +1703,8 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.page]: Page numbers start from 0
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1721,7 +1738,8 @@ class apex(Exchange, ImplicitAPI):
         :param boolean [params.page]: Page numbers start from 0
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1783,7 +1801,8 @@ class apex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         leverageString = self.number_to_string(leverage)
         initialMarginRate = Precise.string_div('1', leverageString, 4)
@@ -1805,7 +1824,8 @@ class apex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetV3Account(params)
         data = self.safe_dict(response, 'data', {})
         positions = self.safe_list(data, 'positions', [])

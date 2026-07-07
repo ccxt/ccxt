@@ -67,8 +67,8 @@ jobs:
         run: composer install
       - name: Install python dependencies
         run: pip install -r ci-requirements.txt
-      - name: Install Wheel
-        run: pip install wheel twine
+      - name: Install Python build tools
+        run: pip install build twine
       - name: export exchanges (remove later)
         run: npm run export-exchanges
       - name: Transpile and Build TMP REMOVE
@@ -100,7 +100,9 @@ jobs:
       - name: vss
         run: npm run vss
       - name: Commit files
-        run: git add . -A
+        run: |
+          git add . -A
+          git add -f exchanges.json
       - name: Git status
         run: git status
       - name: cleanup old tags
@@ -130,7 +132,7 @@ jobs:
                echo "Creating GitHub release from ${VERSION}…"
                gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
       - name: Deploy Python Package
-        run: cd python && python setup.py sdist bdist_wheel;
+        run: python -m build --outdir python/dist
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:

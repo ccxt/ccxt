@@ -406,7 +406,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
         object response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
         //
@@ -441,7 +444,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -499,10 +505,13 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object response = await this.publicGetLatest(parameters);
-        object id = getValue(market, "id");
+        object id = this.safeString(market, "id", "");
         id = ((string)id).ToLower();
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         //
@@ -517,7 +526,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeDict(prices, id);
+        object ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
         return this.parseTicker(ticker, market);
     }
 
@@ -533,7 +542,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetLatest(parameters);
         //
         //    {
@@ -583,7 +595,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
@@ -615,7 +630,10 @@ public partial class coinspot : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -756,7 +774,14 @@ public partial class coinspot : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object sideUpper = ((string)side).ToUpper();
         if (isTrue(isEqual(type, "market")))
         {

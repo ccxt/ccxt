@@ -256,8 +256,8 @@ class btcbox(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             symbolParts = marketId.split('_')
-            baseCurr = self.safe_string(symbolParts, 0)
-            quote = self.safe_string(symbolParts, 1)
+            baseCurr = self.safe_string(symbolParts, 0, '')
+            quote = self.safe_string(symbolParts, 1, '')
             quoteId = quote.lower()
             id = baseCurr.lower()
             res = response1[marketId]
@@ -401,7 +401,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privatePostBalance(params)
         return self.parse_balance(response)
 
@@ -416,10 +417,11 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
-        numSymbols = len(self.symbols)
+        numSymbols = 0 if (self.symbols is None) else len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = self.publicGetDepth(self.extend(request, params))
@@ -461,10 +463,11 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
-        numSymbols = len(self.symbols)
+        numSymbols = 0 if (self.symbols is None) else len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = self.publicGetTicker(self.extend(request, params))
@@ -477,7 +480,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetTickers(params)
         return self.parse_tickers(response, symbols)
 
@@ -528,10 +532,11 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
-        numSymbols = len(self.symbols)
+        numSymbols = 0 if (self.symbols is None) else len(self.symbols)
         if numSymbols > 1:
             request['coin'] = market['baseId']
         response = self.publicGetOrders(self.extend(request, params))
@@ -562,7 +567,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'amount': amount,
@@ -574,7 +580,7 @@ class btcbox(Exchange, ImplicitAPI):
         #
         #     {
         #         "result":true,
-        #         "id":"11"
+        #         "id":"12"
         #     }
         #
         return self.parse_order(response, market)
@@ -590,7 +596,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
             symbol = 'BTC/JPY'
@@ -614,6 +621,8 @@ class btcbox(Exchange, ImplicitAPI):
             'closed': 'closed',  # never encountered, seems to be bug in the doc
             'no': 'closed',  # not clarified in the docs...
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -681,7 +690,8 @@ class btcbox(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
         if symbol is None:
             symbol = 'BTC/JPY'
@@ -706,8 +716,11 @@ class btcbox(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def fetch_orders_by_type(self, type, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # a special case for btcbox – default symbol is BTC/JPY
+        if symbol is None:
+            symbol = 'BTC/JPY'
         market = self.market(symbol)
         request = {
             'type': type,  # 'open' or 'all'

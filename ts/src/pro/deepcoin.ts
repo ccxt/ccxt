@@ -205,7 +205,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
         return await this.watchPublic (market, messageHash, '7', params);
@@ -221,7 +223,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'ticker' + '::' + market['symbol'];
         const subscription = {
@@ -346,7 +350,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const trades = await this.watchPublic (market, messageHash, '2', params);
@@ -366,7 +372,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTrades (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades' + '::' + market['symbol'];
         const subscription = {
@@ -506,7 +514,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -531,7 +541,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const timeframes = this.safeDict (this.options, 'timeframes', {});
@@ -628,7 +640,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
         const suffix = '_0.1';
@@ -646,7 +660,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook' + '::' + market['symbol'];
         const suffix = '_0.1';
@@ -792,7 +808,9 @@ export default class deepcoin extends deepcoinRest {
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         let messageHash = 'myTrades';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += '::' + symbol;
@@ -869,7 +887,9 @@ export default class deepcoin extends deepcoinRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         let messageHash = 'orders';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += '::' + symbol;
@@ -1008,7 +1028,9 @@ export default class deepcoin extends deepcoinRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const listenKey = await this.authenticate ();
         symbols = this.marketSymbols (symbols);
         const messageHash = 'positions';

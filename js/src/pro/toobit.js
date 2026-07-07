@@ -138,7 +138,7 @@ export default class toobit extends toobitRest {
             'ticketInfo': this.handleMyTrade,
             'outboundContractPositionInfo': this.handlePositions,
         };
-        const method = this.safeValue(methods, topic);
+        const method = (topic === undefined) ? undefined : this.safeValue(methods, topic);
         if (method !== undefined) {
             method.call(this, client, message);
         }
@@ -147,7 +147,7 @@ export default class toobit extends toobitRest {
             for (let i = 0; i < message.length; i++) {
                 const item = message[i];
                 const event = this.safeString(item, 'e');
-                const method2 = this.safeValue(methods, event);
+                const method2 = (event === undefined) ? undefined : this.safeValue(methods, event);
                 if (method2 !== undefined) {
                     method2.call(this, client, item);
                 }
@@ -184,7 +184,9 @@ export default class toobit extends toobitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         const subParams = [];
@@ -284,7 +286,9 @@ export default class toobit extends toobitRest {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['common'] + '/quote/ws/v1';
         const messageHashes = [];
         const timeframes = this.safeDict(this.options['ws'], 'timeframes', {});
@@ -394,7 +398,9 @@ export default class toobit extends toobitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -409,7 +415,9 @@ export default class toobit extends toobitRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         const subParams = [];
@@ -511,7 +519,9 @@ export default class toobit extends toobitRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'channel', 'depth');
@@ -643,7 +653,9 @@ export default class toobit extends toobitRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -753,7 +765,9 @@ export default class toobit extends toobitRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.marketOrNull(symbol);
         symbol = this.safeString(market, 'symbol', symbol);
@@ -871,7 +885,9 @@ export default class toobit extends toobitRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.marketOrNull(symbol);
         symbol = this.safeString(market, 'symbol', symbol);
@@ -946,7 +962,9 @@ export default class toobit extends toobitRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         let messageHash = '';
         if (!this.isEmpty(symbols)) {

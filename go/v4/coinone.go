@@ -459,9 +459,11 @@ func (this *CoinoneCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5038 := (<-this.LoadMarkets())
-		PanicOnError(retRes5038)
+			retRes50412 := (<-this.LoadMarkets())
+			PanicOnError(retRes50412)
+		}
 
 		response := (<-this.V2PrivatePostAccountBalance(params))
 		PanicOnError(response)
@@ -492,9 +494,11 @@ func (this *CoinoneCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5198 := (<-this.LoadMarkets())
-		PanicOnError(retRes5198)
+			retRes52212 := (<-this.LoadMarkets())
+			PanicOnError(retRes52212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"quote_currency":  GetValue(market, "quote"),
@@ -557,9 +561,11 @@ func (this *CoinoneCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5678 := (<-this.LoadMarkets())
-		PanicOnError(retRes5678)
+			retRes57212 := (<-this.LoadMarkets())
+			PanicOnError(retRes57212)
+		}
 		symbols = this.MarketSymbols(symbols)
 		var request any = map[string]any{
 			"quote_currency": "KRW",
@@ -637,9 +643,11 @@ func (this *CoinoneCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6308 := (<-this.LoadMarkets())
-		PanicOnError(retRes6308)
+			retRes63712 := (<-this.LoadMarkets())
+			PanicOnError(retRes63712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"quote_currency":  GetValue(market, "quote"),
@@ -838,9 +846,11 @@ func (this *CoinoneCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8108 := (<-this.LoadMarkets())
-		PanicOnError(retRes8108)
+			retRes81912 := (<-this.LoadMarkets())
+			PanicOnError(retRes81912)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"quote_currency":  GetValue(market, "quote"),
@@ -905,9 +915,11 @@ func (this *CoinoneCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		if IsTrue(!IsEqual(typeVar, "limit")) {
 			panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8608 := (<-this.LoadMarkets())
-		PanicOnError(retRes8608)
+			retRes87112 := (<-this.LoadMarkets())
+			PanicOnError(retRes87112)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"price":    price,
@@ -954,9 +966,11 @@ func (this *CoinoneCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8928 := (<-this.LoadMarkets())
-		PanicOnError(retRes8928)
+			retRes90512 := (<-this.LoadMarkets())
+			PanicOnError(retRes90512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"order_id": id,
@@ -1148,9 +1162,11 @@ func (this *CoinoneCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ExchangeError(Add(this.Id, " fetchOpenOrders() allows fetching closed orders with a specific symbol")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10658 := (<-this.LoadMarkets())
-		PanicOnError(retRes10658)
+			retRes108012 := (<-this.LoadMarkets())
+			PanicOnError(retRes108012)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -1210,9 +1226,11 @@ func (this *CoinoneCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11068 := (<-this.LoadMarkets())
-		PanicOnError(retRes11068)
+			retRes112312 := (<-this.LoadMarkets())
+			PanicOnError(retRes112312)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "id"),
@@ -1276,9 +1294,11 @@ func (this *CoinoneCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		if IsTrue(IsTrue(IsTrue((IsEqual(price, nil))) || IsTrue((IsEqual(qty, nil)))) || IsTrue((IsEqual(isAsk, nil)))) {
 			panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires {\\'price\\': 12345, \\'qty\\': 1.2345, \\'is_ask\\': 0} in the params argument.")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11558 := (<-this.LoadMarkets())
-		PanicOnError(retRes11558)
+			retRes117412 := (<-this.LoadMarkets())
+			PanicOnError(retRes117412)
+		}
 		var request any = map[string]any{
 			"order_id": id,
 			"price":    price,
@@ -1320,9 +1340,11 @@ func (this *CoinoneCore) FetchDepositAddresses(optionalArgs ...any) <-chan any {
 		_ = codes
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11828 := (<-this.LoadMarkets())
-		PanicOnError(retRes11828)
+			retRes120312 := (<-this.LoadMarkets())
+			PanicOnError(retRes120312)
+		}
 
 		response := (<-this.V2PrivatePostAccountDepositAddress(params))
 		PanicOnError(response)

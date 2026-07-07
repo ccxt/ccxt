@@ -9,7 +9,13 @@ public partial class gate : ccxt.gate
 {
     public override object describe()
     {
-        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+        object superDescribe = base.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+
+    public virtual object describeData()
+    {
+        return new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
                 { "cancelAllOrdersWs", true },
@@ -129,7 +135,7 @@ public partial class gate : ccxt.gate
                     { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
-        });
+        };
     }
 
     /**
@@ -164,7 +170,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageType = this.getTypeByMarket(market);
@@ -190,7 +199,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> createOrdersWs(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = this.createOrdersRequest(orders, parameters);
         object firstOrder = getValue(orders, 0);
         object market = this.market(getValue(firstOrder, "symbol"));
@@ -225,7 +237,10 @@ public partial class gate : ccxt.gate
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelAllOrdersWs() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object trigger = this.safeBool2(parameters, "stop", "trigger");
         object messageType = this.getTypeByMarket(market);
@@ -261,7 +276,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object trigger = this.safeValueN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
@@ -298,7 +316,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object messageType = this.getTypeByMarket(market);
@@ -327,7 +348,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
@@ -391,7 +415,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> fetchOrdersByStatusWs(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -433,17 +460,21 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        object intervalDefault = ((bool) isTrue((getValue(market, "spot")))) ? "50" : "100ms";
+        object url = this.getUrlByMarket(market);
+        object isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
+        object intervalDefault = ((bool) isTrue((isTrue(getValue(market, "spot")) && !isTrue(isEuUrl)))) ? "50" : "100ms";
         var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         var interval = ((IList<object>) intervalqueryVariable)[0];
         var query = ((IList<object>) intervalqueryVariable)[1];
         object messageType = this.getTypeByMarket(market);
         object messageHash = add(add("orderbook", ":"), symbol);
-        object url = this.getUrlByMarket(market);
         if (isTrue(isEqual(limit, null)))
         {
             limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
@@ -454,7 +485,11 @@ public partial class gate : ccxt.gate
         }
         object payload = new List<object>() {};
         object channel = "";
-        if (isTrue(getValue(market, "spot")))
+        if (isTrue(isEuUrl))
+        {
+            channel = "spot.order_book_update";
+            payload = new List<object>() {marketId, interval};
+        } else if (isTrue(getValue(market, "spot")))
         {
             channel = "spot.obu";
             object finalInterval = interval;
@@ -489,26 +524,54 @@ public partial class gate : ccxt.gate
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
+        object url = this.getUrlByMarket(market);
         symbol = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        object interval = "100ms";
+        object isEuUrl = isGreaterThanOrEqual(getIndexOf(url, "gateeu"), 0);
+        object intervalDefault = ((bool) isTrue((isTrue(getValue(market, "spot")) && !isTrue(isEuUrl)))) ? "50" : "100ms";
+        object interval = intervalDefault;
         var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
         object messageType = this.getTypeByMarket(market);
-        object channel = add(messageType, ".order_book_update");
-        object subMessageHash = add(add("orderbook", ":"), symbol);
-        object messageHash = add(add("unsubscribe:orderbook", ":"), symbol);
-        object url = this.getUrlByMarket(market);
-        object payload = new List<object>() {marketId, interval};
-        object limit = this.safeInteger(parameters, "limit", 100);
-        if (isTrue(getValue(market, "contract")))
+        object limit = this.safeInteger(parameters, "limit");
+        if (isTrue(isEqual(limit, null)))
         {
+            limit = ((bool) isTrue((getValue(market, "spot")))) ? 50 : 100; // max 100 atm
+            if (isTrue(isEqual(messageType, "options")))
+            {
+                limit = 50; // max 50 for options
+            }
+        }
+        object payload = new List<object>() {};
+        object channel = "";
+        if (isTrue(isEuUrl))
+        {
+            channel = "spot.order_book_update";
+            payload = new List<object>() {marketId, interval};
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            channel = "spot.obu";
+            object finalInterval = interval;
+            if (isTrue(isEqual(limit, 400)))
+            {
+                finalInterval = "400";
+            }
+            payload = new List<object>() {add(add(add("ob.", getValue(market, "id")), "."), finalInterval)};
+        } else
+        {
+            channel = add(messageType, ".order_book_update");
+            payload = new List<object>() {marketId, interval};
             object stringLimit = ((object)limit).ToString();
             ((IList<object>)payload).Add(stringLimit);
         }
+        object subMessageHash = add(add("orderbook", ":"), symbol);
+        object messageHash = add(add("unsubscribe:orderbook", ":"), symbol);
         return await this.unSubscribePublicMultiple(url, "orderbook", new List<object>() {symbol}, new List<object>() {messageHash}, new List<object>() {subMessageHash}, payload, channel, parameters);
     }
 
@@ -754,7 +817,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTicker";
@@ -848,7 +914,10 @@ public partial class gate : ccxt.gate
     public async virtual Task<object> subscribeWatchTickersAndBidsAsks(object symbols = null, object callerMethodName = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
@@ -954,7 +1023,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object marketIds = this.marketIds(symbols);
         object market = this.market(getValue(symbols, 0));
@@ -988,7 +1060,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object marketIds = this.marketIds(symbols);
         object market = this.market(getValue(symbols, 0));
@@ -1079,7 +1154,10 @@ public partial class gate : ccxt.gate
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // todo add options support
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
@@ -1177,7 +1255,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subType = null;
         object type = null;
         object marketId = add("!", "all");
@@ -1287,7 +1368,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         object subType = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -1423,7 +1507,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         symbols = this.marketSymbols(symbols);
         object payload = new List<object>() {add("!", "all")};
@@ -1631,7 +1718,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1794,7 +1884,10 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchMyLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object type = null;

@@ -71,7 +71,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -89,7 +91,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true);
             $name = 'instrument';
             $url = $this->urls['api']['ws'];
@@ -397,7 +401,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true);
             $messageHashes = array();
             $subscriptionHashes = array();
@@ -484,7 +490,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $messageHash = 'margin';
             $url = $this->urls['api']['ws'];
@@ -760,7 +768,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $subscriptionHash = 'position';
             $messageHash = 'positions';
@@ -990,7 +1000,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $name = 'order';
             $subscriptionHash = $name;
@@ -1210,7 +1222,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $name = 'execution';
             $subscriptionHash = $name;
@@ -1357,7 +1371,9 @@ class bitmex extends \ccxt\async\bitmex {
             } else {
                 throw new ExchangeError($this->id . ' watchOrderBookForSymbols $limit argument must be null (L2), 25 (L2) or 10 (L3)');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $topics = array();
             $messageHashes = array();
@@ -1392,7 +1408,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $table = 'trade';
             $topics = array();
@@ -1434,7 +1452,9 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $table = 'tradeBin' . $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -1559,7 +1579,9 @@ class bitmex extends \ccxt\async\bitmex {
 
     public function watch_heartbeat($params = array()) {
         return Async\async(function () use ($params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $event = 'heartbeat';
             $url = $this->urls['api']['ws'];
             return Async\await($this->watch($url, $event));

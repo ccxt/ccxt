@@ -94,7 +94,7 @@ class grvt(Exchange, ImplicitAPI):
                 '4w': 'CI_4_W',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo': 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api': {
                     'privateEdge': 'https://edge.grvt.io/',
                     'privateTrading': 'https://trades.grvt.io/',
@@ -823,7 +823,8 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument': self.market_id(symbol),
@@ -930,7 +931,8 @@ class grvt(Exchange, ImplicitAPI):
         :param str [params.loc]: crypto location, default: us
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'instrument': self.market_id(symbol),
         }
@@ -973,7 +975,8 @@ class grvt(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument': market['id'],
@@ -1103,7 +1106,8 @@ class grvt(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         maxLimit = 1000
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
@@ -1189,7 +1193,8 @@ class grvt(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -1395,7 +1400,7 @@ class grvt(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+        https://api-docs.grvt.io/trading_api/#withdrawal-history
 
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)

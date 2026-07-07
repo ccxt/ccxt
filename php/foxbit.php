@@ -556,7 +556,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -608,7 +610,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->v3PublicGetMarketsTicker24hr($params);
         //  {
@@ -645,7 +649,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by $market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetMeFeesTrading($params);
         // array(
         //     {
@@ -677,7 +683,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $defaultLimit = 20;
         $request = array(
@@ -725,7 +733,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -763,7 +773,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
@@ -807,7 +819,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetAccounts($params);
         // {
         //     "data" => array(
@@ -875,7 +889,9 @@ class foxbit extends Exchange {
     }
 
     public function fetch_orders_by_status(?string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array(
             'state' => $status,
@@ -916,7 +932,9 @@ class foxbit extends Exchange {
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $type = strtoupper($type);
         if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'STOP_LIMIT' && $type !== 'INSTANT') {
@@ -980,7 +998,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
             $order = $this->safe_dict($orders, $i);
@@ -1062,7 +1082,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $this->parse_number($id),
             'type' => 'ID',
@@ -1091,7 +1113,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'ALL',
         );
@@ -1125,7 +1149,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
@@ -1166,7 +1192,9 @@ class foxbit extends Exchange {
          * @param {string} [$params->side] Enum => BUY, SELL
          * @return {Order[]} a $list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -1225,7 +1253,9 @@ class foxbit extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market_symbol' => $market['id'],
@@ -1269,7 +1299,9 @@ class foxbit extends Exchange {
          * @param {string} [$params->networkCode] the blockchain network to create a deposit address on
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'currency_symbol' => $currency['id'],
@@ -1304,7 +1336,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -1352,7 +1386,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -1485,7 +1521,9 @@ class foxbit extends Exchange {
         if ($type !== 'LIMIT' && $type !== 'MARKET' && $type !== 'STOP_MARKET' && $type !== 'INSTANT') {
             throw new InvalidOrder('Invalid order $type => ' . $type . '. Must be one of => LIMIT, MARKET, STOP_MARKET, INSTANT.');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'mode' => 'ALLOW_FAILURE',
@@ -1539,7 +1577,9 @@ class foxbit extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'currency_symbol' => $currency['id'],
@@ -1577,7 +1617,9 @@ class foxbit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchLedger() requires a $code argument');

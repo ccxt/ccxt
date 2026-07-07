@@ -37,7 +37,7 @@ class extended(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -173,16 +173,16 @@ class extended(Exchange, ImplicitAPI):
             },
             'hostname': 'extended.exchange',
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo': 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api': {
                     'rest': 'https://api.starknet.{hostname}',
                 },
                 'test': {
                     'rest': 'https://api.starknet.sepolia.{hostname}',
                 },
-                'www': 'https://app.{hostname}',
-                'doc': 'https://api.docs.{hostname}',
-                'fees': 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www': 'https://app.extended.exchange',
+                'doc': 'https://api.docs.extended.exchange',
+                'fees': 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral': '',
             },
             'api': {
@@ -522,7 +522,7 @@ class extended(Exchange, ImplicitAPI):
         #
         tradingConfig = self.safe_dict(market, 'tradingConfig', {})
         marketId = self.safe_string(market, 'name')
-        baseId = self.safe_string(market, 'assetName')
+        baseId = self.safe_string(market, 'assetName', '')
         if baseId.find('SPOT') >= 0:
             baseId = baseId.replace('SPOT', '')
         quoteId = self.safe_string(market, 'collateralAssetName')
@@ -676,7 +676,7 @@ class extended(Exchange, ImplicitAPI):
         if currencyId == 'USD':
             code = 'USDC'
         name = self.safe_string(currency, 'name')
-        precision = self.safe_integer(currency, 'precision')
+        precision = self.safe_integer(currency, 'precision', 0)
         isActive = self.safe_bool(currency, 'isActive')
         return self.safe_currency_structure({
             'id': currencyId,
@@ -793,7 +793,8 @@ class extended(Exchange, ImplicitAPI):
             stats = self.safe_dict(marketData, 'marketStats', {})
             ticker = self.parse_ticker(stats, market)
             symbol = ticker['symbol']
-            tickers[symbol] = ticker
+            if symbol is not None:
+                tickers[symbol] = ticker
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)
 
     def parse_ticker(self, ticker, market: Market = None) -> Ticker:
@@ -1835,7 +1836,7 @@ class extended(Exchange, ImplicitAPI):
         await self.load_markets()
         currency = self.currency(code)
         account = await self.fetch_extended_account()
-        currentAccountId = self.safe_string(account, 'accountId')
+        currentAccountId = self.safe_string(account, 'accountId', '')
         if fromAccount is None:
             fromAccount = currentAccountId
         elif fromAccount != currentAccountId:
@@ -2062,7 +2063,8 @@ class extended(Exchange, ImplicitAPI):
             fee = self.safe_dict(data, i, {})
             parsed = self.parse_trading_fee(fee)
             symbol = self.safe_string(parsed, 'symbol')
-            result[symbol] = parsed
+            if symbol is not None:
+                result[symbol] = parsed
         return result
 
     def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
@@ -3241,16 +3243,16 @@ class extended(Exchange, ImplicitAPI):
         ))
         domainHash = self.get_extended_domain_hash()
         # Order fields
-        positionId = self.convert_to_big_int(self.safe_string(settlement, 'collateralPosition'))
-        baseAssetId = self.safe_string(settlement, 'baseAssetId')
-        baseAmount = self.convert_to_big_int(self.safe_string(settlement, 'baseAmount'))
-        quoteAssetId = self.safe_string(settlement, 'quoteAssetId')
-        quoteAmount = self.convert_to_big_int(self.safe_string(settlement, 'quoteAmount'))
-        feeAssetId = self.safe_string(settlement, 'feeAssetId')
-        feeAmount = self.convert_to_big_int(self.safe_string(settlement, 'feeAmount'))
-        expiration = self.convert_to_big_int(self.safe_string_2(settlement, 'expiration', 'expirationTimestamp'))
-        salt = self.convert_to_big_int(self.safe_string_2(settlement, 'salt', 'nonce'))
-        starkKey = self.convert_to_big_int(self.safe_string(settlement, 'starkKey'))
+        positionId = self.convert_to_big_int(self.safe_string(settlement, 'collateralPosition', '0'))
+        baseAssetId = self.safe_string(settlement, 'baseAssetId', '0')
+        baseAmount = self.convert_to_big_int(self.safe_string(settlement, 'baseAmount', '0'))
+        quoteAssetId = self.safe_string(settlement, 'quoteAssetId', '0')
+        quoteAmount = self.convert_to_big_int(self.safe_string(settlement, 'quoteAmount', '0'))
+        feeAssetId = self.safe_string(settlement, 'feeAssetId', '0')
+        feeAmount = self.convert_to_big_int(self.safe_string(settlement, 'feeAmount', '0'))
+        expiration = self.convert_to_big_int(self.safe_string_2(settlement, 'expiration', 'expirationTimestamp', '0'))
+        salt = self.convert_to_big_int(self.safe_string_2(settlement, 'salt', 'nonce', '0'))
+        starkKey = self.convert_to_big_int(self.safe_string(settlement, 'starkKey', '0'))
         # Order struct hash
         orderHash = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             orderTypeHash,
@@ -3280,12 +3282,12 @@ class extended(Exchange, ImplicitAPI):
         expiration = self.safe_dict(settlement, 'expiration', {})
         withdrawalHash = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             withdrawalTypeHash,
-            self.convert_to_big_int(self.safe_string(settlement, 'recipient')),
-            self.convert_to_big_int(self.safe_string(settlement, 'positionId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'collateralId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'amount')),
-            self.convert_to_big_int(self.safe_string(expiration, 'seconds')),
-            self.convert_to_big_int(self.safe_string(settlement, 'salt')),
+            self.convert_to_big_int(self.safe_string(settlement, 'recipient', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'positionId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'collateralId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'amount', '0')),
+            self.convert_to_big_int(self.safe_string(expiration, 'seconds', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'salt', '0')),
         ]))
         return self.extended_starknet_compute_poseidon_hash_on_elements([
             self.get_extended_string_to_felt('StarkNet Message'),
@@ -3299,15 +3301,15 @@ class extended(Exchange, ImplicitAPI):
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ))
         domainHash = self.get_extended_domain_hash()
-        senderPublicKey = self.convert_to_big_int(self.safe_string(settlement, 'senderPublicKey'))
+        senderPublicKey = self.convert_to_big_int(self.safe_string(settlement, 'senderPublicKey', '0'))
         transferHash = self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements([
             transferTypeHash,
-            self.convert_to_big_int(self.safe_string(settlement, 'senderPositionId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'receiverPositionId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'assetId')),
-            self.convert_to_big_int(self.safe_string(settlement, 'amount')),
-            self.convert_to_big_int(self.safe_string(settlement, 'expirationTimestamp')),
-            self.convert_to_big_int(self.safe_string(settlement, 'nonce')),
+            self.convert_to_big_int(self.safe_string(settlement, 'senderPositionId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'receiverPositionId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'assetId', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'amount', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'expirationTimestamp', '0')),
+            self.convert_to_big_int(self.safe_string(settlement, 'nonce', '0')),
         ]))
         return self.extended_starknet_compute_poseidon_hash_on_elements([
             self.get_extended_string_to_felt('StarkNet Message'),

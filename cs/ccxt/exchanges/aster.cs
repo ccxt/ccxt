@@ -12,12 +12,11 @@ public partial class aster : Exchange
             { "name", "Aster" },
             { "countries", new List<object>() {"US"} },
             { "rateLimit", 333 },
-            { "hostname", "aster.markets" },
             { "certified", false },
             { "pro", true },
             { "dex", true },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609" },
+                { "logo", "https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7" },
                 { "www", "https://www.asterdex.com/en" },
                 { "api", new Dictionary<string, object>() {
                     { "fapiPublic", "https://fapi.asterdex.com/fapi" },
@@ -34,9 +33,9 @@ public partial class aster : Exchange
             } },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
-                { "spot", false },
+                { "spot", true },
                 { "margin", false },
-                { "swap", false },
+                { "swap", true },
                 { "future", false },
                 { "option", false },
                 { "addMargin", true },
@@ -1011,7 +1010,10 @@ public partial class aster : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
@@ -1171,7 +1173,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1301,7 +1306,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1445,7 +1453,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1504,7 +1515,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -1564,7 +1578,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -1639,7 +1656,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -1745,7 +1765,10 @@ public partial class aster : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRate() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1778,7 +1801,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.fapiPublicGetV3PremiumIndex(this.extend(parameters));
         //
@@ -1810,7 +1836,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchFundingIntervals(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(symbols, null)))
         {
             symbols = this.marketSymbols(symbols);
@@ -1846,7 +1875,10 @@ public partial class aster : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -4388,7 +4420,7 @@ public partial class aster : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object url = add(add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), "/"), path);
+        object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), path);
         if (isTrue(isTrue(isEqual(api, "fapiPublic")) || isTrue(isEqual(api, "sapiPublic"))))
         {
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))

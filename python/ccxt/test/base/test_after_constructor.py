@@ -322,6 +322,9 @@ def helper_test_properties():
         'XBT': 'BTC',
         'BCHSV': 'BSV',
     })
+    # fetch history
+    fetch_history_cache = exchange.get_fetch_cache()
+    assert len(fetch_history_cache) == 0, 'fetchHistoryCache should be an empty array'
 
 
 def test_after_constructor():

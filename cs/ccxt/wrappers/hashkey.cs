@@ -1563,6 +1563,26 @@ public partial class hashkey
         return new Leverage(res);
     }
     /// <summary>
+    /// set margin mode to 'cross' or 'isolated'
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
+    public async Task<Dictionary<string, object>> SetMarginMode(string marginMode, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.setMarginMode(marginMode, symbol, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
@@ -1586,7 +1606,7 @@ public partial class hashkey
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information"/>  <br/>
     /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1607,7 +1627,7 @@ public partial class hashkey
     /// *for spot markets only* fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developers.binance.com/docs/wallet/asset/trade-fee"/>  <br/>
+    /// See <see href="https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

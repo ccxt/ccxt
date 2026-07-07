@@ -26,7 +26,6 @@ class modetrade extends Exchange {
             'certified' => false,
             'pro' => true,
             'dex' => true,
-            'hostname' => 'trade.mode.network',
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -126,7 +125,7 @@ class modetrade extends Exchange {
                 '1y' => '1y',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/cec2b7f1-3b2b-4502-971b-447ee1937d6b',
+                'logo' => 'https://github.com/user-attachments/assets/bbde7d00-6e40-404f-8f34-8fb15893eb24',
                 'api' => array(
                     'public' => 'https://api-evm.orderly.org',
                     'private' => 'https://api-evm.orderly.org',
@@ -517,7 +516,7 @@ class modetrade extends Exchange {
         //     "liquidation_tier" => "1"
         //   }
         //
-        $marketId = $this->safe_string($market, 'symbol');
+        $marketId = $this->safe_string($market, 'symbol', '');
         $parts = explode('_', $marketId);
         $marketType = 'swap';
         $baseId = $this->safe_string($parts, 1);
@@ -678,7 +677,7 @@ class modetrade extends Exchange {
         for ($j = 0; $j < count($networks); $j++) {
             $network = $networks[$j];
             // TODO => transform chain id to human readable name
-            $networkId = $this->safe_string($network, 'chain_id');
+            $networkId = $this->safe_string($network, 'chain_id', '');
             $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
             if ($precision !== null) {
                 $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
@@ -780,7 +779,7 @@ class modetrade extends Exchange {
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
         $feeCost = $this->safe_string($fee, 'cost');
-        if ($feeCost !== null) {
+        if (($feeCost !== null) && ($fee !== null)) {
             $fee['cost'] = $feeCost;
         }
         $cost = Precise::string_mul($price, $amount);
@@ -821,7 +820,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -864,16 +865,17 @@ class modetrade extends Exchange {
         //         }
         //
         $symbol = $this->safe_string($fundingRate, 'symbol');
-        $market = $this->market($symbol);
+        $market = ($symbol === null) ? $market : $this->market($symbol);
         $nextFundingTimestamp = $this->safe_integer($fundingRate, 'next_funding_time');
         $estFundingRateTimestamp = $this->safe_integer($fundingRate, 'est_funding_rate_timestamp');
         $lastFundingRateTimestamp = $this->safe_integer($fundingRate, 'last_funding_rate_timestamp');
         $fundingTimeString = $this->safe_string($fundingRate, 'last_funding_rate_timestamp');
         $nextFundingTimeString = $this->safe_string($fundingRate, 'next_funding_time');
         $millisecondsInterval = Precise::string_sub($nextFundingTimeString, $fundingTimeString);
+        $fundingSymbol = ($market !== null) ? $market['symbol'] : null;
         return array(
             'info' => $fundingRate,
-            'symbol' => $market['symbol'],
+            'symbol' => $fundingSymbol,
             'markPrice' => null,
             'indexPrice' => null,
             'interestRate' => $this->parse_number('0'),
@@ -930,7 +932,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -967,7 +971,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->v1PublicGetPublicFundingRates($params));
             //
@@ -1008,7 +1014,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -1111,7 +1119,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
             if ($paginate) {
@@ -1172,9 +1182,11 @@ class modetrade extends Exchange {
              * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->v1PrivateGetClientInfo($params));
             //
             // {
@@ -1207,16 +1219,19 @@ class modetrade extends Exchange {
             $maker = $this->safe_string($data, 'futures_maker_fee_rate');
             $taker = $this->safe_string($data, 'futures_taker_fee_rate');
             $result = array();
-            for ($i = 0; $i < count($this->symbols); $i++) {
-                $symbol = $this->symbols[$i];
-                $result[$symbol] = array(
-                    'info' => $response,
-                    'symbol' => $symbol,
-                    'maker' => $this->parse_number(Precise::string_div($maker, '10000')),
-                    'taker' => $this->parse_number(Precise::string_div($taker, '10000')),
-                    'percentage' => true,
-                    'tierBased' => true,
-                );
+            $symbols = $this->symbols;
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $result[$symbol] = array(
+                        'info' => $response,
+                        'symbol' => $symbol,
+                        'maker' => $this->parse_number(Precise::string_div($maker, '10000')),
+                        'taker' => $this->parse_number(Precise::string_div($taker, '10000')),
+                        'percentage' => true,
+                        'tierBased' => true,
+                    );
+                }
             }
             return $result;
         })();
@@ -1234,7 +1249,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1292,7 +1309,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1450,6 +1469,9 @@ class modetrade extends Exchange {
             'fok' => 'FOK',
             'post_only' => 'PO',
         );
+        if ($timeInForce === null) {
+            return null;
+        }
         return $this->safe_string($timeInForces, $timeInForce);
     }
 
@@ -1466,6 +1488,9 @@ class modetrade extends Exchange {
                 'INCOMPLETE' => 'open',
                 'COMPLETED' => 'closed',
             );
+            if ($status === null) {
+                return null;
+            }
             return $this->safe_string($statuses, $status, $status);
         }
         return $status;
@@ -1477,6 +1502,9 @@ class modetrade extends Exchange {
             'MARKET' => 'market',
             'POST_ONLY' => 'limit',
         );
+        if ($type === null) {
+            return null;
+        }
         return $this->safe_string_lower($types, $type, $type);
     }
 
@@ -1495,6 +1523,9 @@ class modetrade extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $orderType = strtoupper($type);
         $market = $this->market($symbol);
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $orderSide = strtoupper($side);
         $request = array(
             'symbol' => $market['id'],
@@ -1603,7 +1634,9 @@ class modetrade extends Exchange {
              * @param {string} [$params->clientOrderId] a unique id for the $order
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $triggerPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
@@ -1662,12 +1695,17 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ordersRequests = array();
             for ($i = 0; $i < count($orders); $i++) {
                 $rawOrder = $orders[$i];
                 $marketId = $this->safe_string($rawOrder, 'symbol');
-                $type = $this->safe_string($rawOrder, 'type');
+                if ($marketId === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrders() requires a symbol for each order');
+                }
+                $type = $this->safe_string($rawOrder, 'type', '');
                 $side = $this->safe_string($rawOrder, 'side');
                 $amount = $this->safe_value($rawOrder, 'amount');
                 $price = $this->safe_value($rawOrder, 'price');
@@ -1729,7 +1767,9 @@ class modetrade extends Exchange {
              * @param {float} [$params->takeProfitPrice] $price to trigger take-profit orders
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
@@ -1753,7 +1793,9 @@ class modetrade extends Exchange {
                 $response = Async\await($this->v1PrivatePutAlgoOrder($this->extend($request, $params)));
             } else {
                 $request['symbol'] = $market['id'];
-                $request['side'] = strtoupper($side);
+                if ($side !== null) {
+                    $request['side'] = strtoupper($side);
+                }
                 $orderType = strtoupper($type);
                 $timeInForce = $this->safe_string_lower($params, 'timeInForce');
                 $isMarket = $orderType === 'MARKET';
@@ -1813,7 +1855,9 @@ class modetrade extends Exchange {
             if (!$trigger && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1886,7 +1930,9 @@ class modetrade extends Exchange {
              * @param {string[]} [$params->client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
             $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
             $request = array();
@@ -1926,7 +1972,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->trigger] whether the order is a stop/algo order
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
             $params = $this->omit($params, array( 'stop', 'trigger' ));
             $request = array();
@@ -1980,7 +2028,9 @@ class modetrade extends Exchange {
              * @param {string} [$params->clientOrderId] a unique $id for the order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2058,7 +2108,9 @@ class modetrade extends Exchange {
              * @param {int} $params->until timestamp in ms of the latest order to fetch
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             $isTrigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
             $maxLimit = ($isTrigger) ? 100 : 500;
@@ -2126,7 +2178,7 @@ class modetrade extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', $response);
-            $orders = $this->safe_list($data, 'rows');
+            $orders = $this->safe_list($data, 'rows', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         })();
     }
@@ -2150,7 +2202,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
         })();
@@ -2175,7 +2229,9 @@ class modetrade extends Exchange {
              * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
             return Async\await($this->fetch_orders($symbol, $since, $limit, $extendedParams));
         })();
@@ -2195,7 +2251,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2246,7 +2304,9 @@ class modetrade extends Exchange {
              * @param {int} $params->until timestamp in ms of the latest trade to fetch
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -2326,7 +2386,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->v1PrivateGetClientHolding($params));
             //
             // {
@@ -2350,7 +2412,9 @@ class modetrade extends Exchange {
 
     public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( );
             $currency = null;
             if ($code !== null) {
@@ -2498,6 +2562,9 @@ class modetrade extends Exchange {
             'COMPLETED' => 'ok',
             'CANCELED' => 'canceled',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2557,7 +2624,7 @@ class modetrade extends Exchange {
             $request = array();
             $currencyRows = Async\await($this->get_asset_history_rows($code, $since, $limit, $this->extend($request, $params)));
             $currency = $this->safe_value($currencyRows, 0);
-            $rows = $this->safe_list($currencyRows, 1);
+            $rows = $this->safe_list($currencyRows, 1, array());
             //
             //     {
             //         "rows":array(),
@@ -2620,7 +2687,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             if ($code !== null) {
                 $code = strtoupper($code);
@@ -2632,7 +2701,7 @@ class modetrade extends Exchange {
             $verifyingContractAddress = $this->safe_string($this->options, 'verifyingContractAddress');
             $chainId = $this->safe_string($params, 'chainId');
             $currencyNetworks = $this->safe_dict($currency, 'networks', array());
-            $coinNetwork = $this->safe_dict($currencyNetworks, $chainId, array());
+            $coinNetwork = ($chainId === null) ? array() : $this->safe_dict($currencyNetworks, $chainId, array());
             $coinNetworkId = $this->safe_number($coinNetwork, 'id');
             if ($coinNetworkId === null) {
                 throw new BadRequest($this->id . ' withdraw() require $chainId parameter');
@@ -2689,7 +2758,7 @@ class modetrade extends Exchange {
         })();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage($leverage, ?array $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'max_leverage');
         return array(
             'info' => $leverage,
@@ -2711,7 +2780,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $response = Async\await($this->v1PrivateGetClientInfo($params));
             //
@@ -2758,7 +2829,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} response from the exchange
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isMinLeverage = $leverage < 1;
             $isMaxLeverage = $leverage > 50;
             if ($isMinLeverage || $isMaxLeverage) {
@@ -2853,7 +2926,12 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a $symbol argument');
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -2885,7 +2963,7 @@ class modetrade extends Exchange {
             //     }
             // }
             //
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_position($data, $market);
         })();
     }
@@ -2901,7 +2979,9 @@ class modetrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->v1PrivateGetPositions($params));
             //
             // {
@@ -2955,8 +3035,7 @@ class modetrade extends Exchange {
         $version = $section[0];
         $access = $section[1];
         $pathWithParams = $this->implode_params($path, $params);
-        $url = $this->implode_hostname($this->urls['api'][$access]);
-        $url .= '/' . $version . '/';
+        $url = $this->urls['api'][$access] . '/' . $version . '/';
         $params = $this->omit($params, $this->extract_params($path));
         $params = $this->keysort($params);
         if ($access === 'public') {

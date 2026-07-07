@@ -150,6 +150,9 @@ class bitmart extends \ccxt\async\bitmart {
     public function subscribe_multiple(string $unifiedName, string $channel, string $type, ?array $symbols = null, $params = array()) {
         return Async\async(function () use ($unifiedName, $channel, $type, $symbols, $params) {
             $symbols = $this->market_symbols($symbols, $type, false, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $url = $this->implode_hostname($this->urls['api']['ws'][$type]['public']);
             $channelType = ($type === 'spot') ? 'spot' : 'futures';
             $actionType = ($type === 'spot') ? 'op' : 'action';
@@ -196,7 +199,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = 'spot';
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
             Async\await($this->authenticate($type, $params));
@@ -362,7 +367,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             list($symbols, $marketType, $params) = $this->get_params_for_multiple_sub('watchTradesForSymbols', $symbols, $limit, $params);
             $channelName = 'trade';
@@ -410,7 +417,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             list($symbols, $marketType, $params) = $this->get_params_for_multiple_sub('unWatchTradesForSymbols', $symbols, null, $params);
             $channelName = 'trade';
@@ -443,7 +452,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -462,7 +473,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
@@ -504,7 +517,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchTickers', $market, $params);
@@ -525,8 +540,13 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
@@ -576,7 +596,9 @@ class bitmart extends \ccxt\async\bitmart {
         for ($i = 0; $i < count($rawTickers); $i++) {
             $ticker = $this->parse_ws_bid_ask($rawTickers[$i]);
             $symbol = $ticker['symbol'];
-            $this->bidsasks[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->bidsasks[$symbol] = $ticker;
+            }
             $messageHash = 'bidask::' . $symbol;
             $client->resolve($ticker, $messageHash);
         }
@@ -613,7 +635,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = 'orders';
             if ($symbol !== null) {
@@ -626,7 +650,7 @@ class bitmart extends \ccxt\async\bitmart {
             Async\await($this->authenticate($type, $params));
             if ($type === 'spot') {
                 $argsRequest = 'spot/user/order:';
-                if ($symbol !== null) {
+                if (($symbol !== null) && ($market !== null)) {
                     $argsRequest .= $market['id'];
                 } else {
                     $argsRequest = 'spot/user/orders:ALL_SYMBOLS';
@@ -662,7 +686,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = 'unsubscribe::orders';
             if ($symbol !== null) {
@@ -678,7 +704,7 @@ class bitmart extends \ccxt\async\bitmart {
             Async\await($this->authenticate($type, $params));
             if ($type === 'spot') {
                 $argsRequest = 'spot/user/order:';
-                if ($symbol !== null) {
+                if (($symbol !== null) && ($market !== null)) {
                     $argsRequest .= $market['id'];
                 } else {
                     $argsRequest = 'spot/user/orders:ALL_SYMBOLS';
@@ -770,7 +796,9 @@ class bitmart extends \ccxt\async\bitmart {
                 $stored->append($order);
                 $newOrders[] = $order;
                 $symbol = $order['symbol'];
-                $symbols[$symbol] = true;
+                if ($symbol !== null) {
+                    $symbols[$symbol] = true;
+                }
             }
         }
         $messageHash = 'orders';
@@ -877,7 +905,7 @@ class bitmart extends \ccxt\async\bitmart {
             $lastTrade = $this->safe_dict($orderInfo, 'last_trade');
             $cachedOrders = $this->orders;
             $orders = $this->safe_value($cachedOrders->hashmap, $symbol, array());
-            $cachedOrder = $this->safe_value($orders, $orderId);
+            $cachedOrder = ($orderId === null) ? null : $this->safe_value($orders, $orderId);
             $trades = null;
             if ($cachedOrder !== null) {
                 $trades = $this->safe_value($order, 'trades');
@@ -953,7 +981,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = 'swap';
             Async\await($this->authenticate($type, $params));
             $symbols = $this->market_symbols($symbols, 'swap', true, true, false);
@@ -992,7 +1022,9 @@ class bitmart extends \ccxt\async\bitmart {
                     throw new NotSupported($this->id . ' unWatchPositions() does not support a list of $symbols, unWatch from all markets only');
                 }
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'action' => 'unsubscribe',
                 'args' => array( 'futures/position' ),
@@ -1172,12 +1204,17 @@ class bitmart extends \ccxt\async\bitmart {
                 $symbol = $this->handle_trade_loop($data[$i]);
             }
         }
-        $client->resolve($this->trades[$symbol], 'trade::' . $symbol);
+        if ($symbol !== null) {
+            $client->resolve($this->trades[$symbol], 'trade::' . $symbol);
+        }
     }
 
     public function handle_trade_loop($entry) {
         $trade = $this->parse_ws_trade($entry);
         $symbol = $trade['symbol'];
+        if ($symbol === null) {
+            return $symbol;
+        }
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         if ($this->safe_value($this->trades, $symbol) === null) {
             $this->trades[$symbol] = new ArrayCache($tradesLimit);
@@ -1297,7 +1334,9 @@ class bitmart extends \ccxt\async\bitmart {
         for ($i = 0; $i < count($rawTickers); $i++) {
             $ticker = $isSpot ? $this->parse_ticker($rawTickers[$i]) : $this->parse_ws_swap_ticker($rawTickers[$i]);
             $symbol = $ticker['symbol'];
-            $this->tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $this->tickers[$symbol] = $ticker;
+            }
             $messageHash = 'ticker::' . $symbol;
             $client->resolve($ticker, $messageHash);
         }
@@ -1360,7 +1399,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $market = $this->market($symbol);
             $type = 'spot';
@@ -1394,7 +1435,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $market = $this->market($symbol);
             $type = 'spot';
@@ -1448,7 +1491,7 @@ class bitmart extends \ccxt\async\bitmart {
         //        }
         //    }
         //
-        $channel = $this->safe_string_2($message, 'table', 'group');
+        $channel = $this->safe_string_2($message, 'table', 'group', '');
         $isSpot = (mb_strpos($channel, 'spot') !== false);
         $data = $this->safe_value($message, 'data');
         if ($data === null) {
@@ -1459,10 +1502,13 @@ class bitmart extends \ccxt\async\bitmart {
         $interval = str_replace('kline', '', $part1);
         $interval = str_replace('Bin', '', $interval);
         $intervalParts = explode(':', $interval);
-        $interval = $this->safe_string($intervalParts, 0);
+        $interval = $this->safe_string($intervalParts, 0, '');
         // use a reverse lookup in a static map instead
         $timeframes = $this->safe_dict($this->options, 'timeframes', array());
         $timeframe = $this->find_timeframe($interval, $timeframes);
+        if ($timeframe === null) {
+            return;
+        }
         $duration = $this->parse_timeframe($timeframe);
         $durationInMs = $duration * 1000;
         if ($isSpot) {
@@ -1520,7 +1566,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {string} [$params->speed] *futures only* '100ms' or '200ms'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth/increase100');
             $symbol = $this->symbol($symbol);
@@ -1548,7 +1596,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $options = $this->safe_dict($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth/increase100');
             $symbol = $this->symbol($symbol);
@@ -1691,7 +1741,7 @@ class bitmart extends \ccxt\async\bitmart {
         if ($length <= 0) {
             return;
         }
-        $channelName = $this->safe_string_2($message, 'table', 'group');
+        $channelName = $this->safe_string_2($message, 'table', 'group', '');
         // find $limit subscribed to
         $limitsToCheck = array( '100', '50', '20', '10', '5' );
         $limit = 0;
@@ -1777,7 +1827,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {string} [$params->depth] the $type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($symbols, $type, $params) = $this->get_params_for_multiple_sub('watchOrderBookForSymbols', $symbols, $limit, $params);
             $channel = null;
@@ -1802,7 +1854,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {string} [$params->depth] the $type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($symbols, $type, $params) = $this->get_params_for_multiple_sub('unWatchOrderBookForSymbols', $symbols, null, $params);
             $channel = null;
@@ -1826,7 +1880,9 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $fundingRate = Async\await($this->watch_funding_rates(array( $symbol ), $params));
             return $fundingRate[$symbol];
@@ -1847,7 +1903,9 @@ class bitmart extends \ccxt\async\bitmart {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchFundingRates', $market, $params);
@@ -1880,7 +1938,9 @@ class bitmart extends \ccxt\async\bitmart {
         $data = $this->safe_dict($message, 'data', array());
         $fundingRate = $this->parse_funding_rate($data);
         $symbol = $fundingRate['symbol'];
-        $this->fundingRates[$symbol] = $fundingRate;
+        if ($symbol !== null) {
+            $this->fundingRates[$symbol] = $fundingRate;
+        }
         $messageHash = 'fundingRate::' . $symbol;
         $client->resolve($fundingRate, $messageHash);
     }
@@ -2016,7 +2076,7 @@ class bitmart extends \ccxt\async\bitmart {
         //         }
         //     }
         //
-        $messageTopic = $this->safe_string_2($message, 'topic', 'group');
+        $messageTopic = $this->safe_string_2($message, 'topic', 'group', '');
         $unSubMessageTopic = 'unsubscribe::' . $messageTopic;
         // one $message includes info about one unsubscription only even if we requested multiple
         // so we can not just create $subscription object in unWatch method and use it here
@@ -2033,11 +2093,11 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function get_un_sub_params($messageTopic) {
         $parts = explode(':', $messageTopic);
-        $channel = $this->safe_string($parts, 0);
+        $channel = $this->safe_string($parts, 0, '');
         $marketTypeAndTopic = explode('/', $channel);
         $rawMarketType = $this->safe_string_lower($marketTypeAndTopic, 0);
         $marketType = $this->parse_market_type($rawMarketType);
-        $topic = $this->safe_string($marketTypeAndTopic, 1);
+        $topic = $this->safe_string($marketTypeAndTopic, 1, '');
         $thirdPart = $this->safe_string($marketTypeAndTopic, 2);
         if ($thirdPart !== null) {
             $topic .= '/' . $thirdPart;
@@ -2183,7 +2243,7 @@ class bitmart extends \ccxt\async\bitmart {
                 }
             }
         } else {
-            $channel = $this->safe_string_2($message, 'table', 'group');
+            $channel = $this->safe_string_2($message, 'table', 'group', '');
             $methods = array(
                 'depth' => array($this, 'handle_order_book'),
                 'bookTicker' => array($this, 'handle_bid_ask'),

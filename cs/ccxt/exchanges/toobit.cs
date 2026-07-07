@@ -74,7 +74,7 @@ public partial class toobit : Exchange
                 { "withdraw", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/0c7a97d5-182c-492e-b921-23540c868e0e" },
+                { "logo", "https://github.com/user-attachments/assets/58e1b718-c6fd-49e2-8a49-797da6b9c008" },
                 { "api", new Dictionary<string, object>() {
                     { "common", "https://api.toobit.com" },
                     { "private", "https://api.toobit.com" },
@@ -593,8 +593,11 @@ public partial class toobit : Exchange
         {
             object coin = getValue(coins, i);
             object parsed = this.parseCurrency(coin);
-            object code = getValue(parsed, "code");
-            ((IDictionary<string,object>)result)[(string)code] = parsed;
+            if (isTrue(!isEqual(parsed, null)))
+            {
+                object code = getValue(parsed, "code");
+                ((IDictionary<string,object>)result)[(string)code] = parsed;
+            }
         }
         return result;
     }
@@ -813,7 +816,10 @@ public partial class toobit : Exchange
         {
             object market = getValue(all, i);
             object parsed = this.parseMarket(market);
-            ((IList<object>)result).Add(parsed);
+            if (isTrue(!isEqual(parsed, null)))
+            {
+                ((IList<object>)result).Add(parsed);
+            }
         }
         return result;
     }
@@ -821,7 +827,7 @@ public partial class toobit : Exchange
     public override object parseMarket(object market)
     {
         object id = this.safeString(market, "symbol");
-        object baseId = this.safeString(market, "baseAsset");
+        object baseId = this.safeString(market, "baseAsset", "");
         object quoteId = this.safeString(market, "quoteAsset");
         object baseParts = ((string)baseId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         object baseIdClean = getValue(baseParts, 0);
@@ -908,7 +914,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -964,7 +973,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1115,7 +1127,10 @@ public partial class toobit : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1135,7 +1150,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = null;
+        object response = new List<object>() {};
         object endpoint = null;
         var endpointparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
         endpoint = ((IList<object>)endpointparametersVariable)[0];
@@ -1171,7 +1186,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object type = null;
         object market = null;
@@ -1179,9 +1197,12 @@ public partial class toobit : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             object symbol = this.safeString(symbols, 0);
-            market = this.market(symbol);
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                market = this.market(symbol);
+            }
             object length = getArrayLength(symbols);
-            if (isTrue(isEqual(length, 1)))
+            if (isTrue(isTrue((isEqual(length, 1))) && isTrue((!isEqual(market, null)))))
             {
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
@@ -1259,7 +1280,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1310,7 +1334,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1376,7 +1403,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
@@ -1444,7 +1474,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1452,6 +1485,10 @@ public partial class toobit : Exchange
         if (isTrue(paginate))
         {
             return await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters);
+        }
+        if (isTrue(isEqual(symbol, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
@@ -1499,7 +1536,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = null;
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -1553,10 +1593,13 @@ public partial class toobit : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "spot")))
         {
             var requestparametersVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -1600,6 +1643,10 @@ public partial class toobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
+        if (isTrue(isEqual(side, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a side argument")) ;
+        }
         object id = getValue(market, "id");
         object request = new Dictionary<string, object>() {
             { "symbol", id },
@@ -1846,6 +1893,10 @@ public partial class toobit : Exchange
             { "CANCELED", "canceled" },
             { "REJECTED", "canceled" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1856,6 +1907,10 @@ public partial class toobit : Exchange
             { "LIMIT", "limit" },
             { "LIMIT_MAKER", "limit" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -1892,7 +1947,7 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
         }
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.privateDeleteApiV1SpotOrder(this.extend(request, parameters));
@@ -1922,7 +1977,10 @@ public partial class toobit : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1965,7 +2023,10 @@ public partial class toobit : Exchange
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object idsString = String.Join(",", ((IList<object>)ids).ToArray());
         object request = new Dictionary<string, object>() {
             { "ids", idsString },
@@ -2013,12 +2074,15 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", id },
         };
         object market = this.market(symbol);
-        object response = null;
+        object response = new Dictionary<string, object>() {};
         if (isTrue(getValue(market, "spot")))
         {
             response = await this.privateGetApiV1SpotOrder(this.extend(request, parameters));
@@ -2072,7 +2136,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2088,7 +2155,7 @@ public partial class toobit : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters));
@@ -2113,7 +2180,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -2136,7 +2206,7 @@ public partial class toobit : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.privateGetApiV1SpotTradeOrders(request);
@@ -2162,7 +2232,10 @@ public partial class toobit : Exchange
     {
         // returns the most recent closed or canceled orders up to circa two weeks ago
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2181,7 +2254,7 @@ public partial class toobit : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             throw new NotSupported ((string)add(add(add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
@@ -2219,7 +2292,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -2238,7 +2314,7 @@ public partial class toobit : Exchange
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(isEqual(marketType, "spot")))
         {
             response = await this.privateGetApiV1AccountTrades(this.extend(request, parameters));
@@ -2264,7 +2340,10 @@ public partial class toobit : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2322,7 +2401,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2380,7 +2462,7 @@ public partial class toobit : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object timestamp = this.safeInteger(item, "created");
         object after = this.safeNumber(item, "total");
-        object amountRaw = this.safeString(item, "change");
+        object amountRaw = this.safeString(item, "change", "");
         object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         object direction = "in";
         if (isTrue(((string)amountRaw).StartsWith(((string)"-"))))
@@ -2426,7 +2508,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = null;
         object marketType = null;
         object market = null;
@@ -2519,7 +2604,10 @@ public partial class toobit : Exchange
     public async virtual Task<object> fetchDepositsOrWithdrawalsHelper(object type, object code, object since, object limit, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2538,7 +2626,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = null;
+        object response = new List<object>() {};
         if (isTrue(isEqual(type, "deposits")))
         {
             response = await this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters));
@@ -2642,6 +2730,10 @@ public partial class toobit : Exchange
             { "11", "failed" },
             { "3", "ok" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -2657,7 +2749,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2722,7 +2817,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " withdraw() : param[\"network\"] is required")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2765,7 +2863,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(!isEqual(getValue(market, "type"), "swap")))
         {
@@ -2800,7 +2901,10 @@ public partial class toobit : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2825,7 +2929,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2871,7 +2978,10 @@ public partial class toobit : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbols, null)))

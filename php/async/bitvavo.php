@@ -153,7 +153,7 @@ class bitvavo extends Exchange {
                 '1d' => '1d',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/d213155c-8c71-4701-9bd5-45351febc2a8',
+                'logo' => 'https://github.com/user-attachments/assets/35d690b1-5710-47f6-86e9-d638ce38685a',
                 'api' => array(
                     'public' => 'https://api.bitvavo.com',
                     'private' => 'https://api.bitvavo.com',
@@ -404,6 +404,7 @@ class bitvavo extends Exchange {
                 ),
             ),
             'options' => array(
+                'mica' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'networks' => array(
@@ -695,7 +696,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -782,7 +785,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->publicGetTicker24h($params));
             //
             //     array(
@@ -821,7 +826,9 @@ class bitvavo extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
@@ -966,7 +973,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetAccount($params));
             //
             //     {
@@ -1020,7 +1029,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -1061,7 +1072,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -1156,7 +1169,9 @@ class bitvavo extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
@@ -1204,7 +1219,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetBalance($params));
             //
             //     array(
@@ -1229,7 +1246,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetSubaccounts($params));
             //
             //     {
@@ -1276,7 +1295,9 @@ class bitvavo extends Exchange {
              * @param {string} [$params->clientRequestId] client defined unique id
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $subaccountId = $this->safe_string($params, 'subaccountId');
             $params = $this->omit($params, 'subaccountId');
@@ -1337,7 +1358,9 @@ class bitvavo extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch transfers for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -1392,7 +1415,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -1468,7 +1493,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'symbol' => $currency['id'],
@@ -1598,7 +1625,9 @@ class bitvavo extends Exchange {
              * @param {bool} [$params->responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $response = Async\await($this->privatePostOrder($request));
@@ -1699,7 +1728,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = Async\await($this->privatePutOrder($request));
@@ -1741,7 +1772,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->cancel_order_request($id, $symbol, $params);
             $response = Async\await($this->privateDeleteOrder($request));
@@ -1765,7 +1798,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -1809,7 +1844,9 @@ class bitvavo extends Exchange {
             if (($timeout > 0) && ($timeout < 10000)) {
                 throw new BadRequest($this->id . ' cancelAllOrdersAfter() $timeout should be 0 or greater than or equal to 10000 milliseconds');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $codGroupId = null;
             list($codGroupId, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersAfter', 'codGroupId', 1);
             $request = array(
@@ -1842,7 +1879,9 @@ class bitvavo extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market' => $market['id'],
@@ -1928,7 +1967,9 @@ class bitvavo extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
@@ -1990,7 +2031,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // "market" => $market["id"], // rate $limit 25 without a $market, 1 with $market specified
             );
@@ -2200,7 +2243,9 @@ class bitvavo extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -2245,7 +2290,9 @@ class bitvavo extends Exchange {
              * @param {int} [$params->page] the page number for the transaction history
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -2374,7 +2421,9 @@ class bitvavo extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = $this->withdraw_request($code, $amount, $address, $tag, $params);
             $response = Async\await($this->privatePostWithdrawal($request));
@@ -2423,7 +2472,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = $this->fetch_withdrawals_request($code, $since, $limit, $params);
             $currency = null;
             if ($code !== null) {
@@ -2482,7 +2533,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = $this->fetch_deposits_request($code, $since, $limit, $params);
             $currency = null;
             if ($code !== null) {
@@ -2656,7 +2709,9 @@ class bitvavo extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->publicGetAssets($params));
             //
             //   array(

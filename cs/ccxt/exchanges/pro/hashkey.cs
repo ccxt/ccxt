@@ -91,7 +91,10 @@ public partial class hashkey : ccxt.hashkey
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -179,7 +182,7 @@ public partial class hashkey : ccxt.hashkey
 
     /**
      * @method
-     * @name hahskey#watchTicker
+     * @name hashkey#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -190,7 +193,10 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = "realtimes";
@@ -251,7 +257,10 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = "trade";
@@ -327,7 +336,10 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object topic = "depth";
@@ -399,7 +411,10 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -534,7 +549,10 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -662,7 +680,10 @@ public partial class hashkey : ccxt.hashkey
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object listenKey = await this.authenticate();
         symbols = this.marketSymbols(symbols);
         object messageHash = "positions";
@@ -773,7 +794,10 @@ public partial class hashkey : ccxt.hashkey
     {
         parameters ??= new Dictionary<string, object>();
         object listenKey = await this.authenticate();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = "spot";
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
         type = ((IList<object>)typeparametersVariable)[0];

@@ -31,7 +31,7 @@ public class BitstampCore extends BitstampApi
                 put( "CORS", true );
                 put( "spot", true );
                 put( "margin", false );
-                put( "swap", false );
+                put( "swap", true );
                 put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
@@ -465,6 +465,7 @@ public class BitstampCore extends BitstampApi
                 put( "UST", "USTC" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "networksById", new java.util.HashMap<String, Object>() {{
                     put( "bitcoin-cash", "BCH" );
                     put( "bitcoin", "BTC" );

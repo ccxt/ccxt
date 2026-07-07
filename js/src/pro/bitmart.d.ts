@@ -1,5 +1,5 @@
 import bitmartRest from '../bitmart.js';
-import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool, FundingRate, FundingRates } from '../base/types.js';
+import type { Int, Market, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Bool, FundingRate, FundingRates, List } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bitmart extends bitmartRest {
     describe(): any;
@@ -289,9 +289,9 @@ export default class bitmart extends bitmartRest {
     handleUnSubscription(client: Client, message: any): void;
     getUnSubParams(messageTopic: any): {
         topic: string;
-        symbols: any[];
+        symbols: string[];
         subHash: string;
-        symbolsAndTimeframes: any[];
+        symbolsAndTimeframes: List;
         subHashIsPrefix: boolean;
     };
     parseTopic(topic: any): string;

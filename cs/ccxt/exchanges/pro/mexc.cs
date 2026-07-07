@@ -92,7 +92,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("ticker:", getValue(market, "symbol"));
         if (isTrue(getValue(market, "spot")))
@@ -214,7 +217,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null);
         object messageHashes = new List<object>() {};
         object firstSymbol = this.safeString(symbols, 0);
@@ -415,7 +421,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, false, true);
         object marketType = null;
         if (isTrue(isEqual(symbols, null)))
@@ -578,7 +587,10 @@ public partial class mexc : ccxt.mexc
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
@@ -776,7 +788,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
@@ -1003,7 +1018,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("trades:", symbol);
@@ -1126,7 +1144,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "myTrades";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1319,7 +1340,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "orders";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1432,6 +1456,11 @@ public partial class mexc : ccxt.mexc
         if (isTrue(getValue(market, "spot")))
         {
             parsed = this.parseWsOrder(data, market);
+            object sendTime = this.safeInteger(message, "sendTime");
+            if (isTrue(!isEqual(sendTime, null)))
+            {
+                ((IDictionary<string,object>)parsed)["lastTradeTimestamp"] = sendTime;
+            }
         } else
         {
             parsed = this.parseOrder(data, market);
@@ -1614,7 +1643,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1701,7 +1733,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("fundingRate:", getValue(market, "symbol"));
         object channel = "sub.funding.rate";
@@ -1723,7 +1758,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("unsubscribe:fundingRate:", getValue(market, "symbol"));
         object url = null;
@@ -1771,7 +1809,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("unsubscribe:ticker:", getValue(market, "symbol"));
         object url = null;
@@ -1807,7 +1848,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null);
         object messageHashes = new List<object>() {};
         object firstSymbol = this.safeString(symbols, 0);
@@ -1849,7 +1893,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, false, true);
         object marketType = null;
         if (isTrue(isEqual(symbols, null)))
@@ -1901,7 +1948,10 @@ public partial class mexc : ccxt.mexc
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
@@ -1941,7 +1991,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("unsubscribe:orderbook:", symbol);
@@ -1982,7 +2035,10 @@ public partial class mexc : ccxt.mexc
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("unsubscribe:trades:", symbol);

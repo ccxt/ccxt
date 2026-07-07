@@ -7,6 +7,26 @@ namespace ccxt;
 public partial class coincheck
 {
     /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://coincheck.com/documents/exchange/api#status-retrieval"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>

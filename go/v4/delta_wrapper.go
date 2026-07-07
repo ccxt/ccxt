@@ -1026,6 +1026,41 @@ func (this *Delta) FetchMarginMode(symbol string, options ...FetchMarginModeOpti
 
 /**
  * @method
+ * @name delta#setMarginMode
+ * @description set margin mode to 'isolated' or 'portfolio'
+ * @see https://docs.delta.exchange/#change-margin-mode
+ * @param {string} marginMode 'isolated' or 'portfolio'
+ * @param {string} [symbol] not used by delta.setMarginMode
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} params.subaccount_user_id the user id of the subaccount
+ * @returns {object} response from the exchange
+ */
+func (this *Delta) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
+
+	opts := SetMarginModeOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbol any = nil
+	if opts.Symbol != nil {
+		symbol = *opts.Symbol
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
+	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
+	if IsError(res) {
+		return map[string]any{}, CreateReturnError(res)
+	}
+	return res.(map[string]any), nil
+}
+
+/**
+ * @method
  * @name delta#fetchOption
  * @description fetches option data that is commonly found in an option chain
  * @see https://docs.delta.exchange/#get-ticker-for-a-product-by-symbol
@@ -1383,9 +1418,6 @@ func (this *Delta) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Trans
 }
 func (this *Delta) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
-}
-func (this *Delta) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
-	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
 func (this *Delta) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)

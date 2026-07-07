@@ -207,7 +207,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         let uppercaseType = type.toUpperCase();
@@ -289,7 +291,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object} an list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const request = {
             'orderIds': ids,
@@ -306,7 +310,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         return await this.tradeRequest('cancelAllOrders', params);
     }
@@ -345,7 +351,9 @@ export default class poloniex extends poloniexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const timeframes = this.safeValue(this.options, 'timeframes', {});
         const channel = this.safeString(timeframes, timeframe, timeframe);
         if (channel === undefined) {
@@ -367,7 +375,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return this.safeValue(tickers, symbol);
@@ -382,7 +392,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'ticker';
         symbols = this.marketSymbols(symbols);
         const newTickers = await this.subscribe(name, name, false, symbols, params);
@@ -417,7 +429,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const name = 'trades';
         const url = this.urls['api']['ws']['public'];
@@ -455,7 +469,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const watchOrderBookOptions = this.safeValue(this.options, 'watchOrderBook');
         let name = this.safeString(watchOrderBookOptions, 'name', 'book_lv2');
         [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
@@ -474,7 +490,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'orders';
         await this.authenticate();
         if (symbol !== undefined) {
@@ -499,7 +517,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'orders';
         const messageHash = 'myTrades';
         await this.authenticate();
@@ -522,7 +542,9 @@ export default class poloniex extends poloniexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'balances';
         await this.authenticate();
         return await this.subscribe(name, name, true, undefined, params);
@@ -584,7 +606,7 @@ export default class poloniex extends poloniexRest {
         const messageHash = channel + '::' + symbol;
         const parsed = this.parseWsOHLCV(data, market);
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
+        let stored = (timeframe === undefined) ? undefined : this.safeValue(this.ohlcvs[symbol], timeframe);
         if (symbol !== undefined) {
             if (stored === undefined) {
                 const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -623,7 +645,7 @@ export default class poloniex extends poloniexRest {
                 const symbol = trade['symbol'];
                 const type = 'trades';
                 const messageHash = type + '::' + symbol;
-                let tradesArray = this.safeValue(this.trades, symbol);
+                let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
                 if (tradesArray === undefined) {
                     const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
                     tradesArray = new ArrayCache(tradesLimit);
@@ -815,8 +837,8 @@ export default class poloniex extends poloniexRest {
             const eventType = this.safeString(order, 'eventType');
             if (marketId !== undefined) {
                 const symbol = this.safeSymbol(marketId);
-                const orderId = this.safeString(order, 'orderId');
-                const clientOrderId = this.safeString(order, 'clientOrderId');
+                const orderId = this.safeString(order, 'orderId', '');
+                const clientOrderId = this.safeString(order, 'clientOrderId', '');
                 if (eventType === 'place' || eventType === 'canceled') {
                     const parsed = this.parseWsOrder(order);
                     orders.append(parsed);
@@ -1211,7 +1233,7 @@ export default class poloniex extends poloniexRest {
             'cancelAllOrders': this.handleOrderRequest,
             'auth': this.handleAuthenticate,
         };
-        const method = this.safeValue(methods, type);
+        const method = (type === undefined) ? undefined : this.safeValue(methods, type);
         if (type === 'auth') {
             this.handleAuthenticate(client, message);
         }

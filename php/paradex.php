@@ -724,7 +724,9 @@ class paradex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchTradingFee() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -763,7 +765,9 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetMarkets($params);
         //
         //     {
@@ -809,7 +813,9 @@ class paradex extends Exchange {
          * @param {string} [$params->price] "last", "mark", "index", default is "last"
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'resolution' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
@@ -888,7 +894,9 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array(
             'market' => 'ALL',
@@ -929,7 +937,9 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1024,7 +1034,9 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array( 'market' => $market['id'] );
         $response = $this->publicGetOrderbookMarket($this->extend($request, $params));
@@ -1070,7 +1082,9 @@ class paradex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
@@ -1187,7 +1201,9 @@ class paradex extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open $interest structurearray(@link https://docs.ccxt.com/?id=open-$interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
@@ -1691,7 +1707,9 @@ class paradex extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->sign_order_request($request);
@@ -1752,7 +1770,9 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument');
         }
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request = $this->omit($request, array( 'instruction', 'client_id', 'flags' ));
@@ -1808,7 +1828,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         for ($i = 0; $i < count($orders); $i++) {
             $rawOrder = $orders[$i];
@@ -1872,7 +1894,9 @@ class paradex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         if ($clientOrderId !== null) {
@@ -1901,7 +1925,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $clientOrderIds = $this->safe_list_n($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $params = $this->omit($params, array( 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ));
         $hasOrderIds = ($ids !== null) && ((gettype($ids) === 'array' && array_keys($ids) === array_keys(array_keys($ids))));
@@ -1981,7 +2007,9 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -2007,7 +2035,9 @@ class paradex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_string_n($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
         $params = $this->omit($params, array( 'clOrdID', 'clientOrderId', 'client_order_id' ));
@@ -2063,7 +2093,9 @@ class paradex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -2141,7 +2173,9 @@ class paradex extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2195,7 +2229,9 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetBalance();
         //
         //     {
@@ -2240,7 +2276,9 @@ class paradex extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -2301,7 +2339,9 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $positions = $this->fetch_positions(array( $market['symbol'] ), $params);
         return $this->safe_dict($positions, 0, array());
@@ -2318,7 +2358,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->privateGetPositions();
         //
@@ -2422,7 +2464,9 @@ class paradex extends Exchange {
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($since !== null) {
             $request['from'] = $since;
@@ -2486,7 +2530,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
@@ -2548,7 +2594,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
@@ -2610,7 +2658,9 @@ class paradex extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
         if ($paginate) {
@@ -2770,7 +2820,9 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -2817,7 +2869,9 @@ class paradex extends Exchange {
          */
         $this->check_required_argument('setMarginMode', $symbol, 'symbol');
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $leverage = null;
         list($leverage, $params) = $this->handle_option_and_params($params, 'setMarginMode', 'leverage', 1);
@@ -2840,7 +2894,9 @@ class paradex extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -2897,7 +2953,9 @@ class paradex extends Exchange {
          */
         $this->check_required_argument('setLeverage', $symbol, 'symbol');
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, 'cross');
@@ -2919,7 +2977,9 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$greeks-structure $greeks structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -2974,7 +3034,9 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $request = array(
             'market' => 'ALL',
@@ -3098,7 +3160,9 @@ class paradex extends Exchange {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
         }
         $this->authenticate_rest();
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
@@ -3181,7 +3245,9 @@ class paradex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],

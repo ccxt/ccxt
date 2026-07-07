@@ -316,7 +316,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountBalanceV2(params)
         #
         #     {
@@ -373,7 +374,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -419,7 +421,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -440,7 +443,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         method = self.options['fetchTradesMethod']  # public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
         request = {
@@ -475,7 +479,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountBalance(params)
         #
         #     {
@@ -528,7 +533,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         method = 'privatePostOrderAddOrder'
         market = self.market(symbol)
         request = {
@@ -577,7 +583,8 @@ class bit2c(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -599,7 +606,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'id': id,
@@ -739,7 +747,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if limit is not None:
@@ -906,7 +915,8 @@ class bit2c(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
             raise NotSupported(self.id + ' fetchDepositAddress() does not support fiat currencies')

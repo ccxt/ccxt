@@ -152,7 +152,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             put( "ticketInfo", "handleMyTrade");
             put( "outboundContractPositionInfo", "handlePositions");
         }};
-        Object method = this.safeValue(methods, topic);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(topic, null))))) ? null : this.safeValue(methods, topic);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
@@ -163,7 +163,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 Object item = Helpers.GetValue(message, i);
                 Object eventVar = this.safeString(item, "e");
-                Object method2 = this.safeValue(methods, eventVar);
+                Object method2 = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
                 if (Helpers.isTrue(!Helpers.isEqual(method2, null)))
                 {
                     Helpers.callDynamically(this, method2, new Object[] {client, item});

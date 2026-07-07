@@ -10,7 +10,7 @@ public partial class coinsph
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#test-connectivity"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#test-connectivity"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class coinsph
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#check-server-time"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#check-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class coinsph
     /// retrieves data on all markets for coinsph
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#exchange-information"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,9 +70,9 @@ public partial class coinsph
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -92,9 +92,9 @@ public partial class coinsph
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -114,7 +114,7 @@ public partial class coinsph
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#order-book"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -141,7 +141,7 @@ public partial class coinsph
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#klinecandlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -181,7 +181,7 @@ public partial class coinsph
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#recent-trades-list"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#recent-trades-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -215,7 +215,7 @@ public partial class coinsph
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -249,7 +249,7 @@ public partial class coinsph
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -283,7 +283,7 @@ public partial class coinsph
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#accept-the-quote"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#accept-the-quote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -303,7 +303,7 @@ public partial class coinsph
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#new-order--trade"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#new-order--trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -342,7 +342,7 @@ public partial class coinsph
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#query-order-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#query-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -362,7 +362,7 @@ public partial class coinsph
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#current-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -396,7 +396,7 @@ public partial class coinsph
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#history-orders-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#history-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -430,7 +430,7 @@ public partial class coinsph
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#cancel-order-trade"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#cancel-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -450,7 +450,7 @@ public partial class coinsph
     /// cancel open orders of market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -470,7 +470,7 @@ public partial class coinsph
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#trade-fee-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#trade-fee-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -490,7 +490,7 @@ public partial class coinsph
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#trade-fee-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#trade-fee-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -510,7 +510,7 @@ public partial class coinsph
     /// make a withdrawal to coins_ph account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#withdrawuser_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#withdrawuser_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -530,7 +530,7 @@ public partial class coinsph
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#deposit-history-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#deposit-history-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -564,7 +564,7 @@ public partial class coinsph
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#withdraw-history-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#withdraw-history-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -598,7 +598,7 @@ public partial class coinsph
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#deposit-address-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#deposit-address-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

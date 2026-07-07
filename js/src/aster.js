@@ -27,12 +27,11 @@ export default class aster extends Exchange {
             // 150 req/s for subscribers: https://aster.markets/data
             // for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
-            'hostname': 'aster.markets',
             'certified': false,
             'pro': true,
             'dex': true,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo': 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'fapiPublic': 'https://fapi.asterdex.com/fapi',
@@ -49,9 +48,9 @@ export default class aster extends Exchange {
             },
             'has': {
                 'CORS': undefined,
-                'spot': false,
+                'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'addMargin': true,
@@ -1008,7 +1007,9 @@ export default class aster extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {};
         if (since !== undefined) {
@@ -1173,7 +1174,9 @@ export default class aster extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {
             'symbol': market['id'],
@@ -1312,7 +1315,9 @@ export default class aster extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1448,7 +1453,9 @@ export default class aster extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1503,7 +1510,9 @@ export default class aster extends Exchange {
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -1557,7 +1566,9 @@ export default class aster extends Exchange {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -1623,7 +1634,9 @@ export default class aster extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let marketType = undefined;
@@ -1719,7 +1732,9 @@ export default class aster extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRate() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1749,7 +1764,9 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.fapiPublicGetV3PremiumIndex(this.extend(params));
         //
@@ -1778,7 +1795,9 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingIntervals(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
         }
@@ -1810,7 +1829,9 @@ export default class aster extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -4106,7 +4127,7 @@ export default class aster extends Exchange {
         return '0x' + r.padStart(64, '0') + s.padStart(64, '0') + v;
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.implodeHostname(this.urls['api'][api]) + '/' + path;
+        let url = this.urls['api'][api] + '/' + path;
         if (api === 'fapiPublic' || api === 'sapiPublic') {
             if (Object.keys(params).length) {
                 url += '?' + this.rawencode(params);

@@ -119,7 +119,7 @@ class btcturk extends Exchange {
                 '1y' => '1 y',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/10e0a238-9f60-4b06-9dda-edfc7602f1d6',
+                'logo' => 'https://github.com/user-attachments/assets/710711ff-1278-4e7a-9b03-b5503dd85b59',
                 'api' => array(
                     'public' => 'https://api.btcturk.com/api/v2',
                     'private' => 'https://api.btcturk.com/api/v1',
@@ -405,7 +405,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetUsersBalances($params);
         //
         //     {
@@ -437,7 +439,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pairSymbol' => $market['id'],
@@ -519,7 +523,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetTicker($params);
         $tickers = $this->safe_list($response, 'data');
         return $this->parse_tickers($tickers, $symbols);
@@ -535,7 +541,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         return $this->safe_value($tickers, $symbol);
     }
@@ -615,7 +623,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         // $maxCount = 50;
         $request = array(
@@ -681,7 +691,9 @@ class btcturk extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -784,7 +796,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'orderType' => $side,
@@ -844,7 +858,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -870,7 +886,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pairSymbol' => $market['id'],
@@ -996,7 +1014,9 @@ class btcturk extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

@@ -6,7 +6,7 @@ import ccxt from '../../js/ccxt.js';
 import asTable from 'as-table';
 import log from 'ololog';
 import ansicolor from 'ansicolor';
-
+// @ts-expect-error
 ansicolor.nice
 
 ;(async function test () {

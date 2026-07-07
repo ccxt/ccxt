@@ -8,6 +8,7 @@
 * [enableDemoTrading](#enabledemotrading)
 * [isUnifiedEnabled](#isunifiedenabled)
 * [upgradeUnifiedTradeAccount](#upgradeunifiedtradeaccount)
+* [fetchStatus](#fetchstatus)
 * [fetchTime](#fetchtime)
 * [fetchCurrencies](#fetchcurrencies)
 * [fetchMarkets](#fetchmarkets)
@@ -176,6 +177,26 @@ upgrades the account to unified trade account *warning* this is irreversible
 
 ```javascript
 bybit.upgradeUnifiedTradeAccount (params?)
+```
+
+
+<a name="fetchStatus" id="fetchstatus"></a>
+
+### fetchStatus{docsify-ignore}
+the latest known information on the availability of the exchange API
+
+**Kind**: instance method of [<code>bybit</code>](#bybit)  
+**Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/#/?id=exchange-status-structure)
+
+**See**: https://bybit-exchange.github.io/docs/v5/system-status  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bybit.fetchStatus (params?)
 ```
 
 

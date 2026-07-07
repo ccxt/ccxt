@@ -1481,7 +1481,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1561,7 +1563,9 @@ class mexc extends mexc$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1815,7 +1819,9 @@ class mexc extends mexc$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const maxLimit = (market['spot']) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
         let paginate = false;
@@ -1938,7 +1944,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         let isSingularMarket = false;
@@ -2028,7 +2036,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTicker', market, params);
         let ticker = undefined;
@@ -2219,7 +2229,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let isSingularMarket = false;
         if (symbols !== undefined) {
@@ -2263,7 +2275,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -2284,7 +2298,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketSellOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -2323,7 +2339,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [marginMode, query] = this.handleMarginModeAndParams('createOrder', params);
         if (market['spot']) {
@@ -2411,7 +2429,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSpotOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const test = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
         const request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, params);
@@ -2481,7 +2501,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSwapOrder(market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbol = market['symbol'];
         let openType = undefined;
         if (marginMode !== undefined) {
@@ -2610,7 +2632,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         let symbol = undefined;
         for (let i = 0; i < orders.length; i++) {
@@ -2680,7 +2704,9 @@ class mexc extends mexc$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2805,7 +2831,9 @@ class mexc extends mexc$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2990,7 +3018,9 @@ class mexc extends mexc$1["default"] {
         }
     }
     async fetchOrdersByIds(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -3057,7 +3087,9 @@ class mexc extends mexc$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         let marketType = undefined;
@@ -3172,7 +3204,9 @@ class mexc extends mexc$1["default"] {
         return await this.fetchOrdersByState(4, symbol, since, limit, params);
     }
     async fetchOrdersByState(state, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -3201,7 +3235,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3317,7 +3353,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const [marketType] = this.handleMarketTypeAndParams('cancelOrders', market, params);
         if (marketType === 'spot') {
@@ -3355,7 +3393,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol !== undefined) ? this.market(symbol) : undefined;
         const request = {};
         let marketType = undefined;
@@ -3792,7 +3832,9 @@ class mexc extends mexc$1["default"] {
     async fetchAccounts(params = {}) {
         // TODO: is the below endpoints suitable for fetchAccounts?
         const [marketType, query] = this.handleMarketTypeAndParams('fetchAccounts', undefined, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.fetchAccountHelper(marketType, query);
         const data = this.safeValue(response, 'balances', []);
         const result = [];
@@ -3819,7 +3861,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.BadRequest(this.id + ' fetchTradingFee() supports spot markets only');
@@ -3984,7 +4028,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         const request = {};
         [marketType, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
@@ -4126,7 +4172,9 @@ class mexc extends mexc$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchMyTrades', market, params);
@@ -4222,7 +4270,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -4294,7 +4344,9 @@ class mexc extends mexc$1["default"] {
         if (positionId === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' modifyMarginHelper() requires a positionId parameter');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'positionId': positionId,
             'amount': amount,
@@ -4345,7 +4397,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} response from the exchange
      */
     async setLeverage(leverage, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'leverage': leverage,
         };
@@ -4380,7 +4434,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
         // 'symbol': market['id'],
@@ -4519,7 +4575,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4558,7 +4616,9 @@ class mexc extends mexc$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4622,7 +4682,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, 'swap', true, true);
         const response = await this.contractPublicGetDetail(params);
         //
@@ -4788,7 +4850,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -4838,7 +4902,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -4918,7 +4984,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'coin': currency['id'] + network example: USDT-TRX,
         // 'status': 'status',
@@ -4981,7 +5049,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'coin': currency['id'],
         // 'status': 'status',
@@ -5174,7 +5244,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -5192,7 +5264,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.contractPrivateGetPositionOpenPositions(params);
         //
         //     {
@@ -5342,7 +5416,9 @@ class mexc extends mexc$1["default"] {
      */
     async fetchTransfer(id, code = undefined, params = {}) {
         const [marketType, query] = this.handleMarketTypeAndParams('fetchTransfer', undefined, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (marketType === 'spot') {
             const request = {
                 'transact_id': id,
@@ -5387,7 +5463,9 @@ class mexc extends mexc$1["default"] {
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchTransfers', undefined, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -5496,7 +5574,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accounts = {
             'spot': 'SPOT',
@@ -5650,7 +5730,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const internal = this.safeBool(params, 'internal', false);
@@ -5755,7 +5837,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //
         //    [
@@ -5853,7 +5937,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.spotPrivateGetCapitalConfigGetall(params);
         //
         //    [
@@ -5942,7 +6028,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -6039,7 +6127,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;
@@ -6109,7 +6199,9 @@ class mexc extends mexc$1["default"] {
      * @returns {object} response from the exchange
      */
     async setMarginMode(marginMode, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['spot']) {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports contract markets only');

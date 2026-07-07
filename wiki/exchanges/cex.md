@@ -92,6 +92,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>cex</code>](#cex)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
+**See**: https://trade.cex.io/docs/#rest-public-api-calls-server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -717,7 +718,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>cex</code>](#cex)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://cex.io/websocket-api#orderbook-subscribe  
+**See**: https://trade.cex.io/docs/#websocket-public-api-calls-order-book-subscribe  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

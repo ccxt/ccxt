@@ -12,7 +12,7 @@ import path from 'path';
 import ansicolor from 'ansicolor';
 import asTable from 'as-table';
 import ololog from 'ololog';
-
+// @ts-expect-error
 ansicolor.nice
 //-----------------------------------------------------------------------------
 

@@ -49,7 +49,9 @@ export default class bitfinex extends bitfinexRest {
         });
     }
     async subscribe(channel, symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
@@ -75,7 +77,9 @@ export default class bitfinex extends bitfinexRest {
         return result;
     }
     async unSubscribe(channel, topic, symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
@@ -100,7 +104,9 @@ export default class bitfinex extends bitfinexRest {
         return await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, subscription);
     }
     async subscribePrivate(messageHash) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
         return await this.watch(url, messageHash, undefined, 1);
@@ -117,7 +123,9 @@ export default class bitfinex extends bitfinexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -147,7 +155,9 @@ export default class bitfinex extends bitfinexRest {
      * @returns {bool} true if successfully unsubscribed, false otherwise
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -295,7 +305,9 @@ export default class bitfinex extends bitfinexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -796,7 +808,9 @@ export default class bitfinex extends bitfinexRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const balanceType = this.safeString(params, 'wallet', 'exchange'); // exchange, margin
         params = this.omit(params, 'wallet');
         const messageHash = 'balance:' + balanceType;
@@ -1045,7 +1059,9 @@ export default class bitfinex extends bitfinexRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);

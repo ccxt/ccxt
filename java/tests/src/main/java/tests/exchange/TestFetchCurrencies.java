@@ -51,9 +51,11 @@ public class TestFetchCurrencies extends BaseTest {
                 Object code = exchange.safeString(currency, "code");
                 Object withdraw = exchange.safeBool(currency, "withdraw");
                 Object deposit = exchange.safeBool(currency, "deposit");
-                if (Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)))
+                Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
+                Object skipUsdtForMica = Helpers.isTrue(isMicaCompliant) && Helpers.isTrue(Helpers.isEqual(code, "USDT"));
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !Helpers.isTrue(skipMajorCurrencyCheck)) && !Helpers.isTrue(skipUsdtForMica)))
                 {
-                    Assert(Helpers.isTrue(skipMajorCurrencyCheck) || Helpers.isTrue((Helpers.isTrue(withdraw) && Helpers.isTrue(deposit))), Helpers.add(Helpers.add(Helpers.add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
+                    Assert(Helpers.isTrue(withdraw) && Helpers.isTrue(deposit), Helpers.add(Helpers.add(Helpers.add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

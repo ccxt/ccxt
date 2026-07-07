@@ -781,20 +781,21 @@ public class BinanceCore extends BinanceApi
                             put( "cost", 1 );
                             put( "noSymbol", 5 );
                         }} );
-                        put( "allOrders", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 20 );
+                        put( "openAlgoOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
                             put( "noSymbol", 40 );
                         }} );
+                        put( "allOrders", 5 );
                         put( "balance", 1 );
                         put( "account", 5 );
                         put( "positionMargin/history", 1 );
                         put( "positionRisk", 1 );
-                        put( "userTrades", new java.util.HashMap<String, Object>() {{
-                            put( "cost", 20 );
-                            put( "noSymbol", 40 );
-                        }} );
+                        put( "userTrades", 5 );
                         put( "income", 20 );
-                        put( "leverageBracket", 1 );
+                        put( "leverageBracket", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                            put( "noSymbol", 2 );
+                        }} );
                         put( "forceOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                             put( "noSymbol", 50 );
@@ -813,6 +814,7 @@ public class BinanceCore extends BinanceApi
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "positionSide/dual", 1 );
                         put( "order", 4 );
+                        put( "algoOrder", 1 );
                         put( "batchOrders", 5 );
                         put( "countdownCancelAll", 10 );
                         put( "leverage", 1 );
@@ -827,6 +829,7 @@ public class BinanceCore extends BinanceApi
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "order", 1 );
+                        put( "algoOrder", 1 );
                         put( "allOpenOrders", 1 );
                         put( "batchOrders", 5 );
                         put( "listenKey", 1 );
@@ -1370,6 +1373,7 @@ public class BinanceCore extends BinanceApi
                 put( "defaultSubType", null );
                 put( "hasAlreadyAuthenticatedSuccessfully", false );
                 put( "warnOnFetchOpenOrdersWithoutSymbol", true );
+                put( "warnOnSTPForInverse", true );
                 put( "currencyToPrecisionRoundingMode", TRUNCATE );
                 put( "throwMarginModeAlreadySet", false );
                 put( "fetchPositions", "positionRisk" );
@@ -1426,7 +1430,6 @@ public class BinanceCore extends BinanceApi
                     put( "XRP", "XRP" );
                     put( "EOS", "EOS" );
                     put( "DOGE", "DOGE" );
-                    put( "SPL", "SOL" );
                     put( "SOL", "SOL" );
                     put( "SONIC", "SONIC" );
                     put( "ARBONE", "ARBITRUM" );
@@ -5817,6 +5820,10 @@ public class BinanceCore extends BinanceApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && !Helpers.isTrue((Helpers.inOp(parameters, "priceMatch")))))
+        {
+            throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
+        }
         Object market = this.market(symbol);
         if (!Helpers.isTrue(Helpers.GetValue(market, "contract")))
         {
@@ -5872,13 +5879,6 @@ public class BinanceCore extends BinanceApi
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) || Helpers.isTrue(isPortfolioMargin)))
-            {
-                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) && !Helpers.isTrue((Helpers.inOp(parameters, "priceMatch")))))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument for portfolio margin and linear orders")) ;
-                }
-            }
             Object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object response = null;
             if (Helpers.isTrue(Helpers.GetValue(market, "linear")))
@@ -6950,7 +6950,14 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    response = (this.dapiPrivatePostOrder(request)).join();
+                    if (Helpers.isTrue(isConditional))
+                    {
+                        Helpers.addElementToObject(request, "algoType", "CONDITIONAL");
+                        response = (this.dapiPrivatePostAlgoOrder(request)).join();
+                    } else
+                    {
+                        response = (this.dapiPrivatePostOrder(request)).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "margin")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(isPortfolioMargin)))
             {
@@ -7341,7 +7348,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(stopPrice, null)))
             {
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && !Helpers.isTrue(isPortfolioMargin)))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && !Helpers.isTrue(isPortfolioMargin)))
                 {
                     Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, stopPrice));
                 } else
@@ -7380,10 +7387,11 @@ public class BinanceCore extends BinanceApi
         parameters = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))
         {
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "inverse")) && Helpers.isTrue(Helpers.GetValue(this.options, "warnOnSTPForInverse"))))
             {
-                Helpers.addElementToObject(request, "selfTradePreventionMode", ((String)selfTradePrevention).toUpperCase()); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+                throw new NotSupported((String)Helpers.add(this.id, " createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the \"warnOnSTPForInverse\" option to false.")) ;
             }
+            Helpers.addElementToObject(request, "selfTradePreventionMode", ((String)selfTradePrevention).toUpperCase()); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         Object icebergAmount = this.safeNumber(parameters, "icebergAmount");
@@ -8033,7 +8041,13 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    response = (this.dapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
+                    if (Helpers.isTrue(isConditional))
+                    {
+                        response = (this.dapiPrivateGetOpenAlgoOrders(this.extend(request, parameters))).join();
+                    } else
+                    {
+                        response = (this.dapiPrivateGetOpenOrders(this.extend(request, parameters))).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "margin")) || Helpers.isTrue(!Helpers.isEqual(marginMode, null))) || Helpers.isTrue(isPortfolioMargin)))
             {
@@ -8481,7 +8495,7 @@ public class BinanceCore extends BinanceApi
                 if (Helpers.isTrue(Helpers.GetValue(market, "option")))
                 {
                     Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
-                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
+                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
                 {
                     Helpers.addElementToObject(request, "clientAlgoId", clientOrderId);
                 } else
@@ -8499,7 +8513,7 @@ public class BinanceCore extends BinanceApi
                 if (Helpers.isTrue(Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional)))
                 {
                     Helpers.addElementToObject(request, "strategyId", id);
-                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "linear")) && Helpers.isTrue(Helpers.GetValue(market, "swap"))) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
+                } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.GetValue(market, "swap")) && Helpers.isTrue(isConditional)) && !Helpers.isTrue(isPortfolioMargin)))
                 {
                     Helpers.addElementToObject(request, "algoId", id);
                 } else
@@ -8546,7 +8560,13 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    response = (this.dapiPrivateDeleteOrder(this.extend(request, parameters))).join();
+                    if (Helpers.isTrue(isConditional))
+                    {
+                        response = (this.dapiPrivateDeleteAlgoOrder(this.extend(request, parameters))).join();
+                    } else
+                    {
+                        response = (this.dapiPrivateDeleteOrder(this.extend(request, parameters))).join();
+                    }
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "margin"))) || Helpers.isTrue((!Helpers.isEqual(marginMode, null)))) || Helpers.isTrue(isPortfolioMargin)))
             {
@@ -15234,15 +15254,14 @@ final Object finalMarket = market;
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
-            if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
-            {
-                response = (this.fapiPrivateGetPositionSideDual(parameters)).join();
-            } else if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
+            // we still have two working endpoints but positionMode is common for linear and inverse markets
+            // thus we do not throw an error if the subType is not specified and default to linear for now
+            if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.dapiPrivateGetPositionSideDual(parameters)).join();
             } else
             {
-                throw new BadRequest((String)Helpers.add(this.id, " fetchPositionMode requires either a symbol argument or params[\"subType\"]")) ;
+                response = (this.fapiPrivateGetPositionSideDual(parameters)).join();
             }
             //
             //    {

@@ -32,7 +32,7 @@ class poloniex extends Exchange {
                 'spot' => true,
                 'margin' => null, // has but not fully implemented
                 'swap' => true,
-                'future' => true,
+                'future' => false,
                 'option' => false,
                 'addMargin' => true,
                 'cancelAllOrders' => true,
@@ -1863,7 +1863,7 @@ class poloniex extends Exchange {
             }
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
-            $response = null;
+            $response = array();
             if ($marketType !== 'spot') {
                 $raw = Async\await($this->swapPrivateGetV3TradeOrderOpens($this->extend($request, $params)));
                 //
@@ -1905,7 +1905,7 @@ class poloniex extends Exchange {
                 //                "qCcy" => "USDT"
                 //            ),
                 //
-                $response = $this->safe_list($raw, 'data');
+                $response = $this->safe_list($raw, 'data', array());
             } elseif ($isTrigger) {
                 $response = Async\await($this->privateGetSmartorders($this->extend($request, $params)));
             } else {
@@ -2047,13 +2047,13 @@ class poloniex extends Exchange {
             );
             $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
             list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
-            $response = null;
+            $response = array();
             if ($market['swap'] || $market['future']) {
                 $responseInitial = Async\await($this->swapPrivatePostV3TradeOrder($this->extend($request, $params)));
                 //
                 // array("code":200,"msg":"Success","data":array("ordId":"418876147745775616","clOrdId":"polo418876147745775616"))
                 //
-                $response = $this->safe_dict($responseInitial, 'data');
+                $response = $this->safe_dict($responseInitial, 'data', array());
             } elseif ($triggerPrice !== null) {
                 $response = Async\await($this->privatePostSmartorders($this->extend($request, $params)));
             } else {
@@ -2069,7 +2069,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function order_request($symbol, $type, $side, $amount, $request, $price = null, $params = array()) {
+    public function order_request($symbol, $type, $side, $amount, $request, ?float $price = null, $params = array()) {
         $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
         $market = $this->market($symbol);
         if ($market['contract']) {
@@ -2175,7 +2175,7 @@ class poloniex extends Exchange {
             );
             $triggerPrice = $this->safe_number_2($params, 'stopPrice', 'triggerPrice');
             list($request, $params) = $this->order_request($symbol, $type, $side, $amount, $request, $price, $params);
-            $response = null;
+            $response = array();
             if ($triggerPrice !== null) {
                 $response = Async\await($this->privatePutSmartordersId($this->extend($request, $params)));
             } else {
@@ -2229,7 +2229,7 @@ class poloniex extends Exchange {
                 //        }
                 //    }
                 //
-                return $this->parse_order($this->safe_dict($raw, 'data'));
+                return $this->parse_order($this->safe_dict($raw, 'data', array()));
             }
             $clientOrderId = $this->safe_value($params, 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -2238,7 +2238,7 @@ class poloniex extends Exchange {
             $request['id'] = $id;
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'clientOrderId', 'trigger', 'stop' ));
-            $response = null;
+            $response = array();
             if ($isTrigger) {
                 $response = Async\await($this->privateDeleteSmartordersId($this->extend($request, $params)));
             } else {
@@ -2283,7 +2283,7 @@ class poloniex extends Exchange {
                     $market['id'],
                 );
             }
-            $response = null;
+            $response = array();
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             if ($marketType === 'swap' || $marketType === 'future') {
@@ -2302,7 +2302,7 @@ class poloniex extends Exchange {
                 //        )
                 //    }
                 //
-                $response = $this->safe_list($raw, 'data');
+                $response = $this->safe_list($raw, 'data', array());
                 return $this->parse_orders($response, $market);
             }
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
@@ -2364,7 +2364,7 @@ class poloniex extends Exchange {
             }
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, array( 'trigger', 'stop' ));
-            $response = null;
+            $response = array();
             if ($isTrigger) {
                 $response = Async\await($this->privateGetSmartordersId($this->extend($request, $params)));
                 $response = $this->safe_value($response, 0);
@@ -3073,7 +3073,7 @@ class poloniex extends Exchange {
         })();
     }
 
-    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
         //
         //         {
         //             "1CR" => array(
@@ -3135,7 +3135,8 @@ class poloniex extends Exchange {
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         $depositWithdrawFee = $this->deposit_withdraw_fee(array());
-        $depositWithdrawFee['info'][$currency['code']] = $fee;
+        $currencyCode = $this->safe_string($currency, 'code');
+        $depositWithdrawFee['info'][$currencyCode] = $fee;
         $networkId = $this->safe_string($fee, 'blockchain');
         $withdrawFee = $this->safe_number($fee, 'withdrawalFee');
         $withdrawResult = array(

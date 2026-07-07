@@ -20,7 +20,13 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public Object describe()
     {
-        return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
+        Object superDescribe = super.describe();
+        return this.deepExtend(superDescribe, this.describeData());
+    }
+
+    public Object describeData()
+    {
+        return new java.util.HashMap<String, Object>() {{
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "ws", true );
                 put( "cancelAllOrdersWs", true );
@@ -140,7 +146,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     put( "broad", new java.util.HashMap<String, Object>() {{}} );
                 }} );
             }} );
-        }});
+        }};
     }
 
     /**
@@ -512,13 +518,14 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
-            Object intervalDefault = ((Helpers.isTrue((Helpers.GetValue(market, "spot"))))) ? "50" : "100ms";
+            Object url = this.getUrlByMarket(market);
+            Object isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
+            Object intervalDefault = ((Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "spot")) && !Helpers.isTrue(isEuUrl))))) ? "50" : "100ms";
             var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
             var interval = ((java.util.List<Object>) intervalqueryVariable).get(0);
             var query = ((java.util.List<Object>) intervalqueryVariable).get(1);
             Object messageType = this.getTypeByMarket(market);
             Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
-            Object url = this.getUrlByMarket(market);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = ((Helpers.isTrue((Helpers.GetValue(market, "spot"))))) ? 50 : 100; // max 100 atm
@@ -529,7 +536,11 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object channel = "";
-            if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            if (Helpers.isTrue(isEuUrl))
+            {
+                channel = "spot.order_book_update";
+                payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
+            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
                 channel = "spot.obu";
                 Object finalInterval = interval;
@@ -573,24 +584,49 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
+            Object url = this.getUrlByMarket(market);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
-            Object interval = "100ms";
+            Object isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
+            Object intervalDefault = ((Helpers.isTrue((Helpers.isTrue(Helpers.GetValue(market, "spot")) && !Helpers.isTrue(isEuUrl))))) ? "50" : "100ms";
+            Object interval = intervalDefault;
             var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             Object messageType = this.getTypeByMarket(market);
-            Object channel = Helpers.add(messageType, ".order_book_update");
-            Object subMessageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
-            Object messageHash = Helpers.add(Helpers.add("unsubscribe:orderbook", ":"), symbol);
-            Object url = this.getUrlByMarket(market);
-            Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
-            Object limit = this.safeInteger(parameters, "limit", 100);
-            if (Helpers.isTrue(Helpers.GetValue(market, "contract")))
+            Object limit = this.safeInteger(parameters, "limit");
+            if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
+                limit = ((Helpers.isTrue((Helpers.GetValue(market, "spot"))))) ? 50 : 100; // max 100 atm
+                if (Helpers.isTrue(Helpers.isEqual(messageType, "options")))
+                {
+                    limit = 50; // max 50 for options
+                }
+            }
+            Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object channel = "";
+            if (Helpers.isTrue(isEuUrl))
+            {
+                channel = "spot.order_book_update";
+                payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
+            } else if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
+            {
+                channel = "spot.obu";
+                Object finalInterval = interval;
+                if (Helpers.isTrue(Helpers.isEqual(limit, 400)))
+                {
+                    finalInterval = "400";
+                }
+                payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.add(Helpers.add(Helpers.add("ob.", Helpers.GetValue(market, "id")), "."), finalInterval)));
+            } else
+            {
+                channel = Helpers.add(messageType, ".order_book_update");
+                payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
                 Object stringLimit = String.valueOf(limit);
                 ((java.util.List<Object>)payload).add(stringLimit);
             }
+            Object subMessageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add("unsubscribe:orderbook", ":"), symbol);
             return (this.unSubscribePublicMultiple(url, "orderbook", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)), payload, channel, parameters)).join();
         });
 

@@ -34,7 +34,7 @@ public class PacificaCore extends PacificaApi
                 put( "spot", false );
                 put( "margin", false );
                 put( "swap", true );
-                put( "future", true );
+                put( "future", false );
                 put( "option", false );
                 put( "addMargin", false );
                 put( "borrowCrossMargin", false );
@@ -139,7 +139,7 @@ public class PacificaCore extends PacificaApi
             }} );
             put( "hostname", "pacifica.fi" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/f795515a-828e-4a04-8fca-bf19fcf17ea4" );
+                put( "logo", "https://github.com/user-attachments/assets/03ed021f-cdec-43c8-acb4-941f1282f610" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.{hostname}" );
                     put( "private", "https://api.{hostname}" );

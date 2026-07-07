@@ -92,7 +92,7 @@ public class DeltaCore extends DeltaApi
                 put( "reduceMargin", true );
                 put( "setLeverage", true );
                 put( "setMargin", false );
-                put( "setMarginMode", false );
+                put( "setMarginMode", true );
                 put( "setPositionMode", false );
                 put( "transfer", false );
                 put( "withdraw", false );
@@ -133,9 +133,9 @@ public class DeltaCore extends DeltaApi
                     put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("assets", "indices", "products", "products/{symbol}", "tickers", "tickers/{symbol}", "l2orderbook/{symbol}", "trades/{symbol}", "stats", "history/candles", "history/sparklines", "settings")) );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
-                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "heartbeat", "deposits/address")) );
+                    put( "get", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/{order_id}", "orders/client_order_id/{client_oid}", "products/{product_id}/orders/leverage", "positions/margined", "positions", "orders/history", "fills", "fills/history/download/csv", "wallet/balances", "wallet/transactions", "wallet/transactions/download", "wallets/sub_accounts_transfer_history", "users/trading_preferences", "sub_accounts", "profile", "rate_limits/quota", "heartbeat", "deposits/address")) );
                     put( "post", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/bracket", "orders/batch", "products/{product_id}/orders/leverage", "positions/change_margin", "positions/close_all", "wallets/sub_account_balance_transfer", "heartbeat/create", "heartbeat", "orders/cancel_after", "orders/leverage")) );
-                    put( "put", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp")) );
+                    put( "put", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/bracket", "orders/batch", "positions/auto_topup", "users/update_mmp", "users/reset_mmp", "users/margin_mode")) );
                     put( "delete", new java.util.ArrayList<Object>(java.util.Arrays.asList("orders", "orders/all", "orders/batch")) );
                 }} );
             }} );
@@ -3915,6 +3915,35 @@ public class DeltaCore extends DeltaApi
             put( "symbol", finalSymbol );
             put( "marginMode", DeltaCore.this.safeString(marginMode, "margin_mode") );
         }};
+    }
+
+    /**
+     * @method
+     * @name delta#setMarginMode
+     * @description set margin mode to 'isolated' or 'portfolio'
+     * @see https://docs.delta.exchange/#change-margin-mode
+     * @param {string} marginMode 'isolated' or 'portfolio'
+     * @param {string} [symbol] not used by delta.setMarginMode
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.subaccount_user_id the user id of the subaccount
+     * @returns {object} response from the exchange
+     */
+    public java.util.concurrent.CompletableFuture<Object> setMarginMode(Object marginMode, Object... optionalArgs)
+    {
+
+        return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+
+            Object symbol = Helpers.getArg(optionalArgs, 0, null);
+            Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+            this.checkRequiredArgument("setMarginMode", marginMode, "marginMode", new java.util.ArrayList<Object>(java.util.Arrays.asList("isolated", "portfolio")));
+            Object subaccountUserId = this.safeString(parameters, "subaccount_user_id");
+            this.checkRequiredArgument("setMarginMode", subaccountUserId, "params[\"subaccount_user_id\"]");
+            Object request = new java.util.HashMap<String, Object>() {{
+                put( "margin_mode", marginMode );
+            }};
+            return (this.privatePutUsersMarginMode(this.extend(request, parameters))).join();
+        });
+
     }
 
     /**

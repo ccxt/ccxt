@@ -37,15 +37,11 @@ class okxus(okx, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': None,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
             },
             'features': {
-                'swap': {
-                    'linear': None,
-                    'inverse': None,
-                },
                 'future': {
                     'linear': None,
                     'inverse': None,

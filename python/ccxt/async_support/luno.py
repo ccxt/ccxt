@@ -18,7 +18,7 @@ class luno(Exchange, ImplicitAPI):
     def describe(self) -> Any:
         return self.deep_extend(super(luno, self).describe(), {
             'id': 'luno',
-            'name': 'luno',
+            'name': 'Luno',
             'countries': ['GB', 'SG', 'ZA'],
             # 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit': 200,
@@ -535,7 +535,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetBalance(params)
         #
         #     {
@@ -561,7 +562,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -663,7 +665,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'id': id,
         }
@@ -671,7 +674,8 @@ class luno(Exchange, ImplicitAPI):
         return self.parse_order(response)
 
     async def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if state is not None:
@@ -772,7 +776,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         tickers = self.index_by(response['tickers'], 'pair')
@@ -796,7 +801,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -909,7 +915,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -946,7 +953,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the luno api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'duration': self.safe_value(self.timeframes, timeframe, timeframe),
@@ -1009,7 +1017,8 @@ class luno(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -1053,7 +1062,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -1090,7 +1100,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -1125,7 +1136,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'order_id': id,
         }
@@ -1164,7 +1176,8 @@ class luno(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.load_accounts()
         currency = None
         id = self.safe_string(params, 'id')  # account id
@@ -1292,7 +1305,8 @@ class luno(Exchange, ImplicitAPI):
         :param int [params.account_id]: an optional account id for the new address
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
@@ -1331,7 +1345,8 @@ class luno(Exchange, ImplicitAPI):
         :param str [params.address]: a specific cryptocurrency address to retrieve
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],

@@ -232,6 +232,7 @@ public class KrakenCore extends KrakenApi
                 put( "ZUSD", "USD" );
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
+                put( "mica", true );
                 put( "timeDifference", 0 );
                 put( "adjustForTimeDifference", false );
                 put( "marketsByAltname", new java.util.HashMap<String, Object>() {{}} );
@@ -2351,6 +2352,7 @@ final Object finalId = id;
             put( "timestamp", timestamp );
             put( "datetime", KrakenCore.this.iso8601(timestamp) );
             put( "lastTradeTimestamp", null );
+            put( "lastUpdateTimestamp", KrakenCore.this.safeTimestamp(finalOrder, "closetm") );
             put( "status", status );
             put( "symbol", finalSymbol_2 );
             put( "type", finalTypeParsed );

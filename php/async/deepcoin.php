@@ -604,7 +604,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($limit === null) {
                 $limit = 400;
@@ -654,7 +656,9 @@ class deepcoin extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $maxLimit = 300;
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
@@ -744,7 +748,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
@@ -833,7 +839,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instId' => $market['id'],
@@ -944,7 +952,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->type] "spot" or "swap", the market type for the balance
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params, $marketType);
             $request = array(
@@ -1004,7 +1014,9 @@ class deepcoin extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
             if ($paginate) {
@@ -1052,7 +1064,9 @@ class deepcoin extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate', false);
             if ($paginate) {
@@ -1151,7 +1165,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a $list of ~@link https://docs.ccxt.com/?id=address-structure address structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($codes === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDepositAddresses requires a $list with one $currency code');
             }
@@ -1213,7 +1229,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->network] unified $network $code for deposit chain
              * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $network = $this->safe_string($params, 'network');
             $defaultNetworks = $this->safe_dict($this->options, 'defaultNetworks', array());
             $defaultNetwork = $this->safe_string($defaultNetworks, $code);
@@ -1283,7 +1301,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', the market type for the ledger (default 'spot')
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = 'spot';
             list($marketType, $params) = $this->handle_market_type_and_params('fetchLedger', null, $params, $marketType);
             $request = array(
@@ -1407,7 +1427,9 @@ class deepcoin extends Exchange {
             if ($userId === null) {
                 throw new ArgumentsRequired($this->id . ' $transfer() requires a $userId parameter');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -1500,7 +1522,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->marginMode] *swap only*'cross' or 'isolated', the default is 'cash' for spot and 'cross' for swap
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $triggerPrice = $this->safe_string($params, 'triggerPrice');
             $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -1806,7 +1830,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
             }
@@ -1880,7 +1906,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrder() requires a $symbol argument');
             }
@@ -1919,7 +1947,9 @@ class deepcoin extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'paginate');
             if ($paginate) {
@@ -2091,7 +2121,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->orderType] *$trigger orders only* 'limit' or 'market'
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
@@ -2208,7 +2240,9 @@ class deepcoin extends Exchange {
              * @param {bool} [$params->trigger] whether the order is a trigger/algo order (default false)
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
@@ -2243,7 +2277,9 @@ class deepcoin extends Exchange {
              * @param {bool} [$params->merged] *swap only* true for $merged positions, false for split positions (default true)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
@@ -2294,7 +2330,9 @@ class deepcoin extends Exchange {
              * @param {float} [$params->takeProfitPrice] the $price that a take profit order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'OrderSysID' => $id,
             );
@@ -2353,7 +2391,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2531,7 +2571,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $instrumentType = $this->convert_to_instrument_type($market['type']);
             $request = array(
@@ -2555,7 +2597,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true);
             $marketType = 'swap';
             $market = null;
@@ -2674,7 +2718,9 @@ class deepcoin extends Exchange {
             if ($leverage < 1) {
                 throw new BadRequest($this->id . ' setLeverage() $leverage should be minimum 1');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marginMode = 'cross';
             list($marginMode, $params) = $this->handle_margin_mode_and_params('setLeverage', $params, $marginMode);
@@ -2723,7 +2769,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-$rates-structure funding rate structures~, indexed by market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, 'swap', true, true, true);
             $subType = 'linear';
             $firstMarket = null;
@@ -2777,7 +2825,9 @@ class deepcoin extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new ExchangeError($this->id . ' fetchFundingRate() is only valid for swap markets');
@@ -2856,7 +2906,9 @@ class deepcoin extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instId' => $market['id'],
@@ -2930,7 +2982,9 @@ class deepcoin extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -3005,7 +3059,9 @@ class deepcoin extends Exchange {
              * @param {string} [$params->type] 'spot' or 'swap', the market type for the trades
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = $this->safe_string($params, 'type');
             if ($symbol === null && $marketType === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades requires a $symbol argument or a market type in the params');
@@ -3030,7 +3086,9 @@ class deepcoin extends Exchange {
              * @param {string[]|null} [$params->positionIds] list of position ids to close (for batch closing)
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $productGroup = $this->get_product_group_from_market($market);
             $positionId = $this->safe_string($params, 'positionId');

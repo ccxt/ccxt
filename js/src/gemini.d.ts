@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, List, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, DepositAddress, NullableDict } from './base/types.js';
 /**
  * @class gemini
  * @augments Exchange
@@ -33,10 +33,10 @@ export default class gemini extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
-    fetchMarketsFromWeb(params?: {}): Promise<any[]>;
+    fetchMarketsFromWeb(params?: {}): Promise<List>;
     parseMarketActive(status: any): boolean;
-    fetchUSDTMarkets(params?: {}): Promise<any[]>;
-    fetchMarketsFromAPI(params?: {}): Promise<any[]>;
+    fetchUSDTMarkets(params?: {}): Promise<List>;
+    fetchMarketsFromAPI(params?: {}): Promise<List>;
     parseMarket(response: any): Market;
     /**
      * @method

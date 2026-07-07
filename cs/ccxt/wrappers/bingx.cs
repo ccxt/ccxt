@@ -735,6 +735,12 @@ public partial class bingx
     /// boolean : *swap only* whether the order is in hedged mode or one way mode
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.closePosition</term>
+    /// <description>
+    /// bool : *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>

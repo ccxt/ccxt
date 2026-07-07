@@ -1231,7 +1231,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1362,7 +1363,8 @@ class phemex(Exchange, ImplicitAPI):
         :param int [params.until]: *USDT settled/ linear swaps only* end time in ms
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         userLimit = limit
         request = {
@@ -1524,7 +1526,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1597,7 +1600,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbols is not None:
             first = self.safe_value(symbols, 0)
@@ -1629,7 +1633,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2056,7 +2061,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.code]: *swap only* currency code of the balance to query(USD, USDT, etc), default is USDT
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
         code = self.safe_string(params, 'code')
@@ -2575,7 +2581,8 @@ class phemex(Exchange, ImplicitAPI):
         :param bool [params.hedged]: *swap only* True for hedged mode, False for one way mode, default is False
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         requestSide = self.capitalize(side)
         type = self.capitalize(type)
@@ -2845,7 +2852,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.posSide]: either 'Merged' or 'Long' or 'Short'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2906,7 +2914,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2942,7 +2951,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         trigger = self.safe_value_2(params, 'stop', 'trigger', False)
         params = self.omit(params, ['stop', 'trigger'])
@@ -3002,7 +3012,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3049,7 +3060,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3084,10 +3096,12 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3127,7 +3141,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.settle]: the settlement currency to fetch orders for
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3204,7 +3219,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3352,7 +3368,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.network]: the chain name to fetch the deposit address e.g. ETH, TRX, EOS, SOL, etc.
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -3404,7 +3421,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -3441,7 +3459,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -3618,7 +3637,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         subType = None
         code = self.safe_string_2(params, 'currency', 'code', 'USDT')
@@ -3751,7 +3771,8 @@ class phemex(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch positions for
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         request = {
@@ -3976,7 +3997,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4053,7 +4075,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
@@ -4168,7 +4191,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: parameters specific to the exchange API endpoint
         :returns dict: A `margin structure <https://docs.ccxt.com/?id=margin-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4229,7 +4253,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
@@ -4266,7 +4291,8 @@ class phemex(Exchange, ImplicitAPI):
         :returns dict: response from the exchange
         """
         self.check_required_argument('setPositionMode', symbol, 'symbol')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if market['settle'] != 'USDT':
             raise BadSymbol(self.id + ' setPositionMode() supports USDT settled markets only')
@@ -4286,7 +4312,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbols is not None:
             first = self.safe_value(symbols, 0)
             market = self.market(first)
@@ -4467,7 +4494,8 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         if (leverage < -100) or (leverage > 100):
             raise BadRequest(self.id + ' setLeverage() leverage should be between -100 and 100')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         isHedged = self.safe_bool(params, 'hedged', False)
         longLeverageRr = self.safe_integer(params, 'longLeverageRr')
         shortLeverageRr = self.safe_integer(params, 'shortLeverageRr')
@@ -4505,7 +4533,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.bizType]: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
@@ -4582,7 +4611,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
         currency = self.currency(code)
@@ -4697,7 +4727,8 @@ class phemex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         isUsdtSettled = market['settle'] == 'USDT' or market['settle'] == 'USDC'
         if not market['swap']:
@@ -4771,7 +4802,8 @@ class phemex(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         networkCode = None
@@ -4834,7 +4866,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest is only supported for contract markets.')
@@ -4909,7 +4942,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         fromCurrency = self.currency(fromCode)
         toCurrency = self.currency(toCode)
         valueScale = self.safe_integer(fromCurrency, 'valueScale')
@@ -4953,7 +4987,8 @@ class phemex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         fromCurrency = self.currency(fromCode)
         toCurrency = self.currency(toCode)
         valueScale = self.safe_integer(fromCurrency, 'valueScale')
@@ -5002,7 +5037,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.toCurrency]: the currency that you bought and converted into
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         if code is not None:
             request['fromCurrency'] = code
@@ -5123,7 +5159,8 @@ class phemex(Exchange, ImplicitAPI):
         :param str [params.method]: *USDT contracts only* 'privateGetGAccountsAccountPositions' or 'privateGetGAccountsAccountPositions' default is 'privateGetGAccountsAccountPositions'
         :returns dict: an array of `auto de leverage structures <https://docs.ccxt.com/?id=auto-de-leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         subType = None
         code = self.safe_string_2(params, 'currency', 'code', 'USDT')

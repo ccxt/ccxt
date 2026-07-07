@@ -59,6 +59,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                                 put( "linear", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/linear-swap-ws" );
                                     put( "private", "wss://api.hbdm.vn/linear-swap-notification" );
+                                    put( "privateV5", "wss://api.hbdm.vn/ws/v5/notification" );
                                 }} );
                                 put( "inverse", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/ws" );
@@ -73,6 +74,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                                 put( "linear", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/linear-swap-ws" );
                                     put( "private", "wss://api.hbdm.vn/linear-swap-notification" );
+                                    put( "privateV5", "wss://api.hbdm.vn/ws/v5/notification" );
                                 }} );
                             }} );
                         }} );
@@ -86,6 +88,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                                 put( "linear", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/linear-swap-ws" );
                                     put( "private", "wss://api.hbdm.vn/linear-swap-notification" );
+                                    put( "privateV5", "wss://api.hbdm.vn/ws/v5/notification" );
                                 }} );
                                 put( "inverse", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/ws" );
@@ -96,6 +99,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                                 put( "linear", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/linear-swap-ws" );
                                     put( "private", "wss://api.hbdm.vn/linear-swap-notification" );
+                                    put( "privateV5", "wss://api.hbdm.vn/ws/v5/notification" );
                                 }} );
                                 put( "inverse", new java.util.HashMap<String, Object>() {{
                                     put( "public", "wss://api.hbdm.vn/swap-ws" );
@@ -921,6 +925,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
      * @name htx#watchMyTrades
      * @description watches information on multiple trades made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53dd5-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35275ff
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -960,6 +965,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 subType = this.safeString(parameters, "subType", subType);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type", "subType")));
             }
+            Object linear = (Helpers.isEqual(subType, "linear"));
+            Object swap = (Helpers.isEqual(type, "swap"));
+            Object future = (Helpers.isEqual(type, "future"));
+            Object isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 Object mode = null;
@@ -971,6 +980,12 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 }
                 messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add("trade.clearing", "#"), marketId), "#"), mode);
                 channel = messageHash;
+            } else if (Helpers.isTrue(isV5Linear))
+            {
+                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("trade", market, parameters);
+                channel = this.safeString(channelAndMessageHashAndParams, 0);
+                messageHash = this.safeString(channelAndMessageHashAndParams, 1);
+                parameters = this.safeValue(channelAndMessageHashAndParams, 2, new java.util.HashMap<String, Object>() {{}});
             } else
             {
                 Object channelAndMessageHash = this.getOrderChannelAndMessageHash(type, subType, market, parameters);
@@ -980,7 +995,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // like symbol/margin/subtype/type variations
                 messageHash = Helpers.add(Helpers.add(orderMessageHash, ":"), "trade");
             }
-            trades = (this.subscribePrivate(channel, messageHash, type, subType, parameters)).join();
+            Object subscriptionParams = new java.util.HashMap<String, Object>() {{
+                put( "isV5", isV5Linear );
+            }};
+            trades = (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
@@ -1043,11 +1061,27 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(channel, messageHash));
     }
 
+    public Object getV5LinearChannelAndMessageHash(Object topic, Object... optionalArgs)
+    {
+        Object market = Helpers.getArg(optionalArgs, 0, null);
+        Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
+        Object contractCode = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "id") : this.safeString(parameters, "contract_code", "*");
+        Object channel = topic;
+        Object messageHash = ((Helpers.isTrue((Helpers.isEqual(contractCode, "*"))))) ? topic : (Helpers.add(Helpers.add(topic, "."), ((String)contractCode).toLowerCase()));
+        parameters = this.omit(parameters, "contract_code");
+        final Object finalContractCode = contractCode;
+        Object requestParams = this.extend(new java.util.HashMap<String, Object>() {{
+            put( "contract_code", finalContractCode );
+        }}, parameters);
+        return new java.util.ArrayList<Object>(java.util.Arrays.asList(channel, messageHash, requestParams));
+    }
+
     /**
      * @method
      * @name htx#watchOrders
      * @description watches information on multiple orders made by the user
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec53c8f-7773-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a208afe7
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1083,19 +1117,32 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 subType = this.safeString(parameters, "subType", subType);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type", "subType")));
             }
+            Object linear = (Helpers.isEqual(subType, "linear"));
+            Object swap = (Helpers.isEqual(type, "swap"));
+            Object future = (Helpers.isEqual(type, "future"));
+            Object isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
             Object messageHash = null;
             Object channel = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 messageHash = Helpers.add(Helpers.add("orders", "#"), suffix);
                 channel = messageHash;
+            } else if (Helpers.isTrue(isV5Linear))
+            {
+                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("orders", market, parameters);
+                channel = this.safeString(channelAndMessageHashAndParams, 0);
+                messageHash = this.safeString(channelAndMessageHashAndParams, 1);
+                parameters = this.safeValue(channelAndMessageHashAndParams, 2, new java.util.HashMap<String, Object>() {{}});
             } else
             {
                 Object channelAndMessageHash = this.getOrderChannelAndMessageHash(type, subType, market, parameters);
                 channel = this.safeString(channelAndMessageHash, 0);
                 messageHash = this.safeString(channelAndMessageHash, 1);
             }
-            Object orders = (this.subscribePrivate(channel, messageHash, type, subType, parameters)).join();
+            Object subscriptionParams = new java.util.HashMap<String, Object>() {{
+                put( "isV5", isV5Linear );
+            }};
+            Object orders = (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
@@ -1227,12 +1274,61 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //   }
         //
         //
+        // linear v5 watchOrders
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "orders",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367563267,
+        //         "uid": "359305390",
+        //         "data": {
+        //             "side": "buy",
+        //             "type": "limit",
+        //             "price": "40000",
+        //             "volume": "1",
+        //             "state": "new",
+        //             "profit": "0",
+        //             "contract_code": "BTC-USDT",
+        //             "position_side": "both",
+        //             "price_match": null,
+        //             "order_id": "1519705236917489664",
+        //             "client_order_id": "1519705236917489664",
+        //             "margin_mode": "cross",
+        //             "lever_rate": 10,
+        //             "order_source": "api",
+        //             "reduce_only": false,
+        //             "time_in_force": "gtc",
+        //             "trade_avg_price": "0",
+        //             "trade_volume": "0",
+        //             "trade_turnover": "0",
+        //             "fee_currency": null,
+        //             "fee": "0",
+        //             "tp_trigger_price": "",
+        //             "tp_order_price": "",
+        //             "tp_type": "",
+        //             "tp_trigger_price_type": "",
+        //             "sl_trigger_price": "",
+        //             "sl_order_price": "",
+        //             "sl_type": "",
+        //             "sl_trigger_price_type": "",
+        //             "contract_type": "swap",
+        //             "cancel_reason": "",
+        //             "created_time": "1782367563239",
+        //             "updated_time": "1782367563239",
+        //             "self_match_prevent": "cancel_taker",
+        //             "amend_origin_volume": "",
+        //             "amend_source": "",
+        //             "amend_result": ""
+        //         }
+        //     }
+        //
         Object messageHash = this.safeString2(message, "ch", "topic");
         Object data = this.safeValue(message, "data");
         Object marketId = this.safeString(message, "contract_code");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
-            marketId = this.safeString(data, "symbol");
+            marketId = this.safeString2(data, "contract_code", "symbol");
         }
         Object market = this.safeMarket(marketId);
         Object parsedOrder = null;
@@ -1276,10 +1372,11 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object tradesLength = Helpers.getArrayLength(rawTrades);
             if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
             {
+                final Object finalMessageHash = messageHash;
                 final Object finalMarketId = marketId;
                 Object tradesObject = new java.util.HashMap<String, Object>() {{
                     put( "trades", rawTrades );
-                    put( "ch", messageHash );
+                    put( "ch", finalMessageHash );
                     put( "symbol", finalMarketId );
                 }};
                 // inject order params in every trade
@@ -1303,6 +1400,11 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object cachedOrders = this.orders;
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsedOrder});
         client.resolve(this.orders, messageHash);
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(messageHash, "orders"))) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))))
+        {
+            Object specificMessageHash = Helpers.add(Helpers.add(messageHash, "."), ((String)marketId).toLowerCase());
+            client.resolve(this.orders, specificMessageHash);
+        }
         // when we make a global subscription (for contracts only) our message hash can't have a symbol/currency attached
         // so we're removing it here
         Object genericMessageHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
@@ -1426,24 +1528,66 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //         "real_profit": 0
         //     }
         //
+        // linear v5 watchOrders
+        //
+        //     {
+        //         "side": "buy",
+        //         "type": "limit",
+        //         "price": "40000",
+        //         "volume": "1",
+        //         "state": "new",
+        //         "profit": "0",
+        //         "contract_code": "BTC-USDT",
+        //         "position_side": "both",
+        //         "price_match": null,
+        //         "order_id": "1519705236917489664",
+        //         "client_order_id": "1519705236917489664",
+        //         "margin_mode": "cross",
+        //         "lever_rate": 10,
+        //         "order_source": "api",
+        //         "reduce_only": false,
+        //         "time_in_force": "gtc",
+        //         "trade_avg_price": "0",
+        //         "trade_volume": "0",
+        //         "trade_turnover": "0",
+        //         "fee_currency": null,
+        //         "fee": "0",
+        //         "tp_trigger_price": "",
+        //         "tp_order_price": "",
+        //         "tp_type": "",
+        //         "tp_trigger_price_type": "",
+        //         "sl_trigger_price": "",
+        //         "sl_order_price": "",
+        //         "sl_type": "",
+        //         "sl_trigger_price_type": "",
+        //         "contract_type": "swap",
+        //         "cancel_reason": "",
+        //         "created_time": "1782367563239",
+        //         "updated_time": "1782367563239",
+        //         "self_match_prevent": "cancel_taker",
+        //         "amend_origin_volume": "",
+        //         "amend_source": "",
+        //         "amend_result": ""
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object lastTradeTimestamp = this.safeInteger2(order, "lastActTime", "ts");
-        Object created = this.safeInteger(order, "orderCreateTime");
+        Object lastTradeTimestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("lastActTime", "updated_time", "ts")));
+        Object created = this.safeInteger2(order, "orderCreateTime", "created_time");
         Object marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeSymbol(marketId, market);
         Object amount = this.safeString2(order, "orderSize", "volume");
-        Object status = this.parseOrderStatus(this.safeString2(order, "orderStatus", "status"));
+        Object status = this.parseOrderStatus(this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStatus", "state", "status"))));
         Object id = this.safeString2(order, "orderId", "order_id");
         Object clientOrderId = this.safeString2(order, "clientOrderId", "client_order_id");
         Object price = this.safeString2(order, "orderPrice", "price");
-        Object filled = this.safeString(order, "execAmt");
+        Object filled = this.safeString2(order, "execAmt", "trade_volume");
         Object typeSide = this.safeString(order, "type");
         Object feeCost = this.safeString(order, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object feeCurrencyId = this.safeString(order, "fee_asset");
+            Object feeCurrencyId = this.safeString2(order, "fee_asset", "fee_currency");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1453,11 +1597,18 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object avgPrice = this.safeString(order, "trade_avg_price");
         Object rawTrades = this.safeValue(order, "trade");
         Object typeSideParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object type = null;
         if (Helpers.isTrue(!Helpers.isEqual(typeSide, null)))
         {
-            typeSideParts = Helpers.split(typeSide, "-");
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(typeSide, "-"), 0)))
+            {
+                typeSideParts = Helpers.split(typeSide, "-");
+                type = this.safeStringLower(typeSideParts, 1);
+            } else
+            {
+                type = typeSide;
+            }
         }
-        Object type = this.safeStringLower(typeSideParts, 1);
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             type = this.safeString(order, "order_price_type");
@@ -1465,9 +1616,9 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object side = this.safeStringLower(typeSideParts, 0);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            side = this.safeString(order, "direction");
+            side = this.safeString2(order, "direction", "side");
         }
-        Object cost = this.safeString(order, "orderValue");
+        Object cost = this.safeString2(order, "orderValue", "trade_turnover");
         final Object finalType = type;
         final Object finalSide = side;
         final Object finalFee = fee;
@@ -1481,7 +1632,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             put( "status", status );
             put( "symbol", symbol );
             put( "type", finalType );
-            put( "timeInForce", null );
+            put( "timeInForce", HtxCore.this.safeStringUpper(order, "time_in_force") );
             put( "postOnly", null );
             put( "side", finalSide );
             put( "price", price );
@@ -1492,6 +1643,11 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             put( "fee", finalFee );
             put( "average", avgPrice );
             put( "trades", rawTrades );
+            put( "reduceOnly", HtxCore.this.safeBool(order, "reduce_only") );
+            put( "stopPrice", null );
+            put( "triggerPrice", null );
+            put( "takeProfitPrice", HtxCore.this.safeString2(order, "tp_trigger_price", "tp_order_price") );
+            put( "stopLossPrice", HtxCore.this.safeString2(order, "sl_trigger_price", "sl_order_price") );
         }}, market);
     }
 
@@ -1562,11 +1718,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
     /**
      * @method
      * @name htx#watchPositions
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7de1c-77b5-11ed-9966-0242ac110003
-     * @see https://www.huobi.com/en-in/opend/newApiPages/?id=8cb7df0f-77b5-11ed-9966-0242ac110003
+     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=28c34a7d-77ae-11ed-9966-0242ac110003
      * @see https://www.huobi.com/en-in/opend/newApiPages/?id=5d5156b5-77b6-11ed-9966-0242ac110003
-     * @description watch all open positions. Note: huobi has one channel for each marginMode and type
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a35d6034
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
      * @param {int} [limit] the maximum number of positions to fetch
@@ -1614,11 +1769,28 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             var marginModeparametersVariable = this.handleMarginModeAndParams("watchPositions", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
+            Object linear = (Helpers.isEqual(subType, "linear"));
+            Object swap = (Helpers.isEqual(type, "swap"));
+            Object future = (Helpers.isEqual(type, "future"));
+            Object isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
             Object isLinear = (Helpers.isEqual(subType, "linear"));
-            Object url = this.getUrlByMarketType(type, isLinear, true);
+            Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5Linear);
             messageHash = Helpers.add(Helpers.add(marginMode, ":positions"), messageHash);
             Object channel = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "positions_cross.*" : "positions.*";
-            Object newPositions = (this.subscribePrivate(channel, messageHash, type, subType, parameters)).join();
+            if (Helpers.isTrue(isV5Linear))
+            {
+                Object isOneMarket = (!Helpers.isTrue(this.isEmpty(symbols)) && Helpers.isTrue((Helpers.isEqual(Helpers.getArrayLength(symbols), 1))));
+                Object v5Market = ((Helpers.isTrue(isOneMarket))) ? market : null;
+                Object channelAndMessageHashAndParams = this.getV5LinearChannelAndMessageHash("positions", v5Market, parameters);
+                channel = this.safeString(channelAndMessageHashAndParams, 0);
+                parameters = this.safeValue(channelAndMessageHashAndParams, 2, new java.util.HashMap<String, Object>() {{}});
+            }
+            final Object finalMarginMode = marginMode;
+            Object subscriptionParams = new java.util.HashMap<String, Object>() {{
+                put( "isV5", isV5Linear );
+                put( "margin", finalMarginMode );
+            }};
+            Object newPositions = (this.subscribePrivate(channel, messageHash, type, subType, parameters, subscriptionParams)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
                 return newPositions;
@@ -1665,9 +1837,53 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //        ]
         //    }
         //
+        // watchPositions linear v5
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "positions",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782460576073,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": [
+        //             {
+        //                 "contract_code": "BTC-USDT",
+        //                 "symbol": "BTC",
+        //                 "position_mode": "single_side",
+        //                 "position_side": "both",
+        //                 "direction": "buy",
+        //                 "margin_mode": "cross",
+        //                 "open_avg_price": "60547.9",
+        //                 "volume": "1",
+        //                 "available": "1",
+        //                 "fee": "0.03632874",
+        //                 "break_even_price": "60620.55748",
+        //                 "total_trade_fee": "0.03632874",
+        //                 "lever_rate": 10,
+        //                 "adl_risk_percent": 4,
+        //                 "liquidation_price": "-102094.847680676304309652",
+        //                 "initial_margin": "6.05807",
+        //                 "maintenance_margin": "0.20597438",
+        //                 "profit_unreal": "0.0328",
+        //                 "profit": "0",
+        //                 "profit_rate": "0.0054",
+        //                 "margin_rate": "0.0012",
+        //                 "state": "normal",
+        //                 "funding_fee": "0",
+        //                 "mark_price": "60580.7",
+        //                 "last_price": "60591.4",
+        //                 "contract_type": "swap",
+        //                 "version": 7,
+        //                 "created_time": "1782460515119",
+        //                 "updated_time": "1782460515119"
+        //             }
+        //         ]
+        //     }
+        //
         Object url = client.url;
         Object topic = this.safeString(message, "topic", "");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(topic, "positions_cross"))))) ? "cross" : "isolated";
+        Object defaultMarginMode = ((Helpers.isTrue((Helpers.isEqual(topic, "positions_cross"))))) ? "cross" : "isolated";
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new java.util.HashMap<String, Object>() {{}};
@@ -1677,14 +1893,22 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             Helpers.addElementToObject(this.positions, url, new java.util.HashMap<String, Object>() {{}});
         }
-        Object clientMarginModePositions = this.safeValue(clientPositions, marginMode);
-        if (Helpers.isTrue(Helpers.isEqual(clientMarginModePositions, null)))
-        {
-            Helpers.addElementToObject(Helpers.GetValue(this.positions, url), marginMode, new ArrayCache.ArrayCacheBySymbolBySide());
-        }
-        Object cache = Helpers.GetValue(Helpers.GetValue(this.positions, url), marginMode);
         Object rawPositions = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        if (Helpers.isTrue(this.isEmpty(rawPositions)))
+        {
+            Object prefixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("cross:positions", "isolated:positions"));
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(prefixes)); i++)
+            {
+                Object messageHashes = this.findMessageHashes(client, Helpers.GetValue(prefixes, i));
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
+                {
+                    client.resolve(new java.util.ArrayList<Object>(java.util.Arrays.asList()), Helpers.GetValue(messageHashes, j));
+                }
+            }
+            return;
+        }
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object positionsByMarginMode = new java.util.HashMap<String, Object>() {{}};
         Object timestamp = this.safeInteger(message, "ts");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -1692,23 +1916,42 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object position = this.parsePosition(rawPosition);
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
+            Object marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
+            if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
+            {
+                marginMode = defaultMarginMode;
+            }
+            Object cache = this.safeValue(Helpers.GetValue(this.positions, url), marginMode);
+            if (Helpers.isTrue(Helpers.isEqual(cache, null)))
+            {
+                cache = new ArrayCache.ArrayCacheBySymbolBySide();
+                Helpers.addElementToObject(Helpers.GetValue(this.positions, url), marginMode, cache);
+            }
             ((java.util.List<Object>)newPositions).add(position);
+            Helpers.addElementToObject(positionsByMarginMode, marginMode, this.safeValue(positionsByMarginMode, marginMode, new java.util.ArrayList<Object>(java.util.Arrays.asList())));
+            ((java.util.List<Object>)Helpers.GetValue(positionsByMarginMode, marginMode)).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
-        Object messageHashes = this.findMessageHashes(client, Helpers.add(marginMode, ":positions::"));
-        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
+        Object marginModes = Helpers.objectKeys(positionsByMarginMode);
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marginModes)); i++)
         {
-            Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
-            Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
-            if (!Helpers.isTrue(this.isEmpty(positions)))
+            Object marginMode = Helpers.GetValue(marginModes, i);
+            Object marginModePositions = this.safeValue(positionsByMarginMode, marginMode, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object messageHashes = this.findMessageHashes(client, Helpers.add(marginMode, ":positions::"));
+            for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
             {
-                client.resolve(positions, messageHash);
+                Object messageHash = Helpers.GetValue(messageHashes, j);
+                Object parts = Helpers.split(messageHash, "::");
+                Object symbolsString = Helpers.GetValue(parts, 1);
+                Object symbols = Helpers.split(symbolsString, ",");
+                Object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
+                if (!Helpers.isTrue(this.isEmpty(positions)))
+                {
+                    client.resolve(positions, messageHash);
+                }
             }
+            client.resolve(marginModePositions, Helpers.add(marginMode, ":positions"));
         }
-        client.resolve(newPositions, Helpers.add(marginMode, ":positions"));
     }
 
     /**
@@ -1716,9 +1959,8 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
      * @name htx#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec52e28-7773-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=10000084-77b7-11ed-9966-0242ac110003
-     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb7dcca-77b5-11ed-9966-0242ac110003
      * @see https://www.htx.com/en-us/opend/newApiPages/?id=28c34995-77ae-11ed-9966-0242ac110003
+     * @see https://www.htx.com/en-us/opend/newApiPages/?id=8cb89359-77b5-11ed-9966-195a6c94551
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -1742,12 +1984,22 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object messageHash = null;
             Object channel = null;
             Object marginMode = null;
+            Object linear = (Helpers.isEqual(subType, "linear"));
+            Object swap = (Helpers.isEqual(type, "swap"));
+            Object future = (Helpers.isEqual(type, "future"));
+            Object isV5Linear = (Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future))));
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 Object mode = this.safeString2(this.options, "watchBalance", "mode", "2");
                 mode = this.safeString(parameters, "mode", mode);
                 messageHash = Helpers.add(Helpers.add("accounts.update", "#"), mode);
                 channel = messageHash;
+            } else if (Helpers.isTrue(isV5Linear))
+            {
+                marginMode = this.safeString(parameters, "margin", "cross");
+                parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency", "symbol", "margin")));
+                channel = "account";
+                messageHash = "account";
             } else
             {
                 Object symbol = this.safeString(parameters, "symbol");
@@ -1830,6 +2082,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 put( "type", finalType );
                 put( "subType", finalSubType );
                 put( "margin", finalMarginMode );
+                put( "isV5", isV5Linear );
             }};
             // we are differentiating the channel from the messageHash for global subscriptions (*)
             // because huobi returns a different topic than the topic sent. Example: we send
@@ -1886,47 +2139,47 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //         "uid":"123456789"
         //     }
         //
-        // usdt / linear future, swap
+        // watchBalance linear v5
         //
         //     {
-        //         "op":"notify",
-        //         "topic":"accounts.btc-usdt", // or "accounts" for global subscriptions
-        //         "ts":1603711370689,
-        //         "event":"order.open",
-        //         "data":[
-        //             {
-        //                 "margin_mode":"cross",
-        //                 "margin_account":"USDT",
-        //                 "margin_asset":"USDT",
-        //                 "margin_balance":30.959342395,
-        //                 "margin_static":30.959342395,
-        //                 "margin_position":0,
-        //                 "margin_frozen":10,
-        //                 "profit_real":0,
-        //                 "profit_unreal":0,
-        //                 "withdraw_available":20.959342395,
-        //                 "risk_rate":153.796711975,
-        //                 "position_mode":"dual_side",
-        //                 "contract_detail":[
-        //                     {
-        //                         "symbol":"LTC",
-        //                         "contract_code":"LTC-USDT",
-        //                         "margin_position":0,
-        //                         "margin_frozen":0,
-        //                         "margin_available":20.959342395,
-        //                         "profit_unreal":0,
-        //                         "liquidation_price":null,
-        //                         "lever_rate":1,
-        //                         "adjust_factor":0.01,
-        //                         "contract_type":"swap",
-        //                         "pair":"LTC-USDT",
-        //                         "business_type":"swap",
-        //                         "trade_partition":"USDT"
-        //                     },
-        //                 ],
-        //                 "futures_contract_detail":[],
-        //             }
-        //         ]
+        //         "op": "notify",
+        //         "topic": "account",
+        //         "contract_code": "",
+        //         "ts": 1782459963509,
+        //         "uid": "359305390",
+        //         "event": "snapshot",
+        //         "data": {
+        //             "equity": "0",
+        //             "state": "normal",
+        //             "details": [
+        //                 {
+        //                     "currency": "USDT",
+        //                     "equity": "162.331953938562004875",
+        //                     "available": "162.331953938562004875",
+        //                     "profit_unreal": "0",
+        //                     "initial_margin": "0",
+        //                     "maintenance_margin": "0",
+        //                     "maintenance_margin_rate": "0",
+        //                     "initial_margin_rate": "0",
+        //                     "voucher": "0",
+        //                     "voucher_value": "0",
+        //                     "created_time": "1770293270932",
+        //                     "updated_time": "1780329743956",
+        //                     "isolated_equity": "0",
+        //                     "isolated_profit_unreal": "0",
+        //                     "withdraw_available": "162.331953938562004875"
+        //                 }
+        //             ],
+        //             "initial_margin": "0",
+        //             "maintenance_margin": "0",
+        //             "maintenance_margin_rate": "0",
+        //             "profit_unreal": "0",
+        //             "available_margin": "0",
+        //             "created_time": "1770293268881",
+        //             "updated_time": "1780329743956",
+        //             "version": 5659,
+        //             "voucher_value": "0"
+        //         }
         //     }
         //
         // inverse future
@@ -1976,13 +2229,36 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         } else
         {
             // contract balance
+            Object topic = this.safeString(message, "topic");
+            if (Helpers.isTrue(Helpers.isEqual(topic, "account")))
+            {
+                Object accountData = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+                Object details = this.safeList(accountData, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object detailsLength = Helpers.getArrayLength(details);
+                for (var i = 0; Helpers.isLessThan(i, detailsLength); i++)
+                {
+                    Object detail = Helpers.GetValue(details, i);
+                    Object currencyId = this.safeString(detail, "currency");
+                    Object code = this.safeCurrencyCode(currencyId);
+                    if (Helpers.isTrue(Helpers.isEqual(code, null)))
+                    {
+                        continue;
+                    }
+                    Object account = this.account();
+                    Helpers.addElementToObject(account, "free", this.safeString(detail, "withdraw_available"));
+                    Helpers.addElementToObject(account, "total", this.safeString(detail, "equity"));
+                    Helpers.addElementToObject(this.balance, code, account);
+                }
+                this.balance = this.safeBalance(this.balance);
+                client.resolve(this.balance, "account");
+                return;
+            }
             Object dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
             {
                 return;
             }
             Object first = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
-            Object topic = this.safeString(message, "topic");
             Object splitTopic = Helpers.split(topic, ".");
             Object messageHash = this.safeString(splitTopic, 0);
             Object subscription = this.safeValue2(client.subscriptions, messageHash, Helpers.add(messageHash, ".*"));
@@ -2286,6 +2562,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "orders"), 0)))
             {
                 this.handleOrder(client, message);
+            }
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "trade"), 0)))
+            {
+                this.handleMyTrade(client, message);
             }
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "account"), 0)))
             {
@@ -2627,6 +2907,34 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //         ],
         //     }
         //
+        // linear v5 watchMyTrades
+        //
+        //     {
+        //         "op": "notify",
+        //         "topic": "trade",
+        //         "contract_code": "BTC-USDT",
+        //         "ts": 1782367694387,
+        //         "uid": "359305390",
+        //         "data": [
+        //             {
+        //                 "direction": "buy",
+        //                 "id": "100121555172810-1519705786942156810-1",
+        //                 "contract_code": "BTC-USDT",
+        //                 "contract_type": "swap",
+        //                 "order_id": "1519705786942156810",
+        //                 "trade_id": "155233460",
+        //                 "position_side": "both",
+        //                 "trade_volume": "1",
+        //                 "trade_price": "61629",
+        //                 "trade_turnover": "61.629",
+        //                 "role": "taker",
+        //                 "client_order_id": "1519705786942156810",
+        //                 "created_time": "1782367694375",
+        //                 "updated_time": "1782367694385"
+        //             }
+        //         ]
+        //     }
+        //
         Object extendParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
@@ -2634,18 +2942,39 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedTrades = this.myTrades;
-        Object messageHash = this.safeString(message, "ch");
+        Object messageHash = this.safeString2(message, "ch", "topic");
         if (Helpers.isTrue(!Helpers.isEqual(messageHash, null)))
         {
             Object data = this.safeValue(message, "data");
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
-                Object parsed = this.parseWsTrade(data);
-                Object symbol = this.safeString(parsed, "symbol");
-                if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                Object contractCode = this.safeString(message, "contract_code");
+                Object market = ((Helpers.isTrue((!Helpers.isEqual(contractCode, null))))) ? this.safeMarket(contractCode) : null;
+                if (Helpers.isTrue(Helpers.isArray(data)))
                 {
-                    Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
-                    client.resolve(this.myTrades, messageHash);
+                    for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
+                    {
+                        Object parsed = this.parseWsTrade(Helpers.GetValue(data, i), market);
+                        Object symbol = this.safeString(parsed, "symbol");
+                        if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                        {
+                            Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
+                        }
+                    }
+                } else
+                {
+                    Object parsed = this.parseWsTrade(data, market);
+                    Object symbol = this.safeString(parsed, "symbol");
+                    if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
+                    {
+                        Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
+                    }
+                }
+                client.resolve(this.myTrades, messageHash);
+                if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(messageHash, "trade"))) && Helpers.isTrue((!Helpers.isEqual(contractCode, null)))))
+                {
+                    Object specificMessageHash = Helpers.add(Helpers.add(messageHash, "."), ((String)contractCode).toLowerCase());
+                    client.resolve(this.myTrades, specificMessageHash);
                 }
             } else
             {
@@ -2706,36 +3035,59 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //         "feeDeductType":""
         //     }
         //
+        // linear v5 watchMyTrades
+        //
+        //     {
+        //         "direction": "buy",
+        //         "id": "100121555172810-1519705786942156810-1",
+        //         "contract_code": "BTC-USDT",
+        //         "contract_type": "swap",
+        //         "order_id": "1519705786942156810",
+        //         "trade_id": "155233460",
+        //         "position_side": "both",
+        //         "trade_volume": "1",
+        //         "trade_price": "61629",
+        //         "trade_turnover": "61.629",
+        //         "role": "taker",
+        //         "client_order_id": "1519705786942156810",
+        //         "created_time": "1782367694375",
+        //         "updated_time": "1782367694385"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(this.safeString(trade, "symbol"));
-        Object side = this.safeString2(trade, "side", "orderSide");
-        Object tradeId = this.safeString(trade, "tradeId");
-        Object price = this.safeString(trade, "tradePrice");
-        Object amount = this.safeString(trade, "tradeVolume");
-        Object order = this.safeString(trade, "orderId");
-        Object timestamp = this.safeInteger(trade, "tradeTime");
-        market = this.market(symbol);
-        Object orderType = this.safeString(trade, "orderType");
+        Object marketId = this.safeString2(trade, "symbol", "contract_code");
+        market = this.safeMarket(marketId, market);
+        Object symbol = this.safeString(market, "symbol");
+        Object side = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("side", "orderSide", "direction")));
+        Object tradeId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeId", "trade_id", "id")));
+        Object price = this.safeString2(trade, "tradePrice", "trade_price");
+        Object amount = this.safeString2(trade, "tradeVolume", "trade_volume");
+        Object order = this.safeString2(trade, "orderId", "order_id");
+        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeTime", "updated_time", "created_time")));
+        Object orderType = this.safeString2(trade, "orderType", "type");
         Object aggressor = this.safeValue(trade, "aggressor");
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(aggressor, null)))
         {
             takerOrMaker = ((Helpers.isTrue(aggressor))) ? "taker" : "maker";
+        } else
+        {
+            takerOrMaker = this.safeStringLower(trade, "role");
         }
         Object type = null;
         Object orderTypeParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
         {
             orderTypeParts = Helpers.split(orderType, "-");
-            type = this.safeString(orderTypeParts, 1);
+            type = this.safeString(orderTypeParts, 1, orderType);
         }
         Object fee = null;
-        Object feeCurrency = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
+        Object feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", HtxCore.this.safeString(trade, "transactFee") );
+                put( "cost", HtxCore.this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactFee", "fee", "trade_fee"))) );
                 put( "currency", finalFeeCurrency );
             }};
         }
@@ -2764,6 +3116,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object isLinear = Helpers.getArg(optionalArgs, 0, true);
         Object isPrivate = Helpers.getArg(optionalArgs, 1, false);
         Object isFeed = Helpers.getArg(optionalArgs, 2, false);
+        Object isV5 = Helpers.getArg(optionalArgs, 3, false);
         Object api = this.safeString(this.options, "api", "api");
         Object hostname = new java.util.HashMap<String, Object>() {{
             put( "hostname", HtxCore.this.hostname );
@@ -2790,7 +3143,19 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             Object baseUrl = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), type);
             Object subTypeUrl = ((Helpers.isTrue(isLinear))) ? Helpers.GetValue(baseUrl, "linear") : Helpers.GetValue(baseUrl, "inverse");
-            url = ((Helpers.isTrue(isPrivate))) ? Helpers.GetValue(subTypeUrl, "private") : Helpers.GetValue(subTypeUrl, "public");
+            if (Helpers.isTrue(isPrivate))
+            {
+                if (Helpers.isTrue(Helpers.isTrue(isV5) && Helpers.isTrue(isLinear)))
+                {
+                    url = this.safeString(subTypeUrl, "privateV5", Helpers.GetValue(subTypeUrl, "private"));
+                } else
+                {
+                    url = Helpers.GetValue(subTypeUrl, "private");
+                }
+            } else
+            {
+                url = Helpers.GetValue(subTypeUrl, "public");
+            }
         }
         return url;
     }
@@ -2888,7 +3253,8 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 }};
             }
             Object isLinear = Helpers.isEqual(subtype, "linear");
-            Object url = this.getUrlByMarketType(type, isLinear, true);
+            Object isV5 = this.safeBool(subscriptionParams, "isV5", false);
+            Object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
             Object hostname = ((Helpers.isTrue((Helpers.isEqual(type, "spot"))))) ? Helpers.GetValue(Helpers.GetValue(this.urls, "hostnames"), "spot") : Helpers.GetValue(Helpers.GetValue(this.urls, "hostnames"), "contract");
             final Object finalType = type;
             Object authParams = new java.util.HashMap<String, Object>() {{

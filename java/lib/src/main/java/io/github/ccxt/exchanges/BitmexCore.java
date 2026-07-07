@@ -113,7 +113,7 @@ public class BitmexCore extends BitmexApi
                 put( "fetchTransfer", false );
                 put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
-                put( "index", true );
+                put( "index", false );
                 put( "reduceMargin", null );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );
@@ -136,7 +136,7 @@ public class BitmexCore extends BitmexApi
                     put( "public", "https://testnet.bitmex.com" );
                     put( "private", "https://testnet.bitmex.com" );
                 }} );
-                put( "logo", "https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04" );
+                put( "logo", "https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://www.bitmex.com" );
                     put( "private", "https://www.bitmex.com" );
@@ -883,7 +883,7 @@ public class BitmexCore extends BitmexApi
             }
             expiryDatetime = this.safeString2(market, "expiry", "closingTimestamp");
             expiry = this.parse8601(expiryDatetime);
-            if (Helpers.isTrue(!Helpers.isEqual(expiry, null)))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(expiry, null)) && Helpers.isTrue(future)))
             {
                 symbol = Helpers.add(Helpers.add(symbol, "-"), this.yymmdd(expiry));
             }

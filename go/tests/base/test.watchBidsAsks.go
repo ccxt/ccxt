@@ -32,7 +32,7 @@ func TestWatchBidsAsksHelper(exchange ccxt.ICoreExchange, skippedProperties any,
 		for IsLessThan(now, ends) {
 			var success any = true
 			var shouldReturn any = false
-			var response any = nil
+			var response any = map[string]any{}
 
 			{
 				func() (ret_ any) {

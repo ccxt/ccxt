@@ -86,7 +86,7 @@ class grvt extends Exchange {
                 '4w' => 'CI_4_W',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo' => 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api' => array(
                     'privateEdge' => 'https://edge.grvt.io/',
                     'privateTrading' => 'https://trades.grvt.io/',
@@ -852,7 +852,9 @@ class grvt extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument' => $this->market_id($symbol),
@@ -963,7 +965,9 @@ class grvt extends Exchange {
              * @param {string} [$params->loc] crypto location, default => us
              * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'instrument' => $this->market_id($symbol),
             );
@@ -1011,7 +1015,9 @@ class grvt extends Exchange {
              * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument' => $market['id'],
@@ -1149,7 +1155,9 @@ class grvt extends Exchange {
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             $maxLimit = 1000;
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
@@ -1243,7 +1251,9 @@ class grvt extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -1470,7 +1480,7 @@ class grvt extends Exchange {
             /**
              * fetch all withdrawals made from an account
              *
-             * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+             * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
              *
              * @param {string} [$code] unified $currency $code of the $currency transferred
              * @param {int} [$since] the earliest time in ms to fetch $transfers for (default 24 hours ago)
