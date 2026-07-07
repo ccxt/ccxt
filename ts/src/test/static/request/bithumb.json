@@ -1,7 +1,7 @@
 {
     "exchange": "bithumb",
     "skipKeys": [],
-    "outputType": "urlencoded",
+    "outputType": "both",
     "methods": {
         "fetchBalance": [
             {

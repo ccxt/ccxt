@@ -832,11 +832,11 @@ export default class bithumb extends Exchange {
                 const bidSize = this.safeString (entry, 'bid_size');
                 const askPrice = this.safeString (entry, 'ask_price');
                 const askSize = this.safeString (entry, 'ask_size');
-                data.bids.push ({
+                data['bids'].push ({
                     'price': bidPrice,
                     'quantity': bidSize,
                 });
-                data.asks.push ({
+                data['asks'].push ({
                     'price': askPrice,
                     'quantity': askSize,
                 });
@@ -967,8 +967,8 @@ export default class bithumb extends Exchange {
             'change': change,
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': this.safeString2 (ticker, 'units_traded_24H', 'trade_volume'),
-            'quoteVolume': this.safeString2 (ticker, 'acc_trade_value_24H', 'acc_trade_volume_24h'),
+            'baseVolume': this.safeString2 (ticker, 'units_traded_24H', 'acc_trade_volume_24h'),
+            'quoteVolume': this.safeString2 (ticker, 'acc_trade_value_24H', 'acc_trade_price_24h'),
             'info': ticker,
         }, market);
     }
@@ -1921,14 +1921,18 @@ export default class bithumb extends Exchange {
         let side = undefined;
         if (sideProperty === 'bid') {
             side = 'buy';
-        } else {
+        } else if (sideProperty === 'ask') {
             side = 'sell';
         }
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'state'));
         const price = this.safeString2 (order, 'order_price', 'price');
-        let type = this.safeString2 (order, 'order_type', 'ord_type', 'limit');
-        if (Precise.stringEquals (price, '0')) {
-            type = 'market';
+        let type = this.safeString2 (order, 'order_type', 'ord_type');
+        if ((type === undefined) && (price !== undefined)) {
+            if (Precise.stringEquals (price, '0')) {
+                type = 'market';
+            } else {
+                type = 'limit';
+            }
         }
         const amount = this.fixCommaNumber (this.safeStringN (order, [ 'order_qty', 'units', 'volume' ]));
         let remaining = this.fixCommaNumber (this.safeString2 (order, 'units_remaining', 'remaining_volume'));
