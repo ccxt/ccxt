@@ -873,7 +873,7 @@ export default class nado extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
-        let productIds = [];
+        const productIds = [];
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1081,7 +1081,7 @@ export default class nado extends Exchange {
         //         ]
         //     }
         //
-        let closedOrders = [];
+        const closedOrders = [];
         const orders = this.safeList (response, 'orders', []);
         for (let i = 0; i < orders.length; i++) {
             const order = orders[i];
@@ -2722,7 +2722,7 @@ export default class nado extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': lastUpdateTimestamp,
             'symbol': market['symbol'],
             'type': 'limit',
             'timeInForce': timeInForce,
