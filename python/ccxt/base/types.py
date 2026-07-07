@@ -702,7 +702,28 @@ class PredictionEvent(TypedDict):
 # inherited `symbol` is left unpopulated — `outcome` (the "MARKET:LABEL" handle) is the
 # canonical identity. Mirrors the `Prediction* extends <Base>` interfaces in
 # ts/src/base/types.ts and the native structs in Go/C#/Java.
-class PredictionTicker(Ticker):
+class PredictionTicker(TypedDict):  # standalone (was Ticker) — outcome-addressed, no symbol
+    info: Dict[str, Any]
+    timestamp: Int
+    datetime: Str
+    high: Num
+    low: Num
+    bid: Num
+    bidVolume: Num
+    ask: Num
+    askVolume: Num
+    vwap: Num
+    open: Num
+    close: Num
+    last: Num
+    previousClose: Num
+    change: Num
+    percentage: Num
+    average: Num
+    quoteVolume: Num
+    baseVolume: Num
+    markPrice: Num
+    indexPrice: Num
     outcome: str
     outcomeId: Str
     label: Str
@@ -711,7 +732,31 @@ class PredictionTicker(Ticker):
     openInterest: Num
 
 
-class PredictionOrder(Order):
+class PredictionOrder(TypedDict):  # standalone (was Order) — outcome-addressed, no symbol
+    info: Dict[str, Any]
+    id: Str
+    clientOrderId: Str
+    datetime: Str
+    timestamp: Int
+    lastTradeTimestamp: Int
+    lastUpdateTimestamp: Int
+    status: Str
+    type: Str
+    timeInForce: Str
+    side: OrderSide
+    price: Num
+    average: Num
+    amount: Num
+    filled: Num
+    remaining: Num
+    stopPrice: Num
+    takeProfitPrice: Num
+    stopLossPrice: Num
+    cost: Num
+    trades: List[Trade]
+    reduceOnly: Bool
+    postOnly: Bool
+    fee: Fee
     outcome: str
     outcomeId: Str
     label: Str
@@ -719,7 +764,19 @@ class PredictionOrder(Order):
     event: Str
 
 
-class PredictionTrade(Trade):
+class PredictionTrade(TypedDict):  # standalone (was Trade) — outcome-addressed, no symbol
+    info: Dict[str, Any]
+    amount: Num
+    datetime: Str
+    id: Str
+    order: Str
+    price: Num
+    timestamp: Int
+    type: Str
+    side: Str
+    takerOrMaker: Str
+    cost: Num
+    fee: Fee
     outcome: str
     outcomeId: Str
     label: Str
@@ -727,7 +784,33 @@ class PredictionTrade(Trade):
     realizedPnl: Num
 
 
-class PredictionPosition(Position):
+class PredictionPosition(TypedDict):  # standalone (was Position) — outcome-addressed, no symbol
+    info: Dict[str, Any]
+    id: Str
+    timestamp: Int
+    datetime: Str
+    contracts: Num
+    contractSize: Num
+    side: Str
+    notional: Num
+    leverage: Num
+    unrealizedPnl: Num
+    realizedPnl: Num
+    collateral: Num
+    entryPrice: Num
+    markPrice: Num
+    liquidationPrice: Num
+    hedged: bool
+    maintenanceMargin: Num
+    initialMargin: Num
+    initialMarginPercentage: Num
+    marginMode: Str
+    marginRatio: Num
+    lastUpdateTimestamp: Int
+    lastPrice: Num
+    percentage: Num
+    stopLossPrice: Num
+    takeProfitPrice: Num
     outcome: str
     outcomeId: Str
     label: Str
@@ -743,19 +826,36 @@ class PredictionPosition(Position):
 PredictionTickers = Dict[str, PredictionTicker]
 
 
-class PredictionOrderBook(OrderBook):
+class PredictionOrderBook(TypedDict):  # standalone (was OrderBook) — outcome-addressed, no symbol
+    asks: List[List[Num]]
+    bids: List[List[Num]]
+    datetime: Str
+    timestamp: Int
+    nonce: Int
     outcome: str
     outcomeId: Str
     market: Str
 
 
-class PredictionTradingFee(TradingFeeInterface):
+class PredictionTradingFee(TypedDict):  # standalone (was TradingFeeInterface) — outcome-addressed, no symbol
+    info: Dict[str, Any]
+    maker: Num
+    taker: Num
+    percentage: Bool
+    tierBased: Bool
     outcome: str
     outcomeId: Str
     market: Str
 
 
-class PredictionOpenInterest(OpenInterest):
+class PredictionOpenInterest(TypedDict):  # standalone (was OpenInterest) — outcome-addressed, no symbol
+    openInterestAmount: Num
+    openInterestValue: Num
+    baseVolume: Num
+    quoteVolume: Num
+    timestamp: Int
+    datetime: Str
+    info: Dict[str, Any]
     outcome: str
     outcomeId: Str
     market: Str
