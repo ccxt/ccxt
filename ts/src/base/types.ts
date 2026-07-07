@@ -217,10 +217,6 @@ export interface PredictionOrder {
     amount: Num;
     filled: Num;
     remaining: Num;
-    stopPrice?: Num;
-    triggerPrice?: Num;
-    takeProfitPrice?: Num;
-    stopLossPrice?: Num;
     cost: Num;
     fee: Fee;
     reduceOnly: Bool;
@@ -265,24 +261,12 @@ export interface PredictionPosition {
     contractSize?: Num;
     side: Str;
     notional?: Num;
-    leverage?: Num;
     unrealizedPnl?: Num;
     realizedPnl?: Num;
     collateral?: Num;
     entryPrice?: Num;
     markPrice?: Num;
-    liquidationPrice?: Num;
-    marginMode?: Str;
-    hedged?: Bool;
-    maintenanceMargin?: Num;
-    maintenanceMarginPercentage?: Num;
-    initialMargin?: Num;
-    initialMarginPercentage?: Num;
-    marginRatio?: Num;
-    lastUpdateTimestamp?: Int;
     lastPrice?: Num;
-    stopLossPrice?: Num;
-    takeProfitPrice?: Num;
     percentage?: Num;
     outcome: string;
     outcomeId?: Str;
@@ -307,18 +291,14 @@ export interface PredictionTicker {
     bidVolume: Num;
     ask: Num;
     askVolume: Num;
-    vwap: Num;
     open: Num;
     close: Num;
     last: Num;
-    previousClose: Num;
     change: Num;
     percentage: Num;
     average: Num;
     quoteVolume: Num;
     baseVolume: Num;
-    indexPrice: Num
-    markPrice: Num;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -358,8 +338,6 @@ export interface PredictionOpenInterest {
     // standalone (does not extend OpenInterest) — outcome-addressed identity, no symbol
     openInterestAmount?: Num;
     openInterestValue?: Num;
-    baseVolume?: Num;
-    quoteVolume?: Num;
     timestamp?: Int;
     datetime?: Str;
     info: any;

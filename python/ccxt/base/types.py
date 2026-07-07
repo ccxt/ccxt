@@ -712,18 +712,14 @@ class PredictionTicker(TypedDict):  # standalone (was Ticker) — outcome-addres
     bidVolume: Num
     ask: Num
     askVolume: Num
-    vwap: Num
     open: Num
     close: Num
     last: Num
-    previousClose: Num
     change: Num
     percentage: Num
     average: Num
     quoteVolume: Num
     baseVolume: Num
-    markPrice: Num
-    indexPrice: Num
     outcome: str
     outcomeId: Str
     label: Str
@@ -749,9 +745,6 @@ class PredictionOrder(TypedDict):  # standalone (was Order) — outcome-addresse
     amount: Num
     filled: Num
     remaining: Num
-    stopPrice: Num
-    takeProfitPrice: Num
-    stopLossPrice: Num
     cost: Num
     trades: List[Trade]
     reduceOnly: Bool
@@ -793,24 +786,13 @@ class PredictionPosition(TypedDict):  # standalone (was Position) — outcome-ad
     contractSize: Num
     side: Str
     notional: Num
-    leverage: Num
     unrealizedPnl: Num
     realizedPnl: Num
     collateral: Num
     entryPrice: Num
     markPrice: Num
-    liquidationPrice: Num
-    hedged: bool
-    maintenanceMargin: Num
-    initialMargin: Num
-    initialMarginPercentage: Num
-    marginMode: Str
-    marginRatio: Num
-    lastUpdateTimestamp: Int
     lastPrice: Num
     percentage: Num
-    stopLossPrice: Num
-    takeProfitPrice: Num
     outcome: str
     outcomeId: Str
     label: Str
@@ -851,8 +833,6 @@ class PredictionTradingFee(TypedDict):  # standalone (was TradingFeeInterface) �
 class PredictionOpenInterest(TypedDict):  # standalone (was OpenInterest) — outcome-addressed, no symbol
     openInterestAmount: Num
     openInterestValue: Num
-    baseVolume: Num
-    quoteVolume: Num
     timestamp: Int
     datetime: Str
     info: Dict[str, Any]
