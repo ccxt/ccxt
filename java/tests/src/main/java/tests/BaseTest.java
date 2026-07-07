@@ -685,7 +685,11 @@ public class BaseTest {
         // are no longer `instanceof Exchange`). The generated TestMain harness is still typed on
         // Exchange, so downcast here; prediction venues run through the CLI (BaseExchange-typed) —
         // migrating the harness handle to BaseExchange is the cross-language follow-up.
-        return (Exchange) BaseExchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
+        BaseExchange created = BaseExchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
+        if (created instanceof Exchange) {
+            return (Exchange) created;
+        }
+        throw new RuntimeException("initExchange: '" + id + "' is a prediction venue (extends BaseExchange, not Exchange) — run prediction tests via the CLI, not this Exchange-typed harness");
     }
 
     public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {

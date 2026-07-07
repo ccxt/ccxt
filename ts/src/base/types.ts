@@ -194,12 +194,11 @@ export interface PredictionOutcome {
     precision?: Precision;       // outcome-level price/amount precision
 }
 
-// Prediction trading structures extend their base unified types so they stay
-// covariantly assignable (parse/fetch overrides type-check without casts) and map
-// 1:1 onto the native structs in Go/C#/Java (embed/inherit the base struct, add the
-// prediction fields). The inherited `symbol` is left unpopulated — `outcome` (the
-// "MARKET:LABEL" handle) is the canonical identity; price = probability 0..1,
-// amount = shares, cost = collateral.
+// Prediction trading structures are standalone — they do NOT extend the base unified
+// types and carry only prediction-meaningful fields, with no `symbol`. `outcome` (the
+// "MARKET:LABEL" handle) + `outcomeId` are the canonical identity; price = probability
+// 0..1, amount = shares, cost = collateral. They map 1:1 onto standalone native structs
+// in Go/C#/Java.
 export interface PredictionOrder {
     // standalone (does not extend Order) — outcome-addressed identity, no symbol
     id: Str;

@@ -720,7 +720,7 @@ export default class kalshi extends Exchange {
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
         openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
         delete openInterest['symbol'];
-        return openInterest as any;
+        return openInterest as unknown as PredictionOpenInterest;
     }
 
     /**

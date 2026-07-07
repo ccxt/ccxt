@@ -760,7 +760,7 @@ public partial class kalshi : PredictionExchange
         ((IDictionary<string,object>)openInterest)["outcome"] = this.safeOutcomeSymbol(null, market);
         ((IDictionary<string,object>)openInterest)["outcomeId"] = this.safeString(market, "outcomeId");
         ((IDictionary<string,object>)openInterest).Remove((string)"symbol");
-        return ((object)openInterest);
+        return openInterest;
     }
 
     /**

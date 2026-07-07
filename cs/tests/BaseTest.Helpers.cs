@@ -49,7 +49,11 @@ public partial class testMainClass : BaseTest
         // regular venues return an Exchange; the shared test harness types the variable as Exchange,
         // so prediction instances (which extend BaseExchange, not Exchange) are exercised through the
         // cli / dedicated prediction paths rather than this Exchange-typed cast
-        return exchange as Exchange;
+        if (exchange is Exchange regular)
+        {
+            return regular;
+        }
+        throw new Exception("initExchange: '" + (string)exchangeId + "' is a prediction venue (extends BaseExchange, not Exchange) — run prediction tests via the CLI/dedicated path, not this Exchange-typed harness");
     }
 
     public static bool getCliArgValue(string option)

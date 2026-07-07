@@ -463,7 +463,7 @@ public class MyriadCore extends MyriadApi
             {
                 ((java.util.List<Object>)result).add(this.parsePredictionPosition(Helpers.GetValue(data, i)));
             }
-            return this.filterByArrayPositions(result, "outcome", outcomes, false);
+            return this.filterByArray(result, "outcome", outcomes, false);
         });
 
     }

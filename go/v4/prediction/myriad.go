@@ -477,7 +477,7 @@ func (this *MyriadCore) FetchPositions(optionalArgs ...any) <-chan any {
 			ccxt.AppendToArray(&result, this.ParsePredictionPosition(ccxt.GetValue(data, i)))
 		}
 
-		ch <- this.FilterByArrayPositions(result, "outcome", outcomes, false)
+		ch <- this.FilterByArray(result, "outcome", outcomes, false)
 		return nil
 
 	}()

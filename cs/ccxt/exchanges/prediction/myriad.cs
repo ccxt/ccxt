@@ -419,7 +419,7 @@ public partial class myriad : PredictionExchange
         {
             ((IList<object>)result).Add(this.parsePredictionPosition(getValue(data, i)));
         }
-        return ((object)this.filterByArrayPositions(result, "outcome", outcomes, false));
+        return this.filterByArray(result, "outcome", outcomes, false);
     }
 
     /**

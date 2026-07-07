@@ -403,7 +403,7 @@ export default class myriad extends Exchange {
         for (let i = 0; i < data.length; i++) {
             result.push(this.parsePredictionPosition(data[i]));
         }
-        return this.filterByArrayPositions(result, 'outcome', outcomes, false);
+        return this.filterByArray(result, 'outcome', outcomes, false);
     }
     /**
      * @ignore
