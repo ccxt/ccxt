@@ -71,7 +71,7 @@ export default class hibachi extends Exchange {
                 'fetchCurrencies': false,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
-                'fetchDepositsWithdrawals': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -1943,16 +1943,16 @@ export default class hibachi extends Exchange {
 
     /**
      * @method
-     * @name hibachi#fetchDeposits
-     * @description fetch deposits made to account
+     * @name hibachi#fetchDepositsWithdrawals
+     * @description fetch deposit and withdrawal history for the account
      * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
      * @param {string} [code] unified currency code
-     * @param {int} [since] filter by earliest timestamp (ms)
-     * @param {int} [limit] maximum number of deposits to be returned
-     * @param {object} [params] extra parameters to be passed to API
+     * @param {int} [since] timestamp in ms of the earliest transaction
+     * @param {int} [limit] the maximum number of transactions to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const currency = this.safeCurrency (code);
         const request = {
             'accountId': this.getAccountId (),
@@ -1990,14 +1990,24 @@ export default class hibachi extends Exchange {
         //     ]
         // }
         const transactions = this.safeList (response, 'transactions', []);
-        const deposits = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            if (this.safeString (transaction, 'transactionType') === 'deposit') {
-                deposits.push (transaction);
-            }
-        }
-        return this.parseTransactions (deposits, currency, since, limit, params);
+        return this.parseTransactions (transactions, currency, since, limit, params);
+    }
+
+    /**
+     * @method
+     * @name hibachi#fetchDeposits
+     * @description fetch deposits made to account
+     * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+     * @param {string} [code] unified currency code
+     * @param {int} [since] filter by earliest timestamp (ms)
+     * @param {int} [limit] maximum number of deposits to be returned
+     * @param {object} [params] extra parameters to be passed to API
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+     */
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
+        const deposits = this.filterBy (transactions, 'type', 'deposit');
+        return this.filterBySinceLimit (deposits, since, limit, 'timestamp') as Transaction[];
     }
 
     /**
@@ -2012,51 +2022,9 @@ export default class hibachi extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        const currency = this.safeCurrency (code);
-        const request = {
-            'accountId': this.getAccountId (),
-        };
-        const response = await this.privateGetCapitalHistory (this.extend (request, params));
-        // {
-        //     "transactions": [
-        //         {
-        //             "assetId": 1,
-        //             "blockNumber": 0,
-        //             "chain": null,
-        //             "etaTsSec": 1752758789,
-        //             "id": 42688,
-        //             "quantity": "6.130000",
-        //             "status": "completed",
-        //             "timestampSec": 1752758788,
-        //             "token": null,
-        //             "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-        //             "transactionType": "deposit"
-        //         },
-        //         {
-        //             "assetId": 1,
-        //             "etaTsSec": null,
-        //             "id": 12993,
-        //             "instantWithdrawalChain": null,
-        //             "instantWithdrawalToken": null,
-        //             "isInstantWithdrawal": false,
-        //             "quantity": "0.111930",
-        //             "status": "completed",
-        //             "timestampSec": 1752387891,
-        //             "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-        //             "transactionType": "withdrawal",
-        //             "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-        //         },
-        //     ]
-        // }
-        const transactions = this.safeList (response, 'transactions', []);
-        const withdrawals = [];
-        for (let i = 0; i < transactions.length; i++) {
-            const transaction = transactions[i];
-            if (this.safeString (transaction, 'transactionType') === 'withdrawal') {
-                withdrawals.push (transaction);
-            }
-        }
-        return this.parseTransactions (withdrawals, currency, since, limit, params);
+        const transactions = await this.fetchDepositsWithdrawals (code, since, undefined, params);
+        const withdrawals = this.filterBy (transactions, 'type', 'withdrawal');
+        return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
     /**

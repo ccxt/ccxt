@@ -113,6 +113,15 @@
                 "output": null
             }
         ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch deposits withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "url": "https://api.hibachi.xyz/capital/history?accountId=13787",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetch ohlcv",

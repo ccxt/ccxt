@@ -3825,6 +3825,154 @@
                 }
             }
         ],
+        "fetchDepositsWithdrawals": [
+            {
+                "description": "fetch deposits withdrawals",
+                "method": "fetchDepositsWithdrawals",
+                "input": [],
+                "httpResponse": {
+                    "transactions": [
+                        {
+                            "assetId": 1,
+                            "blockNumber": 0,
+                            "chain": null,
+                            "etaTsSec": 1752758789,
+                            "id": 42688,
+                            "quantity": "6.130000",
+                            "status": "completed",
+                            "timestampSec": 1752758788,
+                            "token": null,
+                            "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+                            "transactionType": "deposit"
+                        },
+                        {
+                            "assetId": 1,
+                            "etaTsSec": null,
+                            "id": 12993,
+                            "instantWithdrawalChain": null,
+                            "instantWithdrawalToken": null,
+                            "isInstantWithdrawal": false,
+                            "quantity": "0.111930",
+                            "status": "completed",
+                            "timestampSec": 1752387891,
+                            "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+                            "transactionType": "withdrawal",
+                            "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+                        },
+                        {
+                            "assetId": 1,
+                            "id": 167,
+                            "quantity": "10.000000",
+                            "srcAccountId": 175,
+                            "status": "completed",
+                            "timestampSec": 1732224729,
+                            "transactionType": "transfer-in"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "assetId": 1,
+                            "id": 167,
+                            "quantity": "10.000000",
+                            "srcAccountId": 175,
+                            "status": "completed",
+                            "timestampSec": 1732224729,
+                            "transactionType": "transfer-in"
+                        },
+                        "id": "167",
+                        "txid": null,
+                        "timestamp": 1732224729000,
+                        "datetime": "2024-11-21T21:32:09.000Z",
+                        "network": "ARBITRUM",
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "transfer",
+                        "amount": 10,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "assetId": 1,
+                            "etaTsSec": null,
+                            "id": 12993,
+                            "instantWithdrawalChain": null,
+                            "instantWithdrawalToken": null,
+                            "isInstantWithdrawal": false,
+                            "quantity": "0.111930",
+                            "status": "completed",
+                            "timestampSec": 1752387891,
+                            "transactionHash": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+                            "transactionType": "withdrawal",
+                            "withdrawalAddress": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
+                        },
+                        "id": "12993",
+                        "txid": "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
+                        "timestamp": 1752387891000,
+                        "datetime": "2025-07-13T06:24:51.000Z",
+                        "network": "ARBITRUM",
+                        "address": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c",
+                        "addressTo": "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c",
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "withdrawal",
+                        "amount": 0.11193,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    },
+                    {
+                        "info": {
+                            "assetId": 1,
+                            "blockNumber": 0,
+                            "chain": null,
+                            "etaTsSec": 1752758789,
+                            "id": 42688,
+                            "quantity": "6.130000",
+                            "status": "completed",
+                            "timestampSec": 1752758788,
+                            "token": null,
+                            "transactionHash": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+                            "transactionType": "deposit"
+                        },
+                        "id": "42688",
+                        "txid": "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
+                        "timestamp": 1752758788000,
+                        "datetime": "2025-07-17T13:26:28.000Z",
+                        "network": "ARBITRUM",
+                        "address": null,
+                        "addressTo": null,
+                        "addressFrom": null,
+                        "tag": null,
+                        "tagTo": null,
+                        "tagFrom": null,
+                        "type": "deposit",
+                        "amount": 6.13,
+                        "currency": "USDT",
+                        "status": "ok",
+                        "updated": null,
+                        "internal": null,
+                        "comment": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "fetch ohlcv",
