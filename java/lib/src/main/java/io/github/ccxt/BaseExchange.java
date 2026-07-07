@@ -2392,16 +2392,17 @@ public class BaseExchange {
         }
 
         try {
-            Class<?> clazz = obj.getClass();
             String propName = property.toString();
-
-            try {
-                java.lang.reflect.Field field = clazz.getDeclaredField(propName);
-                field.setAccessible(true);
-                field.set(obj, defaultValue);
-                return;
-            } catch (NoSuchFieldException ignored) {}
-
+            // walk the superclass chain: base fields now live on BaseExchange (the parent of the
+            // thin Exchange class), so getDeclaredField on the runtime class alone would miss them
+            for (Class<?> clazz = obj.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+                try {
+                    java.lang.reflect.Field field = clazz.getDeclaredField(propName);
+                    field.setAccessible(true);
+                    field.set(obj, defaultValue);
+                    return;
+                } catch (NoSuchFieldException ignored) {}
+            }
         }
         catch (Exception e) {
         }
@@ -3471,13 +3472,21 @@ public class BaseExchange {
             return defaultValue;
         }
 
-        try {
-            Field field = obj.getClass().getDeclaredField(property.toString());
-            field.setAccessible(true);
-            return field.get(obj);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return defaultValue;
+        String propName = property.toString();
+        // walk the superclass chain: base fields now live on BaseExchange (the parent of the
+        // thin Exchange class), so getDeclaredField on the runtime class alone would miss them
+        for (Class<?> clazz = obj.getClass(); clazz != null; clazz = clazz.getSuperclass()) {
+            try {
+                Field field = clazz.getDeclaredField(propName);
+                field.setAccessible(true);
+                return field.get(obj);
+            } catch (NoSuchFieldException e) {
+                // try the parent class
+            } catch (IllegalAccessException e) {
+                return defaultValue;
+            }
         }
+        return defaultValue;
     }
 
     public static Object getProperty(Object obj, Object property) {
