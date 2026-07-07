@@ -56,7 +56,7 @@ export default class nado extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -611,6 +611,7 @@ export default class nado extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount] the 12-byte subaccount identifier, defaults to 'default'
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}): Promise<Order[]> {
@@ -641,7 +642,8 @@ export default class nado extends Exchange {
         }
         const signature = this.signCancellationProducts (tx, chainId, endpointAddress);
         const requestId = this.safeInteger (params, 'id');
-        params = this.omit (params, [ 'id' ]);
+        const trigger = this.safeBool2 (params, 'stop', 'trigger');
+        params = this.omit (params, [ 'id', 'stop', 'trigger' ]);
         const cancelProductOrders: Dict = {
             'tx': tx,
             'signature': signature,
@@ -652,32 +654,44 @@ export default class nado extends Exchange {
         const request: Dict = {
             'cancel_product_orders': cancelProductOrders,
         };
-        const response = await this.gatewayPrivatePostExecute (this.extend (request, params));
-        //
-        //     {
-        //         "status": "success",
-        //         "signature": "0x...",
-        //         "data": {
-        //             "cancelled_orders": [
-        //                 {
-        //                     "product_id": 2,
-        //                     "sender": "0x...",
-        //                     "price_x18": "20000000000000000000000",
-        //                     "amount": "-100000000000000000",
-        //                     "expiration": "1686332748",
-        //                     "order_type": "post_only",
-        //                     "nonce": "1768248100142339392",
-        //                     "unfilled_amount": "-100000000000000000",
-        //                     "digest": "0x...",
-        //                     "appendix": "1537",
-        //                     "placed_at": 1686332708
-        //                 }
-        //             ]
-        //         },
-        //         "request_type": "execute_cancel_product_orders",
-        //         "id": 100
-        //     }
-        //
+        let response = undefined;
+        if (trigger) {
+            response = await this.triggerPrivatePostExecute (this.extend (request, params));
+            //
+            // {
+            //     "status": "success",
+            //     "signature": {signature},
+            //     "request_type": "execute_cancel_product_orders"
+            // }
+            //
+        } else {
+            response = await this.gatewayPrivatePostExecute (this.extend (request, params));
+            //
+            //     {
+            //         "status": "success",
+            //         "signature": "0x...",
+            //         "data": {
+            //             "cancelled_orders": [
+            //                 {
+            //                     "product_id": 2,
+            //                     "sender": "0x...",
+            //                     "price_x18": "20000000000000000000000",
+            //                     "amount": "-100000000000000000",
+            //                     "expiration": "1686332748",
+            //                     "order_type": "post_only",
+            //                     "nonce": "1768248100142339392",
+            //                     "unfilled_amount": "-100000000000000000",
+            //                     "digest": "0x...",
+            //                     "appendix": "1537",
+            //                     "placed_at": 1686332708
+            //                 }
+            //             ]
+            //         },
+            //         "request_type": "execute_cancel_product_orders",
+            //         "id": 100
+            //     }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         const cancelledOrders = this.safeList (data, 'cancelled_orders', []);
         const result = [];
