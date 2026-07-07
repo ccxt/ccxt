@@ -1595,7 +1595,10 @@ export default class bithumb extends Exchange {
             'market': market['id'],
             'volume': this.amountToPrecision (symbol, amount),
         };
-        const timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force', 'GTC');
+        let timeInForce = this.safeString2 (params, 'timeInForce', 'time_in_force');
+        if (timeInForce === undefined) {
+            timeInForce = 'GTC';
+        }
         let postOnly: NullableDict = undefined;
         [ postOnly, params ] = this.handlePostOnly (type === 'market', type === 'post_only', params);
         if (postOnly || (timeInForce === 'PO')) {
