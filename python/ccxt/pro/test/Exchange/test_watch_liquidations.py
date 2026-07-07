@@ -12,6 +12,39 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
+from ccxt.base.errors import NetworkError  # noqa E402
 from ccxt.test.exchange.base import test_liquidation  # noqa E402
+from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-
+async def test_watch_liquidations(exchange, skipped_properties, symbol):
+    # log (symbol.green, 'watching trades...')
+    method = 'watchLiquidations'
+    # we have to skip some exchanges here due to the frequency of trading
+    skipped_exchanges = []
+    if exchange.in_array(exchange.id, skipped_exchanges):
+        m1 = (exchange.id + ' ' + method + '() test skipped')
+        print(m1)
+        return False
+    if not exchange.has[method]:
+        m2 = (exchange.id + ' does not support ' + method + '() method')
+        print(m2)
+        return False
+    response = []
+    now = int(time.time() * 1000)
+    ends = now + 10000
+    while now < ends:
+        try:
+            response = await exchange[method](symbol)
+            now = int(time.time() * 1000)
+            is_array = isinstance(response, list)
+            assert is_array, 'response must be an array'
+            m3 = (exchange.id + ' ' + method + '() returned ' + len(response) + ' liquidations')
+            print(m3)
+            # log.noLocate (asTable (response))
+            for i in range(0, len(response)):
+                test_liquidation(exchange, skipped_properties, method, response[i], symbol)
+        except Exception as e:
+            if not (isinstance(e, NetworkError)):
+                raise e
+            now = int(time.time() * 1000)
+    return response

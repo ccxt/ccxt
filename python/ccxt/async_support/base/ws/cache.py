@@ -1,5 +1,7 @@
 import collections
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Delegate:
     def __init__(self, name, delegated):
@@ -60,6 +62,7 @@ class BaseCache(list):
 class ArrayCache(BaseCache):
     def __init__(self, max_size=None):
         super(ArrayCache, self).__init__(max_size)
+        self.hashmap = {}
         self._nested_new_updates_by_symbol = False
         self._new_updates_by_symbol = {}
         self._clear_updates_by_symbol = {}
@@ -151,7 +154,10 @@ class ArrayCacheBySymbolById(ArrayCache):
         if len(self._deque) == self._deque.maxlen:
             delete_item = self._deque.popleft()
             self._index.popleft()
-            del self.hashmap[delete_item['symbol']][delete_item['id']]
+            try:
+                del self.hashmap[delete_item['symbol']][delete_item['id']]
+            except Exception as e:
+                logger.error(f"Error deleting item from hashmap: {delete_item}. Error:{e}")
         self._deque.append(item)
         self._index.append(item['id'])
         if self._clear_all_updates:

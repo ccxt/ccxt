@@ -3,7 +3,7 @@
 import deriveRest from '../derive.js';
 import { ExchangeError, AuthenticationError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCache } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, Dict, Bool } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -78,10 +78,12 @@ export default class derive extends deriveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (limit === undefined) {
             limit = 10;
         }
@@ -122,14 +124,14 @@ export default class derive extends deriveRest {
         // }
         //
         const params = this.safeDict (message, 'params');
-        const data = this.safeDict (params, 'data');
+        const data = this.safeDict (params, 'data', {});
         const marketId = this.safeString (data, 'instrument_name');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const topic = this.safeString (params, 'channel');
         if (!(symbol in this.orderbooks)) {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const subscription = client.subscriptions[topic];
+            const subscription = (topic === undefined) ? undefined : client.subscriptions[topic];
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
@@ -147,10 +149,12 @@ export default class derive extends deriveRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const topic = 'ticker.' + market['id'] + '.100';
         const request: Dict = {
@@ -236,10 +240,13 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const rawData = this.safeDict (params, 'data');
-        const data = this.safeDict (rawData, 'instrument_ticker');
+        const data = this.safeDict (rawData, 'instrument_ticker', {});
         const topic = this.safeValue (params, 'channel');
         const ticker = this.parseTicker (data);
-        this.tickers[ticker['symbol']] = ticker;
+        const tickerSymbol = ticker['symbol'];
+        if (tickerSymbol !== undefined) {
+            this.tickers[tickerSymbol] = ticker;
+        }
         client.resolve (ticker, topic);
         return message;
     }
@@ -251,10 +258,12 @@ export default class derive extends deriveRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] orderbook limit, default is undefined
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let limit = this.safeInteger (params, 'limit');
         if (limit === undefined) {
             limit = 10;
@@ -285,7 +294,9 @@ export default class derive extends deriveRest {
      * @returns {any} status of the unwatch request
      */
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const topic = 'trades.' + market['id'];
         const messageHah = 'unwatch' + topic;
@@ -383,10 +394,12 @@ export default class derive extends deriveRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const topic = 'trades.' + market['id'];
         const request: Dict = {
@@ -413,7 +426,7 @@ export default class derive extends deriveRest {
         //
         //
         const params = this.safeDict (message, 'params');
-        const data = this.safeDict (params, 'data');
+        const data = this.safeDict (params, 'data', {});
         const topic = this.safeValue (params, 'channel');
         const parsedTopic = topic.split ('.');
         const marketId = this.safeString (parsedTopic, 1);
@@ -437,7 +450,7 @@ export default class derive extends deriveRest {
         const url = this.urls['api']['ws'];
         const client = this.client (url);
         const messageHash = 'authenticated';
-        const future = client.future (messageHash);
+        const future = client.reusableFuture (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const requestId = this.requestId (url);
@@ -488,11 +501,13 @@ export default class derive extends deriveRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
-        let subaccountId = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let subaccountId: Int = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchOrders', params);
         const topic = this.numberToString (subaccountId) + '.orders';
         let messageHash = topic;
@@ -565,7 +580,7 @@ export default class derive extends deriveRest {
         //
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
-        const rawOrders = this.safeList (params, 'data');
+        const rawOrders = this.safeList (params, 'data', []);
         for (let i = 0; i < rawOrders.length; i++) {
             const data = rawOrders[i];
             const parsed = this.parseOrder (data);
@@ -578,7 +593,7 @@ export default class derive extends deriveRest {
                 }
                 const cachedOrders = this.orders;
                 const orders = this.safeValue (cachedOrders.hashmap, symbol, {});
-                const order = this.safeValue (orders, orderId);
+                const order = (orderId === undefined) ? undefined : this.safeValue (orders, orderId);
                 if (order !== undefined) {
                     const fee = this.safeValue (order, 'fee');
                     if (fee !== undefined) {
@@ -610,11 +625,13 @@ export default class derive extends deriveRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subaccount_id] *required* the subaccount id
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
-        let subaccountId = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let subaccountId: Int = undefined;
         [ subaccountId, params ] = this.handleDeriveSubaccountId ('watchMyTrades', params);
         const topic = this.numberToString (subaccountId) + '.trades';
         let messageHash = topic;
@@ -653,17 +670,17 @@ export default class derive extends deriveRest {
         }
         const params = this.safeDict (message, 'params');
         const topic = this.safeString (params, 'channel');
-        const rawTrades = this.safeList (params, 'data');
+        const rawTrades = this.safeList (params, 'data', []);
         for (let i = 0; i < rawTrades.length; i++) {
             const trade = this.parseTrade (message);
             myTrades.append (trade);
             client.resolve (myTrades, topic);
-            const messageHash = topic + trade['symbol'];
+            const messageHash = topic + this.safeString (trade, 'symbol', '');
             client.resolve (myTrades, messageHash);
         }
     }
 
-    handleErrorMessage (client: Client, message) {
+    handleErrorMessage (client: Client, message): Bool {
         //
         // {
         //     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -707,7 +724,7 @@ export default class derive extends deriveRest {
             'orders': this.handleOrder,
             'mytrades': this.handleMyTrade,
         };
-        let event = undefined;
+        let event: Str = undefined;
         const params = this.safeDict (message, 'params');
         if (params !== undefined) {
             const channel = this.safeString (params, 'channel');
@@ -724,7 +741,7 @@ export default class derive extends deriveRest {
                 }
             }
         }
-        const method = this.safeValue (methods, event);
+        const method = (event === undefined) ? undefined : this.safeValue (methods, event);
         if (method !== undefined) {
             method.call (this, client, message);
             return;
@@ -732,7 +749,7 @@ export default class derive extends deriveRest {
         if ('id' in message) {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id, {});
+            const subscription = (id === undefined) ? {} : this.safeValue (subscriptionsById, id, {});
             if ('method' in subscription) {
                 if (subscription['method'] === 'public/login') {
                     this.handleAuth (client, message);
@@ -752,7 +769,7 @@ export default class derive extends deriveRest {
         // }
         //
         const messageHash = 'authenticated';
-        const ids = this.safeList (message, 'result');
+        const ids = this.safeList (message, 'result', []);
         if (ids.length > 0) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');

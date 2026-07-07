@@ -12,7 +12,8 @@ public partial class binancecoinm : binance
         // eslint-disable-next-line new-cap
         var restInstance = new ccxt.binancecoinm();
         object restDescribe = restInstance.describe();
-        object extended = this.deepExtend(base.describe(), restDescribe);
+        object parentWsDescribe = base.describeData();
+        object extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new Dictionary<string, object>() {
             { "id", "binancecoinm" },
             { "name", "Binance COIN-M" },
@@ -21,7 +22,9 @@ public partial class binancecoinm : binance
                 { "doc", "https://developers.binance.com/en" },
             } },
             { "options", new Dictionary<string, object>() {
-                { "fetchMarkets", new List<object>() {"inverse"} },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "types", new List<object>() {"inverse"} },
+                } },
                 { "defaultSubType", "inverse" },
             } },
         });

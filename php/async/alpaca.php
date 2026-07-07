@@ -11,11 +11,10 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class alpaca extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'alpaca',
@@ -422,14 +421,14 @@ class alpaca extends Exchange {
         ));
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer $timestamp in milliseconds from the exchange server
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer $timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->traderPrivateGetV2Clock ($params));
+            $response = Async\await($this->traderPrivateGetV2Clock($params));
             //
             //     {
             //         $timestamp => '2023-11-22T08:07:57.654738097-05:00',
@@ -443,12 +442,12 @@ class alpaca extends Exchange {
             $jetlagStrStart = strlen($timestamp) - 6;
             $jetlagStrEnd = strlen($timestamp) - 3;
             $jetlag = mb_substr($timestamp, $jetlagStrStart, $jetlagStrEnd - $jetlagStrStart);
-            $iso = $this->parse8601($localTime) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
+            $iso = $this->parse_to_int($this->parse8601($localTime)) - $this->parse_to_numeric($jetlag) * 3600 * 1000;
             return $iso;
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for alpaca
@@ -462,7 +461,7 @@ class alpaca extends Exchange {
                 'asset_class' => 'crypto',
                 'status' => 'active',
             );
-            $assets = Async\await($this->traderPrivateGetV2Assets ($this->extend($request, $params)));
+            $assets = Async\await($this->traderPrivateGetV2Assets($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -486,7 +485,7 @@ class alpaca extends Exchange {
             //     )
             //
             return $this->parse_markets($assets);
-        }) ();
+        })();
     }
 
     public function parse_market($asset): array {
@@ -579,7 +578,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
@@ -593,9 +592,11 @@ class alpaca extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
              * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocTrades
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $loc = $this->safe_string($params, 'loc', 'us');
@@ -613,7 +614,7 @@ class alpaca extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades ($this->extend($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocTrades($this->extend($request, $params)));
                 //
                 //    {
                 //        "next_page_token" => null,
@@ -633,7 +634,7 @@ class alpaca extends Exchange {
                 $trades = $this->safe_dict($response, 'trades', array());
                 $symbolTrades = $this->safe_list($trades, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestTrades') {
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades ($this->extend($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestTrades($this->extend($request, $params)));
                 //
                 //    {
                 //       "trades" => {
@@ -654,10 +655,10 @@ class alpaca extends Exchange {
                 throw new NotSupported($this->id . ' fetchTrades() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocTrades and marketPublicGetV1beta3CryptoLocLatestTrades are supported');
             }
             return $this->parse_trades($symbolTrades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -670,7 +671,9 @@ class alpaca extends Exchange {
              * @param {string} [$params->loc] crypto location, default => us
              * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $id = $market['id'];
             $loc = $this->safe_string($params, 'loc', 'us');
@@ -678,7 +681,7 @@ class alpaca extends Exchange {
                 'symbols' => $id,
                 'loc' => $loc,
             );
-            $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestOrderbooks ($this->extend($request, $params)));
+            $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestOrderbooks($this->extend($request, $params)));
             //
             //   {
             //       "orderbooks":{
@@ -720,10 +723,10 @@ class alpaca extends Exchange {
             $rawOrderbook = $this->safe_dict($orderbooks, $id, array());
             $timestamp = $this->parse8601($this->safe_string($rawOrderbook, 't'));
             return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -740,7 +743,9 @@ class alpaca extends Exchange {
              * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $loc = $this->safe_string($params, 'loc', 'us');
@@ -759,7 +764,7 @@ class alpaca extends Exchange {
                     $request['start'] = $this->yyyymmdd($since);
                 }
                 $request['timeframe'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars ($this->extend($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocBars($this->extend($request, $params)));
                 //
                 //    {
                 //        "bars" => {
@@ -792,7 +797,7 @@ class alpaca extends Exchange {
                 $bars = $this->safe_dict($response, 'bars', array());
                 $ohlcvs = $this->safe_list($bars, $marketId, array());
             } elseif ($method === 'marketPublicGetV1beta3CryptoLocLatestBars') {
-                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars ($this->extend($request, $params)));
+                $response = Async\await($this->marketPublicGetV1beta3CryptoLocLatestBars($this->extend($request, $params)));
                 //
                 //    {
                 //        "bars" => {
@@ -816,7 +821,7 @@ class alpaca extends Exchange {
                 throw new NotSupported($this->id . ' fetchOHLCV() does not support ' . $method . ', marketPublicGetV1beta3CryptoLocBars and marketPublicGetV1beta3CryptoLocLatestBars are supported');
             }
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -844,7 +849,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -854,16 +859,18 @@ class alpaca extends Exchange {
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
             return $this->safe_dict($tickers, $symbol);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -873,12 +880,14 @@ class alpaca extends Exchange {
              * @param {string[]} $symbols unified $symbols of the markets to fetch tickers for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->loc] crypto location, default => us
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $loc = $this->safe_string($params, 'loc', 'us');
             $ids = $this->market_ids($symbols);
@@ -887,7 +896,7 @@ class alpaca extends Exchange {
                 'loc' => $loc,
             );
             $params = $this->omit($params, 'loc');
-            $response = Async\await($this->marketPublicGetV1beta3CryptoLocSnapshots ($this->extend($request, $params)));
+            $response = Async\await($this->marketPublicGetV1beta3CryptoLocSnapshots($this->extend($request, $params)));
             //
             //     {
             //         "snapshots" => {
@@ -977,7 +986,7 @@ class alpaca extends Exchange {
                 $results[] = $ticker;
             }
             return $this->filter_by_array($results, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function generate_client_order_id($params) {
@@ -990,7 +999,7 @@ class alpaca extends Exchange {
         return $clientOrderId;
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         return Async\async(function () use ($symbol, $side, $cost, $params) {
             /**
              * create a market order by providing the $symbol, $side and $cost
@@ -1001,17 +1010,19 @@ class alpaca extends Exchange {
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $req = array(
                 'cost' => $cost,
             );
             return Async\await($this->create_order($symbol, 'market', $side, 0, null, $this->extend($req, $params)));
-        }) ();
+        })();
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a market buy order by providing the $symbol and $cost
@@ -1021,17 +1032,19 @@ class alpaca extends Exchange {
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $req = array(
                 'cost' => $cost,
             );
             return Async\await($this->create_order($symbol, 'market', 'buy', 0, null, $this->extend($req, $params)));
-        }) ();
+        })();
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
         return Async\async(function () use ($symbol, $cost, $params) {
             /**
              * create a market sell order by providing the $symbol and $cost
@@ -1041,17 +1054,19 @@ class alpaca extends Exchange {
              * @param {string} $symbol unified $symbol of the market to create an order in
              * @param {float} $cost how much you want to trade in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $req = array(
                 'cost' => $cost,
             );
             return Async\await($this->create_order($symbol, 'market', 'sell', $cost, null, $this->extend($req, $params)));
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -1066,9 +1081,11 @@ class alpaca extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @param {float} [$params->cost] *$market orders only* the $cost of the $order in units of the quote currency
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $id = $market['id'];
             $request = array(
@@ -1101,7 +1118,7 @@ class alpaca extends Exchange {
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
             $request['client_order_id'] = $this->generate_client_order_id($params);
             $params = $this->omit($params, array( 'clientOrderId' ));
-            $order = Async\await($this->traderPrivatePostV2Orders ($this->extend($request, $params)));
+            $order = Async\await($this->traderPrivatePostV2Orders($this->extend($request, $params)));
             //
             //   {
             //      "id" => "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1139,10 +1156,10 @@ class alpaca extends Exchange {
             //   }
             //
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1152,12 +1169,12 @@ class alpaca extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->traderPrivateDeleteV2OrdersOrderId($this->extend($request, $params)));
             //
             //   {
             //       "code" => 40410000,
@@ -1165,10 +1182,10 @@ class alpaca extends Exchange {
             //   }
             //
             return $this->parse_order($response);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a market
@@ -1177,12 +1194,14 @@ class alpaca extends Exchange {
              *
              * @param {string} $symbol alpaca cancelAllOrders cannot setting $symbol, it will cancel all open orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->traderPrivateDeleteV2Orders ($params));
-            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-                return $this->parse_orders($response, null);
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->traderPrivateDeleteV2Orders($params));
+            if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
+                return $this->parse_orders($response);
             } else {
                 return array(
                     $this->safe_order(array(
@@ -1190,10 +1209,10 @@ class alpaca extends Exchange {
                     )),
                 );
             }
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -1203,20 +1222,22 @@ class alpaca extends Exchange {
              * @param {string} $id the $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
             );
-            $order = Async\await($this->traderPrivateGetV2OrdersOrderId ($this->extend($request, $params)));
+            $order = Async\await($this->traderPrivateGetV2OrdersOrderId($this->extend($request, $params)));
             $marketId = $this->safe_string($order, 'symbol');
             $market = $this->safe_market($marketId);
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple orders made by the user
@@ -1228,9 +1249,11 @@ class alpaca extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch orders for
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'status' => 'all',
             );
@@ -1250,7 +1273,7 @@ class alpaca extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->traderPrivateGetV2Orders ($this->extend($request, $params)));
+            $response = Async\await($this->traderPrivateGetV2Orders($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1292,10 +1315,10 @@ class alpaca extends Exchange {
             //     )
             //
             return $this->parse_orders($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -1307,16 +1330,16 @@ class alpaca extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch orders for
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'open',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -1328,16 +1351,16 @@ class alpaca extends Exchange {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch orders for
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $request = array(
                 'status' => 'closed',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -1354,9 +1377,11 @@ class alpaca extends Exchange {
              * @param {string} [$params->triggerPrice] the $price to trigger a stop order
              * @param {string} [$params->timeInForce] for crypto trading either 'gtc' or 'ioc' can be used
              * @param {string} [$params->clientOrderId] a unique identifier for the order, automatically generated if not sent
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
             );
@@ -1382,9 +1407,9 @@ class alpaca extends Exchange {
             }
             $request['client_order_id'] = $this->generate_client_order_id($params);
             $params = $this->omit($params, array( 'clientOrderId' ));
-            $response = Async\await($this->traderPrivatePatchV2OrdersOrderId ($this->extend($request, $params)));
+            $response = Async\await($this->traderPrivatePatchV2OrdersOrderId($this->extend($request, $params)));
             return $this->parse_order($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -1492,7 +1517,7 @@ class alpaca extends Exchange {
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -1505,9 +1530,11 @@ class alpaca extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch trades for
              * @param {string} [$params->page_token] page_token - used for paging
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array(
                 'activity_type' => 'FILL',
@@ -1527,7 +1554,7 @@ class alpaca extends Exchange {
                 $request['page_size'] = $limit;
             }
             list($request, $params) = $this->handle_until_option('until', $request, $params);
-            $response = Async\await($this->traderPrivateGetV2AccountActivitiesActivityType ($this->extend($request, $params)));
+            $response = Async\await($this->traderPrivateGetV2AccountActivitiesActivityType($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1548,7 +1575,7 @@ class alpaca extends Exchange {
             //     )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1612,7 +1639,7 @@ class alpaca extends Exchange {
         ), $market);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -1621,14 +1648,16 @@ class alpaca extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
             );
-            $response = Async\await($this->traderPrivateGetV2Wallets ($this->extend($request, $params)));
+            $response = Async\await($this->traderPrivateGetV2Wallets($this->extend($request, $params)));
             //
             //     {
             //         "asset_id" => "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -1637,7 +1666,7 @@ class alpaca extends Exchange {
             //     }
             //
             return $this->parse_deposit_address($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -1661,7 +1690,7 @@ class alpaca extends Exchange {
         );
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1673,11 +1702,13 @@ class alpaca extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag a memo for the transaction
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             if ($tag) {
                 $address = $address . ':' . $tag;
@@ -1687,7 +1718,7 @@ class alpaca extends Exchange {
                 'address' => $address,
                 'amount' => $this->number_to_string($amount),
             );
-            $response = Async\await($this->traderPrivatePostV2WalletsTransfers ($this->extend($request, $params)));
+            $response = Async\await($this->traderPrivatePostV2WalletsTransfers($this->extend($request, $params)));
             //
             //     {
             //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -1706,17 +1737,19 @@ class alpaca extends Exchange {
             //     }
             //
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
     public function fetch_transactions_helper($type, $code, $since, $limit, $params) {
         return Async\async(function () use ($type, $code, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
             }
-            $response = Async\await($this->traderPrivateGetV2WalletsTransfers ($params));
+            $response = Async\await($this->traderPrivateGetV2WalletsTransfers($params));
             //
             //     {
             //         "id" => "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -1745,10 +1778,10 @@ class alpaca extends Exchange {
                 }
             }
             return $this->parse_transactions($results, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of deposits and withdrawals
@@ -1759,13 +1792,13 @@ class alpaca extends Exchange {
              * @param {int} [$since] timestamp in ms of the earliest deposit/withdrawal, default is null
              * @param {int} [$limit] max number of deposit/withdrawals to return, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             return Async\await($this->fetch_transactions_helper('BOTH', $code, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1776,13 +1809,13 @@ class alpaca extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposit structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_helper('INCOMING', $code, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1793,10 +1826,10 @@ class alpaca extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawal structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             return Async\await($this->fetch_transactions_helper('OUTGOING', $code, $since, $limit, $params));
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1868,7 +1901,7 @@ class alpaca extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1876,10 +1909,12 @@ class alpaca extends Exchange {
              * @see https://docs.alpaca.markets/reference/getaccount-1
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->traderPrivateGetV2Account ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->traderPrivateGetV2Account($params));
             //
             //     {
             //         "id" => "43a01bde-4eb1-64fssc26adb5",
@@ -1929,7 +1964,7 @@ class alpaca extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1943,7 +1978,7 @@ class alpaca extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
@@ -1978,7 +2013,7 @@ class alpaca extends Exchange {
         if ($code !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
         }
-        $message = $this->safe_value($response, 'message', null);
+        $message = $this->safe_value($response, 'message');
         if ($message !== null) {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);

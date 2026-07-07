@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var onetrading$1 = require('../onetrading.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
@@ -7,7 +9,7 @@ var Precise = require('../base/Precise.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class onetrading extends onetrading$1 {
+class onetrading extends onetrading$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -74,11 +76,11 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchBalance
+     * @name onetrading#watchBalance
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         await this.authenticate(params);
@@ -133,15 +135,17 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchTicker
+     * @name onetrading#watchTicker
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subscriptionHash = 'MARKET_TICKER';
@@ -159,15 +163,17 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchTickers
+     * @name onetrading#watchTickers
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches price tickers, a statistical calculation with the information for all markets or those specified.
      * @param {string} symbols unified symbols of the markets to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} an array of [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         if (symbols === undefined) {
             symbols = [];
@@ -255,17 +261,19 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchMyTrades
+     * @name onetrading#watchMyTrades
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description get the list of trades associated with the user
      * @param {string} symbol unified symbol of the market to fetch trades for. Use 'any' to watch all trades
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -299,16 +307,18 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchOrderBook
+     * @name onetrading#watchOrderBook
      * @see https://developers.bitpanda.com/exchange/#market-ticker-channel
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'book:' + symbol;
@@ -389,7 +399,7 @@ class onetrading extends onetrading$1 {
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        const bidAsk = this.parseBidAsk(delta, 1, 2);
+        const bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
         const type = this.safeString(delta, 0);
         if (type === 'BUY') {
             const bids = orderbook['bids'];
@@ -416,7 +426,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchOrders
+     * @name onetrading#watchOrders
      * @see https://developers.bitpanda.com/exchange/#account-history-channel
      * @description watches information on multiple orders made by the user
      * @param {string} symbol unified market symbol of the market orders were made in
@@ -424,10 +434,12 @@ class onetrading extends onetrading$1 {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] can listen to orders using ACCOUNT_HISTORY or TRADING
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -1031,7 +1043,7 @@ class onetrading extends onetrading$1 {
     }
     /**
      * @method
-     * @name bitpanda#watchOHLCV
+     * @name onetrading#watchOHLCV
      * @see https://developers.bitpanda.com/exchange/#candlesticks-channel
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
@@ -1042,7 +1054,9 @@ class onetrading extends onetrading$1 {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
@@ -1325,7 +1339,7 @@ class onetrading extends onetrading$1 {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future('authenticated');
+        const future = client.reusableFuture('authenticated');
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
@@ -1339,4 +1353,4 @@ class onetrading extends onetrading$1 {
     }
 }
 
-module.exports = onetrading;
+exports["default"] = onetrading;

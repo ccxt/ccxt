@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -88,7 +88,7 @@ class deribit(ccxt.async_support.deribit):
 
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.authenticate(params)
         messageHash = 'balance'
@@ -98,7 +98,7 @@ class deribit(ccxt.async_support.deribit):
         for i in range(0, len(currencies)):
             currencyCode = currencies[i]
             channels.append('user.portfolio.' + currencyCode)
-        subscribe: dict = {
+        subscribe = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -172,18 +172,20 @@ class deribit(ccxt.async_support.deribit):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         interval = self.safe_string(params, 'interval', '100ms')
         params = self.omit(params, 'interval')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if interval == 'raw':
             await self.authenticate()
         channel = 'ticker.' + market['id'] + '.' + interval
-        message: dict = {
+        message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -203,21 +205,23 @@ class deribit(ccxt.async_support.deribit):
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         url = self.urls['api']['ws']
         interval = self.safe_string(params, 'interval', '100ms')
         params = self.omit(params, 'interval')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if interval == 'raw':
             await self.authenticate()
         channels = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             channels.append('ticker.' + market['id'] + '.' + interval)
-        message: dict = {
+        message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -228,7 +232,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(message, params)
         newTickers = await self.watch_multiple(url, channels, request, channels, request)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -280,16 +284,17 @@ class deribit(ccxt.async_support.deribit):
         watches best bid & ask for symbols
         :param str[] [symbols]: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         url = self.urls['api']['ws']
         channels = []
-        for i in range(0, len(symbols)):
-            market = self.market(symbols[i])
+        for i in range(0, len((symbols))):
+            market = self.market((symbols)[i])
             channels.append('quote.' + market['id'])
-        message: dict = {
+        message = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -300,7 +305,7 @@ class deribit(ccxt.async_support.deribit):
         request = self.deep_extend(message, params)
         newTickers = await self.watch_multiple(url, channels, request, channels, request)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -331,7 +336,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = self.safe_string(params, 'channel')
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'instrument_name')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -358,7 +363,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
@@ -373,7 +378,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         interval = None
         interval, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'interval', '100ms')
@@ -439,7 +444,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.interval]: specify aggregation and frequency of notifications. Possible values: 100ms, raw
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         await self.authenticate(params)
         if symbol is not None:
@@ -449,7 +454,7 @@ class deribit(ccxt.async_support.deribit):
         interval = self.safe_string(params, 'interval', 'raw')
         params = self.omit(params, 'interval')
         channel = 'user.trades.any.any.' + interval
-        message: dict = {
+        message = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -502,7 +507,7 @@ class deribit(ccxt.async_support.deribit):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
         parsed = self.parse_trades(trades)
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(parsed)):
             trade = parsed[i]
             cachedTrades.append(trade)
@@ -520,7 +525,7 @@ class deribit(ccxt.async_support.deribit):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.interval]: Frequency of notifications. Events will be aggregated over self interval. Possible values: 100ms, raw
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         params['callerMethodName'] = 'watchOrderBook'
         return await self.watch_order_book_for_symbols([symbol], limit, params)
@@ -534,7 +539,7 @@ class deribit(ccxt.async_support.deribit):
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         interval = None
         interval, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'interval', '100ms')
@@ -668,9 +673,10 @@ class deribit(ccxt.async_support.deribit):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate(params)
         if symbol is not None:
             symbol = self.symbol(symbol)
@@ -680,7 +686,7 @@ class deribit(ccxt.async_support.deribit):
         kind = self.safe_string(params, 'kind', 'any')
         params = self.omit(params, 'interval', 'currency', 'kind')
         channel = 'user.orders.' + kind + '.' + currency + '.' + interval
-        message: dict = {
+        message = {
             'jsonrpc': '2.0',
             'method': 'private/subscribe',
             'params': {
@@ -746,7 +752,7 @@ class deribit(ccxt.async_support.deribit):
             cachedOrders.append(orders[i])
         client.resolve(self.orders, channel)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://docs.deribit.com/#chart-trades-instrument_name-resolution
@@ -759,7 +765,8 @@ class deribit(ccxt.async_support.deribit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         ohlcvs = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return ohlcvs[symbol][timeframe]
@@ -828,7 +835,7 @@ class deribit(ccxt.async_support.deribit):
         messageHash = 'chart.trades|' + symbol + '|' + rawTimeframe
         client.resolve(resolveData, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #    {
         #        "c": "28909.0",
@@ -850,7 +857,8 @@ class deribit(ccxt.async_support.deribit):
         ]
 
     async def watch_multiple_wrapper(self, channelName: str, channelDescriptor: Str, symbolsArray=None, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         rawSubscriptions = []
         messageHashes = []
@@ -870,7 +878,7 @@ class deribit(ccxt.async_support.deribit):
             message = channelName + '.' + market['id'] + '.' + channelDescriptor
             rawSubscriptions.append(message)
             messageHashes.append(channelName + '|' + market['symbol'] + '|' + channelDescriptor)
-        request: dict = {
+        request = {
             'jsonrpc': '2.0',
             'method': 'public/subscribe',
             'params': {
@@ -953,12 +961,12 @@ class deribit(ccxt.async_support.deribit):
         if channel is not None:
             parts = channel.split('.')
             channelId = self.safe_string(parts, 0)
-            userHandlers: dict = {
+            userHandlers = {
                 'trades': self.handle_my_trades,
                 'portfolio': self.handle_balance,
                 'orders': self.handle_orders,
             }
-            handlers: dict = {
+            handlers = {
                 'ticker': self.handle_ticker,
                 'quote': self.handle_bid_ask,
                 'book': self.handle_order_book,
@@ -1009,8 +1017,9 @@ class deribit(ccxt.async_support.deribit):
         if future is None:
             self.check_required_credentials()
             requestId = self.request_id()
-            signature = self.hmac(self.encode(timeString + '\n' + nonce + '\n'), self.encode(self.secret), hashlib.sha256)
-            request: dict = {
+            lineBreak = "\n"  # eslint-disable-line quotes
+            signature = self.hmac(self.encode(timeString + lineBreak + nonce + lineBreak), self.encode(self.secret), hashlib.sha256)
+            request = {
                 'jsonrpc': '2.0',
                 'id': requestId,
                 'method': 'public/auth',

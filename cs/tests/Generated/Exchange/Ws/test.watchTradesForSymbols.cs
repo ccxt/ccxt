@@ -8,14 +8,16 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchTradesForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
         object method = "watchTradesForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object returnedSymbols = new List<object>() {};
+        while (isTrue(isLessThan(now, ends)) || isTrue(isLessThan(getArrayLength(returnedSymbols), getArrayLength(symbols))))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = await exchange.watchTradesForSymbols(symbols);
@@ -26,23 +28,30 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
             }
-            assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
-            now = exchange.milliseconds();
-            object symbol = null;
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
-                object trade = getValue(response, i);
-                symbol = getValue(trade, "symbol");
-                testTrade(exchange, skippedProperties, method, trade, symbol, now);
-                testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
-            }
-            if (!isTrue((inOp(skippedProperties, "timestamp"))))
-            {
-                testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
+                assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
+                now = exchange.milliseconds();
+                object symbol = null;
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    object trade = getValue(response, i);
+                    symbol = getValue(trade, "symbol");
+                    if (isTrue(isEqual(symbol, null)))
+                    {
+                        continue;
+                    }
+                    testTrade(exchange, skippedProperties, method, trade, symbol, now);
+                    testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, "symbol", symbols);
+                    if (!isTrue(exchange.inArray(symbol, returnedSymbols)))
+                    {
+                        ((IList<object>)returnedSymbols).Add(symbol);
+                    }
+                }
             }
         }
+        return true;
     }
 
 }

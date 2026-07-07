@@ -93,6 +93,12 @@ class ManualInteractionNeeded extends OperationRejected {
         this.name = 'ManualInteractionNeeded';
     }
 }
+class RestrictedLocation extends OperationRejected {
+    constructor(message) {
+        super(message);
+        this.name = 'RestrictedLocation';
+    }
+}
 class InsufficientFunds extends ExchangeError {
     constructor(message) {
         super(message);
@@ -249,7 +255,7 @@ class UnsubscribeError extends BaseError {
         this.name = 'UnsubscribeError';
     }
 }
-var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError };
+var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, RestrictedLocation, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -290,5 +296,6 @@ exports.OrderNotFound = OrderNotFound;
 exports.PermissionDenied = PermissionDenied;
 exports.RateLimitExceeded = RateLimitExceeded;
 exports.RequestTimeout = RequestTimeout;
+exports.RestrictedLocation = RestrictedLocation;
 exports.UnsubscribeError = UnsubscribeError;
 exports["default"] = errors;

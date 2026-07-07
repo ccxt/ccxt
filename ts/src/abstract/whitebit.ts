@@ -34,6 +34,7 @@ interface Exchange {
     v4PublicGetAssets (params?: {}): Promise<implicitReturnType>;
     v4PublicGetCollateralMarkets (params?: {}): Promise<implicitReturnType>;
     v4PublicGetFee (params?: {}): Promise<implicitReturnType>;
+    v4PublicGetFundingHistoryMarket (params?: {}): Promise<implicitReturnType>;
     v4PublicGetOrderbookDepthMarket (params?: {}): Promise<implicitReturnType>;
     v4PublicGetOrderbookMarket (params?: {}): Promise<implicitReturnType>;
     v4PublicGetTicker (params?: {}): Promise<implicitReturnType>;
@@ -71,8 +72,8 @@ interface Exchange {
     v4PrivatePostMainAccountSmartInterestPaymentHistory (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountBalance (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountExecutedHistory (params?: {}): Promise<implicitReturnType>;
-    v4PrivatePostTradeAccountOrder (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostTradeAccountOrderHistory (params?: {}): Promise<implicitReturnType>;
+    v4PrivatePostTradeAccountOrder (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralLimit (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralMarket (params?: {}): Promise<implicitReturnType>;
     v4PrivatePostOrderCollateralStopLimit (params?: {}): Promise<implicitReturnType>;

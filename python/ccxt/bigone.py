@@ -5,7 +5,7 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.bigone import ImplicitAPI
-from ccxt.base.types import Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -34,9 +34,12 @@ class bigone(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': None,  # has but unimplemented
+                'swap': True,
                 'future': None,  # has but unimplemented
                 'option': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketBuyOrderWithCost': True,
@@ -47,8 +50,17 @@ class bigone(Exchange, ImplicitAPI):
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
                 'createStopOrder': True,
+                'fetchAllGreeks': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchCrossBorrowRate': False,
+                'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -58,10 +70,18 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
+                'fetchIsolatedBorrowRate': False,
+                'fetchIsolatedBorrowRates': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
+                'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
@@ -72,7 +92,10 @@ class bigone(Exchange, ImplicitAPI):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTransactionFees': False,
+                'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -457,7 +480,7 @@ class bigone(Exchange, ImplicitAPI):
         # we use undocumented link(possible, less informative alternative is : https://big.one/api/uc/v3/assets/accounts)
         data = self.fetch_web_endpoint('fetchCurrencies', 'webExchangeGetV3Assets', True)
         if data is None:
-            return None
+            return {}
         #
         # {
         #     "code": "0",
@@ -503,78 +526,80 @@ class bigone(Exchange, ImplicitAPI):
         # }
         #
         currenciesData = self.safe_list(data, 'data', [])
-        result: dict = {}
-        for i in range(0, len(currenciesData)):
-            currency = currenciesData[i]
-            id = self.safe_string(currency, 'symbol')
-            code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'name')
-            type = 'fiat' if self.safe_bool(currency, 'is_fiat') else 'crypto'
-            networks: dict = {}
-            chains = self.safe_list(currency, 'binding_gateways', [])
-            currencyMaxPrecision = self.parse_precision(self.safe_string_2(currency, 'withdrawal_scale', 'scale'))
-            currencyDepositEnabled: Bool = None
-            currencyWithdrawEnabled: Bool = None
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'gateway_name')
-                networkCode = self.network_id_to_code(networkId)
-                deposit = self.safe_bool(chain, 'is_deposit_enabled')
-                withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
-                isActive = (deposit and withdraw)
-                minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
-                minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
-                withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
-                precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'margin': None,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': isActive,
-                    'fee': self.parse_number(withdrawalFee),
-                    'precision': self.parse_number(precision),
-                    'limits': {
-                        'deposit': {
-                            'min': minDepositAmount,
-                            'max': None,
-                        },
-                        'withdraw': {
-                            'min': minWithdrawalAmount,
-                            'max': None,
-                        },
-                    },
-                    'info': chain,
-                }
-                # fill global values
-                currencyDepositEnabled = (currencyDepositEnabled is None) or deposit if deposit else currencyDepositEnabled
-                currencyWithdrawEnabled = (currencyWithdrawEnabled is None) or withdraw if withdraw else currencyWithdrawEnabled
-                currencyMaxPrecision = (currencyMaxPrecision is None) or precision if Precise.string_gt(currencyMaxPrecision, precision) else currencyMaxPrecision
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'type': type,
+        return self.parse_currencies(currenciesData)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        name = self.safe_string(rawCurrency, 'name')
+        networks = {}
+        chains = self.safe_list(rawCurrency, 'binding_gateways', [])
+        currencyMaxPrecision = self.parse_precision(self.safe_string_2(rawCurrency, 'withdrawal_scale', 'scale'))
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'gateway_name')
+            networkCode = self.network_id_to_code(networkId, code)
+            deposit = self.safe_bool(chain, 'is_deposit_enabled')
+            withdraw = self.safe_bool(chain, 'is_withdrawal_enabled')
+            minDepositAmount = self.safe_string(chain, 'min_deposit_amount')
+            minWithdrawalAmount = self.safe_string(chain, 'min_withdrawal_amount')
+            withdrawalFee = self.safe_string(chain, 'withdrawal_fee')
+            precision = self.parse_precision(self.safe_string_2(chain, 'withdrawal_scale', 'scale'))
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'margin': None,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'active': None,
-                'deposit': currencyDepositEnabled,
-                'withdraw': currencyWithdrawEnabled,
-                'fee': None,
-                'precision': self.parse_number(currencyMaxPrecision),
+                'fee': self.parse_number(withdrawalFee),
+                'precision': self.parse_number(precision),
                 'limits': {
-                    'amount': {
-                        'min': None,
+                    'deposit': {
+                        'min': minDepositAmount,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': None,
+                        'min': minWithdrawalAmount,
                         'max': None,
                     },
                 },
-                'networks': networks,
+                'info': chain,
             }
-        return result
+        chainLength = len(chains)
+        type = None
+        if self.safe_bool(rawCurrency, 'is_fiat'):
+            type = 'fiat'
+        elif chainLength == 0:
+            if self.is_leveraged_currency(id):
+                type = 'leveraged'
+            else:
+                type = 'other'
+        else:
+            type = 'crypto'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': name,
+            'type': type,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': self.parse_number(currencyMaxPrecision),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -825,11 +850,11 @@ class bigone(Exchange, ImplicitAPI):
             'ask': self.safe_string(ask, 'price'),
             'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
-            'open': self.safe_string(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),  # openValue is a broken number, we don't use it
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': self.safe_string_2(ticker, 'daily_change', 'last24hPriceChange'),
+            'change': self.safe_string(ticker, 'daily_change'),  # last24hPriceChange is incorrect value, eg see PUMPUSDT contract
             'percentage': None,
             'average': None,
             'baseVolume': self.safe_string_2(ticker, 'volume', 'volume24h'),
@@ -847,14 +872,15 @@ class bigone(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         type = None
         type, params = self.handle_market_type_and_params('fetchTicker', market, params)
         if type == 'spot':
-            request: dict = {
+            request = {
                 'asset_pair_name': market['id'],
             }
             response = self.publicGetAssetPairsAssetPairNameTicker(self.extend(request, params))
@@ -888,9 +914,10 @@ class bigone(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         symbol = self.safe_string(symbols, 0)
         if symbol is not None:
@@ -898,7 +925,7 @@ class bigone(Exchange, ImplicitAPI):
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         isSpot = type == 'spot'
-        request: dict = {}
+        request = {}
         symbols = self.market_symbols(symbols)
         data = None
         if isSpot:
@@ -994,13 +1021,14 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        response = None
+        response: dict
         if market['contract']:
-            request: dict = {
+            request = {
                 'symbol': market['id'],
             }
             response = self.contractPublicGetDepthSymbolSnapshot(self.extend(request, params))
@@ -1033,7 +1061,7 @@ class bigone(Exchange, ImplicitAPI):
             #
             return self.parse_contract_order_book(response, market['symbol'], limit)
         else:
-            request: dict = {
+            request = {
                 'asset_pair_name': market['id'],
             }
             if limit is not None:
@@ -1128,7 +1156,7 @@ class bigone(Exchange, ImplicitAPI):
         market = self.safe_market(marketId, market, '-')
         side = self.safe_string(trade, 'side')
         takerSide = self.safe_string(trade, 'taker_side')
-        takerOrMaker: Str = None
+        takerOrMaker = None
         if (takerSide is not None) and (side is not None) and (side != 'SELF_TRADING'):
             takerOrMaker = 'taker' if (takerSide == side) else 'maker'
         if side is None:
@@ -1142,13 +1170,13 @@ class bigone(Exchange, ImplicitAPI):
                 side = 'sell'
         makerOrderId = self.safe_string(trade, 'maker_order_id')
         takerOrderId = self.safe_string(trade, 'taker_order_id')
-        orderId: Str = None
+        orderId = None
         if makerOrderId is not None:
             orderId = makerOrderId
         elif takerOrderId is not None:
             orderId = takerOrderId
         id = self.safe_string(trade, 'id')
-        result: dict = {
+        result = {
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1162,8 +1190,8 @@ class bigone(Exchange, ImplicitAPI):
             'cost': None,
             'info': trade,
         }
-        makerCurrencyCode: str
-        takerCurrencyCode: str
+        makerCurrencyCode = None
+        takerCurrencyCode = None
         if takerOrMaker is not None:
             if side == 'buy':
                 if takerOrMaker == 'maker':
@@ -1189,15 +1217,18 @@ class bigone(Exchange, ImplicitAPI):
         makerFeeCost = self.safe_string(trade, 'maker_fee')
         takerFeeCost = self.safe_string(trade, 'taker_fee')
         if makerFeeCost is not None:
+            makerCode = makerCurrencyCode
             if takerFeeCost is not None:
+                takerCode = takerCurrencyCode
                 result['fees'] = [
-                    {'cost': makerFeeCost, 'currency': makerCurrencyCode},
-                    {'cost': takerFeeCost, 'currency': takerCurrencyCode},
+                    {'cost': makerFeeCost, 'currency': makerCode},
+                    {'cost': takerFeeCost, 'currency': takerCode},
                 ]
             else:
-                result['fee'] = {'cost': makerFeeCost, 'currency': makerCurrencyCode}
+                result['fee'] = {'cost': makerFeeCost, 'currency': makerCode}
         elif takerFeeCost is not None:
-            result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
+            takerCode2 = takerCurrencyCode
+            result['fee'] = {'cost': takerFeeCost, 'currency': takerCode2}
         else:
             result['fee'] = None
         return self.safe_trade(result, market)
@@ -1212,13 +1243,14 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['contract']:
-            raise BadRequest(self.id + ' fetchTrades() can only fetch trades for spot markets')
-        request: dict = {
+            raise NotSupported(self.id + ' fetchTrades() can only fetch trades for spot markets')
+        request = {
             'asset_pair_name': market['id'],
         }
         response = self.publicGetAssetPairsAssetPairNameTrades(self.extend(request, params))
@@ -1266,7 +1298,7 @@ class bigone(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1280,16 +1312,17 @@ class bigone(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the earliest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['contract']:
-            raise BadRequest(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
+            raise NotSupported(self.id + ' fetchOHLCV() can only fetch ohlcvs for spot markets')
         until = self.safe_integer(params, 'until')
         untilIsDefined = (until is not None)
         sinceIsDefined = (since is not None)
         if limit is None:
             limit = 500 if (sinceIsDefined and untilIsDefined) else 100  # default 100, max 500, if since and limit defined then fetch all the candles between them unless it exceeds the max of 500
-        request: dict = {
+        request = {
             'asset_pair_name': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
             'limit': limit,
@@ -1333,7 +1366,7 @@ class bigone(Exchange, ImplicitAPI):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -1357,12 +1390,13 @@ class bigone(Exchange, ImplicitAPI):
         https://open.big.one/docs/spot_accounts.html
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = self.safe_string(params, 'type', '')
         params = self.omit(params, 'type')
-        response = None
+        response: dict
         if type == 'funding' or type == 'fund':
             response = self.privateGetFundAccounts(params)
         else:
@@ -1380,7 +1414,7 @@ class bigone(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def parse_type(self, type: str):
-        types: dict = {
+        types = {
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
             'LIMIT': 'limit',
@@ -1391,7 +1425,7 @@ class bigone(Exchange, ImplicitAPI):
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #    {
-        #        "id": "42154072251",
+        #        "id": "42154072252",
         #        "asset_pair_name": "SOL-USDT",
         #        "price": "20",
         #        "amount": "0.5",
@@ -1467,9 +1501,10 @@ class bigone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -1496,9 +1531,10 @@ class bigone(Exchange, ImplicitAPI):
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.operator]: *stop order only* GTE or LTE(default)
         :param str [params.client_order_id]: must match ^[a-zA-Z0-9-_]{1,36}$ self regex. client_order_id is unique in 24 hours, If created 24 hours later and the order closed, it will be released and can be reused
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         isBuy = (side == 'buy')
         requestSide = 'BID' if isBuy else 'ASK'
@@ -1508,7 +1544,7 @@ class bigone(Exchange, ImplicitAPI):
         postOnly = None
         postOnly, params = self.handle_post_only((uppercaseType == 'MARKET'), exchangeSpecificParam, params)
         triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
-        request: dict = {
+        request = {
             'asset_pair_name': market['id'],  # asset pair name BTC-USDT, required
             'side': requestSide,  # order side one of "ASK"/"BID", required
             'amount': self.amount_to_precision(symbol, amount),  # order amount, string, required
@@ -1584,10 +1620,11 @@ class bigone(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: Not used by bigone cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {'id': id}
+        if self.markets is None:
+            self.load_markets()
+        request = {'id': id}
         response = self.privatePostOrdersIdCancel(self.extend(request, params))
         #    {
         #        "id": 10,
@@ -1612,11 +1649,12 @@ class bigone(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'asset_pair_name': market['id'],
         }
         response = self.privatePostOrdersCancel(self.extend(request, params))
@@ -1661,10 +1699,11 @@ class bigone(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
-        request: dict = {'id': id}
+        if self.markets is None:
+            self.load_markets()
+        request = {'id': id}
         response = self.privateGetOrdersId(self.extend(request, params))
         order = self.safe_dict(response, 'data', {})
         return self.parse_order(order)
@@ -1679,13 +1718,14 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'asset_pair_name': market['id'],
             # 'page_token': 'dxzef',  # request page after self page token
             # 'side': 'ASK',  # 'ASK' or 'BID', optional
@@ -1728,13 +1768,14 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'asset_pair_name': market['id'],
             # 'page_token': 'dxzef',  # request page after self page token
         }
@@ -1779,7 +1820,7 @@ class bigone(Exchange, ImplicitAPI):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PENDING': 'open',
             'FILLED': 'closed',
             'CANCELLED': 'canceled',
@@ -1796,9 +1837,9 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'state': 'PENDING',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1813,9 +1854,9 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        request: dict = {
+        request = {
             'state': 'FILLED',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
@@ -1824,7 +1865,7 @@ class bigone(Exchange, ImplicitAPI):
         exchangeTimeCorrection = self.safe_integer(self.options, 'exchangeMillisecondsCorrection', 0) * 1000000
         return self.sum(self.microseconds() * 1000, exchangeTimeCorrection)
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + '/' + self.implode_params(path, params)
@@ -1835,7 +1876,7 @@ class bigone(Exchange, ImplicitAPI):
         else:
             self.check_required_credentials()
             nonce = str(self.nonce())
-            request: dict = {
+            request = {
                 'type': 'OpenAPIV2',
                 'sub': self.apiKey,
                 'nonce': nonce,
@@ -1860,11 +1901,12 @@ class bigone(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'asset_symbol': currency['id'],
         }
         networkCode, paramsOmitted = self.handle_network_code_and_params(params)
@@ -1899,13 +1941,13 @@ class bigone(Exchange, ImplicitAPI):
         return {
             'info': response,
             'currency': code,
-            'network': self.network_id_to_code(selectedNetworkId),
+            'network': self.network_id_to_code(selectedNetworkId, code),
             'address': address,
             'tag': tag,
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             # what are other statuses here?
             'WITHHOLD': 'ok',  # deposits
             'UNCONFIRMED': 'pending',
@@ -2012,10 +2054,11 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'page_token': 'dxzef',  # request page after self page token
             # 'limit': 50,  # optional, default 50
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
@@ -2062,10 +2105,11 @@ class bigone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            self.load_markets()
+        request = {
             # 'page_token': 'dxzef',  # request page after self page token
             # 'limit': 50,  # optional, default 50
             # 'kind': 'string',  # optional - air_drop, big_holder_dividend, default, eosc_to_eos, internal, equally_airdrop, referral_mining, one_holder_dividend, single_customer, snapshotted_airdrop, trade_mining
@@ -2113,15 +2157,16 @@ class bigone(Exchange, ImplicitAPI):
         :param str fromAccount: 'SPOT', 'FUND', or 'CONTRACT'
         :param str toAccount: 'SPOT', 'FUND', or 'CONTRACT'
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         guid = self.safe_string(params, 'guid', self.uuid())
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'amount': self.currency_to_precision(code, amount),
             'from': fromId,
@@ -2168,12 +2213,12 @@ class bigone(Exchange, ImplicitAPI):
         }
 
     def parse_transfer_status(self, status: Str) -> Str:
-        statuses: dict = {
+        statuses = {
             '0': 'ok',
         }
         return self.safe_string(statuses, status, 'failed')
 
-    def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2184,12 +2229,13 @@ class bigone(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'symbol': currency['id'],
             'target_address': address,
             'amount': self.currency_to_precision(code, amount),
@@ -2199,7 +2245,7 @@ class bigone(Exchange, ImplicitAPI):
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['gateway_name'] = self.network_code_to_id(networkCode)
+            request['gateway_name'] = self.network_code_to_id(networkCode, currency['code'])
         # requires write permission on the wallet
         response = self.privatePostWithdrawals(self.extend(request, params))
         #

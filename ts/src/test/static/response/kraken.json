@@ -3,7 +3,349 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "USDT": {
+                            "aclass": "currency",
+                            "altname": "USDT",
+                            "decimals": "8",
+                            "display_decimals": "4",
+                            "collateral_value": "0.995",
+                            "status": "enabled",
+                            "margin_rate": "0.02"
+                        },
+                        "ZUSD": {
+                            "aclass": "currency",
+                            "altname": "USD",
+                            "decimals": "4",
+                            "display_decimals": "2",
+                            "collateral_value": "1.0",
+                            "status": "enabled",
+                            "margin_rate": "0.033"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "aclass": "currency",
+                            "altname": "USDT",
+                            "decimals": "8",
+                            "display_decimals": "4",
+                            "collateral_value": "0.995",
+                            "status": "enabled",
+                            "margin_rate": "0.02"
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 1e-8,
+                        "type": "crypto",
+                        "name": "USDT",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USD": {
+                        "info": {
+                            "aclass": "currency",
+                            "altname": "USD",
+                            "decimals": "4",
+                            "display_decimals": "2",
+                            "collateral_value": "1.0",
+                            "status": "enabled",
+                            "margin_rate": "0.033"
+                        },
+                        "id": "ZUSD",
+                        "numericId": null,
+                        "code": "USD",
+                        "precision": 0.0001,
+                        "type": "crypto",
+                        "name": "USD",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "createMarketBuyOrderWithCost": [
+            {
+                "description": "order with cost",
+                "method": "createMarketBuyOrderWithCost",
+                "input": [
+                    "LTC/USD",
+                    10
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "O3N23H-LHHUD-V2XMEK"
+                        ],
+                        "descr": {
+                            "order": "buy 10.00000000 LTCUSD @ market"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "O3N23H-LHHUD-V2XMEK",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "O3N23H-LHHUD-V2XMEK"
+                        ],
+                        "descr": {
+                            "order": "buy 10.00000000 LTCUSD @ market"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "LTCUSD",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": 10,
+                    "amount": null,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            }
+        ],
         "createOrder": [
+            {
+                "description": "nested urlencoded",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "close": {
+                            "price": 1111,
+                            "price2": 1234,
+                            "something": "+&"
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "OARXDO-TJVDS-4G3G54"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "OARXDO-TJVDS-4G3G54",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "OARXDO-TJVDS-4G3G54"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.001,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "conditional close",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT",
+                    "limit",
+                    "buy",
+                    0.001,
+                    1000,
+                    {
+                        "close": {
+                            "price": 1111,
+                            "price2": 1234
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "O2HBTP-OBCCZ-SSZAZR"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "O2HBTP-OBCCZ-SSZAZR",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "O2HBTP-OBCCZ-SSZAZR"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00100 ETHUSDT @ limit 1000.00"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "ETH/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.001,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "createOrder long precisions",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDT",
+                    "limit",
+                    "buy",
+                    0.000123456789,
+                    12345.123456789
+                ],
+                "httpResponse": {
+                    "error": [],
+                    "result": {
+                        "txid": [
+                            "OOBROV-GTGDX-IRFMMB"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00012346 XBTUSDT @ limit 12345.1"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "OOBROV-GTGDX-IRFMMB",
+                    "clientOrderId": null,
+                    "info": {
+                        "txid": [
+                            "OOBROV-GTGDX-IRFMMB"
+                        ],
+                        "descr": {
+                            "order": "buy 0.00012346 XBTUSDT @ limit 12345.1"
+                        }
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "status": null,
+                    "symbol": "BTC/USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 12345.1,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "cost": null,
+                    "amount": 0.00012346,
+                    "filled": null,
+                    "average": null,
+                    "remaining": null,
+                    "reduceOnly": null,
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "stopPrice": null
+                }
+            },
             {
                 "description": "create order",
                 "method": "createOrder",
@@ -273,7 +615,7 @@
                                 "TWA6QJ-ZO4EM-6QIHQJ"
                             ],
                             "reason": null,
-                            "closetm": "1705260547.4728658"
+                            "closetm": "1705260547.4730000"
                         }
                     }
                 },
@@ -311,7 +653,7 @@
                             "TWA6QJ-ZO4EM-6QIHQJ"
                         ],
                         "reason": null,
-                        "closetm": "1705260547.4728658"
+                        "closetm": "1705260547.4730000"
                     },
                     "timestamp": 1705260547472,
                     "datetime": "2024-01-14T19:29:07.472Z",
@@ -357,7 +699,7 @@
                             "currency": "USDT"
                         }
                     ],
-                    "lastUpdateTimestamp": null,
+                    "lastUpdateTimestamp": 1705260547473,
                     "reduceOnly": null
                 }
             }
@@ -848,7 +1190,7 @@
                     "misc": "",
                     "oflags": "fciq",
                     "reason": "User requested",
-                    "closetm": "1733920121.745514"
+                    "closetm": "1733920121.745114"
                   }
                 },
                 "count": "1"
@@ -887,7 +1229,7 @@
                   "misc": "",
                   "oflags": "fciq",
                   "reason": "User requested",
-                  "closetm": "1733920121.745514"
+                  "closetm": "1733920121.745114"
                 },
                 "timestamp": 1733920032330,
                 "datetime": "2024-12-11T12:27:12.330Z",
@@ -922,7 +1264,7 @@
                     "currency": "USDT"
                   }
                 ],
-                "lastUpdateTimestamp": null
+                "lastUpdateTimestamp": 1733920121745
               }
             ]
           }
@@ -1301,7 +1643,7 @@
                     "entryPrice": null,
                     "unrealizedPnl": -0.01022,
                     "realizedPnl": null,
-                    "percentage": null,
+                    "percentage": -0.67,
                     "contracts": 10,
                     "contractSize": null,
                     "markPrice": null,

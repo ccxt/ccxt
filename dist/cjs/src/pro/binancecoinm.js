@@ -1,16 +1,19 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 var binancecoinm$1 = require('../binancecoinm.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binancecoinm extends binance {
+class binancecoinm extends binance["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binancecoinm$1();
+        const restInstance = new binancecoinm$1["default"]();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
@@ -19,11 +22,13 @@ class binancecoinm extends binance {
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': ['inverse'],
+                'fetchMarkets': {
+                    'types': ['inverse'],
+                },
                 'defaultSubType': 'inverse',
             },
         });
     }
 }
 
-module.exports = binancecoinm;
+exports["default"] = binancecoinm;

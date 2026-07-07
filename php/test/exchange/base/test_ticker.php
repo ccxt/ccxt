@@ -8,7 +8,6 @@ namespace ccxt;
 
 // -----------------------------------------------------------------------------
 use \ccxt\Precise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
     $format = array(
@@ -34,68 +33,118 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
         'quoteVolume' => $exchange->parse_number('1.234'),
     );
     // todo: atm, many exchanges fail, so temporarily decrease stict mode
-    $empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'vwap', 'change', 'percentage', 'average'];
+    $empty_allowed_for = ['timestamp', 'datetime', 'open', 'high', 'low', 'close', 'last', 'baseVolume', 'quoteVolume', 'previousClose', 'bidVolume', 'askVolume', 'vwap', 'change', 'percentage', 'average'];
     // trick csharp-transpiler for string
-    if (!str_contains(((string) $method), 'BidsAsks')) {
+    if (!(str_contains(((string) $method), 'BidsAsks'))) {
         $empty_allowed_for[] = 'bid';
         $empty_allowed_for[] = 'ask';
-        $empty_allowed_for[] = 'bidVolume';
-        $empty_allowed_for[] = 'askVolume';
     }
     assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
     assert_timestamp_and_datetime($exchange, $skipped_properties, $method, $entry);
     $log_text = log_template($exchange, $method, $entry);
-    //
+    // check market
     $market = null;
+    $is_unrecognized_symbol = false;
+    $is_fetch_ticker_called = $method === 'fetchTicker';
     $symbol_for_market = ($symbol !== null) ? $symbol : $exchange->safe_string($entry, 'symbol');
-    if ($symbol_for_market !== null && (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets))) {
-        $market = $exchange->market($symbol_for_market);
+    if ($symbol_for_market !== null) {
+        if (is_array($exchange->markets) && array_key_exists($symbol_for_market, $exchange->markets)) {
+            $market = $exchange->market($symbol_for_market);
+        } else {
+            $is_unrecognized_symbol = true;
+        }
     }
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+    // temp todo: skip inactive markets for now, as they sometimes have weird values and causing issues:
+    if (!(is_array($skipped_properties) && array_key_exists('checkInactiveMarkets', $skipped_properties))) {
+        if ($market !== null && $market['active'] === false) {
+            return;
+        }
+    }
+    if (is_array($skipped_properties) && array_key_exists('skipNonActiveMarkets', $skipped_properties)) {
+        if ($market === null || !$market['active']) {
+            return;
+        }
+    }
+    // only check "above zero" values if exchange is not supposed to have exotic index markets
+    $is_standard_market = ($market !== null && $exchange->in_array($market['type'], ['spot', 'swap', 'future', 'option']));
+    $values_should_be_positive = $is_standard_market; // || (market === undefined) atm, no check for index markets
+    if ($values_should_be_positive && !(is_array($skipped_properties) && array_key_exists('positiveValues', $skipped_properties))) {
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'open', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'high', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'low', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'close', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
+        assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
+    }
+    // volume can not be negative
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'askVolume', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'bid', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'bidVolume', '0');
-    assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'vwap', '0');
-    assert_greater($exchange, $skipped_properties, $method, $entry, 'average', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'baseVolume', '0');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'quoteVolume', '0');
+    //
+    // close price
+    //
     $last_string = $exchange->safe_string($entry, 'last');
     $close_string = $exchange->safe_string($entry, 'close');
     assert((($close_string === null) && ($last_string === null)) || Precise::string_eq($last_string, $close_string), '`last` != `close`' . $log_text);
-    $base_volume = $exchange->safe_string($entry, 'baseVolume');
-    $quote_volume = $exchange->safe_string($entry, 'quoteVolume');
-    $high = $exchange->safe_string($entry, 'high');
-    $low = $exchange->safe_string($entry, 'low');
-    if (!(is_array($skipped_properties) && array_key_exists('quoteVolume', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('baseVolume', $skipped_properties))) {
+    $open_price = $exchange->safe_string($entry, 'open');
+    //
+    // base & quote volumes
+    //
+    $base_volume = $exchange->omit_zero($exchange->safe_string($entry, 'baseVolume'));
+    $quote_volume = $exchange->omit_zero($exchange->safe_string($entry, 'quoteVolume'));
+    $high = $exchange->omit_zero($exchange->safe_string($entry, 'high'));
+    $low = $exchange->omit_zero($exchange->safe_string($entry, 'low'));
+    $open = $exchange->omit_zero($exchange->safe_string($entry, 'open'));
+    $close = $exchange->omit_zero($exchange->safe_string($entry, 'close'));
+    if (!(is_array($skipped_properties) && array_key_exists('compareQuoteVolumeBaseVolume', $skipped_properties))) {
+        // assert (baseVolumeDefined === quoteVolumeDefined, 'baseVolume or quoteVolume should be either both defined or both undefined' + logText); // No, exchanges might not report both values
         if (($base_volume !== null) && ($quote_volume !== null) && ($high !== null) && ($low !== null)) {
             $base_low = Precise::string_mul($base_volume, $low);
             $base_high = Precise::string_mul($base_volume, $high);
             // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
             $m_precision = $exchange->safe_dict($market, 'precision');
             $amount_precision = $exchange->safe_string($m_precision, 'amount');
+            $tolerance = '1.0001';
             if ($amount_precision !== null) {
                 $base_low = Precise::string_mul(Precise::string_sub($base_volume, $amount_precision), $low);
                 $base_high = Precise::string_mul(Precise::string_add($base_volume, $amount_precision), $high);
             } else {
                 // if nothing found, as an exclusion, just add 0.001%
-                $base_low = Precise::string_mul(Precise::string_mul($base_volume, '1.0001'), $low);
-                $base_high = Precise::string_mul(Precise::string_div($base_volume, '1.0001'), $high);
+                $base_low = Precise::string_mul(Precise::string_div($base_volume, $tolerance), $low);
+                $base_high = Precise::string_mul(Precise::string_mul($base_volume, $tolerance), $high);
             }
+            // because of exchange engines might not rounding numbers propertly, we add some tolerance of calculated 24hr high/low
+            $base_low = Precise::string_div($base_low, $tolerance);
+            $base_high = Precise::string_mul($base_high, $tolerance);
             assert(Precise::string_ge($quote_volume, $base_low), 'quoteVolume should be => baseVolume * low' . $log_text);
             assert(Precise::string_le($quote_volume, $base_high), 'quoteVolume should be <= baseVolume * high' . $log_text);
         }
     }
+    // open and close should be between High & Low
+    if ($high !== null && $low !== null && !(is_array($skipped_properties) && array_key_exists('compareOHLC', $skipped_properties))) {
+        if ($open !== null) {
+            assert(Precise::string_ge($open, $low), 'open should be >= low' . $log_text);
+            assert(Precise::string_le($open, $high), 'open should be <= high' . $log_text);
+        }
+        if ($close !== null) {
+            assert(Precise::string_ge($close, $low), 'close should be >= low' . $log_text);
+            assert(Precise::string_le($close, $high), 'close should be <= high' . $log_text);
+        }
+    }
+    //
+    // vwap
+    //
     $vwap = $exchange->safe_string($entry, 'vwap');
     if ($vwap !== null) {
         // todo
         // assert (high !== undefined, 'vwap is defined, but high is not' + logText);
         // assert (low !== undefined, 'vwap is defined, but low is not' + logText);
         // assert (vwap >= low && vwap <= high)
-        assert(Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
+        // todo: calc compare
+        assert(!$values_should_be_positive || Precise::string_ge($vwap, '0'), 'vwap is not greater than zero' . $log_text);
         if ($base_volume !== null) {
             assert($quote_volume !== null, 'baseVolume & vwap is defined, but quoteVolume is not' . $log_text);
         }
@@ -103,12 +152,65 @@ function test_ticker($exchange, $skipped_properties, $method, $entry, $symbol) {
             assert($base_volume !== null, 'quoteVolume & vwap is defined, but baseVolume is not' . $log_text);
         }
     }
-    if (!(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('ask', $skipped_properties)) && !(is_array($skipped_properties) && array_key_exists('bid', $skipped_properties))) {
-        $ask_string = $exchange->safe_string($entry, 'ask');
-        $bid_string = $exchange->safe_string($entry, 'bid');
-        if (($ask_string !== null) && ($bid_string !== null)) {
-            assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
+    $ask_string = $exchange->safe_string($entry, 'ask');
+    $bid_string = $exchange->safe_string($entry, 'bid');
+    if (($ask_string !== null) && ($bid_string !== null) && !(is_array($skipped_properties) && array_key_exists('spread', $skipped_properties))) {
+        assert_greater($exchange, $skipped_properties, $method, $entry, 'ask', $exchange->safe_string($entry, 'bid'));
+    }
+    // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
+    $allowed_percentage_variation = '0.01';
+    if ($is_fetch_ticker_called && $last_string !== null && $bid_string !== null && $ask_string !== null && !(is_array($skipped_properties) && array_key_exists('lastBetweenBidAsk', $skipped_properties))) {
+        $median_price = Precise::string_div(Precise::string_add($bid_string, $ask_string), '2');
+        $median_low = Precise::string_mul($median_price, Precise::string_sub('1', $allowed_percentage_variation));
+        $median_high = Precise::string_mul($median_price, Precise::string_add('1', $allowed_percentage_variation));
+        assert(Precise::string_ge($last_string, $median_low) && Precise::string_le($last_string, $median_high), 'last price should be within 1% of the bid/ask median price' . $log_text);
+    }
+    $percentage = $exchange->safe_string($entry, 'percentage');
+    $change = $exchange->safe_string($entry, 'change');
+    if (!(is_array($skipped_properties) && array_key_exists('maxIncrease', $skipped_properties)) && !$is_unrecognized_symbol) {
+        //
+        // percentage
+        //
+        $max_increase = '100'; // for testing purposes, if "increased" value is more than 100x, tests should break as implementation might be wrong. however, if something rarest event happens and some coin really had that huge increase, the tests will shortly recover in few hours, as new 24-hour cycle would stabilize tests)
+        if ($percentage !== null) {
+            // - should be above -100 and below MAX
+            assert(Precise::string_ge($percentage, '-100'), 'percentage should be above -100% ' . $log_text);
+            assert(Precise::string_le($percentage, Precise::string_mul('+100', $max_increase)), 'percentage should be below ' . $max_increase . '00% ' . $log_text);
+        }
+        //
+        // change
+        //
+        $approx_value = $exchange->safe_string_n($entry, ['open', 'close', 'average', 'bid', 'ask', 'vwap', 'previousClose']);
+        if ($change !== null) {
+            // - should be between -price & +price*100
+            assert(Precise::string_ge($change, Precise::string_neg($approx_value)), 'change should be above -price ' . $log_text);
+            assert(Precise::string_le($change, Precise::string_mul($approx_value, $max_increase)), 'change should be below ' . $max_increase . 'x price ' . $log_text);
         }
     }
+    //
+    // ensure all expected values are defined
+    //
+    if ($last_string !== null) {
+        if ($percentage !== null) {
+            // if one knows 'last' and 'percentage' values, then 'change', 'open' and 'average' values should be determinable.
+            assert($open_price !== null && $change !== null, 'open & change should be defined if last & percentage are defined' . $log_text); // todo : add average price too
+        } elseif ($change !== null) {
+            // if one knows 'last' and 'change' values, then 'percentage', 'open' and 'average' values should be determinable.
+            assert($open_price !== null && $percentage !== null, 'open & percentage should be defined if last & change are defined' . $log_text); // todo : add average price too
+        }
+    } elseif ($open_price !== null) {
+        if ($percentage !== null) {
+            // if one knows 'open' and 'percentage' values, then 'last', 'change' and 'average' values should be determinable.
+            assert($last_string !== null && $change !== null, 'last & change should be defined if open & percentage are defined' . $log_text); // todo : add average price too
+        } elseif ($change !== null) {
+            // if one knows 'open' and 'change' values, then 'last', 'percentage' and 'average' values should be determinable.
+            assert($last_string !== null && $percentage !== null, 'last & percentage should be defined if open & change are defined' . $log_text); // todo : add average price too
+        }
+    }
+    //
+    // todo: rethink about this
+    // else {
+    //    assert ((askString === undefined) && (bidString === undefined), 'ask & bid should be both defined or both undefined' + logText);
+    // }
     assert_symbol($exchange, $skipped_properties, $method, $entry, 'symbol', $symbol);
 }

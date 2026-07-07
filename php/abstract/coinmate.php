@@ -25,6 +25,12 @@ abstract class coinmate extends \ccxt\Exchange {
     public function public_get_tradingpairs($params = array()) {
         return $this->request('tradingPairs', 'public', 'GET', $params, null, null, array());
     }
+    public function public_get_system_time($params = array()) {
+        return $this->request('system/time', 'public', 'GET', $params, null, null, array());
+    }
+    public function private_post_currencies($params = array()) {
+        return $this->request('currencies', 'private', 'POST', $params, null, null, array());
+    }
     public function private_post_balances($params = array()) {
         return $this->request('balances', 'private', 'POST', $params, null, null, array());
     }
@@ -181,6 +187,9 @@ abstract class coinmate extends \ccxt\Exchange {
     public function private_post_unconfirmedsoldeposits($params = array()) {
         return $this->request('unconfirmedSolDeposits', 'private', 'POST', $params, null, null, array());
     }
+    public function private_post_bankwirewithdrawal($params = array()) {
+        return $this->request('bankWireWithdrawal', 'private', 'POST', $params, null, null, array());
+    }
     public function publicGetOrderBook($params = array()) {
         return $this->request('orderBook', 'public', 'GET', $params, null, null, array());
     }
@@ -198,6 +207,12 @@ abstract class coinmate extends \ccxt\Exchange {
     }
     public function publicGetTradingPairs($params = array()) {
         return $this->request('tradingPairs', 'public', 'GET', $params, null, null, array());
+    }
+    public function publicGetSystemTime($params = array()) {
+        return $this->request('system/time', 'public', 'GET', $params, null, null, array());
+    }
+    public function privatePostCurrencies($params = array()) {
+        return $this->request('currencies', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostBalances($params = array()) {
         return $this->request('balances', 'private', 'POST', $params, null, null, array());
@@ -354,5 +369,8 @@ abstract class coinmate extends \ccxt\Exchange {
     }
     public function privatePostUnconfirmedSolDeposits($params = array()) {
         return $this->request('unconfirmedSolDeposits', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostBankWireWithdrawal($params = array()) {
+        return $this->request('bankWireWithdrawal', 'private', 'POST', $params, null, null, array());
     }
 }

@@ -1,12 +1,11 @@
 
 // ---------------------------------------------------------------------------
 
-import { Market } from '../ccxt.js';
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/p2b.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeNotAvailable, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int } from './base/types.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import type { Dict, Int, Num, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, int, Market, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -31,6 +30,9 @@ export default class p2b extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -46,9 +48,14 @@ export default class p2b extends Exchange {
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
@@ -59,23 +66,42 @@ export default class p2b extends Exchange {
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': false,
                 'fetchLedgerEntry': false,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -88,6 +114,7 @@ export default class p2b extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
@@ -96,10 +123,14 @@ export default class p2b extends Exchange {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawAddresses': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
                 'setMarginMode': false,
@@ -114,9 +145,8 @@ export default class p2b extends Exchange {
                 '1d': '1d',
             },
             'urls': {
-                'extension': '.json',
                 'referral': 'https://p2pb2b.com?referral=ee784c53',
-                'logo': 'https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755',
+                'logo': 'https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696',
                 'api': {
                     'public': 'https://api.p2pb2b.com/api/v2/public',
                     'private': 'https://api.p2pb2b.com/api/v2',
@@ -348,8 +378,8 @@ export default class p2b extends Exchange {
         const marketId = this.safeString (market, 'name');
         const baseId = this.safeString (market, 'stock');
         const quoteId = this.safeString (market, 'money');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        const base = this.safeCurrencyCode (baseId) as string;
+        const quote = this.safeCurrencyCode (quoteId) as string;
         const limits = this.safeValue (market, 'limits');
         const maxAmount = this.safeString (limits, 'max_amount');
         const maxPrice = this.safeString (limits, 'max_price');
@@ -388,11 +418,11 @@ export default class p2b extends Exchange {
                 },
                 'amount': {
                     'min': this.safeNumber (limits, 'min_amount'),
-                    'max': this.parseNumber (this.omitZero (maxAmount)),
+                    'max': this.parseNumber (this.omitZero (maxAmount as string)),
                 },
                 'price': {
                     'min': this.safeNumber (limits, 'min_price'),
-                    'max': this.parseNumber (this.omitZero (maxPrice)),
+                    'max': this.parseNumber (this.omitZero (maxPrice as string)),
                 },
                 'cost': {
                     'min': undefined,
@@ -411,10 +441,12 @@ export default class p2b extends Exchange {
      * @see https://futures-docs.poloniex.com/#get-real-time-ticker-of-all-symbols
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetTickers (params);
         //
         //    {
@@ -452,10 +484,12 @@ export default class p2b extends Exchange {
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -561,10 +595,12 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {string} [params.interval] 0 (default), 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -613,10 +649,12 @@ export default class p2b extends Exchange {
      * @param {int} [limit] 1-100, default=50
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} params.lastId order id
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const lastId = this.safeInteger (params, 'lastId');
         if (lastId === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTrades () requires an extra parameter params["lastId"]');
@@ -715,7 +753,7 @@ export default class p2b extends Exchange {
             'amount': this.safeString (trade, 'amount'),
             'cost': this.safeString (trade, 'deal'),
             'fee': {
-                'currency': market['quote'],
+                'currency': this.safeString (market, 'quote'),
                 'cost': this.safeString2 (trade, 'fee', 'deal_fee'),
             },
         }, market);
@@ -734,8 +772,10 @@ export default class p2b extends Exchange {
      * @param {int} [params.offset] default=0, with this value the last candles are returned
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -800,10 +840,12 @@ export default class p2b extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/P2B-team/p2b-api-docs/blob/master/api-doc.md#all-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privatePostAccountBalances (params);
         //
         //    {
@@ -853,7 +895,7 @@ export default class p2b extends Exchange {
                 'free': available,
                 'used': used,
             };
-            result[code] = account;
+            result[code as string] = account;
         }
         return this.safeBalance (result);
     }
@@ -869,10 +911,12 @@ export default class p2b extends Exchange {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (type === 'market') {
             throw new BadRequest (this.id + ' createOrder () can only accept orders with type "limit"');
         }
@@ -906,7 +950,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result, market);
     }
 
@@ -918,13 +962,15 @@ export default class p2b extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -953,7 +999,7 @@ export default class p2b extends Exchange {
         //        }
         //    }
         //
-        const result = this.safeDict (response, 'result');
+        const result = this.safeDict (response, 'result') as Dict;
         return this.parseOrder (result);
     }
 
@@ -969,13 +1015,15 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.offset] 0-10000, default=0
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders () requires the symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'market': market['id'],
@@ -1026,10 +1074,12 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.offset] 0-10000, default=0
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.safeMarket (symbol);
         const request: Dict = {
             'orderId': id,
@@ -1079,13 +1129,15 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.offset] 0-10000, default=0
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         if (until === undefined) {
@@ -1102,10 +1154,12 @@ export default class p2b extends Exchange {
             throw new BadRequest (this.id + ' fetchMyTrades () the time between since and params["until"] cannot be greater than 24 hours');
         }
         const market = this.market (symbol);
+        const sinceSec = this.parseToInt (since / 1000);
+        const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
             'market': market['id'],
-            'startTime': this.parseToInt (since / 1000),
-            'endTime': this.parseToInt (until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1155,10 +1209,12 @@ export default class p2b extends Exchange {
      *
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {int} [params.offset] 0-10000, default=0
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
         let market: Market = undefined;
@@ -1178,9 +1234,11 @@ export default class p2b extends Exchange {
         if ((until - since) > 86400000) {
             throw new BadRequest (this.id + ' fetchClosedOrders () the time between since and params["until"] cannot be greater than 24 hours');
         }
+        const sinceSec = this.parseToInt (since / 1000);
+        const untilSec = this.parseToInt (until / 1000);
         const request: Dict = {
-            'startTime': this.parseToInt (since / 1000),
-            'endTime': this.parseToInt (until / 1000),
+            'startTime': sinceSec,
+            'endTime': untilSec,
         };
         if (market !== undefined) {
             request['market'] = market['id'];
@@ -1216,7 +1274,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeValue (response, 'result');
-        let orders = [];
+        let orders: Order[] = [];
         const keys = Object.keys (result);
         for (let i = 0; i < keys.length; i++) {
             const marketId = keys[i];
@@ -1296,7 +1354,7 @@ export default class p2b extends Exchange {
         }, market);
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let url = this.urls['api'][api] + '/' + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         if (method === 'GET') {

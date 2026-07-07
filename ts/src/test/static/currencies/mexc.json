@@ -2,36 +2,19 @@
     "BTC": {
         "info": {
             "coin": "BTC",
-            "name": "BTC-BSC",
+            "name": "Bitcoin",
             "networkList": [
                 {
                     "coin": "BTC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "3",
-                    "name": "Bitcoin",
-                    "network": "Bitcoin(BTC)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.000028",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "100",
-                    "withdrawMin": "0.0001",
-                    "sameAddress": false,
-                    "contract": "",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "BTC"
-                },
-                {
-                    "coin": "BTC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "16",
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
                     "name": "BTC-BSC",
                     "network": "BNB Smart Chain(BEP20)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00000623",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.00000025",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "100",
                     "withdrawMin": "0.00002",
                     "sameAddress": false,
@@ -39,67 +22,52 @@
                     "withdrawTips": null,
                     "depositTips": null,
                     "netWork": "BSC"
-                }
-            ]
-        },
-        "id": "BTC",
-        "code": "BTC",
-        "name": "BTC-BSC",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.000028,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "0.00002",
-                "max": "100"
-            }
-        },
-        "networks": {
-            "BTC": {
-                "info": {
+                },
+                {
                     "coin": "BTC",
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "3",
+                    "depositPreConfirms": "1",
                     "name": "Bitcoin",
                     "network": "Bitcoin(BTC)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000028",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "100",
-                    "withdrawMin": "0.0001",
+                    "withdrawFee": "0.00002",
+                    "withdrawIntegerMultiple": "8",
+                    "withdrawMax": "600",
+                    "withdrawMin": "0.00008",
                     "sameAddress": false,
                     "contract": "",
-                    "withdrawTips": null,
+                    "withdrawTips": "",
                     "depositTips": null,
                     "netWork": "BTC"
-                },
-                "id": "BTC",
-                "network": "BTC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.000028,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.0001",
-                        "max": "100"
-                    }
                 }
-            },
+            ]
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 2.5e-7,
+        "fees": {},
+        "networks": {
             "BEP20": {
                 "info": {
                     "coin": "BTC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "16",
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
                     "name": "BTC-BSC",
                     "network": "BNB Smart Chain(BEP20)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00000623",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.00000025",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "100",
                     "withdrawMin": "0.00002",
                     "sameAddress": false,
@@ -110,250 +78,105 @@
                 },
                 "id": "BSC",
                 "network": "BEP20",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00000623,
+                "fee": 2.5e-7,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "0.00002",
                         "max": "100"
                     }
-                }
+                },
+                "contract": "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c"
+            },
+            "BTC": {
+                "info": {
+                    "coin": "BTC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "3",
+                    "depositPreConfirms": "1",
+                    "name": "Bitcoin",
+                    "network": "Bitcoin(BTC)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00002",
+                    "withdrawIntegerMultiple": "8",
+                    "withdrawMax": "600",
+                    "withdrawMin": "0.00008",
+                    "sameAddress": false,
+                    "contract": "",
+                    "withdrawTips": "",
+                    "depositTips": null,
+                    "netWork": "BTC"
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00002,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.00008",
+                        "max": "600"
+                    }
+                },
+                "contract": null
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00002,
+                "max": 600
             }
         }
     },
     "USDT": {
         "info": {
             "coin": "USDT",
-            "name": "USDT",
+            "name": "Tether",
             "networkList": [
                 {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "96",
-                    "name": "Tether",
-                    "network": "Ethereum(ERC20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "3.8",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "26000000",
-                    "withdrawMin": "5",
-                    "sameAddress": false,
-                    "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "ETH"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "20",
-                    "name": "Tether",
-                    "network": "Tron(TRC20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "15000000",
-                    "withdrawMin": "3",
-                    "sameAddress": false,
-                    "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "TRX"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": "Deposit is prohibited (forced deposit may result in asset loss)",
-                    "depositEnable": false,
-                    "minConfirm": "36",
-                    "name": "Tether",
-                    "network": "EOS",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.04",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "10",
-                    "sameAddress": true,
-                    "contract": "tethertether",
-                    "withdrawTips": null,
-                    "depositTips": "It is necessary to correctly fill in the address and [Memo/Tag] identifier on the withdrawal platform, otherwise the USDT deposit will be lost.",
-                    "netWork": "EOS"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "16",
-                    "name": "USDT-BSC",
-                    "network": "BNB Smart Chain(BEP20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0x55d398326f99059ff775485246999027b3197955",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "BSC"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "USDT-SOL",
-                    "network": "Solana(SOL)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.9",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "9007199",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
-                    "depositTips": "SOL network is experiencing a congestion so there might be a delay in your deposit.",
-                    "netWork": "SOL"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "450",
-                    "name": "USDT-MATIC",
-                    "network": "Polygon(MATIC)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.18",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "5",
-                    "sameAddress": false,
-                    "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "MATIC"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "35",
-                    "name": "Tether",
-                    "network": "OKT",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0x382bb369d343125bfb2117af9c149795c6c65c50",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "OKT"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "Tether",
-                    "network": "Arbitrum One(ARB)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "1",
-                    "sameAddress": false,
-                    "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "ARB"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "200",
-                    "name": "Tether",
-                    "network": "Optimism(OP)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.028",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "3",
-                    "sameAddress": false,
-                    "contract": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "OP"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "35",
-                    "name": "Tether",
-                    "network": "Avalanche C Chain(AVAX CCHAIN)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.079",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "5",
-                    "sameAddress": false,
-                    "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "AVAX_CCHAIN"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
+                    "minConfirm": "12",
+                    "depositPreConfirms": null,
                     "name": "USDT",
-                    "network": "NEAR Protocol(NEAR)",
+                    "network": "APTOS(APT)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.25",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "200000",
-                    "withdrawMin": "2",
+                    "withdrawFee": "0.1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "10",
                     "sameAddress": false,
-                    "contract": "usdt.tether-token.near",
+                    "contract": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
                     "withdrawTips": null,
                     "depositTips": null,
-                    "netWork": "NEAR"
+                    "netWork": "APTOS"
                 },
                 {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "10",
-                    "name": "USDT",
-                    "network": "Toncoin(TON)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "10",
-                    "sameAddress": true,
-                    "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
-                    "withdrawTips": null,
-                    "depositTips": "",
-                    "netWork": "TONCOIN"
-                },
-                {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "24",
+                    "minConfirm": "2400",
+                    "depositPreConfirms": "10",
                     "name": "USDT",
                     "network": "CELO",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.45",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.05",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "5000000",
                     "withdrawMin": "2",
                     "sameAddress": false,
@@ -361,291 +184,56 @@
                     "withdrawTips": null,
                     "depositTips": null,
                     "netWork": "CELO"
-                }
-            ]
-        },
-        "id": "USDT",
-        "code": "USDT",
-        "name": "USDT",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 3.8,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "1",
-                "max": "26000000"
-            }
-        },
-        "networks": {
-            "ERC20": {
-                "info": {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "96",
-                    "name": "Tether",
-                    "network": "Ethereum(ERC20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "3.8",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "26000000",
-                    "withdrawMin": "5",
-                    "sameAddress": false,
-                    "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "ETH"
                 },
-                "id": "ETH",
-                "network": "ERC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 3.8,
-                "limits": {
-                    "withdraw": {
-                        "min": "5",
-                        "max": "26000000"
-                    }
-                }
-            },
-            "TRC20": {
-                "info": {
+                {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "20",
+                    "depositPreConfirms": "2",
                     "name": "Tether",
                     "network": "Tron(TRC20)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "15000000",
-                    "withdrawMin": "3",
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "30000000",
+                    "withdrawMin": "2",
                     "sameAddress": false,
                     "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
                     "withdrawTips": null,
                     "depositTips": null,
                     "netWork": "TRX"
                 },
-                "id": "TRX",
-                "network": "TRC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "limits": {
-                    "withdraw": {
-                        "min": "3",
-                        "max": "15000000"
-                    }
-                }
-            },
-            "EOS": {
-                "info": {
-                    "coin": "USDT",
-                    "depositDesc": "Deposit is prohibited (forced deposit may result in asset loss)",
-                    "depositEnable": false,
-                    "minConfirm": "36",
-                    "name": "Tether",
-                    "network": "EOS",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.04",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "10",
-                    "sameAddress": true,
-                    "contract": "tethertether",
-                    "withdrawTips": null,
-                    "depositTips": "It is necessary to correctly fill in the address and [Memo/Tag] identifier on the withdrawal platform, otherwise the USDT deposit will be lost.",
-                    "netWork": "EOS"
-                },
-                "id": "EOS",
-                "network": "EOS",
-                "active": false,
-                "deposit": false,
-                "withdraw": false,
-                "fee": 0.04,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "5000000"
-                    }
-                }
-            },
-            "BEP20": {
-                "info": {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "16",
-                    "name": "USDT-BSC",
-                    "network": "BNB Smart Chain(BEP20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0x55d398326f99059ff775485246999027b3197955",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "BSC"
-                },
-                "id": "BSC",
-                "network": "BEP20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "2000000"
-                    }
-                }
-            },
-            "SOL": {
-                "info": {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "USDT-SOL",
-                    "network": "Solana(SOL)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.9",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "9007199",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
-                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
-                    "depositTips": "SOL network is experiencing a congestion so there might be a delay in your deposit.",
-                    "netWork": "SOL"
-                },
-                "id": "SOL",
-                "network": "SOL",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.9,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "9007199"
-                    }
-                }
-            },
-            "MATIC": {
-                "info": {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "450",
-                    "name": "USDT-MATIC",
-                    "network": "Polygon(MATIC)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.18",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "5",
-                    "sameAddress": false,
-                    "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "MATIC"
-                },
-                "id": "MATIC",
-                "network": "MATIC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.18,
-                "limits": {
-                    "withdraw": {
-                        "min": "5",
-                        "max": "5000000"
-                    }
-                }
-            },
-            "OKC": {
-                "info": {
+                {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "35",
+                    "depositPreConfirms": null,
                     "name": "Tether",
-                    "network": "OKT",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0x382bb369d343125bfb2117af9c149795c6c65c50",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "OKT"
-                },
-                "id": "OKT",
-                "network": "OKC",
-                "active": false,
-                "deposit": true,
-                "withdraw": false,
-                "fee": 0,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "1000000"
-                    }
-                }
-            },
-            "ARB": {
-                "info": {
-                    "coin": "USDT",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "Tether",
-                    "network": "Arbitrum One(ARB)",
+                    "network": "Avalanche C Chain(AVAX CCHAIN)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.001",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "2000000",
-                    "withdrawMin": "1",
+                    "withdrawMin": "4",
                     "sameAddress": false,
-                    "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                    "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
                     "withdrawTips": null,
                     "depositTips": null,
-                    "netWork": "ARB"
+                    "netWork": "AVAX_CCHAIN"
                 },
-                "id": "ARB",
-                "network": "ARB",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.15,
-                "limits": {
-                    "withdraw": {
-                        "min": "1",
-                        "max": "2000000"
-                    }
-                }
-            },
-            "OPTIMISM": {
-                "info": {
+                {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "200",
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
                     "name": "Tether",
                     "network": "Optimism(OP)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.028",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.012",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "2000000",
                     "withdrawMin": "3",
                     "sameAddress": false,
@@ -654,63 +242,170 @@
                     "depositTips": null,
                     "netWork": "OP"
                 },
-                "id": "OP",
-                "network": "OPTIMISM",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.028,
-                "limits": {
-                    "withdraw": {
-                        "min": "3",
-                        "max": "2000000"
-                    }
-                }
-            },
-            "AVAXC": {
-                "info": {
+                {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "35",
-                    "name": "Tether",
-                    "network": "Avalanche C Chain(AVAX CCHAIN)",
+                    "minConfirm": "40",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "Polkadot AssetHub",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.079",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "5",
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
                     "sameAddress": false,
-                    "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                    "contract": "1984",
                     "withdrawTips": null,
                     "depositTips": null,
-                    "netWork": "AVAX_CCHAIN"
+                    "netWork": "DOTASSETHUB"
                 },
-                "id": "AVAX_CCHAIN",
-                "network": "AVAXC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.079,
-                "limits": {
-                    "withdraw": {
-                        "min": "5",
-                        "max": "2000000"
-                    }
-                }
-            },
-            "NEAR": {
-                "info": {
+                {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "100",
+                    "depositPreConfirms": "31",
+                    "name": "USDT-SOL",
+                    "network": "Solana(SOL)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.23",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "9000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
+                    "depositTips": "SOL network is experiencing a congestion so there might be a delay in your deposit.",
+                    "netWork": "SOL"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "120",
+                    "depositPreConfirms": "30",
+                    "name": "USDT",
+                    "network": "Kaia (KAIA)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "KLAY"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "450",
+                    "depositPreConfirms": "250",
+                    "name": "USDT-MATIC",
+                    "network": "Polygon(MATIC)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0095",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "5",
+                    "sameAddress": false,
+                    "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "MATIC"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "10",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "Toncoin(TON)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.019",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "8",
+                    "sameAddress": true,
+                    "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "withdrawTips": null,
+                    "depositTips": "The TONCOIN network deposit address has been updated. Deposits sent to the previous address will be credited normally. For security reasons, please use the currently displayed address for all future deposits.",
+                    "netWork": "TONCOIN"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
+                    "name": "USDT-BSC",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "20000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0x55d398326f99059ff775485246999027b3197955",
+                    "withdrawTips": null,
+                    "depositTips": "",
+                    "netWork": "BSC"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "20",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "PLASMA",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "PLASMA"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "120",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "Conflux eSpace",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0xaf37e8b6c9ed7f6318979f56fc287d76c30847ff",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "CFXEVM"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": null,
                     "name": "USDT",
                     "network": "NEAR Protocol(NEAR)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.25",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "200000",
+                    "withdrawFee": "0.2",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
                     "withdrawMin": "2",
                     "sameAddress": false,
                     "contract": "usdt.tether-token.near",
@@ -718,62 +413,105 @@
                     "depositTips": null,
                     "netWork": "NEAR"
                 },
-                "id": "NEAR",
-                "network": "NEAR",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.25,
-                "limits": {
-                    "withdraw": {
-                        "min": "2",
-                        "max": "200000"
-                    }
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "96",
+                    "depositPreConfirms": "16",
+                    "name": "Tether",
+                    "network": "Ethereum(ERC20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.4",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "30000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ETH"
+                },
+                {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "3360",
+                    "depositPreConfirms": "120",
+                    "name": "Tether",
+                    "network": "Arbitrum One(ARB)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.05",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ARB"
                 }
-            },
-            "TON": {
+            ]
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": null,
+        "type": "crypto",
+        "name": "Tether",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "APT": {
                 "info": {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "10",
+                    "minConfirm": "12",
+                    "depositPreConfirms": null,
                     "name": "USDT",
-                    "network": "Toncoin(TON)",
+                    "network": "APTOS(APT)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
+                    "withdrawFee": "0.1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
                     "withdrawMin": "10",
-                    "sameAddress": true,
-                    "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "sameAddress": false,
+                    "contract": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b",
                     "withdrawTips": null,
-                    "depositTips": "",
-                    "netWork": "TONCOIN"
+                    "depositTips": null,
+                    "netWork": "APTOS"
                 },
-                "id": "TONCOIN",
-                "network": "TON",
-                "active": true,
+                "id": "APTOS",
+                "network": "APT",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0,
+                "fee": 0.1,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "10",
-                        "max": "5000000"
+                        "max": "2000000"
                     }
-                }
+                },
+                "contract": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
             },
             "CELO": {
                 "info": {
                     "coin": "USDT",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "24",
+                    "minConfirm": "2400",
+                    "depositPreConfirms": "10",
                     "name": "USDT",
                     "network": "CELO",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.45",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.05",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "5000000",
                     "withdrawMin": "2",
                     "sameAddress": false,
@@ -784,16 +522,522 @@
                 },
                 "id": "CELO",
                 "network": "CELO",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.45,
+                "fee": 0.05,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "2",
                         "max": "5000000"
                     }
-                }
+                },
+                "contract": "0x48065fbBE25f71C9282ddf5e1cD6D6A887483D5e"
+            },
+            "TRC20": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "20",
+                    "depositPreConfirms": "2",
+                    "name": "Tether",
+                    "network": "Tron(TRC20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "30000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "TRX"
+                },
+                "id": "TRX",
+                "network": "TRC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "30000000"
+                    }
+                },
+                "contract": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+            },
+            "AVAXC": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "35",
+                    "depositPreConfirms": null,
+                    "name": "Tether",
+                    "network": "Avalanche C Chain(AVAX CCHAIN)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.001",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "4",
+                    "sameAddress": false,
+                    "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "AVAX_CCHAIN"
+                },
+                "id": "AVAX_CCHAIN",
+                "network": "AVAXC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.001,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "4",
+                        "max": "2000000"
+                    }
+                },
+                "contract": "0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7"
+            },
+            "OPTIMISM": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
+                    "name": "Tether",
+                    "network": "Optimism(OP)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.012",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "3",
+                    "sameAddress": false,
+                    "contract": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "OP"
+                },
+                "id": "OP",
+                "network": "OPTIMISM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.012,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "3",
+                        "max": "2000000"
+                    }
+                },
+                "contract": "0x94b008aA00579c1307B0EF2c499aD98a8ce58e58"
+            },
+            "DOT": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "40",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "Polkadot AssetHub",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "1984",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "DOTASSETHUB"
+                },
+                "id": "DOTASSETHUB",
+                "network": "DOT",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "200000"
+                    }
+                },
+                "contract": "1984"
+            },
+            "SOL": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": "31",
+                    "name": "USDT-SOL",
+                    "network": "Solana(SOL)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.23",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "9000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
+                    "depositTips": "SOL network is experiencing a congestion so there might be a delay in your deposit.",
+                    "netWork": "SOL"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.23,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "10",
+                        "max": "9000000"
+                    }
+                },
+                "contract": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+            },
+            "KLAY": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "120",
+                    "depositPreConfirms": "30",
+                    "name": "USDT",
+                    "network": "Kaia (KAIA)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xd077a400968890eacc75cdc901f0356c943e4fdb",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "KLAY"
+                },
+                "id": "KLAY",
+                "network": "KLAY",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "1000000"
+                    }
+                },
+                "contract": "0xd077a400968890eacc75cdc901f0356c943e4fdb"
+            },
+            "MATIC": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "450",
+                    "depositPreConfirms": "250",
+                    "name": "USDT-MATIC",
+                    "network": "Polygon(MATIC)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0095",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "5",
+                    "sameAddress": false,
+                    "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "MATIC"
+                },
+                "id": "MATIC",
+                "network": "MATIC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0095,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "5",
+                        "max": "5000000"
+                    }
+                },
+                "contract": "0xc2132d05d31c914a87c6611c10748aeb04b58e8f"
+            },
+            "TON": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "10",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "Toncoin(TON)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.019",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "8",
+                    "sameAddress": true,
+                    "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "withdrawTips": null,
+                    "depositTips": "The TONCOIN network deposit address has been updated. Deposits sent to the previous address will be credited normally. For security reasons, please use the currently displayed address for all future deposits.",
+                    "netWork": "TONCOIN"
+                },
+                "id": "TONCOIN",
+                "network": "TON",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.019,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "8",
+                        "max": "5000000"
+                    }
+                },
+                "contract": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+            },
+            "BEP20": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
+                    "name": "USDT-BSC",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "20000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0x55d398326f99059ff775485246999027b3197955",
+                    "withdrawTips": null,
+                    "depositTips": "",
+                    "netWork": "BSC"
+                },
+                "id": "BSC",
+                "network": "BEP20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "20000000"
+                    }
+                },
+                "contract": "0x55d398326f99059ff775485246999027b3197955"
+            },
+            "PLASMA": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "20",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "PLASMA",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "PLASMA"
+                },
+                "id": "PLASMA",
+                "network": "PLASMA",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "10",
+                        "max": "1000000"
+                    }
+                },
+                "contract": "0xB8CE59FC3717ada4C02eaDF9682A9e934F625ebb"
+            },
+            "CFXEVM": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "120",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "Conflux eSpace",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0xaf37e8b6c9ed7f6318979f56fc287d76c30847ff",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "CFXEVM"
+                },
+                "id": "CFXEVM",
+                "network": "CFXEVM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "1",
+                        "max": "200000"
+                    }
+                },
+                "contract": "0xaf37e8b6c9ed7f6318979f56fc287d76c30847ff"
+            },
+            "NEAR": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": null,
+                    "name": "USDT",
+                    "network": "NEAR Protocol(NEAR)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "usdt.tether-token.near",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "NEAR"
+                },
+                "id": "NEAR",
+                "network": "NEAR",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "2000000"
+                    }
+                },
+                "contract": "usdt.tether-token.near"
+            },
+            "ERC20": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "96",
+                    "depositPreConfirms": "16",
+                    "name": "Tether",
+                    "network": "Ethereum(ERC20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.4",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "30000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ETH"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.4,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "10",
+                        "max": "30000000"
+                    }
+                },
+                "contract": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+            },
+            "ARBITRUM": {
+                "info": {
+                    "coin": "USDT",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "3360",
+                    "depositPreConfirms": "120",
+                    "name": "Tether",
+                    "network": "Arbitrum One(ARB)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.05",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ARB"
+                },
+                "id": "ARB",
+                "network": "ARBITRUM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.05,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "1",
+                        "max": "5000000"
+                    }
+                },
+                "contract": "0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9"
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 30000000
             }
         }
     },
@@ -806,14 +1050,15 @@
                     "coin": "LTC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "5",
+                    "minConfirm": "18",
+                    "depositPreConfirms": "4",
                     "name": "Litecoin",
                     "network": "Litecoin(LTC)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00009",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "10000",
-                    "withdrawMin": "0.01",
+                    "withdrawFee": "0.0001",
+                    "withdrawIntegerMultiple": "8",
+                    "withdrawMax": "5000",
+                    "withdrawMin": "0.015",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
@@ -823,33 +1068,31 @@
             ]
         },
         "id": "LTC",
+        "numericId": null,
         "code": "LTC",
+        "precision": null,
+        "type": "crypto",
         "name": "Litecoin",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.00009,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "0.01",
-                "max": "10000"
-            }
-        },
+        "fee": 0.0001,
+        "fees": {},
         "networks": {
             "LTC": {
                 "info": {
                     "coin": "LTC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "5",
+                    "minConfirm": "18",
+                    "depositPreConfirms": "4",
                     "name": "Litecoin",
                     "network": "Litecoin(LTC)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00009",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "10000",
-                    "withdrawMin": "0.01",
+                    "withdrawFee": "0.0001",
+                    "withdrawIntegerMultiple": "8",
+                    "withdrawMax": "5000",
+                    "withdrawMin": "0.015",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
@@ -858,108 +1101,91 @@
                 },
                 "id": "LTC",
                 "network": "LTC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00009,
+                "fee": 0.0001,
+                "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": "0.01",
-                        "max": "10000"
+                        "min": "0.015",
+                        "max": "5000"
                     }
-                }
+                },
+                "contract": null
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.015,
+                "max": 5000
             }
         }
     },
     "ETH": {
         "info": {
             "coin": "ETH",
-            "name": "ETH-BASE",
+            "name": "ETH-BSC",
             "networkList": [
                 {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "96",
-                    "name": "Ethereum",
-                    "network": "Ethereum(ERC20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.0015",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1500",
-                    "withdrawMin": "0.003",
-                    "sameAddress": false,
-                    "contract": "",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "ETH"
-                },
-                {
-                    "coin": "ETH",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "16",
-                    "name": "ETH-BSC",
-                    "network": "BNB Smart Chain(BEP20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.00013",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "10000",
-                    "withdrawMin": "0.0003",
-                    "sameAddress": false,
-                    "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "BSC"
-                },
-                {
-                    "coin": "ETH",
-                    "depositDesc": "Deposit suspended due to wallet maintenance",
-                    "depositEnable": false,
-                    "minConfirm": "100",
+                    "minConfirm": "720",
+                    "depositPreConfirms": null,
                     "name": "ETH",
-                    "network": "Solana(SOL)",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.0004",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1200",
-                    "withdrawMin": "0.001",
-                    "sameAddress": false,
-                    "contract": "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk",
-                    "withdrawTips": null,
-                    "depositTips": "Due to block scanning delay on SOL, deposits may be slightly delayed.",
-                    "netWork": "SOL"
-                },
-                {
-                    "coin": "ETH",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "Ethereum",
-                    "network": "Arbitrum One(ARB)",
+                    "network": "MORPH",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000028",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1000",
-                    "withdrawMin": "0.00008",
+                    "withdrawFee": "0.00008",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "76.923076923076923076923076923076",
+                    "withdrawMin": "0.0001",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
                     "depositTips": null,
-                    "netWork": "ARB"
+                    "netWork": "MORPH"
                 },
                 {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "200",
+                    "minConfirm": "9000",
+                    "depositPreConfirms": "1500",
+                    "name": "ETH",
+                    "network": "Starknet(STARK)",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0.00001",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "0.0002",
+                    "sameAddress": false,
+                    "contract": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "STARK"
+                },
+                {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
                     "name": "ETH",
                     "network": "Optimism(OP)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000018",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.0000032",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "1000",
-                    "withdrawMin": "0.00008",
+                    "withdrawMin": "0.0003",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
@@ -970,49 +1196,14 @@
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "4",
-                    "name": "ETH",
-                    "network": "zkSync Lite",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.0003",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "200",
-                    "withdrawMin": "0.0005",
-                    "sameAddress": false,
-                    "contract": "",
-                    "withdrawTips": "The token is currently zkSync Lite 1.0, Please confirm before proceeding.",
-                    "depositTips": "The token is currently zkSync Lite 1.0, Please confirm before proceeding.",
-                    "netWork": "ZKSYNC"
-                },
-                {
-                    "coin": "ETH",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "40",
-                    "name": "ETH",
-                    "network": "Starknet(STARK)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.00009",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1000000",
-                    "withdrawMin": "0.0002",
-                    "sameAddress": false,
-                    "contract": "",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "STARK"
-                },
-                {
-                    "coin": "ETH",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "10",
+                    "minConfirm": "14400",
+                    "depositPreConfirms": null,
                     "name": "ETH-LINEA",
                     "network": "Linea",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00017",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "300",
+                    "withdrawFee": "0.000021",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "1000",
                     "withdrawMin": "0.0008",
                     "sameAddress": false,
                     "contract": "",
@@ -1024,178 +1215,195 @@
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "60",
-                    "name": "ETH-BASE",
-                    "network": "BASE",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.00005",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "500",
-                    "withdrawMin": "0.003",
+                    "minConfirm": "900",
+                    "depositPreConfirms": null,
+                    "name": "ETH",
+                    "network": "UNICHAIN",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00002",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "80",
+                    "withdrawMin": "0.00005",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
                     "depositTips": null,
-                    "netWork": "BASE"
-                }
-            ]
-        },
-        "id": "ETH",
-        "code": "ETH",
-        "name": "ETH-BASE",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 0.0015,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "0.00008",
-                "max": "1000000"
-            }
-        },
-        "networks": {
-            "ERC20": {
-                "info": {
+                    "netWork": "UNICHAIN"
+                },
+                {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "96",
+                    "depositPreConfirms": "16",
                     "name": "Ethereum",
                     "network": "Ethereum(ERC20)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.0015",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.00008",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "1500",
-                    "withdrawMin": "0.003",
+                    "withdrawMin": "0.002",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
                     "depositTips": null,
                     "netWork": "ETH"
                 },
-                "id": "ETH",
-                "network": "ERC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.0015,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.003",
-                        "max": "1500"
-                    }
-                }
-            },
-            "BEP20": {
-                "info": {
+                {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "16",
-                    "name": "ETH-BSC",
-                    "network": "BNB Smart Chain(BEP20)",
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
+                    "name": "ETH-BASE",
+                    "network": "BASE",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00013",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "10000",
-                    "withdrawMin": "0.0003",
+                    "withdrawFee": "0.0000012",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "500",
+                    "withdrawMin": "0.003",
                     "sameAddress": false,
-                    "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "contract": "",
                     "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "BSC"
+                    "depositTips": "ETH-BASE does not support the deposit method of contract transfer, please confirm before proceeding.",
+                    "netWork": "BASE"
                 },
-                "id": "BSC",
-                "network": "BEP20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.00013,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.0003",
-                        "max": "10000"
-                    }
-                }
-            },
-            "SOL": {
-                "info": {
-                    "coin": "ETH",
-                    "depositDesc": "Deposit suspended due to wallet maintenance",
-                    "depositEnable": false,
-                    "minConfirm": "100",
-                    "name": "ETH",
-                    "network": "Solana(SOL)",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.0004",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1200",
-                    "withdrawMin": "0.001",
-                    "sameAddress": false,
-                    "contract": "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk",
-                    "withdrawTips": null,
-                    "depositTips": "Due to block scanning delay on SOL, deposits may be slightly delayed.",
-                    "netWork": "SOL"
-                },
-                "id": "SOL",
-                "network": "SOL",
-                "active": false,
-                "deposit": false,
-                "withdraw": false,
-                "fee": 0.0004,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.001",
-                        "max": "1200"
-                    }
-                }
-            },
-            "ARB": {
-                "info": {
+                {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "100",
+                    "minConfirm": "3360",
+                    "depositPreConfirms": "120",
                     "name": "Ethereum",
                     "network": "Arbitrum One(ARB)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000028",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.0000012",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "1000",
-                    "withdrawMin": "0.00008",
+                    "withdrawMin": "0.001",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
                     "depositTips": null,
                     "netWork": "ARB"
                 },
-                "id": "ARB",
-                "network": "ARB",
-                "active": true,
+                {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
+                    "name": "ETH-BSC",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.000009",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "10000",
+                    "withdrawMin": "0.0005",
+                    "sameAddress": false,
+                    "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "BSC"
+                }
+            ]
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": null,
+        "type": "crypto",
+        "name": "ETH-BSC",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0000012,
+        "fees": {},
+        "networks": {
+            "MORPH": {
+                "info": {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "720",
+                    "depositPreConfirms": null,
+                    "name": "ETH",
+                    "network": "MORPH",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00008",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "76.923076923076923076923076923076",
+                    "withdrawMin": "0.0001",
+                    "sameAddress": false,
+                    "contract": "",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "MORPH"
+                },
+                "id": "MORPH",
+                "network": "MORPH",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000028,
+                "fee": 0.00008,
+                "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": "0.00008",
-                        "max": "1000"
+                        "min": "0.0001",
+                        "max": "76.923076923076923076923076923076"
                     }
-                }
+                },
+                "contract": null
+            },
+            "STARK": {
+                "info": {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "9000",
+                    "depositPreConfirms": "1500",
+                    "name": "ETH",
+                    "network": "Starknet(STARK)",
+                    "withdrawEnable": false,
+                    "withdrawFee": "0.00001",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "0.0002",
+                    "sameAddress": false,
+                    "contract": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "STARK"
+                },
+                "id": "STARK",
+                "network": "STARK",
+                "active": null,
+                "deposit": true,
+                "withdraw": false,
+                "fee": 0.00001,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.0002",
+                        "max": "1000000"
+                    }
+                },
+                "contract": "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7"
             },
             "OPTIMISM": {
                 "info": {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "200",
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
                     "name": "ETH",
                     "network": "Optimism(OP)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.000018",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.0000032",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "1000",
-                    "withdrawMin": "0.00008",
+                    "withdrawMin": "0.0003",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
@@ -1204,93 +1412,32 @@
                 },
                 "id": "OP",
                 "network": "OPTIMISM",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.000018,
+                "fee": 0.0000032,
+                "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": "0.00008",
+                        "min": "0.0003",
                         "max": "1000"
                     }
-                }
-            },
-            "ZKSYNC": {
-                "info": {
-                    "coin": "ETH",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "4",
-                    "name": "ETH",
-                    "network": "zkSync Lite",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.0003",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "200",
-                    "withdrawMin": "0.0005",
-                    "sameAddress": false,
-                    "contract": "",
-                    "withdrawTips": "The token is currently zkSync Lite 1.0, Please confirm before proceeding.",
-                    "depositTips": "The token is currently zkSync Lite 1.0, Please confirm before proceeding.",
-                    "netWork": "ZKSYNC"
                 },
-                "id": "ZKSYNC",
-                "network": "ZKSYNC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.0003,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.0005",
-                        "max": "200"
-                    }
-                }
-            },
-            "STARK": {
-                "info": {
-                    "coin": "ETH",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "40",
-                    "name": "ETH",
-                    "network": "Starknet(STARK)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.00009",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1000000",
-                    "withdrawMin": "0.0002",
-                    "sameAddress": false,
-                    "contract": "",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "STARK"
-                },
-                "id": "STARK",
-                "network": "STARK",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.00009,
-                "limits": {
-                    "withdraw": {
-                        "min": "0.0002",
-                        "max": "1000000"
-                    }
-                }
+                "contract": null
             },
             "LINEA": {
                 "info": {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "10",
+                    "minConfirm": "14400",
+                    "depositPreConfirms": null,
                     "name": "ETH-LINEA",
                     "network": "Linea",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.00017",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "300",
+                    "withdrawFee": "0.000021",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "1000",
                     "withdrawMin": "0.0008",
                     "sameAddress": false,
                     "contract": "",
@@ -1300,48 +1447,207 @@
                 },
                 "id": "LINEA",
                 "network": "LINEA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.00017,
+                "fee": 0.000021,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "0.0008",
-                        "max": "300"
+                        "max": "1000"
                     }
-                }
+                },
+                "contract": null
+            },
+            "UNICHAIN": {
+                "info": {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "900",
+                    "depositPreConfirms": null,
+                    "name": "ETH",
+                    "network": "UNICHAIN",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00002",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "80",
+                    "withdrawMin": "0.00005",
+                    "sameAddress": false,
+                    "contract": "",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "UNICHAIN"
+                },
+                "id": "UNICHAIN",
+                "network": "UNICHAIN",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00002,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.00005",
+                        "max": "80"
+                    }
+                },
+                "contract": null
+            },
+            "ERC20": {
+                "info": {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "96",
+                    "depositPreConfirms": "16",
+                    "name": "Ethereum",
+                    "network": "Ethereum(ERC20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.00008",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "1500",
+                    "withdrawMin": "0.002",
+                    "sameAddress": false,
+                    "contract": "",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ETH"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.00008,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.002",
+                        "max": "1500"
+                    }
+                },
+                "contract": null
             },
             "BASE": {
                 "info": {
                     "coin": "ETH",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "60",
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
                     "name": "ETH-BASE",
                     "network": "BASE",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.00005",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0000012",
+                    "withdrawIntegerMultiple": "18",
                     "withdrawMax": "500",
                     "withdrawMin": "0.003",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
-                    "depositTips": null,
+                    "depositTips": "ETH-BASE does not support the deposit method of contract transfer, please confirm before proceeding.",
                     "netWork": "BASE"
                 },
                 "id": "BASE",
                 "network": "BASE",
-                "active": false,
+                "active": null,
                 "deposit": true,
-                "withdraw": false,
-                "fee": 0.00005,
+                "withdraw": true,
+                "fee": 0.0000012,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "0.003",
                         "max": "500"
                     }
-                }
+                },
+                "contract": null
+            },
+            "ARBITRUM": {
+                "info": {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "3360",
+                    "depositPreConfirms": "120",
+                    "name": "Ethereum",
+                    "network": "Arbitrum One(ARB)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0000012",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "1000",
+                    "withdrawMin": "0.001",
+                    "sameAddress": false,
+                    "contract": "",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ARB"
+                },
+                "id": "ARB",
+                "network": "ARBITRUM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0000012,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.001",
+                        "max": "1000"
+                    }
+                },
+                "contract": null
+            },
+            "BEP20": {
+                "info": {
+                    "coin": "ETH",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
+                    "name": "ETH-BSC",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.000009",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "10000",
+                    "withdrawMin": "0.0005",
+                    "sameAddress": false,
+                    "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "BSC"
+                },
+                "id": "BSC",
+                "network": "BEP20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.000009,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "0.0005",
+                        "max": "10000"
+                    }
+                },
+                "contract": "0x2170ed0880ac9a755fd29b2688956bd959f933f8"
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00005,
+                "max": 1000000
             }
         }
     },
@@ -1355,13 +1661,14 @@
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "35",
+                    "depositPreConfirms": null,
                     "name": "Cardano",
                     "network": "Cardano(ADA)",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "100000",
-                    "withdrawMin": "8",
+                    "withdrawFee": "2",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "7",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
@@ -1371,19 +1678,16 @@
             ]
         },
         "id": "ADA",
+        "numericId": null,
         "code": "ADA",
+        "precision": null,
+        "type": "crypto",
         "name": "Cardano",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
-        "fee": 1,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "8",
-                "max": "100000"
-            }
-        },
+        "fee": 2,
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
@@ -1391,13 +1695,14 @@
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "35",
+                    "depositPreConfirms": null,
                     "name": "Cardano",
                     "network": "Cardano(ADA)",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "100000",
-                    "withdrawMin": "8",
+                    "withdrawFee": "2",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "7",
                     "sameAddress": false,
                     "contract": "",
                     "withdrawTips": null,
@@ -1406,16 +1711,32 @@
                 },
                 "id": "ADA",
                 "network": "ADA",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 1,
+                "fee": 2,
+                "precision": null,
                 "limits": {
                     "withdraw": {
-                        "min": "8",
-                        "max": "100000"
+                        "min": "7",
+                        "max": "200000"
                     }
-                }
+                },
+                "contract": null
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 7,
+                "max": 200000
             }
         }
     },
@@ -1429,35 +1750,33 @@
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "30",
+                    "depositPreConfirms": "10",
                     "name": "XRP",
                     "network": "Ripple(XRP)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.18",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.02",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "1000000",
                     "withdrawMin": "11",
                     "sameAddress": true,
                     "contract": "",
                     "withdrawTips": null,
-                    "depositTips": "It is necessary to correctly fill in the address and [Memo/Tag] identifier on the withdrawal platform, otherwise the XRP deposit will be lost.",
+                    "depositTips": "",
                     "netWork": "XRP"
                 }
             ]
         },
         "id": "XRP",
+        "numericId": null,
         "code": "XRP",
+        "precision": null,
+        "type": "crypto",
         "name": "XRP",
-        "active": true,
+        "active": null,
         "deposit": true,
         "withdraw": true,
-        "fee": 0.18,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "11",
-                "max": "1000000"
-            }
-        },
+        "fee": 0.02,
+        "fees": {},
         "networks": {
             "XRP": {
                 "info": {
@@ -1465,31 +1784,48 @@
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "30",
+                    "depositPreConfirms": "10",
                     "name": "XRP",
                     "network": "Ripple(XRP)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.18",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.02",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "1000000",
                     "withdrawMin": "11",
                     "sameAddress": true,
                     "contract": "",
                     "withdrawTips": null,
-                    "depositTips": "It is necessary to correctly fill in the address and [Memo/Tag] identifier on the withdrawal platform, otherwise the XRP deposit will be lost.",
+                    "depositTips": "",
                     "netWork": "XRP"
                 },
                 "id": "XRP",
                 "network": "XRP",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.18,
+                "fee": 0.02,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "11",
                         "max": "1000000"
                     }
-                }
+                },
+                "contract": null
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 11,
+                "max": 1000000
             }
         }
     },
@@ -1502,14 +1838,34 @@
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "XDC",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "500000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "xdcfA2958CB79b0491CC627c1557F441eF849Ca8eb1",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "XDC"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
                     "minConfirm": "96",
+                    "depositPreConfirms": "16",
                     "name": "USDCoin",
                     "network": "Ethereum(ERC20)",
                     "withdrawEnable": true,
-                    "withdrawFee": "2.1",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "10000000",
-                    "withdrawMin": "10",
+                    "withdrawFee": "0.38",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "8000000",
+                    "withdrawMin": "5",
                     "sameAddress": false,
                     "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
                     "withdrawTips": null,
@@ -1520,174 +1876,32 @@
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "USDC-SOL",
-                    "network": "Solana(SOL)",
+                    "minConfirm": "60",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "SONIC",
                     "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "20",
-                    "sameAddress": false,
-                    "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
-                    "depositTips": "The delay in the SOL chain scanning may lead to a delay in your deposit.",
-                    "netWork": "SOL"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "450",
-                    "name": "USDCoin",
-                    "network": "Polygon(MATIC-Bridged)",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "1000000",
-                    "withdrawMin": "2",
-                    "sameAddress": false,
-                    "contract": "0x2791bca1f2de4661ed88a30c99a7a9449aa84174",
-                    "withdrawTips": "The last digits of the token's contract address are 4174, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 4174, please make sure they're correct before taking action.",
-                    "netWork": "MATIC"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "10",
-                    "name": "USDCoin",
-                    "network": "Algorand(ALGO)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "2",
-                    "sameAddress": false,
-                    "contract": "31566704",
-                    "withdrawTips": "As USDC is on ALGO chain, it’s mandatory for users to activate USDC(ASSET : 31566704) on the certain address. .Otherwise the withdrawal will not be successful.",
-                    "depositTips": null,
-                    "netWork": "ALGO"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "16",
-                    "name": "USD Coin",
-                    "network": "BNB Smart Chain(BEP20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "BSC"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": "Deposit is prohibited (forced deposit may result in asset loss)",
-                    "depositEnable": false,
-                    "minConfirm": "100",
-                    "name": "USDC.e",
-                    "network": "Arbitrum One(ARB-Bridged)",
-                    "withdrawEnable": false,
-                    "withdrawFee": "0.11",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "3000000",
                     "withdrawMin": "5",
                     "sameAddress": false,
-                    "contract": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
-                    "withdrawTips": "The last digits of the token's contract address are 5CC8, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 5CC8, please make sure they're correct before taking action.",
-                    "netWork": "ARB"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "200",
-                    "name": "USDC",
-                    "network": "Optimism(OP-Bridged)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.028",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "500000",
-                    "withdrawMin": "1",
-                    "sameAddress": false,
-                    "contract": "0x7F5c764cBc14f9669B88837ca1490cCa17c31607",
-                    "withdrawTips": "The last digits of the token's contract address are 31607, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 31607, please make sure they're correct before taking action.",
-                    "netWork": "OP"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "USDC",
-                    "network": "Arbitrum One(ARB)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "2",
-                    "sameAddress": false,
-                    "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-                    "withdrawTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
-                    "netWork": "ARB"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "450",
-                    "name": "USDCoin",
-                    "network": "Polygon(MATIC)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "1000000",
-                    "withdrawMin": "2",
-                    "sameAddress": false,
-                    "contract": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
-                    "withdrawTips": "The last digits of the token's contract address are 3359, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 3359, please make sure they're correct before taking action.",
-                    "netWork": "MATIC"
-                },
-                {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "200",
-                    "name": "USDC",
-                    "network": "Optimism(OP)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.032",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "2",
-                    "sameAddress": false,
-                    "contract": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
-                    "withdrawTips": "The last digits of the token's contract address are 7Ff85, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 7Ff85, please make sure they're correct before taking action.",
-                    "netWork": "OP"
+                    "contract": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "SONIC"
                 },
                 {
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "35",
+                    "depositPreConfirms": null,
                     "name": "Tether",
                     "network": "Avalanche C Chain(AVAX CCHAIN)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.08",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.00042",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "1000000",
                     "withdrawMin": "5",
                     "sameAddress": false,
@@ -1700,112 +1914,13 @@
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "USDC",
-                    "network": "NEAR Protocol(NEAR)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0.25",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "400000",
-                    "withdrawMin": "2",
-                    "sameAddress": false,
-                    "contract": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "NEAR"
-                }
-            ]
-        },
-        "id": "USDC",
-        "code": "USDC",
-        "name": "USDC",
-        "active": true,
-        "deposit": true,
-        "withdraw": true,
-        "fee": 2.1,
-        "limits": {
-            "amount": {},
-            "withdraw": {
-                "min": "1",
-                "max": "10000000"
-            }
-        },
-        "networks": {
-            "ERC20": {
-                "info": {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "96",
-                    "name": "USDCoin",
-                    "network": "Ethereum(ERC20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "2.1",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "10000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                    "withdrawTips": null,
-                    "depositTips": null,
-                    "netWork": "ETH"
-                },
-                "id": "ETH",
-                "network": "ERC20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 2.1,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "10000000"
-                    }
-                }
-            },
-            "SOL": {
-                "info": {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "100",
-                    "name": "USDC-SOL",
-                    "network": "Solana(SOL)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "1",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "20",
-                    "sameAddress": false,
-                    "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
-                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
-                    "depositTips": "The delay in the SOL chain scanning may lead to a delay in your deposit.",
-                    "netWork": "SOL"
-                },
-                "id": "SOL",
-                "network": "SOL",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 1,
-                "limits": {
-                    "withdraw": {
-                        "min": "20",
-                        "max": "5000000"
-                    }
-                }
-            },
-            "MATIC": {
-                "info": {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
                     "minConfirm": "450",
+                    "depositPreConfirms": "250",
                     "name": "USDCoin",
                     "network": "Polygon(MATIC)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.011",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "1000000",
                     "withdrawMin": "2",
                     "sameAddress": false,
@@ -1814,126 +1929,55 @@
                     "depositTips": "The last digits of the token's contract address are 3359, please make sure they're correct before taking action.",
                     "netWork": "MATIC"
                 },
-                "id": "MATIC",
-                "network": "MATIC",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.15,
-                "limits": {
-                    "withdraw": {
-                        "min": "2",
-                        "max": "1000000"
-                    }
-                }
-            },
-            "ALGO": {
-                "info": {
+                {
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "10",
-                    "name": "USDCoin",
-                    "network": "Algorand(ALGO)",
+                    "minConfirm": "300",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "SEIEVM",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.8",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
                     "withdrawMin": "2",
                     "sameAddress": false,
-                    "contract": "31566704",
-                    "withdrawTips": "As USDC is on ALGO chain, it’s mandatory for users to activate USDC(ASSET : 31566704) on the certain address. .Otherwise the withdrawal will not be successful.",
-                    "depositTips": null,
-                    "netWork": "ALGO"
-                },
-                "id": "ALGO",
-                "network": "ALGO",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.8,
-                "limits": {
-                    "withdraw": {
-                        "min": "2",
-                        "max": "5000000"
-                    }
-                }
-            },
-            "BEP20": {
-                "info": {
-                    "coin": "USDC",
-                    "depositDesc": null,
-                    "depositEnable": true,
-                    "minConfirm": "16",
-                    "name": "USD Coin",
-                    "network": "BNB Smart Chain(BEP20)",
-                    "withdrawEnable": true,
-                    "withdrawFee": "0",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "5000000",
-                    "withdrawMin": "10",
-                    "sameAddress": false,
-                    "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+                    "contract": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
                     "withdrawTips": null,
                     "depositTips": null,
-                    "netWork": "BSC"
+                    "netWork": "SEIEVM"
                 },
-                "id": "BSC",
-                "network": "BEP20",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0,
-                "limits": {
-                    "withdraw": {
-                        "min": "10",
-                        "max": "5000000"
-                    }
-                }
-            },
-            "ARB": {
-                "info": {
+                {
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "100",
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
                     "name": "USDC",
-                    "network": "Arbitrum One(ARB)",
+                    "network": "BASE",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.15",
-                    "withdrawIntegerMultiple": null,
-                    "withdrawMax": "2000000",
-                    "withdrawMin": "2",
+                    "withdrawFee": "0.1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1500000",
+                    "withdrawMin": "1",
                     "sameAddress": false,
-                    "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
-                    "withdrawTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
-                    "depositTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
-                    "netWork": "ARB"
+                    "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "BASE"
                 },
-                "id": "ARB",
-                "network": "ARB",
-                "active": true,
-                "deposit": true,
-                "withdraw": true,
-                "fee": 0.15,
-                "limits": {
-                    "withdraw": {
-                        "min": "2",
-                        "max": "2000000"
-                    }
-                }
-            },
-            "OPTIMISM": {
-                "info": {
+                {
                     "coin": "USDC",
                     "depositDesc": null,
                     "depositEnable": true,
-                    "minConfirm": "200",
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
                     "name": "USDC",
                     "network": "Optimism(OP)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.032",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.023",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "2000000",
                     "withdrawMin": "2",
                     "sameAddress": false,
@@ -1942,18 +1986,295 @@
                     "depositTips": "The last digits of the token's contract address are 7Ff85, please make sure they're correct before taking action.",
                     "netWork": "OP"
                 },
-                "id": "OP",
-                "network": "OPTIMISM",
-                "active": true,
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "12",
+                    "depositPreConfirms": null,
+                    "name": "usdc",
+                    "network": "APTOS(APT)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1500000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "APTOS"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "40",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "POLKADOTASSETHUB",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "1337",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "DOTASSETHUB"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
+                    "name": "USD Coin",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "BSC"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": "31",
+                    "name": "USDC-SOL",
+                    "network": "Solana(SOL)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.3",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "20",
+                    "sameAddress": false,
+                    "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
+                    "depositTips": "The delay in the SOL chain scanning may lead to a delay in your deposit.",
+                    "netWork": "SOL"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "NEAR Protocol(NEAR)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.05",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "400000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "NEAR"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "30",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "Sui",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "SUI"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "9000",
+                    "depositPreConfirms": "1500",
+                    "name": "USDC",
+                    "network": "Starknet(STARK)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "STARK"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "10",
+                    "depositPreConfirms": null,
+                    "name": "USDCoin",
+                    "network": "Algorand(ALGO)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "31566704",
+                    "withdrawTips": "As USDC is on ALGO chain, it’s mandatory for users to activate USDC(ASSET : 31566704) on the certain address. .Otherwise the withdrawal will not be successful.",
+                    "depositTips": null,
+                    "netWork": "ALGO"
+                },
+                {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "3360",
+                    "depositPreConfirms": "120",
+                    "name": "USDC",
+                    "network": "Arbitrum One(ARB)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0042",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "withdrawTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
+                    "depositTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
+                    "netWork": "ARB"
+                }
+            ]
+        },
+        "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
+        "precision": null,
+        "type": "crypto",
+        "name": "USDC",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "XDC": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "XDC",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "500000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "xdcfA2958CB79b0491CC627c1557F441eF849Ca8eb1",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "XDC"
+                },
+                "id": "XDC",
+                "network": "XDC",
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.032,
+                "fee": 1,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "2",
-                        "max": "2000000"
+                        "max": "500000"
                     }
-                }
+                },
+                "contract": "xdcfA2958CB79b0491CC627c1557F441eF849Ca8eb1"
+            },
+            "ERC20": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "96",
+                    "depositPreConfirms": "16",
+                    "name": "USDCoin",
+                    "network": "Ethereum(ERC20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.38",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "8000000",
+                    "withdrawMin": "5",
+                    "sameAddress": false,
+                    "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "ETH"
+                },
+                "id": "ETH",
+                "network": "ERC20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.38,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "5",
+                        "max": "8000000"
+                    }
+                },
+                "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+            },
+            "SONIC": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "60",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "SONIC",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.01",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "5",
+                    "sameAddress": false,
+                    "contract": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "SONIC"
+                },
+                "id": "SONIC",
+                "network": "SONIC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.01,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "5",
+                        "max": "1000000"
+                    }
+                },
+                "contract": "0x29219dd400f2Bf60E5a23d13Be72B486D4038894"
             },
             "AVAXC": {
                 "info": {
@@ -1961,11 +2282,12 @@
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "35",
+                    "depositPreConfirms": null,
                     "name": "Tether",
                     "network": "Avalanche C Chain(AVAX CCHAIN)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.08",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.00042",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "1000000",
                     "withdrawMin": "5",
                     "sameAddress": false,
@@ -1976,16 +2298,298 @@
                 },
                 "id": "AVAX_CCHAIN",
                 "network": "AVAXC",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.08,
+                "fee": 0.00042,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "5",
                         "max": "1000000"
                     }
-                }
+                },
+                "contract": "0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E"
+            },
+            "MATIC": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "450",
+                    "depositPreConfirms": "250",
+                    "name": "USDCoin",
+                    "network": "Polygon(MATIC)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.011",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359",
+                    "withdrawTips": "The last digits of the token's contract address are 3359, please make sure they're correct before taking action.",
+                    "depositTips": "The last digits of the token's contract address are 3359, please make sure they're correct before taking action.",
+                    "netWork": "MATIC"
+                },
+                "id": "MATIC",
+                "network": "MATIC",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.011,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "1000000"
+                    }
+                },
+                "contract": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+            },
+            "SEIEVM": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "300",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "SEIEVM",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "SEIEVM"
+                },
+                "id": "SEIEVM",
+                "network": "SEIEVM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "200000"
+                    }
+                },
+                "contract": "0xe15fC38F6D8c56aF07bbCBe3BAf5708A2Bf42392"
+            },
+            "BASE": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
+                    "name": "USDC",
+                    "network": "BASE",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1500000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "BASE"
+                },
+                "id": "BASE",
+                "network": "BASE",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "1",
+                        "max": "1500000"
+                    }
+                },
+                "contract": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+            },
+            "OPTIMISM": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "1800",
+                    "depositPreConfirms": "30",
+                    "name": "USDC",
+                    "network": "Optimism(OP)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.023",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85",
+                    "withdrawTips": "The last digits of the token's contract address are 7Ff85, please make sure they're correct before taking action.",
+                    "depositTips": "The last digits of the token's contract address are 7Ff85, please make sure they're correct before taking action.",
+                    "netWork": "OP"
+                },
+                "id": "OP",
+                "network": "OPTIMISM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.023,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "2000000"
+                    }
+                },
+                "contract": "0x0b2C639c533813f4Aa9D7837CAf62653d097Ff85"
+            },
+            "APT": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "12",
+                    "depositPreConfirms": null,
+                    "name": "usdc",
+                    "network": "APTOS(APT)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1500000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "APTOS"
+                },
+                "id": "APTOS",
+                "network": "APT",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "1500000"
+                    }
+                },
+                "contract": "0xbae207659db88bea0cbead6da0ed00aac12edcdda169e591cd41c94180b46f3b"
+            },
+            "DOT": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "40",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "POLKADOTASSETHUB",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "1337",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "DOTASSETHUB"
+                },
+                "id": "DOTASSETHUB",
+                "network": "DOT",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "200000"
+                    }
+                },
+                "contract": "1337"
+            },
+            "BEP20": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "61",
+                    "depositPreConfirms": "15",
+                    "name": "USD Coin",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "18",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "10",
+                    "sameAddress": false,
+                    "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "BSC"
+                },
+                "id": "BSC",
+                "network": "BEP20",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "10",
+                        "max": "5000000"
+                    }
+                },
+                "contract": "0x8AC76a51cc950d9822D68b83fE1Ad97B32Cd580d"
+            },
+            "SOL": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "100",
+                    "depositPreConfirms": "31",
+                    "name": "USDC-SOL",
+                    "network": "Solana(SOL)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.3",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "20",
+                    "sameAddress": false,
+                    "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+                    "withdrawTips": "The withdrawal address must be the owner’s address or an activated secondary address. Otherwise, you will lose your funds. Due to network congestion of the Solana chain, it might take longer time to process withdrawal requests. Please confirm before proceeding.",
+                    "depositTips": "The delay in the SOL chain scanning may lead to a delay in your deposit.",
+                    "netWork": "SOL"
+                },
+                "id": "SOL",
+                "network": "SOL",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.3,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "20",
+                        "max": "5000000"
+                    }
+                },
+                "contract": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
             },
             "NEAR": {
                 "info": {
@@ -1993,11 +2597,12 @@
                     "depositDesc": null,
                     "depositEnable": true,
                     "minConfirm": "100",
+                    "depositPreConfirms": null,
                     "name": "USDC",
                     "network": "NEAR Protocol(NEAR)",
                     "withdrawEnable": true,
-                    "withdrawFee": "0.25",
-                    "withdrawIntegerMultiple": null,
+                    "withdrawFee": "0.05",
+                    "withdrawIntegerMultiple": "6",
                     "withdrawMax": "400000",
                     "withdrawMin": "2",
                     "sameAddress": false,
@@ -2008,16 +2613,172 @@
                 },
                 "id": "NEAR",
                 "network": "NEAR",
-                "active": true,
+                "active": null,
                 "deposit": true,
                 "withdraw": true,
-                "fee": 0.25,
+                "fee": 0.05,
+                "precision": null,
                 "limits": {
                     "withdraw": {
                         "min": "2",
                         "max": "400000"
                     }
-                }
+                },
+                "contract": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1"
+            },
+            "SUI": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "30",
+                    "depositPreConfirms": null,
+                    "name": "USDC",
+                    "network": "Sui",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "1000000",
+                    "withdrawMin": "1",
+                    "sameAddress": false,
+                    "contract": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "SUI"
+                },
+                "id": "SUI",
+                "network": "SUI",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "1",
+                        "max": "1000000"
+                    }
+                },
+                "contract": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
+            },
+            "STARK": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "9000",
+                    "depositPreConfirms": "1500",
+                    "name": "USDC",
+                    "network": "Starknet(STARK)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.2",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "200000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb",
+                    "withdrawTips": null,
+                    "depositTips": null,
+                    "netWork": "STARK"
+                },
+                "id": "STARK",
+                "network": "STARK",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.2,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "200000"
+                    }
+                },
+                "contract": "0x033068f6539f8e6e6b131e6b2b814e6c34a5224bc66947c47dab9dfee93b35fb"
+            },
+            "ALGO": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "10",
+                    "depositPreConfirms": null,
+                    "name": "USDCoin",
+                    "network": "Algorand(ALGO)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "1",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "5000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "31566704",
+                    "withdrawTips": "As USDC is on ALGO chain, it’s mandatory for users to activate USDC(ASSET : 31566704) on the certain address. .Otherwise the withdrawal will not be successful.",
+                    "depositTips": null,
+                    "netWork": "ALGO"
+                },
+                "id": "ALGO",
+                "network": "ALGO",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "5000000"
+                    }
+                },
+                "contract": "31566704"
+            },
+            "ARBITRUM": {
+                "info": {
+                    "coin": "USDC",
+                    "depositDesc": null,
+                    "depositEnable": true,
+                    "minConfirm": "3360",
+                    "depositPreConfirms": "120",
+                    "name": "USDC",
+                    "network": "Arbitrum One(ARB)",
+                    "withdrawEnable": true,
+                    "withdrawFee": "0.0042",
+                    "withdrawIntegerMultiple": "6",
+                    "withdrawMax": "2000000",
+                    "withdrawMin": "2",
+                    "sameAddress": false,
+                    "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+                    "withdrawTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
+                    "depositTips": "The last digits of the token's contract address are 5831, please make sure they're correct before taking action.",
+                    "netWork": "ARB"
+                },
+                "id": "ARB",
+                "network": "ARBITRUM",
+                "active": null,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0042,
+                "precision": null,
+                "limits": {
+                    "withdraw": {
+                        "min": "2",
+                        "max": "2000000"
+                    }
+                },
+                "contract": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 1,
+                "max": 8000000
             }
         }
     }

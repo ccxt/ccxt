@@ -1,5 +1,7 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var bitteam$1 = require('./abstract/bitteam.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
@@ -11,14 +13,14 @@ var Precise = require('./base/Precise.js');
  * @class bitteam
  * @augments Exchange
  */
-class bitteam extends bitteam$1 {
+class bitteam extends bitteam$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bitteam',
             'name': 'BIT.TEAM',
             'countries': ['UK'],
             'version': 'v2.0.6',
-            'rateLimit': 1,
+            'rateLimit': 1, // the exchange has no rate limit
             'certified': false,
             'pro': false,
             'has': {
@@ -29,12 +31,18 @@ class bitteam extends bitteam$1 {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
                 'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
                 'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -46,8 +54,11 @@ class bitteam extends bitteam$1 {
                 'fetchBalance': true,
                 'fetchBidsAsks': false,
                 'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -63,24 +74,42 @@ class bitteam extends bitteam$1 {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchL3OrderBook': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
+                'fetchLeverages': false,
                 'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
                 'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -94,6 +123,7 @@ class bitteam extends bitteam$1 {
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -106,10 +136,13 @@ class bitteam extends bitteam$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': true,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': false,
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'repayMargin': false,
                 'setLeverage': false,
                 'setMargin': false,
@@ -148,21 +181,21 @@ class bitteam extends bitteam$1 {
                 },
                 'public': {
                     'get': {
-                        'trade/api/asset': 1,
+                        'trade/api/asset': 1, // not unified
                         'trade/api/currencies': 1,
-                        'trade/api/orderbooks/{symbol}': 1,
-                        'trade/api/orders': 1,
+                        'trade/api/orderbooks/{symbol}': 1, // not unified
+                        'trade/api/orders': 1, // not unified
                         'trade/api/pair/{name}': 1,
-                        'trade/api/pairs': 1,
-                        'trade/api/pairs/precisions': 1,
-                        'trade/api/rates': 1,
-                        'trade/api/trade/{id}': 1,
-                        'trade/api/trades': 1,
+                        'trade/api/pairs': 1, // not unified
+                        'trade/api/pairs/precisions': 1, // not unified
+                        'trade/api/rates': 1, // not unified
+                        'trade/api/trade/{id}': 1, // not unified
+                        'trade/api/trades': 1, // not unified
                         'trade/api/ccxt/pairs': 1,
                         'trade/api/cmc/assets': 1,
                         'trade/api/cmc/orderbook/{pair}': 1,
                         'trade/api/cmc/summary': 1,
-                        'trade/api/cmc/ticker': 1,
+                        'trade/api/cmc/ticker': 1, // not unified
                         'trade/api/cmc/trades/{pair}': 1,
                     },
                 },
@@ -298,23 +331,23 @@ class bitteam extends bitteam$1 {
             },
             'exceptions': {
                 'exact': {
-                    '400002': errors.BadSymbol,
-                    '401000': errors.AuthenticationError,
-                    '403002': errors.BadRequest,
+                    '400002': errors.BadSymbol, // {"ok":false,"code":400002,"message":"An order cannot be created on a deactivated pair"}
+                    '401000': errors.AuthenticationError, // {"ok":false,"code":401000,"data": {},"message": "Missing authentication"}
+                    '403002': errors.BadRequest, // {"ok":false,"code":403002,"data":{},"message":"Order cannot be deleted, status does not match"}
                     '404200': errors.BadSymbol, // {"ok":false,"code":404200,"data":{},"message":"Pair was not found"}
                 },
                 'broad': {
-                    'is not allowed': errors.BadRequest,
-                    'Insufficient funds': errors.InsufficientFunds,
-                    'Invalid request params input': errors.BadRequest,
-                    'must be a number': errors.BadRequest,
-                    'must be a string': errors.BadRequest,
-                    'must be of type': errors.BadRequest,
-                    'must be one of': errors.BadRequest,
-                    'Order not found': errors.OrderNotFound,
-                    'Pair with pair name': errors.BadSymbol,
-                    'pairName': errors.BadSymbol,
-                    'Service Unavailable': errors.ExchangeNotAvailable,
+                    'is not allowed': errors.BadRequest, // {"message":"\"createdAt\" is not allowed","path":["createdAt"],"type":"object.unknown","context":{"child":"createdAt","label":"createdAt","value":"DESC","key":"createdAt"}}
+                    'Insufficient funds': errors.InsufficientFunds, // {"ok":false,"code":450000,"data":null,"message":"Insufficient funds"}
+                    'Invalid request params input': errors.BadRequest, // {"ok":false,"code":400000,"data":{},"message":"Invalid request params input"}
+                    'must be a number': errors.BadRequest, // [ExchangeError] bitteam {"message":"\"currency\" must be a number","path":["currency"],"type":"number.base","context":{"label":"currency","value":"adsf","key":"currency"}}
+                    'must be a string': errors.BadRequest, // {"message":"\"pairId\" must be a string","path":["pairId"],"type":"string.base","context":{"label":"pairId","value":87,"key":"pairId"}}
+                    'must be of type': errors.BadRequest, // {"message":"\"order\" must be of type object","path":["order"],"type":"object.base","context":{"type":"object","label":"order","value":"107218781","key":"order"}}
+                    'must be one of': errors.BadRequest, // {"message":"\"resolution\" must be one of [1, 5, 15, 60, 1D]","path":["resolution"],"type":"any.only","context":{"valids":["1","5","15","60","1D"],"label":"resolution","value":"1d","key":"resolution"}}
+                    'Order not found': errors.OrderNotFound, // {"ok":false,"code":404300,"data":{},"message":"Order not found"}
+                    'Pair with pair name': errors.BadSymbol, // {"ok":false,"code":404000,"data":{"pairName":"ETH_USasdf"},"msg":"Pair with pair name ETH_USasdf was not found"}
+                    'pairName': errors.BadSymbol, // {"message":"\"pairName\" length must be at least 7 characters long","path":["pairName"],"type":"string.min","context":{"limit":7,"value":"ETH_US","label":"pairName","key":"pairName"}}
+                    'Service Unavailable': errors.ExchangeNotAvailable, // {"message":"Service Unavailable","code":403000,"ok":false}
                     'Symbol ': errors.BadSymbol, // {"ok":false,"code":404000,"data":{},"message":"Symbol asdfasdfas was not found"}
                 },
             },
@@ -614,76 +647,53 @@ class bitteam extends bitteam$1 {
         //     }
         //
         statusesResponse = this.indexBy(statusesResponse, 'unified_cryptoasset_id');
-        const result = {};
-        for (let i = 0; i < currencies.length; i++) {
-            const currency = currencies[i];
-            const id = this.safeString(currency, 'symbol');
-            const numericId = this.safeInteger(currency, 'id');
-            const code = this.safeCurrencyCode(id);
-            const active = this.safeBool(currency, 'active', false);
-            const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
-            const txLimits = this.safeValue(currency, 'txLimits', {});
-            const minWithdraw = this.safeString(txLimits, 'minWithdraw');
-            const maxWithdraw = this.safeString(txLimits, 'maxWithdraw');
-            const minDeposit = this.safeString(txLimits, 'minDeposit');
-            let fee = undefined;
-            const withdrawCommissionFixed = this.safeValue(txLimits, 'withdrawCommissionFixed', {});
-            let feesByNetworkId = {};
-            const blockChain = this.safeString(currency, 'blockChain');
-            // if only one blockChain
-            if ((blockChain !== undefined) && (blockChain !== '')) {
-                fee = this.parseNumber(withdrawCommissionFixed);
-                feesByNetworkId[blockChain] = fee;
-            }
-            else {
-                feesByNetworkId = withdrawCommissionFixed;
-            }
-            const statuses = this.safeValue(statusesResponse, numericId, {});
-            const deposit = this.safeValue(statuses, 'depositStatus');
-            const withdraw = this.safeValue(statuses, 'withdrawStatus');
-            const networkIds = Object.keys(feesByNetworkId);
-            const networks = {};
-            const networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
-            for (let j = 0; j < networkIds.length; j++) {
-                const networkId = networkIds[j];
-                const networkCode = this.networkIdToCode(networkId, code);
-                const networkFee = this.safeNumber(feesByNetworkId, networkId);
-                networks[networkCode] = {
-                    'id': networkId,
-                    'network': networkCode,
-                    'deposit': deposit,
-                    'withdraw': withdraw,
-                    'active': active,
-                    'fee': networkFee,
-                    'precision': networkPrecision,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': this.parseNumber(minWithdraw),
-                            'max': this.parseNumber(maxWithdraw),
-                        },
-                        'deposit': {
-                            'min': this.parseNumber(minDeposit),
-                            'max': undefined,
-                        },
-                    },
-                    'info': currency,
-                };
-            }
-            result[code] = {
-                'id': id,
-                'numericId': numericId,
-                'code': code,
-                'name': code,
-                'info': currency,
-                'active': active,
+        this.options['_temp_currencies_statuses'] = statusesResponse;
+        const result = this.parseCurrencies(currencies);
+        delete this.options['_temp_currencies_statuses'];
+        return result;
+    }
+    parseCurrency(currency) {
+        const statusesResponse = this.safeValue(this.options, '_temp_currencies_statuses', {});
+        const id = this.safeString(currency, 'symbol');
+        const numericId = this.safeInteger(currency, 'id');
+        const code = this.safeCurrencyCode(id);
+        const active = this.safeBool(currency, 'active', false);
+        const precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'precision')));
+        const txLimits = this.safeValue(currency, 'txLimits', {});
+        const minWithdraw = this.safeString(txLimits, 'minWithdraw');
+        const maxWithdraw = this.safeString(txLimits, 'maxWithdraw');
+        const minDeposit = this.safeString(txLimits, 'minDeposit');
+        let fee = undefined;
+        const withdrawCommissionFixed = this.safeValue(txLimits, 'withdrawCommissionFixed', {});
+        let feesByNetworkId = {};
+        const blockChain = this.safeString(currency, 'blockChain');
+        // if only one blockChain
+        if ((blockChain !== undefined) && (blockChain !== '')) {
+            fee = this.parseNumber(withdrawCommissionFixed);
+            feesByNetworkId[blockChain] = fee;
+        }
+        else {
+            feesByNetworkId = withdrawCommissionFixed;
+        }
+        const statuses = this.safeValue(statusesResponse, numericId, {});
+        const deposit = this.safeValue(statuses, 'depositStatus');
+        const withdraw = this.safeValue(statuses, 'withdrawStatus');
+        const networkIds = Object.keys(feesByNetworkId);
+        const networks = {};
+        const networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, 'decimals')));
+        const typeRaw = this.safeString(currency, 'type');
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const networkCode = this.networkIdToCode(networkId, code);
+            const networkFee = this.safeNumber(feesByNetworkId, networkId);
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
                 'deposit': deposit,
                 'withdraw': withdraw,
-                'fee': fee,
-                'precision': precision,
+                'active': active,
+                'fee': networkFee,
+                'precision': networkPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -698,10 +708,37 @@ class bitteam extends bitteam$1 {
                         'max': undefined,
                     },
                 },
-                'networks': networks,
+                'info': currency,
             };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'numericId': numericId,
+            'code': code,
+            'name': code,
+            'info': currency,
+            'active': active,
+            'deposit': deposit,
+            'withdraw': withdraw,
+            'fee': fee,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.parseNumber(minWithdraw),
+                    'max': this.parseNumber(maxWithdraw),
+                },
+                'deposit': {
+                    'min': this.parseNumber(minDeposit),
+                    'max': undefined,
+                },
+            },
+            'type': typeRaw, // 'crypto' or 'fiat'
+            'networks': networks,
+        });
     }
     /**
      * @method
@@ -715,7 +752,9 @@ class bitteam extends bitteam$1 {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const resolution = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -785,7 +824,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -793,7 +834,7 @@ class bitteam extends bitteam$1 {
         const response = await this.publicGetTradeApiCmcOrderbookPair(this.extend(request, params));
         //
         //     {
-        //         "timestamp": 1701166703285,
+        //         "timestamp": 1701166703284,
         //         "bids": [
         //             [
         //                 2019.334988,
@@ -835,7 +876,9 @@ class bitteam extends bitteam$1 {
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const type = this.safeString(params, 'type', 'all');
         const request = {
             'type': type,
@@ -946,7 +989,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -992,7 +1037,7 @@ class bitteam extends bitteam$1 {
         //         }
         //     }
         //
-        const result = this.safeDict(response, 'result');
+        const result = this.safeDict(response, 'result', {});
         return this.parseOrder(result, market);
     }
     /**
@@ -1007,7 +1052,9 @@ class bitteam extends bitteam$1 {
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'active',
         };
@@ -1025,7 +1072,9 @@ class bitteam extends bitteam$1 {
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'closed',
         };
@@ -1043,7 +1092,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'type': 'cancelled',
         };
@@ -1063,10 +1114,12 @@ class bitteam extends bitteam$1 {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'pairId': market['numericId'].toString(),
+            'pairId': this.safeString(market, 'numericId'),
             'type': type,
             'side': side,
             'amount': this.amountToPrecision(symbol, amount),
@@ -1117,7 +1170,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1143,12 +1198,14 @@ class bitteam extends bitteam$1 {
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
             market = this.market(symbol);
-            request['pairId'] = market['numericId'].toString();
+            request['pairId'] = this.safeString(market, 'numericId');
         }
         else {
             request['pairId'] = '0'; // '0' for all markets
@@ -1347,7 +1404,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let response = await this.publicGetTradeApiCmcSummary();
         //
         //     [
@@ -1401,7 +1460,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'name': market['id'],
@@ -1734,7 +1795,9 @@ class bitteam extends bitteam$1 {
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1775,7 +1838,9 @@ class bitteam extends bitteam$1 {
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2040,7 +2105,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetTradeApiCcxtBalance(params);
         return this.parseBalance(response);
     }
@@ -2122,7 +2189,9 @@ class bitteam extends bitteam$1 {
      * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2298,7 +2367,7 @@ class bitteam extends bitteam$1 {
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'network': this.networkIdToCode(networkId),
+            'network': this.networkIdToCode(networkId, code),
             'addressFrom': addressFrom,
             'address': undefined,
             'addressTo': addressTo,
@@ -2383,4 +2452,4 @@ class bitteam extends bitteam$1 {
     }
 }
 
-module.exports = bitteam;
+exports["default"] = bitteam;

@@ -12,6 +12,7 @@ interface Exchange {
     privateGetAccountsIdTransactions(params?: {}): Promise<implicitReturnType>;
     privateGetBalance(params?: {}): Promise<implicitReturnType>;
     privateGetBeneficiaries(params?: {}): Promise<implicitReturnType>;
+    privateGetSendNetworks(params?: {}): Promise<implicitReturnType>;
     privateGetFeeInfo(params?: {}): Promise<implicitReturnType>;
     privateGetFundingAddress(params?: {}): Promise<implicitReturnType>;
     privateGetListorders(params?: {}): Promise<implicitReturnType>;

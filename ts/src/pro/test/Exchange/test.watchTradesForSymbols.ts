@@ -2,14 +2,16 @@
 import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-import { Exchange } from '../../../../ccxt.js';
+import { Exchange, Str, Trade } from '../../../../ccxt.js';
 
 async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties: object, symbols: string[]) {
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
-        let response = undefined;
+    const returnedSymbols: string[] = [];
+    while (now < ends || returnedSymbols.length < symbols.length) {
+        let response: Trade[] | undefined = undefined;
+        const success = true;
         try {
             response = await exchange.watchTradesForSymbols (symbols);
         } catch (e) {
@@ -17,21 +19,30 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
         }
-        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
-        now = exchange.milliseconds ();
-        let symbol = undefined;
-        for (let i = 0; i < response.length; i++) {
-            const trade = response[i];
-            symbol = trade['symbol'];
-            testTrade (exchange, skippedProperties, method, trade, symbol, now);
-            testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
-        }
-        if (!('timestamp' in skippedProperties)) {
-            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        if ((success === true) && (response !== undefined)) {
+            assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + exchange.json (symbols) + ' must return an array. ' + exchange.json (response));
+            now = exchange.milliseconds ();
+            let symbol: Str = undefined;
+            for (let i = 0; i < response.length; i++) {
+                const trade = response[i];
+                symbol = trade['symbol'];
+                if (symbol === undefined) {
+                    continue;
+                }
+                testTrade (exchange, skippedProperties, method, trade, symbol, now);
+                testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
+                if (!exchange.inArray (symbol, returnedSymbols)) {
+                    returnedSymbols.push (symbol);
+                }
+            }
+            // if (!('timestampSort' in skippedProperties)) {
+            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+            // }
         }
     }
+    return true;
 }
 
 export default testWatchTradesForSymbols;

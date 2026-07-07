@@ -18,9 +18,24 @@ from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 def test_fetch_markets(exchange, skipped_properties):
     method = 'fetchMarkets'
     markets = exchange.fetch_markets()
-    assert isinstance(markets, dict), exchange.id + ' ' + method + ' must return an object. ' + exchange.json(markets)
+    assert exchange.is_dictionary(markets), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json(markets)
     market_values = list(markets.values())
     test_shared_methods.assert_non_emtpy_array(exchange, skipped_properties, method, market_values)
     for i in range(0, len(market_values)):
         test_market(exchange, skipped_properties, method, market_values[i])
+    detect_market_conflicts(exchange, markets)
+    return True
+
+
+def detect_market_conflicts(exchange, market_values):
+    # detect if there are markets with different ids for the same symbol
+    ids = {}
+    for i in range(0, len(market_values)):
+        market = market_values[i]
+        symbol = market['symbol']
+        if not (symbol in ids):
+            ids[symbol] = market['id']
+        else:
+            is_different = ids[symbol] != market['id']
+            assert not is_different, exchange.id + ' fetchMarkets() has different ids for the same symbol: ' + symbol + ' ' + ids[symbol] + ' ' + market['id']
     return True

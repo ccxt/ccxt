@@ -17,9 +17,12 @@ public partial class testMainClass : BaseTest
         {
             object firstItem = getValue(items, 0);
             object id = getValue(firstItem, "id");
-            object item = await exchange.fetchLedgerEntry(id);
-            object now = exchange.milliseconds();
-            testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+            if (isTrue(!isEqual(id, null)))
+            {
+                object item = await exchange.fetchLedgerEntry(id);
+                object now = exchange.milliseconds();
+                testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+            }
         }
         return true;
     }

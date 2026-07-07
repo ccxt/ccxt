@@ -1,6 +1,11 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+
+function capitalizename(name: string): string {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
 function deleteFilesRecursively(directory: string, targetFileName: string): void {
     if (!fs.existsSync(directory)) {
         console.warn(`Directory not found: ${directory}`);
@@ -17,7 +22,7 @@ function deleteFilesRecursively(directory: string, targetFileName: string): void
 
         if (fs.statSync(fullPath).isDirectory()) {
             deleteFilesRecursively(fullPath, targetFileName);
-        } else if (file.startsWith(targetFileName)) {
+        } else if (file.startsWith(targetFileName) || file.startsWith(capitalizename(targetFileName))) {
             try {
                 fs.unlinkSync(fullPath);
                 console.log(`Deleted: ${fullPath}`);
@@ -38,7 +43,9 @@ const foldersToSearch = [
     './python/ccxt',
     './cs',
     './php',
-    './go'
+    './go',
+    './dist',
+    './java'
 
 ];
 

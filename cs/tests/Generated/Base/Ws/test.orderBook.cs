@@ -70,46 +70,46 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object incrementalIndexedOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 10, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 27, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object incrementalIndexedOrderBookDeletedTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 27, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object limitedIncrementalIndexedOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 10, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 27, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object storedIncrementalIndexedOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 13, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 27, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object anotherStoredIncrementalIndexedOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10.2, 13, "1234"}, new List<object>() {9.1, 11, "1235"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 27, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
+            // const incrementalIndexedOrderBookTarget = {
+            //     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+            //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const incrementalIndexedOrderBookDeletedTarget = {
+            //     'bids': [ [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+            //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const limitedIncrementalIndexedOrderBookTarget = {
+            //     'bids': [ [ 10.0, 10, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ] ],
+            //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const storedIncrementalIndexedOrderBookTarget = {
+            //     'bids': [ [ 10.0, 13, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+            //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const anotherStoredIncrementalIndexedOrderBookTarget = {
+            //     'bids': [ [ 10.2, 13, '1234' ], [ 9.1, 11, '1235' ], [ 8.2, 12, '1236' ], [ 7.3, 13, '1237' ], [ 6.4, 14, '1238' ], [ 4.5, 13, '1239' ] ],
+            //     'asks': [ [ 11.1, 27, '1244' ], [ 13.3, 13, '1243' ], [ 14.4, 12, '1242' ], [ 15.5, 11, '1241' ], [ 16.6, 10, '1240' ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
             object overwrite1234 = new Dictionary<string, object>() {
                 { "bids", new List<object>() {new List<object>() {9.1, 11, "1235"}, new List<object>() {9, 3, "1231"}, new List<object>() {9, 1, "1232"}, new List<object>() {8.2, 12, "1236"}, new List<object>() {7.3, 13, "1237"}, new List<object>() {6.4, 14, "1238"}, new List<object>() {4.5, 13, "1239"}, new List<object>() {4, 2, "12399"}} },
                 { "asks", new List<object>() {new List<object>() {11.1, 13, "1244"}, new List<object>() {13.3, 13, "1243"}, new List<object>() {14.4, 12, "1242"}, new List<object>() {15.5, 11, "1241"}, new List<object>() {16.6, 10, "1240"}} },
@@ -157,53 +157,53 @@ public partial class BaseTest
                 { "nonce", 69 },
                 { "symbol", null },
             };
-            object incrementalOrderBookInput = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 1}, new List<object>() {10, 2}, new List<object>() {9.1, 0}, new List<object>() {8.2, 1}, new List<object>() {7.3, 1}, new List<object>() {6.4, 1}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 5}, new List<object>() {11.1, -6}, new List<object>() {11.1, 2}, new List<object>() {12.2, 10}, new List<object>() {12.2, -9.875}, new List<object>() {12.2, 0}, new List<object>() {13.3, 3}, new List<object>() {14.4, 4}, new List<object>() {15.5, 1}, new List<object>() {16.6, 3}} },
-                { "timestamp", 1574827239000 },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object incremetalOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 3}, new List<object>() {8.2, 1}, new List<object>() {7.3, 1}, new List<object>() {6.4, 1}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 2}, new List<object>() {12.2, 0.125}, new List<object>() {13.3, 3}, new List<object>() {14.4, 4}, new List<object>() {15.5, 1}, new List<object>() {16.6, 3}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object limitedIncremetalOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 3}, new List<object>() {8.2, 1}, new List<object>() {7.3, 1}, new List<object>() {6.4, 1}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 2}, new List<object>() {12.2, 0.125}, new List<object>() {13.3, 3}, new List<object>() {14.4, 4}, new List<object>() {15.5, 1}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object storedIncremetalOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 3}, new List<object>() {8.2, 1}, new List<object>() {7.3, 1}, new List<object>() {6.4, 1}, new List<object>() {3, 3}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 2}, new List<object>() {12.2, 0.125}, new List<object>() {13.3, 3}, new List<object>() {14.4, 4}, new List<object>() {15.5, 1}, new List<object>() {16.6, 3}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object doubleStoredIncremetalOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 3}, new List<object>() {8.2, 1}, new List<object>() {7.3, 1}, new List<object>() {6.4, 1}, new List<object>() {3, 10}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 2}, new List<object>() {12.2, 0.125}, new List<object>() {13.3, 3}, new List<object>() {14.4, 4}, new List<object>() {15.5, 1}, new List<object>() {16.6, 3}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
-            object negativeStoredIncremetalOrderBookTarget = new Dictionary<string, object>() {
-                { "bids", new List<object>() {new List<object>() {10, 3}, new List<object>() {8.2, 1}, new List<object>() {7.3, 1}, new List<object>() {6.4, 1}} },
-                { "asks", new List<object>() {new List<object>() {11.1, 2}, new List<object>() {12.2, 0.125}, new List<object>() {13.3, 3}, new List<object>() {14.4, 4}, new List<object>() {16.6, 3}} },
-                { "timestamp", 1574827239000 },
-                { "datetime", "2019-11-27T04:00:39.000Z" },
-                { "nonce", 69 },
-                { "symbol", null },
-            };
+            // const incrementalOrderBookInput = {
+            //     'bids': [ [ 10.0, 1 ], [ 10.0, 2 ], [ 9.1, 0 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+            //     'asks': [ [ 11.1, 5 ], [ 11.1, -6 ], [ 11.1, 2 ], [ 12.2, 10 ], [ 12.2, -9.875 ], [ 12.2, 0 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+            //     'timestamp': 1574827239000,
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const incremetalOrderBookTarget = {
+            //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+            //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const limitedIncremetalOrderBookTarget = {
+            //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+            //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const storedIncremetalOrderBookTarget = {
+            //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ], [ 3, 3 ] ],
+            //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const doubleStoredIncremetalOrderBookTarget = {
+            //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ], [ 3, 10 ] ],
+            //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 15.5, 1 ], [ 16.6, 3 ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
+            // const negativeStoredIncremetalOrderBookTarget = {
+            //     'bids': [ [ 10.0, 3 ], [ 8.2, 1 ], [ 7.3, 1 ], [ 6.4, 1 ] ],
+            //     'asks': [ [ 11.1, 2 ], [ 12.2, 0.125 ], [ 13.3, 3 ], [ 14.4, 4 ], [ 16.6, 3 ] ],
+            //     'timestamp': 1574827239000,
+            //     'datetime': '2019-11-27T04:00:39.000Z',
+            //     'nonce': 69,
+            //     'symbol': undefined,
+            // };
             
         // --------------------------------------------------------------------------------------------------------------------
         

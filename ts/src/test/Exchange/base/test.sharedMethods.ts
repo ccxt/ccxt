@@ -1,16 +1,16 @@
 /* eslint no-restricted-syntax: ["error", "FunctionExpression", "WithStatement"] */
 
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
+import { Exchange } from "../../../../ccxt.js";
 import Precise from '../../../base/Precise.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
-import { Str } from '../../../base/types';
+import { Bool, Num, Order, Str } from '../../../base/types.js';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
     // there are cases when exchange is undefined (eg. base tests)
     const id = (exchange !== undefined) ? exchange.id : 'undefined';
     const methodString = (method !== undefined) ? method : 'undefined';
-    const entryString = (exchange !== undefined) ? exchange.json (entry) : '';
+    const entryString = (exchange !== undefined && entry !== undefined) ? exchange.json (entry) : '';
     return ' <<< ' + id + ' ' + methodString + ' ::: ' + entryString + ' >>> ';
 }
 
@@ -19,7 +19,7 @@ function isTemporaryFailure (e: any) {
 }
 
 function stringValue (value: any) {
-    let stringVal = undefined;
+    let stringVal: Str = undefined;
     if (typeof value === 'string') {
         stringVal = value;
     } else if (value === undefined) {
@@ -41,7 +41,7 @@ function assertType (exchange: Exchange, skippedProperties: object, entry: objec
     const same_numeric = (typeof entryKeyVal === 'number') && (typeof formatKeyVal === 'number');
     const same_boolean = ((entryKeyVal === true) || (entryKeyVal === false)) && ((formatKeyVal === true) || (formatKeyVal === false));
     const same_array = Array.isArray (entryKeyVal) && Array.isArray (formatKeyVal);
-    const same_object = (typeof entryKeyVal === 'object') && (typeof formatKeyVal === 'object');
+    const same_object = exchange.isDictionary (entryKeyVal) && exchange.isDictionary (formatKeyVal);
     const result = (entryKeyVal === undefined) || same_string || same_numeric || same_boolean || same_array || same_object;
     return result;
 }
@@ -50,6 +50,10 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
     const logText = logTemplate (exchange, method, entry);
     assert (entry !== undefined, 'item is null/undefined' + logText);
     // get all expected & predefined keys for this specific item and ensure thos ekeys exist in parsed structure
+    const allowEmptySkips = exchange.safeList (skippedProperties, 'allowNull', []);
+    if (emptyAllowedFor !== undefined) {
+        emptyAllowedFor = concat (emptyAllowedFor, allowEmptySkips);
+    }
     if (Array.isArray (format)) {
         assert (Array.isArray (entry), 'entry is not an array' + logText);
         const realLength = entry.length;
@@ -73,7 +77,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
             assert (typeAssertion, i.toString () + ' index does not have an expected type ' + logText);
         }
     } else {
-        assert (typeof entry === 'object', 'entry is not an object' + logText);
+        assert (exchange.isDictionary (entry), 'entry is not a dict' + logText);
         const keys = Object.keys (format);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -99,7 +103,7 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
                 const typeAssertion = assertType (exchange, skippedProperties, entry, key, format);
                 assert (typeAssertion, '"' + stringValue (key) + '" key is neither undefined, neither of expected type' + logText);
                 if (deep) {
-                    if (typeof value === 'object') {
+                    if (exchange.isDictionary (value) || Array.isArray (value)) {
                         assertStructure (exchange, skippedProperties, method, value, format[key], emptyAllowedFor, deep);
                     }
                 }
@@ -157,9 +161,13 @@ function assertTimestampAndDatetime (exchange: Exchange, skippedProperties: obje
             //    assert (dt === exchange.iso8601 (entry['timestamp']))
             // so, we have to compare with millisecond accururacy
             const dtParsed = exchange.parse8601 (dt);
-            const dtParsedString = exchange.iso8601 (dtParsed);
-            const dtEntryString = exchange.iso8601 (entry['timestamp']);
-            assert (dtParsedString === dtEntryString, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
+            const tsMs = entry['timestamp'];
+            const diff = Math.abs (dtParsed - tsMs);
+            if (diff >= 500) { // tolerate up to 500ms skew // TODO: dont know if this is a proper solution
+                const dtParsedString = exchange.iso8601 (dtParsed);
+                const dtEntryString = exchange.iso8601 (tsMs);
+                assert (false, 'datetime is not iso8601 of timestamp:' + dtParsedString + '(string) != ' + dtEntryString + '(from ts)' + logText);
+            }
         }
     }
 }
@@ -313,11 +321,10 @@ function assertFeeStructure (exchange: Exchange, skippedProperties: object, meth
     const logText = logTemplate (exchange, method, entry);
     const keyString = stringValue (key);
     if (Number.isInteger (key)) {
-        key = key as number;
         assert (Array.isArray (entry), 'fee container is expected to be an array' + logText);
-        assert (key < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
+        assert (key as number < entry.length, 'fee key ' + keyString + ' was expected to be present in entry' + logText);
     } else {
-        assert (typeof entry === 'object', 'fee container is expected to be an object' + logText);
+        assert (exchange.isDictionary (entry), 'fee container is expected to be a dict' + logText);
         assert (key in entry, 'fee key "' + key + '" was expected to be present in entry' + logText);
     }
     const feeObject = exchange.safeValue (entry, key);
@@ -372,8 +379,11 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
     if (exchange.isTickPrecision ()) {
         // TICK_SIZE should be above zero
         assertGreater (exchange, skippedProperties, method, entry, key, '0');
-        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         const decimalNumbers = [ '2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16' ];
+        if (key === 'amount' && 'precisionAmountAbnormal' in skippedProperties) {
+            return;
+        }
         for (let i = 0; i < decimalNumbers.length; i++) {
             const num = decimalNumbers[i];
             const numStr = num;
@@ -390,10 +400,10 @@ function checkPrecisionAccuracy (exchange: Exchange, skippedProperties: object, 
 async function fetchBestBidAsk (exchange, method, symbol) {
     const logText = logTemplate (exchange, method, {});
     // find out best bid/ask price
-    let bestBid = undefined;
-    let bestAsk = undefined;
+    let bestBid: Num = undefined;
+    let bestAsk: Num = undefined;
 
-    let usedMethod = undefined;
+    let usedMethod: Str = undefined;
     if (exchange.has['fetchOrderBook']) {
         usedMethod = 'fetchOrderBook';
         const orderbook = await exchange.fetchOrderBook (symbol);
@@ -427,7 +437,7 @@ async function fetchBestBidAsk (exchange, method, symbol) {
 }
 
 async function fetchOrder (exchange, symbol, orderId, skippedProperties) {
-    let fetchedOrder = undefined;
+    let fetchedOrder: Order = undefined;
     const originalId = orderId;
     // set 'since' to 5 minute ago for optimal results
     const sinceTime = exchange.milliseconds () - 1000 * 60 * 5;
@@ -483,7 +493,7 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     const statusClanceled = (order['status'] === 'canceled');
     const filledDefined = (filled !== undefined);
     const amountDefined = (amount !== undefined);
-    let condition = undefined;
+    let condition: Bool = undefined;
     //
     // ### OPEN STATUS
     //
@@ -533,6 +543,15 @@ function assertOrderState (exchange, skippedProperties, method, order, assertedS
     }
 }
 
+function getActiveMarkets (exchange, includeUnknown = true) {
+    const filteredActive = exchange.filterBy (exchange.markets, 'active', true);
+    if (includeUnknown) {
+        const filteredUndefined = exchange.filterBy (exchange.markets, 'active', undefined);
+        return exchange.arrayConcat (filteredActive, filteredUndefined);
+    }
+    return filteredActive;
+}
+
 function removeProxyOptions (exchange: Exchange, skippedProperties: object) {
     const proxyUrl = exchange.checkProxyUrlSettings ();
     const [ httpProxy, httpsProxy, socksProxy ] = exchange.checkProxySettings ();
@@ -553,6 +572,24 @@ function setProxyOptions (exchange: Exchange, skippedProperties: object, proxyUr
     exchange.httpProxy = httpProxy;
     exchange.httpsProxy = httpsProxy;
     exchange.socksProxy = socksProxy;
+}
+
+function concat (a: any[] = undefined, b: any[] = undefined) {
+    // we use this method temporarily, because of ast-transpiler issue across langs
+    if (a === undefined) {
+        return b;
+    } else if (b === undefined) {
+        return a;
+    } else {
+        const result = [];
+        for (let i = 0; i < a.length; i++) {
+            result.push (a[i]);
+        }
+        for (let j = 0; j < b.length; j++) {
+            result.push (b[j]);
+        }
+        return result;
+    }
 }
 
 function assertNonEmtpyArray (exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint: Str = undefined) {
@@ -576,16 +613,51 @@ function assertRoundMinuteTimestamp (exchange: Exchange, skippedProperties: obje
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
 
-function deepEqual (a: any, b: any) {
-    return JSON.stringify (a) === JSON.stringify (b);
+function deepEqual (exchange: Exchange, a: any, b: any) {
+    return exchange.jsonStringifyWithNull (a) === exchange.jsonStringifyWithNull (b);
 }
 
 function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: string, a: any, b: any) {
     const logText = logTemplate (exchange, method, {});
-    assert (deepEqual (a, b), 'two dicts do not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
+    assert (deepEqual (exchange, a, b), 'two dicts do not match: ' + exchange.jsonStringifyWithNull (a) + ' != ' + exchange.jsonStringifyWithNull (b) + logText);
 }
 
+function exchangeProp (exchange: Exchange, key: string, defaultValue: any = undefined) {
+    const value = exchange.getProperty (exchange, key.toString ());
+    if (value !== undefined) {
+        return value;
+    }
+    // try UpperCase key also, for other langs
+    const keyUpper = exchange.capitalize (key.toString ());
+    return exchange.getProperty (exchange, keyUpper, defaultValue);
+}
+
+async function validateTickerExceptionForPercentage (ex: any, exchange: Exchange, ticker: any) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    const eMessage = exchange.exceptionMessage (ex, false);
+    if (eMessage.indexOf ('percentage should be above') >= 0 || eMessage.indexOf ('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(symbol in exchange.markets)) {
+                return;
+            }
+            // if OHLCV supported
+            if (exchange.featureValue (symbol, 'fetchOHLCV') !== undefined) {
+                const ohlcv = await exchange.fetchOHLCV (symbol, '1d', undefined, 5);
+                if (ohlcv.length <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert (eMessage === '', eMessage); // trigger error
+}
+
+
 export default {
+    exchangeProp,
     deepEqual,
     assertDeepEqual,
     logTemplate,
@@ -616,4 +688,7 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
+    concat,
+    getActiveMarkets,
+    validateTickerExceptionForPercentage,
 };

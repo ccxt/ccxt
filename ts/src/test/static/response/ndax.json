@@ -2,6 +2,72 @@
     "exchange": "ndax",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "OMSId": "1",
+                        "ProductId": "16",
+                        "Product": "USDT",
+                        "ProductFullName": "Tether",
+                        "MasterDataUniqueProductSymbol": "",
+                        "ProductType": "CryptoCurrency",
+                        "DecimalPlaces": "2",
+                        "TickSize": "0.0100000000000000000000000000",
+                        "DepositEnabled": true,
+                        "WithdrawEnabled": true,
+                        "NoFees": false,
+                        "IsDisabled": false,
+                        "MarginEnabled": false
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "OMSId": "1",
+                            "ProductId": "16",
+                            "Product": "USDT",
+                            "ProductFullName": "Tether",
+                            "MasterDataUniqueProductSymbol": "",
+                            "ProductType": "CryptoCurrency",
+                            "DecimalPlaces": "2",
+                            "TickSize": "0.0100000000000000000000000000",
+                            "DepositEnabled": true,
+                            "WithdrawEnabled": true,
+                            "NoFees": false,
+                            "IsDisabled": false,
+                            "MarginEnabled": false
+                        },
+                        "id": "16",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.01,
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": null,
+                        "fees": {},
+                        "networks": {},
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "margin": false
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -104,13 +170,13 @@
                     "ask": null,
                     "askVolume": null,
                     "vwap": null,
-                    "open": null,
+                    "open": 29869.01,
                     "close": 29869.01,
                     "last": 29869.01,
                     "previousClose": null,
-                    "change": null,
-                    "percentage": null,
-                    "average": null,
+                    "change": 0,
+                    "percentage": 0,
+                    "average": 29869.01,
                     "baseVolume": 0,
                     "quoteVolume": 0,
                     "markPrice":  null,

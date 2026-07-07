@@ -7,258 +7,66 @@
 
 package ccxt
 
-func (this *btcturk) PublicGetOrderbook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderbook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PublicGetOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderbook", args...)
 }
 
-func (this *btcturk) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *btcturk) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *btcturk) PublicGetOhlc (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOhlc", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PublicGetOhlc(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOhlc", args...)
 }
 
-func (this *btcturk) PublicGetServerExchangeinfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetServerExchangeinfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PublicGetServerExchangeinfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetServerExchangeinfo", args...)
 }
 
-func (this *btcturk) PrivateGetUsersBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivateGetUsersBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersBalances", args...)
 }
 
-func (this *btcturk) PrivateGetOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivateGetOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOpenOrders", args...)
 }
 
-func (this *btcturk) PrivateGetAllOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAllOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivateGetAllOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAllOrders", args...)
 }
 
-func (this *btcturk) PrivateGetUsersTransactionsTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUsersTransactionsTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivateGetUsersTransactionsTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersTransactionsTrade", args...)
 }
 
-func (this *btcturk) PrivatePostUsersTransactionsCrypto (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersTransactionsCrypto", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivatePostUsersTransactionsCrypto(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUsersTransactionsCrypto", args...)
 }
 
-func (this *btcturk) PrivatePostUsersTransactionsFiat (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUsersTransactionsFiat", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivatePostUsersTransactionsFiat(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUsersTransactionsFiat", args...)
 }
 
-func (this *btcturk) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivatePostOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrder", args...)
 }
 
-func (this *btcturk) PrivatePostCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivatePostCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrder", args...)
 }
 
-func (this *btcturk) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) PrivateDeleteOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
 }
 
-func (this *btcturk) GraphGetOhlcs (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("graphGetOhlcs", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) GraphGetOhlcs(args ...any) <-chan any {
+	return this.callEndpointAsync("graphGetOhlcs", args...)
 }
 
-func (this *btcturk) GraphGetKlinesHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("graphGetKlinesHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BtcturkCore) GraphGetKlinesHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("graphGetKlinesHistory", args...)
 }

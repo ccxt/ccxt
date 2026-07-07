@@ -7,290 +7,74 @@
 
 package ccxt
 
-func (this *p2b) PublicGetMarkets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarkets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkets", args...)
 }
 
-func (this *p2b) PublicGetMarket (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarket", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetMarket(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarket", args...)
 }
 
-func (this *p2b) PublicGetTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickers", args...)
 }
 
-func (this *p2b) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *p2b) PublicGetBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetBook", args...)
 }
 
-func (this *p2b) PublicGetHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHistory", args...)
 }
 
-func (this *p2b) PublicGetDepthResult (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetDepthResult", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetDepthResult(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDepthResult", args...)
 }
 
-func (this *p2b) PublicGetMarketKline (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketKline", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PublicGetMarketKline(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketKline", args...)
 }
 
-func (this *p2b) PrivatePostAccountBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountBalances", args...)
 }
 
-func (this *p2b) PrivatePostAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountBalance", args...)
 }
 
-func (this *p2b) PrivatePostOrderNew (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderNew", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostOrderNew(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderNew", args...)
 }
 
-func (this *p2b) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *p2b) PrivatePostOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrders", args...)
 }
 
-func (this *p2b) PrivatePostAccountMarketOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountMarketOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountMarketOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountMarketOrderHistory", args...)
 }
 
-func (this *p2b) PrivatePostAccountMarketDealHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountMarketDealHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountMarketDealHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountMarketDealHistory", args...)
 }
 
-func (this *p2b) PrivatePostAccountOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountOrder", args...)
 }
 
-func (this *p2b) PrivatePostAccountOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountOrderHistory", args...)
 }
 
-func (this *p2b) PrivatePostAccountExecutedHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountExecutedHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *P2bCore) PrivatePostAccountExecutedHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountExecutedHistory", args...)
 }

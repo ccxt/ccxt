@@ -7,882 +7,318 @@
 
 package ccxt
 
-func (this *blofin) PublicGetMarketInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketInstruments", args...)
 }
 
-func (this *blofin) PublicGetMarketTickers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTickers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTickers", args...)
 }
 
-func (this *blofin) PublicGetMarketBooks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketBooks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketBooks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketBooks", args...)
 }
 
-func (this *blofin) PublicGetMarketTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketTrades", args...)
 }
 
-func (this *blofin) PublicGetMarketCandles (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketCandles", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketMarkPrice", args...)
 }
 
-func (this *blofin) PublicGetMarketMarkPrice (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketMarkPrice", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketFundingRate", args...)
 }
 
-func (this *blofin) PublicGetMarketFundingRate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketFundingRate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketFundingRateHistory", args...)
 }
 
-func (this *blofin) PublicGetMarketFundingRateHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetMarketFundingRateHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketCandles", args...)
 }
 
-func (this *blofin) PrivateGetAssetBalances (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBalances", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketIndexCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketIndexCandles", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketMarkPriceCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketMarkPriceCandles", args...)
 }
 
-func (this *blofin) PrivateGetTradeFillsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeFillsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PublicGetMarketPositionTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketPositionTiers", args...)
 }
 
-func (this *blofin) PrivateGetAssetDepositHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetDepositHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAssetBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetBalances", args...)
 }
 
-func (this *blofin) PrivateGetAssetWithdrawalHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetWithdrawalHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAssetBills(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetBills", args...)
 }
 
-func (this *blofin) PrivateGetAssetBills (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAssetBills", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAssetWithdrawalHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetWithdrawalHistory", args...)
 }
 
-func (this *blofin) PrivateGetAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAssetDepositHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
 }
 
-func (this *blofin) PrivateGetAccountPositions (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountPositions", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountConfig", args...)
 }
 
-func (this *blofin) PrivateGetAccountLeverageInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountLeverageInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAssetCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetCurrencies", args...)
 }
 
-func (this *blofin) PrivateGetAccountMarginMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountMarginMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountBalance", args...)
 }
 
-func (this *blofin) PrivateGetAccountBatchLeverageInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAccountBatchLeverageInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountPositions", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersTpslPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersTpslPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountPositionsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountMarginMode", args...)
 }
 
-func (this *blofin) PrivateGetTradeOrdersTpslHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetTradeOrdersTpslHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountPositionMode", args...)
 }
 
-func (this *blofin) PrivateGetUserQueryApikey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserQueryApikey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountLeverageInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountLeverageInfo", args...)
 }
 
-func (this *blofin) PrivateGetAffiliateBasic (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAffiliateBasic", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAccountBatchLeverageInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountBatchLeverageInfo", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrdersPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersPending", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountBalance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingAccountBalance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrderDetail", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionsByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingAccountPositionsByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrdersTpslPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersTpslPending", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionsDetailsByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingAccountPositionsDetailsByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrderTpslDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrderTpslDetail", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionsByContract (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingAccountPositionsByContract", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrdersAlgoPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersAlgoPending", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountPositionMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingAccountPositionMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersHistory", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingAccountLeverageInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingAccountLeverageInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrdersTpslHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersTpslHistory", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradeOrdersPending (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingTradeOrdersPending", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrdersAlgoHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrdersAlgoHistory", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradePendingTpslByContract (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingTradePendingTpslByContract", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeFillsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeFillsHistory", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradePositionHistoryByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingTradePositionHistoryByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetTradeOrderPriceRange(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTradeOrderPriceRange", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradeOrdersHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingTradeOrdersHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAffiliateBasic(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateBasic", args...)
 }
 
-func (this *blofin) PrivateGetCopytradingTradePendingTpslByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetCopytradingTradePendingTpslByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAffiliateReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateReferralCode", args...)
 }
 
-func (this *blofin) PrivatePostTradeOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAffiliateInvitees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateInvitees", args...)
 }
 
-func (this *blofin) PrivatePostTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAffiliateSubInvitees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateSubInvitees", args...)
 }
 
-func (this *blofin) PrivatePostAccountSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAccountSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAffiliateSubAffiliates(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateSubAffiliates", args...)
 }
 
-func (this *blofin) PrivatePostTradeBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetAffiliateInviteesDailyInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateInviteesDailyInfo", args...)
 }
 
-func (this *blofin) PrivatePostTradeOrderTpsl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeOrderTpsl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingInstruments", args...)
 }
 
-func (this *blofin) PrivatePostTradeCancelBatchOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelBatchOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingConfig", args...)
 }
 
-func (this *blofin) PrivatePostTradeCancelTpsl (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeCancelTpsl", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingAccountBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingAccountBalance", args...)
 }
 
-func (this *blofin) PrivatePostTradeClosePosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostTradeClosePosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionsByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingAccountPositionsByOrder", args...)
 }
 
-func (this *blofin) PrivatePostAssetTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAssetTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionsDetailsByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingAccountPositionsDetailsByOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingAccountSetPositionMode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingAccountSetPositionMode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionsByContract(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingAccountPositionsByContract", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingAccountSetLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingAccountSetLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingAccountPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingAccountPositionMode", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradePlaceOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradePlaceOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingAccountLeverageInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingAccountLeverageInfo", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeCancelOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradeCancelOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingTradeOrdersPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingTradeOrdersPending", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradePlaceTpslByContract (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradePlaceTpslByContract", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingTradePendingTpslByContract(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingTradePendingTpslByContract", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeCancelTpslByContract (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradeCancelTpslByContract", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingTradePositionHistoryByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingTradePositionHistoryByOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradePlaceTpslByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradePlaceTpslByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingTradeOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingTradeOrdersHistory", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeCancelTpslByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradeCancelTpslByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetCopytradingTradePendingTpslByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCopytradingTradePendingTpslByOrder", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeClosePositionByOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradeClosePositionByOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetUserQueryApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserQueryApikey", args...)
 }
 
-func (this *blofin) PrivatePostCopytradingTradeClosePositionByContract (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCopytradingTradeClosePositionByContract", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BlofinCore) PrivateGetSpotTradeFillsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeFillsHistory", args...)
+}
+
+func (this *BlofinCore) PrivatePostAssetTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetTransfer", args...)
+}
+
+func (this *BlofinCore) PrivatePostAssetDemoApplyMoney(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetDemoApplyMoney", args...)
+}
+
+func (this *BlofinCore) PrivatePostAccountSetMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSetMarginMode", args...)
+}
+
+func (this *BlofinCore) PrivatePostAccountSetPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSetPositionMode", args...)
+}
+
+func (this *BlofinCore) PrivatePostAccountSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountSetLeverage", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeBatchOrders", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeOrderTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeOrderTpsl", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeOrderAlgo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeOrderAlgo", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeCancelOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeCancelBatchOrders", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeCancelTpsl", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeCancelAlgo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeCancelAlgo", args...)
+}
+
+func (this *BlofinCore) PrivatePostTradeClosePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingAccountSetPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingAccountSetPositionMode", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingAccountSetLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingAccountSetLeverage", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradePlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradePlaceOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradeCancelOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradePlaceTpslByContract(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradePlaceTpslByContract", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradeCancelTpslByContract(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradeCancelTpslByContract", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradePlaceTpslByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradePlaceTpslByOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradeCancelTpslByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradeCancelTpslByOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradeClosePositionByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradeClosePositionByOrder", args...)
+}
+
+func (this *BlofinCore) PrivatePostCopytradingTradeClosePositionByContract(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCopytradingTradeClosePositionByContract", args...)
 }

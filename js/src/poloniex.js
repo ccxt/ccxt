@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/poloniex.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, NotSupported, RequestTimeout, AuthenticationError, PermissionDenied, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, OnMaintenance, BadSymbol, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class poloniex
@@ -28,23 +28,24 @@ export default class poloniex extends Exchange {
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': undefined,
+                'margin': undefined, // has but not fully implemented
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': undefined,
+                'cancelOrders': undefined, // not yet implemented, because RL is worse than cancelOrder
                 'createDepositAddress': true,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
-                'createOrders': undefined,
+                'createOrders': undefined, // not yet implemented, because RL is worse than createOrder
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
@@ -61,10 +62,11 @@ export default class poloniex extends Exchange {
                 'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': undefined,
-                'fetchLedger': undefined,
+                'fetchFundingRates': undefined, // has but not implemented
+                'fetchGreeks': false,
+                'fetchLedger': undefined, // has but not implemented
                 'fetchLeverage': true,
-                'fetchLiquidations': undefined,
+                'fetchLiquidations': undefined, // has but not implemented
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -72,6 +74,8 @@ export default class poloniex extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
@@ -88,6 +92,7 @@ export default class poloniex extends Exchange {
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'sandbox': true,
@@ -99,13 +104,13 @@ export default class poloniex extends Exchange {
             'timeframes': {
                 '1m': 'MINUTE_1',
                 '5m': 'MINUTE_5',
-                '10m': 'MINUTE_10',
+                '10m': 'MINUTE_10', // not in swap
                 '15m': 'MINUTE_15',
                 '30m': 'MINUTE_30',
                 '1h': 'HOUR_1',
                 '2h': 'HOUR_2',
                 '4h': 'HOUR_4',
-                '6h': 'HOUR_6',
+                '6h': 'HOUR_6', // not in swap
                 '12h': 'HOUR_12',
                 '1d': 'DAY_1',
                 '3d': 'DAY_3',
@@ -212,7 +217,7 @@ export default class poloniex extends Exchange {
                         'v3/market/allInstruments': 2 / 3,
                         'v3/market/instruments': 2 / 3,
                         'v3/market/orderBook': 2 / 3,
-                        'v3/market/candles': 10,
+                        'v3/market/candles': 10, // candles have differnt RL
                         'v3/market/indexPriceCandlesticks': 10,
                         'v3/market/premiumIndexCandlesticks': 10,
                         'v3/market/markPriceCandlesticks': 10,
@@ -236,7 +241,7 @@ export default class poloniex extends Exchange {
                         'v3/trade/order/trades': 20,
                         'v3/trade/order/history': 20,
                         'v3/trade/position/opens': 20,
-                        'v3/trade/position/history': 20,
+                        'v3/trade/position/history': 20, // todo: method for this
                         'v3/position/leverages': 20,
                         'v3/position/mode': 20,
                     },
@@ -279,8 +284,8 @@ export default class poloniex extends Exchange {
                 'HOT': 'Hotcoin',
                 'ITC': 'Information Coin',
                 'KEY': 'KEYCoin',
-                'MASK': 'NFTX Hashmasks Index',
-                'MEME': 'Degenerator Meme',
+                'MASK': 'NFTX Hashmasks Index', // conflict with Mask Network
+                'MEME': 'Degenerator Meme', // Degenerator Meme migrated to Meme Inu, this exchange still has the old price
                 'PLX': 'ParallaxCoin',
                 'REPV2': 'REP',
                 'STR': 'XLM',
@@ -309,6 +314,11 @@ export default class poloniex extends Exchange {
                     'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRC20': 'TRON',
+                    'TRX': 'TRON',
+                },
+                'networksById': {
+                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
                 },
                 'limits': {
                     'cost': {
@@ -340,12 +350,12 @@ export default class poloniex extends Exchange {
                 'default': {
                     'sandbox': true,
                     'createOrder': {
-                        'marginMode': true,
+                        'marginMode': true, // todo
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -357,7 +367,7 @@ export default class poloniex extends Exchange {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo, only for non-trigger orders
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -385,7 +395,7 @@ export default class poloniex extends Exchange {
                         'symbolRequired': false,
                     },
                     'fetchOrders': undefined,
-                    'fetchClosedOrders': undefined,
+                    'fetchClosedOrders': undefined, // todo implement
                     'fetchOHLCV': {
                         'limit': 500,
                     },
@@ -399,7 +409,7 @@ export default class poloniex extends Exchange {
                         'marginMode': true,
                         'triggerPrice': false,
                         'hedged': true,
-                        'stpMode': true,
+                        'stpMode': true, // todo
                         'marketBuyByCost': false,
                     },
                     'createOrders': {
@@ -444,111 +454,111 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
-                    '500': ExchangeNotAvailable,
-                    '603': RequestTimeout,
-                    '601': BadRequest,
-                    '415': ExchangeError,
-                    '602': ArgumentsRequired,
+                    '500': ExchangeNotAvailable, // Internal System Error
+                    '603': RequestTimeout, // Internal Request Timeout
+                    '601': BadRequest, // Invalid Parameter
+                    '415': ExchangeError, // System Error
+                    '602': ArgumentsRequired, // Missing Required Parameters
                     // Accounts
-                    '21604': BadRequest,
-                    '21600': AuthenticationError,
-                    '21605': AuthenticationError,
-                    '21102': ExchangeError,
-                    '21100': AuthenticationError,
-                    '21704': AuthenticationError,
-                    '21700': BadRequest,
-                    '21705': BadRequest,
-                    '21707': ExchangeError,
-                    '21708': BadRequest,
-                    '21601': AccountSuspended,
-                    '21711': ExchangeError,
-                    '21709': InsufficientFunds,
-                    '250000': ExchangeError,
-                    '250001': BadRequest,
-                    '250002': BadRequest,
-                    '250003': BadRequest,
-                    '250004': BadRequest,
-                    '250005': InsufficientFunds,
-                    '250008': BadRequest,
-                    '250012': ExchangeError,
+                    '21604': BadRequest, // Invalid UserId
+                    '21600': AuthenticationError, // Account Not Found
+                    '21605': AuthenticationError, // Invalid Account Type
+                    '21102': ExchangeError, // Invalid Currency
+                    '21100': AuthenticationError, // Invalid account
+                    '21704': AuthenticationError, // Missing UserId and/or AccountId
+                    '21700': BadRequest, // Error updating accounts
+                    '21705': BadRequest, // Invalid currency type
+                    '21707': ExchangeError, // Internal accounts Error
+                    '21708': BadRequest, // Currency not available to User
+                    '21601': AccountSuspended, // Account locked. Contact support
+                    '21711': ExchangeError, // Currency locked. Contact support
+                    '21709': InsufficientFunds, // Insufficient balance
+                    '250000': ExchangeError, // Transfer error. Try again later
+                    '250001': BadRequest, // Invalid toAccount for transfer
+                    '250002': BadRequest, // Invalid fromAccount for transfer
+                    '250003': BadRequest, // Invalid transfer amount
+                    '250004': BadRequest, // Transfer is not supported
+                    '250005': InsufficientFunds, // Insufficient transfer balance
+                    '250008': BadRequest, // Invalid transfer currency
+                    '250012': ExchangeError, // Futures account is not valid
                     // Trading
-                    '21110': BadRequest,
-                    '10040': BadSymbol,
-                    '10060': ExchangeError,
-                    '10020': BadSymbol,
-                    '10041': BadSymbol,
-                    '21340': OnMaintenance,
-                    '21341': InvalidOrder,
-                    '21342': InvalidOrder,
-                    '21343': InvalidOrder,
-                    '21351': AccountSuspended,
-                    '21352': BadSymbol,
-                    '21353': PermissionDenied,
-                    '21354': PermissionDenied,
-                    '21359': OrderNotFound,
-                    '21360': InvalidOrder,
-                    '24106': BadRequest,
-                    '24201': ExchangeNotAvailable,
+                    '21110': BadRequest, // Invalid quote currency
+                    '10040': BadSymbol, // Invalid symbol
+                    '10060': ExchangeError, // Symbol setup error
+                    '10020': BadSymbol, // Invalid currency
+                    '10041': BadSymbol, // Symbol frozen for trading
+                    '21340': OnMaintenance, // No order creation/cancelation is allowed as Poloniex is in Maintenane Mode
+                    '21341': InvalidOrder, // Post-only orders (type as LIMIT_MAKER) allowed as Poloniex is in Post Only Mode
+                    '21342': InvalidOrder, // Price is higher than highest bid as Poloniex is in Maintenance Mode
+                    '21343': InvalidOrder, // Price is lower than lowest bid as Poloniex is in Maintenance Mode
+                    '21351': AccountSuspended, // Trading for this account is frozen. Contact support
+                    '21352': BadSymbol, // Trading for this currency is frozen
+                    '21353': PermissionDenied, // Trading for US customers is not supported
+                    '21354': PermissionDenied, // Account needs to be verified via email before trading is enabled. Contact support
+                    '21359': OrderNotFound, // { "code" : 21359, "message" : "Order was already canceled or filled." }
+                    '21360': InvalidOrder, // { "code" : 21360, "message" : "Order size exceeds the limit.Please enter a smaller amount and try again." }
+                    '24106': BadRequest, // Invalid market depth
+                    '24201': ExchangeNotAvailable, // Service busy. Try again later
                     // Orders
-                    '21301': OrderNotFound,
-                    '21302': ExchangeError,
-                    '21304': ExchangeError,
-                    '21305': OrderNotFound,
-                    '21307': ExchangeError,
-                    '21309': InvalidOrder,
-                    '21310': InvalidOrder,
-                    '21311': InvalidOrder,
-                    '21312': InvalidOrder,
-                    '21314': InvalidOrder,
-                    '21315': InvalidOrder,
-                    '21317': InvalidOrder,
-                    '21319': InvalidOrder,
-                    '21320': InvalidOrder,
-                    '21321': InvalidOrder,
-                    '21322': InvalidOrder,
-                    '21324': BadRequest,
-                    '21327': InvalidOrder,
-                    '21328': InvalidOrder,
-                    '21330': InvalidOrder,
-                    '21335': InvalidOrder,
-                    '21336': InvalidOrder,
-                    '21337': InvalidOrder,
-                    '21344': InvalidOrder,
-                    '21345': InvalidOrder,
-                    '21346': InvalidOrder,
-                    '21348': InvalidOrder,
-                    '21347': InvalidOrder,
-                    '21349': InvalidOrder,
-                    '21350': InvalidOrder,
-                    '21355': ExchangeError,
-                    '21356': BadRequest,
+                    '21301': OrderNotFound, // Order not found
+                    '21302': ExchangeError, // Batch cancel order error
+                    '21304': ExchangeError, // Order is filled
+                    '21305': OrderNotFound, // Order is canceled
+                    '21307': ExchangeError, // Error during Order Cancelation
+                    '21309': InvalidOrder, // Order price must be greater than 0
+                    '21310': InvalidOrder, // Order price must be less than max price
+                    '21311': InvalidOrder, // Order price must be greater than min price
+                    '21312': InvalidOrder, // Client orderId already exists
+                    '21314': InvalidOrder, // Max limit of open orders (2000) exceeded
+                    '21315': InvalidOrder, // Client orderId exceeded max length of 17 digits
+                    '21317': InvalidOrder, // Amount must be greater than 0
+                    '21319': InvalidOrder, // Invalid order side
+                    '21320': InvalidOrder, // Invalid order type
+                    '21321': InvalidOrder, // Invalid timeInForce value
+                    '21322': InvalidOrder, // Amount is less than minAmount trade limit
+                    '21324': BadRequest, // Invalid account type
+                    '21327': InvalidOrder, // Order pice must be greater than 0
+                    '21328': InvalidOrder, // Order quantity must be greater than 0
+                    '21330': InvalidOrder, // Quantity is less than minQuantity trade limit
+                    '21335': InvalidOrder, // Invalid priceScale for this symbol
+                    '21336': InvalidOrder, // Invalid quantityScale for this symbol
+                    '21337': InvalidOrder, // Invalid amountScale for this symbol
+                    '21344': InvalidOrder, // Value of limit param is greater than max value of 100
+                    '21345': InvalidOrder, // Value of limit param value must be greater than 0
+                    '21346': InvalidOrder, // Order Id must be of type Long
+                    '21348': InvalidOrder, // Order type must be LIMIT_MAKER
+                    '21347': InvalidOrder, // Stop price must be greater than 0
+                    '21349': InvalidOrder, // Order value is too large
+                    '21350': InvalidOrder, // Amount must be greater than 1 USDT
+                    '21355': ExchangeError, // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
+                    '21356': BadRequest, // Order size would cause too much price movement. Reduce order size.
                     '21721': InsufficientFunds,
-                    '24101': BadSymbol,
-                    '24102': InvalidOrder,
-                    '24103': InvalidOrder,
-                    '24104': InvalidOrder,
-                    '24105': InvalidOrder,
-                    '25020': InvalidOrder,
+                    '24101': BadSymbol, // Invalid symbol
+                    '24102': InvalidOrder, // Invalid K-line type
+                    '24103': InvalidOrder, // Invalid endTime
+                    '24104': InvalidOrder, // Invalid amount
+                    '24105': InvalidOrder, // Invalid startTime
+                    '25020': InvalidOrder, // No active kill switch
                     // Smartorders
-                    '25000': InvalidOrder,
-                    '25001': InvalidOrder,
-                    '25002': InvalidOrder,
-                    '25003': ExchangeError,
-                    '25004': InvalidOrder,
-                    '25005': ExchangeError,
-                    '25006': InvalidOrder,
-                    '25007': InvalidOrder,
-                    '25008': InvalidOrder,
-                    '25009': ExchangeError,
-                    '25010': PermissionDenied,
-                    '25011': InvalidOrder,
-                    '25012': ExchangeError,
-                    '25013': OrderNotFound,
-                    '25014': OrderNotFound,
-                    '25015': OrderNotFound,
-                    '25016': ExchangeError,
-                    '25017': ExchangeError,
-                    '25018': BadRequest,
+                    '25000': InvalidOrder, // Invalid userId
+                    '25001': InvalidOrder, // Invalid parameter
+                    '25002': InvalidOrder, // Invalid userId.
+                    '25003': ExchangeError, // Unable to place order
+                    '25004': InvalidOrder, // Client orderId already exists
+                    '25005': ExchangeError, // Unable to place smart order
+                    '25006': InvalidOrder, // OrderId and clientOrderId already exists
+                    '25007': InvalidOrder, // Invalid orderid
+                    '25008': InvalidOrder, // Both orderId and clientOrderId are required
+                    '25009': ExchangeError, // Failed to cancel order
+                    '25010': PermissionDenied, // Unauthorized to cancel order
+                    '25011': InvalidOrder, // Failed to cancel due to invalid paramters
+                    '25012': ExchangeError, // Failed to cancel
+                    '25013': OrderNotFound, // Failed to cancel as orders were not found
+                    '25014': OrderNotFound, // Failed to cancel as smartorders were not found
+                    '25015': OrderNotFound, // Failed to cancel as no orders exist
+                    '25016': ExchangeError, // Failed to cancel as unable to release funds
+                    '25017': ExchangeError, // No orders were canceled
+                    '25018': BadRequest, // Invalid accountType
                     '25019': BadSymbol, // Invalid symbol
                 },
                 'broad': {},
@@ -913,6 +923,7 @@ export default class poloniex extends Exchange {
         if (alias !== undefined) {
             type = 'future';
         }
+        const marketType = (type === 'future') ? 'future' : 'swap';
         return {
             'id': id,
             'symbol': symbol,
@@ -922,7 +933,7 @@ export default class poloniex extends Exchange {
             'baseId': baseId,
             'quoteId': quoteId,
             'settleId': settleId,
-            'type': (type === 'future') ? 'future' : 'swap',
+            'type': marketType,
             'spot': false,
             'margin': false,
             'swap': type === 'swap',
@@ -1063,7 +1074,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -1143,139 +1154,91 @@ export default class poloniex extends Exchange {
      * @method
      * @name poloniex#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
+     * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currencyv2-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies(params = {}) {
-        const response = await this.publicGetCurrencies(this.extend(params, { 'includeMultiChainCurrencies': true }));
+        const response = await this.publicGetV2Currencies(params);
         //
-        //     [
-        //         {
-        //             "1CR": {
-        //                 "id": 1,
-        //                 "name": "1CRedit",
-        //                 "description": "BTC Clone",
-        //                 "type": "address",
-        //                 "withdrawalFee": "0.01000000",
-        //                 "minConf": 10000,
-        //                 "depositAddress": null,
-        //                 "blockchain": "1CR",
-        //                 "delisted": false,
-        //                 "tradingState": "NORMAL",
-        //                 "walletState": "DISABLED",
-        //                 "walletDepositState": "DISABLED",
-        //                 "walletWithdrawalState": "DISABLED",
-        //                 "parentChain": null,
-        //                 "isMultiChain": false,
-        //                 "isChildChain": false,
-        //                 "childChains": []
-        //             }
-        //         }
-        //     ]
+        //    [
+        //        {
+        //            "id": 668,
+        //            "coin": "ADA",
+        //            "delisted": false,
+        //            "tradeEnable": true,
+        //            "name": "Cardano",
+        //            "networkList": [
+        //                {
+        //                    "id": 668,
+        //                    "coin": "ADA",
+        //                    "name": "Cardano",
+        //                    "currencyType": "address",
+        //                    "blockchain": "ADA",
+        //                    "withdrawalEnable": true,
+        //                    "depositEnable": true,
+        //                    "depositAddress": null,
+        //                    "withdrawMin": "5.00000000",
+        //                    "decimals": 6,
+        //                    "withdrawFee": "3.00000000",
+        //                    "minConfirm": 30,
+        //                    "contractAddress": null
+        //                }
+        //            ],
+        //            "supportCollateral": false,
+        //            "supportBorrow": false
+        //        },
         //
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const item = this.safeValue(response, i);
-            const ids = Object.keys(item);
-            const id = this.safeValue(ids, 0);
-            const currency = this.safeValue(item, id);
-            const code = this.safeCurrencyCode(id);
-            const name = this.safeString(currency, 'name');
-            const networkId = this.safeString(currency, 'blockchain');
-            let networkCode = undefined;
-            if (networkId !== undefined) {
-                networkCode = this.networkIdToCode(networkId, code);
-            }
-            const delisted = this.safeValue(currency, 'delisted');
-            const walletEnabled = this.safeString(currency, 'walletState') === 'ENABLED';
-            const depositEnabled = this.safeString(currency, 'walletDepositState') === 'ENABLED';
-            const withdrawEnabled = this.safeString(currency, 'walletWithdrawalState') === 'ENABLED';
-            const active = !delisted && walletEnabled && depositEnabled && withdrawEnabled;
-            const numericId = this.safeInteger(currency, 'id');
-            const feeString = this.safeString(currency, 'withdrawalFee');
-            const parentChain = this.safeValue(currency, 'parentChain');
-            const noParentChain = parentChain === undefined;
-            if (this.safeValue(result, code) === undefined) {
-                result[code] = {
-                    'id': id,
-                    'code': code,
-                    'info': undefined,
-                    'name': name,
-                    'active': active,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'fee': this.parseNumber(feeString),
-                    'precision': undefined,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+        return this.parseCurrencies(response);
+    }
+    parseCurrency(currency) {
+        const entry = currency;
+        const id = this.safeString(entry, 'coin');
+        const code = this.safeCurrencyCode(id);
+        const networks = {};
+        const chains = this.safeList(entry, 'networkList', []);
+        const chainsLength = chains.length;
+        for (let j = 0; j < chainsLength; j++) {
+            const chain = chains[j];
+            const chainId = this.safeString(chain, 'blockchain');
+            const networkCode = this.networkIdToCode(chainId, code);
+            networks[networkCode] = {
+                'info': chain,
+                'id': chainId,
+                'name': undefined,
+                'code': networkCode,
+                'active': undefined,
+                'fee': this.safeNumber(chain, 'withdrawFee'),
+                'deposit': this.safeBool(chain, 'depositEnable'),
+                'withdraw': this.safeBool(chain, 'withdrawalEnable'),
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(chain, 'decimals'))),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber(chain, 'withdrawMin'),
+                        'max': undefined,
                     },
-                };
-            }
-            let minFeeString = this.safeString(result[code], 'fee');
-            if (feeString !== undefined) {
-                minFeeString = (minFeeString === undefined) ? feeString : Precise.stringMin(feeString, minFeeString);
-            }
-            let depositAvailable = this.safeValue(result[code], 'deposit');
-            depositAvailable = (depositEnabled) ? depositEnabled : depositAvailable;
-            let withdrawAvailable = this.safeValue(result[code], 'withdraw');
-            withdrawAvailable = (withdrawEnabled) ? withdrawEnabled : withdrawAvailable;
-            const networks = this.safeValue(result[code], 'networks', {});
-            if (networkCode !== undefined) {
-                networks[networkCode] = {
-                    'info': currency,
-                    'id': networkId,
-                    'network': networkCode,
-                    'currencyId': id,
-                    'numericId': numericId,
-                    'deposit': depositEnabled,
-                    'withdraw': withdrawEnabled,
-                    'active': active,
-                    'fee': this.parseNumber(feeString),
-                    'precision': undefined,
-                    'limits': {
-                        'amount': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
                     },
-                };
-            }
-            result[code]['networks'] = networks;
-            const info = this.safeValue(result[code], 'info', []);
-            const rawInfo = {};
-            rawInfo[id] = currency;
-            info.push(rawInfo);
-            result[code]['info'] = info;
-            if (noParentChain) {
-                result[code]['id'] = id;
-                result[code]['name'] = name;
-            }
-            result[code]['active'] = depositAvailable && withdrawAvailable;
-            result[code]['deposit'] = depositAvailable;
-            result[code]['withdraw'] = withdrawAvailable;
-            result[code]['fee'] = this.parseNumber(minFeeString);
+                },
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'name': this.safeString(entry, 'name'),
+            'code': code,
+            'type': undefined,
+            'precision': undefined,
+            'info': entry,
+            'networks': networks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'limits': undefined,
+            'margin': this.safeBool(entry, 'supportBorrow'),
+        });
     }
     /**
      * @method
@@ -1285,7 +1248,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-market-info
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
         await this.loadMarkets();
@@ -1446,7 +1409,7 @@ export default class poloniex extends Exchange {
             'datetime': this.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': this.safeStringLower2(trade, 'ordType', 'type'),
+            'type': this.safeStringLower2(trade, 'ordType', 'type'), // ordType should take precedence
             'side': side,
             'takerOrMaker': this.safeStringLower2(trade, 'matchRole', 'role'),
             'price': priceString,
@@ -1465,7 +1428,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1523,7 +1486,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1552,7 +1515,7 @@ export default class poloniex extends Exchange {
             request['limit'] = limit;
         }
         if (isContract && symbol !== undefined) {
-            request['symbol'] = market['id'];
+            request['symbol'] = this.safeString(market, 'id');
         }
         [request, params] = this.handleUntilOption(endKey, request, params);
         if (isContract) {
@@ -1836,7 +1799,7 @@ export default class poloniex extends Exchange {
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -1854,8 +1817,8 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        let response = undefined;
-        if (!market['spot']) {
+        let response = [];
+        if (marketType !== 'spot') {
             const raw = await this.swapPrivateGetV3TradeOrderOpens(this.extend(request, params));
             //
             //    {
@@ -1896,7 +1859,7 @@ export default class poloniex extends Exchange {
             //                "qCcy": "USDT"
             //            },
             //
-            response = this.safeList(raw, 'data');
+            response = this.safeList(raw, 'data', []);
         }
         else if (isTrigger) {
             response = await this.privateGetSmartorders(this.extend(request, params));
@@ -1940,7 +1903,7 @@ export default class poloniex extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2020,7 +1983,7 @@ export default class poloniex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2034,13 +1997,13 @@ export default class poloniex extends Exchange {
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
-        let response = undefined;
+        let response = {};
         if (market['swap'] || market['future']) {
             const responseInitial = await this.swapPrivatePostV3TradeOrder(this.extend(request, params));
             //
             // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             //
-            response = this.safeDict(responseInitial, 'data');
+            response = this.safeDict(responseInitial, 'data', {});
         }
         else if (triggerPrice !== undefined) {
             response = await this.privatePostSmartorders(this.extend(request, params));
@@ -2152,7 +2115,7 @@ export default class poloniex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets();
@@ -2166,7 +2129,7 @@ export default class poloniex extends Exchange {
         };
         const triggerPrice = this.safeNumber2(params, 'stopPrice', 'triggerPrice');
         [request, params] = this.orderRequest(symbol, type, side, amount, request, price, params);
-        let response = undefined;
+        let response = {};
         if (triggerPrice !== undefined) {
             response = await this.privatePutSmartordersId(this.extend(request, params));
         }
@@ -2196,7 +2159,7 @@ export default class poloniex extends Exchange {
         // @param {string} symbol unified symbol of the market the order was made in
         // @param {object} [params] extra parameters specific to the exchange API endpoint
         // @param {boolean} [params.trigger] true if canceling a trigger order
-        // @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        // @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
         //
         await this.loadMarkets();
         if (symbol === undefined) {
@@ -2218,7 +2181,7 @@ export default class poloniex extends Exchange {
             //        }
             //    }
             //
-            return this.parseOrder(this.safeDict(raw, 'data'));
+            return this.parseOrder(this.safeDict(raw, 'data', {}));
         }
         const clientOrderId = this.safeValue(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -2227,7 +2190,7 @@ export default class poloniex extends Exchange {
         request['id'] = id;
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['clientOrderId', 'trigger', 'stop']);
-        let response = undefined;
+        let response = {};
         if (isTrigger) {
             response = await this.privateDeleteSmartordersId(this.extend(request, params));
         }
@@ -2255,7 +2218,7 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if canceling trigger orders
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -2270,7 +2233,7 @@ export default class poloniex extends Exchange {
                 market['id'],
             ];
         }
-        let response = undefined;
+        let response = [];
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('cancelAllOrders', market, params);
         if (marketType === 'swap' || marketType === 'future') {
@@ -2289,7 +2252,7 @@ export default class poloniex extends Exchange {
             //        ]
             //    }
             //
-            response = this.safeList(raw, 'data');
+            response = this.safeList(raw, 'data', []);
             return this.parseOrders(response, market);
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
@@ -2329,7 +2292,7 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] true if fetching a trigger order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         await this.loadMarkets();
@@ -2349,7 +2312,7 @@ export default class poloniex extends Exchange {
         }
         const isTrigger = this.safeValue2(params, 'trigger', 'stop');
         params = this.omit(params, ['trigger', 'stop']);
-        let response = undefined;
+        let response = {};
         if (isTrigger) {
             response = await this.privateGetSmartordersId(this.extend(request, params));
             response = this.safeValue(response, 0);
@@ -2398,7 +2361,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2475,7 +2438,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/private/account#all-account-balances
      * @see https://api-docs.poloniex.com/v3/futures/api/account/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         await this.loadMarkets();
@@ -2551,7 +2514,7 @@ export default class poloniex extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://api-docs.poloniex.com/spot/api/private/account#fee-info
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
         await this.loadMarkets();
@@ -2587,7 +2550,7 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2626,7 +2589,7 @@ export default class poloniex extends Exchange {
         //         "scale" : "-1",
         //         "asks" : [ "23139.82", "0.317981", "23140", "0.191091", "23170.06", "0.01", "23200", "0.107758", "23230.55", "0.01", "23247.2", "0.154", "23254", "0.005121", "23263", "0.038", "23285.4", "0.308", "23300", "0.108896" ],
         //         "bids" : [ "23139.74", "0.432092", "23139.73", "0.198592", "23123.21", "0.000886", "23123.2", "0.308", "23121.4", "0.154", "23105", "0.000789", "23100", "0.078175", "23069.1", "0.026276", "23068.83", "0.001329", "23051", "0.000048" ],
-        //         "ts" : 1659695219513
+        //         "ts" : 1659695219512
         //     }
         //
         const timestamp = this.safeInteger(response, 'time');
@@ -2664,49 +2627,19 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit(params, 'network');
-        }
-        else {
-            if (currency['id'] === 'USDT') {
-                throw new ArgumentsRequired(this.id + ' createDepositAddress requires a network parameter for ' + code + '.');
-            }
-        }
+        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
+        params = extraParams;
         const response = await this.privatePostWalletsAddress(this.extend(request, params));
         //
         //     {
         //         "address" : "0xfxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxf"
         //     }
         //
-        let address = this.safeString(response, 'address');
-        let tag = undefined;
-        this.checkAddress(address);
-        if (currency !== undefined) {
-            const depositAddress = this.safeString(currency['info'], 'depositAddress');
-            if (depositAddress !== undefined) {
-                tag = address;
-                address = depositAddress;
-            }
-        }
-        return {
-            'currency': code,
-            'address': address,
-            'tag': tag,
-            'network': network,
-            'info': response,
-        };
+        return this.parseDepositAddressSpecial(response, currency, networkEntry);
     }
     /**
      * @method
@@ -2715,37 +2648,59 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
-            'currency': currency['id'],
-        };
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit(params, 'network');
-        }
-        else {
-            if (currency['id'] === 'USDT') {
-                throw new ArgumentsRequired(this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
-            }
-        }
+        const [request, extraParams, currency, networkEntry] = this.prepareRequestForDepositAddress(code, params);
+        params = extraParams;
         const response = await this.privateGetWalletsAddresses(this.extend(request, params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        let address = this.safeString(response, request['currency']);
+        const keys = Object.keys(response);
+        const length = keys.length;
+        if (length < 1) {
+            throw new ExchangeError(this.id + ' fetchDepositAddress() returned an empty response, you might need to try "createDepositAddress" at first and then use "fetchDepositAddress"');
+        }
+        return this.parseDepositAddressSpecial(response, currency, networkEntry);
+    }
+    prepareRequestForDepositAddress(code, params = {}) {
+        if (!(code in this.currencies)) {
+            throw new BadSymbol(this.id + ' fetchDepositAddress(): can not recognize ' + code + ' currency, you might try using unified currency-code and add provide specific "network" parameter, like: fetchDepositAddress("USDT", { "network": "TRC20" })');
+        }
+        const currency = this.currency(code);
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            // we need to know the network to find out the currency-junction
+            throw new ArgumentsRequired(this.id + ' fetchDepositAddress requires a network parameter for ' + code + '.');
+        }
+        let exchangeNetworkId = undefined;
+        networkCode = this.networkIdToCode(networkCode, code);
+        const networkEntry = this.safeDict(currency['networks'], networkCode);
+        if (networkEntry !== undefined) {
+            exchangeNetworkId = networkEntry['id'];
+        }
+        else {
+            exchangeNetworkId = networkCode;
+        }
+        const request = {
+            'currency': exchangeNetworkId,
+        };
+        return [request, params, currency, networkEntry];
+    }
+    parseDepositAddressSpecial(response, currency, networkEntry) {
+        let address = this.safeString(response, 'address');
+        if (address === undefined) {
+            address = this.safeString(response, networkEntry['id']);
+        }
         let tag = undefined;
         this.checkAddress(address);
-        if (currency !== undefined) {
-            const depositAddress = this.safeString(currency['info'], 'depositAddress');
+        if (networkEntry !== undefined) {
+            const depositAddress = this.safeString(networkEntry['info'], 'depositAddress');
             if (depositAddress !== undefined) {
                 tag = address;
                 address = depositAddress;
@@ -2753,8 +2708,8 @@ export default class poloniex extends Exchange {
         }
         return {
             'info': response,
-            'currency': code,
-            'network': network,
+            'currency': currency['code'],
+            'network': this.safeString(networkEntry, 'network'),
             'address': address,
             'tag': tag,
         };
@@ -2769,7 +2724,7 @@ export default class poloniex extends Exchange {
      * @param {string} fromAccount account to transfer from
      * @param {string} toAccount account to transfer to
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         await this.loadMarkets();
@@ -2819,29 +2774,28 @@ export default class poloniex extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
         const currency = this.currency(code);
         const request = {
-            'currency': currency['id'],
-            'amount': amount,
+            'coin': currency['id'],
+            'amount': this.currencyToPrecision(code, amount),
             'address': address,
         };
+        let networkCode = undefined;
+        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        if (networkCode === undefined) {
+            // we need to know the network to find out the currency-junction
+            throw new ArgumentsRequired(this.id + ' withdraw requires a network parameter for ' + code + '.');
+        }
+        request['network'] = this.networkCodeToId(networkCode, code);
         if (tag !== undefined) {
             request['paymentId'] = tag;
         }
-        const networks = this.safeValue(this.options, 'networks', {});
-        let network = this.safeStringUpper(params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString(networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['currency'] = request['currency'] + network; // when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
-            params = this.omit(params, 'network');
-        }
-        const response = await this.privatePostWalletsWithdraw(this.extend(request, params));
+        const response = await this.privatePostV2WalletsWithdraw(this.extend(request, params));
         //
         //     {
         //         "response": "Withdrew 1.00000000 USDT.",
@@ -2857,7 +2811,7 @@ export default class poloniex extends Exchange {
         const now = this.seconds();
         const start = (since !== undefined) ? this.parseToInt(since / 1000) : now - 10 * year;
         const request = {
-            'start': start,
+            'start': start, // UNIX timestamp, required
             'end': now, // UNIX timestamp, required
         };
         const response = await this.privateGetWalletsActivity(this.extend(request, params));
@@ -2943,7 +2897,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets();
@@ -2968,7 +2922,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.fetchTransactionsHelper(code, since, limit, params);
@@ -2987,7 +2941,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
         await this.loadMarkets();
@@ -3062,7 +3016,7 @@ export default class poloniex extends Exchange {
                     for (let j = 0; j < childChains.length; j++) {
                         let networkId = childChains[j];
                         networkId = networkId.replace(code, '');
-                        const networkCode = this.networkIdToCode(networkId);
+                        const networkCode = this.networkIdToCode(networkId, currency['code']);
                         const networkInfo = this.safeValue(response, networkId);
                         const networkObject = {};
                         const withdrawFee = this.safeNumber(networkInfo, 'withdrawalFee');
@@ -3085,7 +3039,8 @@ export default class poloniex extends Exchange {
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
         const depositWithdrawFee = this.depositWithdrawFee({});
-        depositWithdrawFee['info'][currency['code']] = fee;
+        const currencyCode = this.safeString(currency, 'code');
+        depositWithdrawFee['info'][currencyCode] = fee;
         const networkId = this.safeString(fee, 'blockchain');
         const withdrawFee = this.safeNumber(fee, 'withdrawalFee');
         const withdrawResult = {
@@ -3098,7 +3053,7 @@ export default class poloniex extends Exchange {
         };
         depositWithdrawFee['withdraw'] = withdrawResult;
         depositWithdrawFee['deposit'] = depositResult;
-        const networkCode = this.networkIdToCode(networkId);
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
         depositWithdrawFee['networks'][networkCode] = {
             'withdraw': withdrawResult,
             'deposit': depositResult,
@@ -3114,7 +3069,7 @@ export default class poloniex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         const response = await this.fetchTransactionsHelper(code, since, limit, params);
@@ -3175,6 +3130,10 @@ export default class poloniex extends Exchange {
         //         "withdrawalRequestsId": 33485231
         //     }
         //
+        // if it's being parsed from "withdraw()" method, get the original response
+        if ('withdrawNetworkEntry' in transaction) {
+            transaction = transaction['response'];
+        }
         const timestamp = this.safeTimestamp(transaction, 'timestamp');
         const currencyId = this.safeString(transaction, 'currency');
         const code = this.safeCurrencyCode(currencyId);
@@ -3261,7 +3220,7 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/v3/futures/api/positions/get-leverages
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadMarkets();
@@ -3320,7 +3279,7 @@ export default class poloniex extends Exchange {
         let longLeverage = undefined;
         let marketId = undefined;
         let marginMode = undefined;
-        const data = this.safeList(leverage, 'data');
+        const data = this.safeList(leverage, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             marketId = this.safeString(entry, 'symbol');
@@ -3407,7 +3366,7 @@ export default class poloniex extends Exchange {
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.standard] whether to fetch standard contract positions
-     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
         await this.loadMarkets();
@@ -3580,7 +3539,7 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount the amount of margin to remove
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async reduceMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, -amount, 'reduce', params);
@@ -3592,7 +3551,7 @@ export default class poloniex extends Exchange {
      * @param {string} symbol unified market symbol
      * @param {float} amount amount of margin to add
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     async addMargin(symbol, amount, params = {}) {
         return await this.modifyMarginHelper(symbol, amount, 'add', params);
@@ -3604,6 +3563,9 @@ export default class poloniex extends Exchange {
         let url = this.urls['api']['spot'];
         if (this.inArray(api, ['swapPublic', 'swapPrivate'])) {
             url = this.urls['api']['swap'];
+        }
+        if (method === 'GET' && ('symbol' in params)) {
+            params['symbol'] = this.encodeURIComponent(params['symbol']); // handle symbols like 索拉拉/USDT'
         }
         const query = this.omit(params, this.extractParams(path));
         const implodedPath = this.implodeParams(path, params);

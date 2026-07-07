@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var sha2_js = require('@noble/hashes/sha2.js');
 var tokocrypto$1 = require('./abstract/tokocrypto.js');
 var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -12,12 +14,12 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
  * @class tokocrypto
  * @augments Exchange
  */
-class tokocrypto extends tokocrypto$1 {
+class tokocrypto extends tokocrypto$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'tokocrypto',
             'name': 'Tokocrypto',
-            'countries': ['ID'],
+            'countries': ['ID'], // Indonesia
             'certified': false,
             'pro': false,
             'version': 'v1',
@@ -34,6 +36,8 @@ class tokocrypto extends tokocrypto$1 {
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': undefined,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createDepositAddress': false,
                 'createMarketBuyOrderWithCost': true,
                 'createMarketOrderWithCost': false,
@@ -41,9 +45,12 @@ class tokocrypto extends tokocrypto$1 {
                 'createOrder': true,
                 'createReduceOnlyOrder': undefined,
                 'createStopLimitOrder': true,
+                'createStopLossOrder': false,
                 'createStopMarketOrder': true,
                 'createStopOrder': true,
+                'createTakeProfitOrder': false,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
                 'fetchBorrowInterest': undefined,
@@ -62,9 +69,12 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
                 'fetchIsolatedBorrowRates': false,
@@ -72,23 +82,36 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchLedger': undefined,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
                 'fetchMarketLeverageTiers': 'emulated',
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
+                'fetchMarkPrice': false,
+                'fetchMarkPrices': false,
+                'fetchMySettlementHistory': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -101,6 +124,8 @@ class tokocrypto extends tokocrypto$1 {
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
+                'fetchUnderlyingAssets': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
                 'fetchWithdrawalWhitelist': false,
@@ -176,9 +201,9 @@ class tokocrypto extends tokocrypto$1 {
                         'open/v1/common/time': 1,
                         'open/v1/common/symbols': 1,
                         // all the actual symbols are type 1
-                        'open/v1/market/depth': 1,
-                        'open/v1/market/trades': 1,
-                        'open/v1/market/agg-trades': 1,
+                        'open/v1/market/depth': 1, // when symbol type is not 1
+                        'open/v1/market/trades': 1, // when symbol type is not 1
+                        'open/v1/market/agg-trades': 1, // when symbol type is not 1
                         'open/v1/market/klines': 1, // when symbol type is not 1
                     },
                 },
@@ -206,7 +231,7 @@ class tokocrypto extends tokocrypto$1 {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber('0.0075'),
+                    'taker': this.parseNumber('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                     'maker': this.parseNumber('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
@@ -214,19 +239,19 @@ class tokocrypto extends tokocrypto$1 {
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': true,
-                'defaultTimeInForce': 'GTC',
+                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 // 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'warnOnFetchOpenOrdersWithoutSymbol': true,
                 // 'fetchPositions': 'positionRisk', // or 'account'
-                'recvWindow': 5 * 1000,
-                'timeDifference': 0,
-                'adjustForTimeDifference': false,
+                'recvWindow': 5 * 1000, // 5 sec, binance default
+                'timeDifference': 0, // the difference between system clock and Binance clock
+                'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
                 'newOrderRespType': {
-                    'market': 'FULL',
+                    'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': false,
+                'quoteOrderQty': false, // whether market orders support amounts in quote currency
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
@@ -234,7 +259,7 @@ class tokocrypto extends tokocrypto$1 {
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
+                    'SOL': 'SOL',
                 },
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
@@ -372,222 +397,222 @@ class tokocrypto extends tokocrypto$1 {
             // https://binance-docs.github.io/apidocs/spot/en/#error-codes-2
             'exceptions': {
                 'exact': {
-                    'System is under maintenance.': errors.OnMaintenance,
-                    'System abnormality': errors.ExchangeError,
-                    'You are not authorized to execute this request.': errors.PermissionDenied,
+                    'System is under maintenance.': errors.OnMaintenance, // {"code":1,"msg":"System is under maintenance."}
+                    'System abnormality': errors.ExchangeError, // {"code":-1000,"msg":"System abnormality"}
+                    'You are not authorized to execute this request.': errors.PermissionDenied, // {"msg":"You are not authorized to execute this request."}
                     'API key does not exist': errors.AuthenticationError,
                     'Order would trigger immediately.': errors.OrderImmediatelyFillable,
-                    'Stop price would trigger immediately.': errors.OrderImmediatelyFillable,
-                    'Order would immediately match and take.': errors.OrderImmediatelyFillable,
+                    'Stop price would trigger immediately.': errors.OrderImmediatelyFillable, // {"code":-2010,"msg":"Stop price would trigger immediately."}
+                    'Order would immediately match and take.': errors.OrderImmediatelyFillable, // {"code":-2010,"msg":"Order would immediately match and take."}
                     'Account has insufficient balance for requested action.': errors.InsufficientFunds,
                     'Rest API trading is not enabled.': errors.ExchangeNotAvailable,
-                    "You don't have permission.": errors.PermissionDenied,
-                    'Market is closed.': errors.ExchangeNotAvailable,
-                    'Too many requests. Please try again later.': errors.DDoSProtection,
-                    'This action disabled is on this account.': errors.AccountSuspended,
-                    '-1000': errors.ExchangeNotAvailable,
-                    '-1001': errors.ExchangeNotAvailable,
-                    '-1002': errors.AuthenticationError,
-                    '-1003': errors.RateLimitExceeded,
-                    '-1004': errors.DDoSProtection,
-                    '-1005': errors.PermissionDenied,
-                    '-1006': errors.BadResponse,
-                    '-1007': errors.RequestTimeout,
-                    '-1010': errors.BadResponse,
-                    '-1011': errors.PermissionDenied,
-                    '-1013': errors.InvalidOrder,
-                    '-1014': errors.InvalidOrder,
-                    '-1015': errors.RateLimitExceeded,
-                    '-1016': errors.ExchangeNotAvailable,
-                    '-1020': errors.BadRequest,
-                    '-1021': errors.InvalidNonce,
-                    '-1022': errors.AuthenticationError,
-                    '-1023': errors.BadRequest,
-                    '-1099': errors.AuthenticationError,
-                    '-1100': errors.BadRequest,
-                    '-1101': errors.BadRequest,
-                    '-1102': errors.BadRequest,
-                    '-1103': errors.BadRequest,
-                    '-1104': errors.BadRequest,
-                    '-1105': errors.BadRequest,
-                    '-1106': errors.BadRequest,
-                    '-1108': errors.BadRequest,
-                    '-1109': errors.AuthenticationError,
-                    '-1110': errors.BadRequest,
-                    '-1111': errors.BadRequest,
-                    '-1112': errors.InvalidOrder,
-                    '-1113': errors.BadRequest,
-                    '-1114': errors.BadRequest,
-                    '-1115': errors.BadRequest,
-                    '-1116': errors.BadRequest,
-                    '-1117': errors.BadRequest,
-                    '-1118': errors.BadRequest,
-                    '-1119': errors.BadRequest,
-                    '-1120': errors.BadRequest,
-                    '-1121': errors.BadSymbol,
-                    '-1125': errors.AuthenticationError,
-                    '-1127': errors.BadRequest,
-                    '-1128': errors.BadRequest,
-                    '-1130': errors.BadRequest,
-                    '-1131': errors.BadRequest,
-                    '-1136': errors.BadRequest,
-                    '-2008': errors.AuthenticationError,
-                    '-2010': errors.ExchangeError,
-                    '-2011': errors.OrderNotFound,
-                    '-2013': errors.OrderNotFound,
-                    '-2014': errors.AuthenticationError,
-                    '-2015': errors.AuthenticationError,
-                    '-2016': errors.BadRequest,
-                    '-2018': errors.InsufficientFunds,
-                    '-2019': errors.InsufficientFunds,
-                    '-2020': errors.OrderNotFillable,
-                    '-2021': errors.OrderImmediatelyFillable,
-                    '-2022': errors.InvalidOrder,
-                    '-2023': errors.InsufficientFunds,
-                    '-2024': errors.InsufficientFunds,
-                    '-2025': errors.InvalidOrder,
-                    '-2026': errors.InvalidOrder,
-                    '-2027': errors.InvalidOrder,
-                    '-2028': errors.InsufficientFunds,
-                    '-3000': errors.ExchangeError,
-                    '-3001': errors.AuthenticationError,
-                    '-3002': errors.BadSymbol,
-                    '-3003': errors.BadRequest,
-                    '-3004': errors.ExchangeError,
-                    '-3005': errors.InsufficientFunds,
-                    '-3006': errors.InsufficientFunds,
-                    '-3007': errors.ExchangeError,
-                    '-3008': errors.InsufficientFunds,
-                    '-3009': errors.BadRequest,
-                    '-3010': errors.ExchangeError,
-                    '-3011': errors.BadRequest,
-                    '-3012': errors.ExchangeError,
-                    '-3013': errors.BadRequest,
-                    '-3014': errors.AccountSuspended,
-                    '-3015': errors.ExchangeError,
-                    '-3016': errors.BadRequest,
-                    '-3017': errors.ExchangeError,
-                    '-3018': errors.AccountSuspended,
-                    '-3019': errors.AccountSuspended,
-                    '-3020': errors.InsufficientFunds,
-                    '-3021': errors.BadRequest,
-                    '-3022': errors.AccountSuspended,
-                    '-3023': errors.BadRequest,
-                    '-3024': errors.ExchangeError,
-                    '-3025': errors.BadRequest,
-                    '-3026': errors.BadRequest,
-                    '-3027': errors.BadSymbol,
-                    '-3028': errors.BadSymbol,
-                    '-3029': errors.ExchangeError,
-                    '-3036': errors.AccountSuspended,
-                    '-3037': errors.ExchangeError,
-                    '-3038': errors.BadRequest,
-                    '-3041': errors.InsufficientFunds,
-                    '-3042': errors.BadRequest,
-                    '-3043': errors.BadRequest,
-                    '-3044': errors.DDoSProtection,
-                    '-3045': errors.ExchangeError,
-                    '-3999': errors.ExchangeError,
-                    '-4001': errors.BadRequest,
-                    '-4002': errors.BadRequest,
-                    '-4003': errors.BadRequest,
-                    '-4004': errors.AuthenticationError,
-                    '-4005': errors.RateLimitExceeded,
-                    '-4006': errors.BadRequest,
-                    '-4007': errors.BadRequest,
-                    '-4008': errors.BadRequest,
-                    '-4010': errors.BadRequest,
-                    '-4011': errors.BadRequest,
-                    '-4012': errors.BadRequest,
-                    '-4013': errors.AuthenticationError,
-                    '-4014': errors.PermissionDenied,
-                    '-4015': errors.ExchangeError,
-                    '-4016': errors.PermissionDenied,
-                    '-4017': errors.PermissionDenied,
-                    '-4018': errors.BadSymbol,
-                    '-4019': errors.BadSymbol,
-                    '-4021': errors.BadRequest,
-                    '-4022': errors.BadRequest,
-                    '-4023': errors.ExchangeError,
-                    '-4024': errors.InsufficientFunds,
-                    '-4025': errors.InsufficientFunds,
-                    '-4026': errors.InsufficientFunds,
-                    '-4027': errors.ExchangeError,
-                    '-4028': errors.BadRequest,
-                    '-4029': errors.BadRequest,
-                    '-4030': errors.ExchangeError,
-                    '-4031': errors.ExchangeError,
-                    '-4032': errors.ExchangeError,
-                    '-4033': errors.BadRequest,
-                    '-4034': errors.ExchangeError,
-                    '-4035': errors.PermissionDenied,
-                    '-4036': errors.BadRequest,
-                    '-4037': errors.ExchangeError,
-                    '-4038': errors.ExchangeError,
-                    '-4039': errors.BadRequest,
-                    '-4040': errors.BadRequest,
-                    '-4041': errors.ExchangeError,
-                    '-4042': errors.ExchangeError,
-                    '-4043': errors.BadRequest,
-                    '-4044': errors.BadRequest,
-                    '-4045': errors.ExchangeError,
-                    '-4046': errors.AuthenticationError,
-                    '-4047': errors.BadRequest,
-                    '-5001': errors.BadRequest,
-                    '-5002': errors.InsufficientFunds,
-                    '-5003': errors.InsufficientFunds,
-                    '-5004': errors.BadRequest,
-                    '-5005': errors.InsufficientFunds,
-                    '-5006': errors.BadRequest,
-                    '-5007': errors.BadRequest,
-                    '-5008': errors.InsufficientFunds,
-                    '-5009': errors.BadRequest,
-                    '-5010': errors.ExchangeError,
-                    '-5011': errors.BadRequest,
-                    '-5012': errors.ExchangeError,
-                    '-5013': errors.InsufficientFunds,
-                    '-5021': errors.BadRequest,
-                    '-6001': errors.BadRequest,
-                    '-6003': errors.BadRequest,
-                    '-6004': errors.ExchangeError,
-                    '-6005': errors.InvalidOrder,
-                    '-6006': errors.BadRequest,
-                    '-6007': errors.BadRequest,
-                    '-6008': errors.BadRequest,
-                    '-6009': errors.RateLimitExceeded,
-                    '-6011': errors.BadRequest,
-                    '-6012': errors.InsufficientFunds,
-                    '-6013': errors.ExchangeError,
-                    '-6014': errors.BadRequest,
-                    '-6015': errors.BadRequest,
-                    '-6016': errors.BadRequest,
-                    '-6017': errors.BadRequest,
-                    '-6018': errors.BadRequest,
-                    '-6019': errors.AuthenticationError,
-                    '-6020': errors.BadRequest,
-                    '-7001': errors.BadRequest,
-                    '-7002': errors.BadRequest,
-                    '-9000': errors.InsufficientFunds,
-                    '-10017': errors.BadRequest,
-                    '-11008': errors.InsufficientFunds,
-                    '-12014': errors.RateLimitExceeded,
-                    '-13000': errors.BadRequest,
-                    '-13001': errors.BadRequest,
-                    '-13002': errors.BadRequest,
-                    '-13003': errors.BadRequest,
-                    '-13004': errors.BadRequest,
-                    '-13005': errors.BadRequest,
-                    '-13006': errors.InvalidOrder,
-                    '-13007': errors.AuthenticationError,
-                    '-21001': errors.BadRequest,
-                    '-21002': errors.BadRequest,
-                    '-21003': errors.BadRequest,
-                    '100001003': errors.BadRequest,
-                    '2202': errors.InsufficientFunds,
-                    '3210': errors.InvalidOrder,
-                    '3203': errors.InvalidOrder,
-                    '3211': errors.InvalidOrder,
-                    '3207': errors.InvalidOrder,
+                    "You don't have permission.": errors.PermissionDenied, // {"msg":"You don't have permission.","success":false}
+                    'Market is closed.': errors.ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
+                    'Too many requests. Please try again later.': errors.DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
+                    'This action disabled is on this account.': errors.AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
+                    '-1000': errors.ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
+                    '-1001': errors.ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
+                    '-1002': errors.AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
+                    '-1003': errors.RateLimitExceeded, // {"code":-1003,"msg":"Too much request weight used, current limit is 1200 request weight per 1 MINUTE. Please use the websocket for live updates to avoid polling the API."}
+                    '-1004': errors.DDoSProtection, // {"code":-1004,"msg":"Server is busy, please wait and try again"}
+                    '-1005': errors.PermissionDenied, // {"code":-1005,"msg":"No such IP has been white listed"}
+                    '-1006': errors.BadResponse, // {"code":-1006,"msg":"An unexpected response was received from the message bus. Execution status unknown."}
+                    '-1007': errors.RequestTimeout, // {"code":-1007,"msg":"Timeout waiting for response from backend server. Send status unknown; execution status unknown."}
+                    '-1010': errors.BadResponse, // {"code":-1010,"msg":"ERROR_MSG_RECEIVED."}
+                    '-1011': errors.PermissionDenied, // {"code":-1011,"msg":"This IP cannot access this route."}
+                    '-1013': errors.InvalidOrder, // {"code":-1013,"msg":"createOrder -> 'invalid quantity'/'invalid price'/MIN_NOTIONAL"}
+                    '-1014': errors.InvalidOrder, // {"code":-1014,"msg":"Unsupported order combination."}
+                    '-1015': errors.RateLimitExceeded, // {"code":-1015,"msg":"'Too many new orders; current limit is %s orders per %s.'"}
+                    '-1016': errors.ExchangeNotAvailable, // {"code":-1016,"msg":"'This service is no longer available.',"}
+                    '-1020': errors.BadRequest, // {"code":-1020,"msg":"'This operation is not supported.'"}
+                    '-1021': errors.InvalidNonce, // {"code":-1021,"msg":"'your time is ahead of server'"}
+                    '-1022': errors.AuthenticationError, // {"code":-1022,"msg":"Signature for this request is not valid."}
+                    '-1023': errors.BadRequest, // {"code":-1023,"msg":"Start time is greater than end time."}
+                    '-1099': errors.AuthenticationError, // {"code":-1099,"msg":"Not found, authenticated, or authorized"}
+                    '-1100': errors.BadRequest, // {"code":-1100,"msg":"createOrder(symbol, 1, asdf) -> 'Illegal characters found in parameter 'price'"}
+                    '-1101': errors.BadRequest, // {"code":-1101,"msg":"Too many parameters; expected %s and received %s."}
+                    '-1102': errors.BadRequest, // {"code":-1102,"msg":"Param %s or %s must be sent, but both were empty"}
+                    '-1103': errors.BadRequest, // {"code":-1103,"msg":"An unknown parameter was sent."}
+                    '-1104': errors.BadRequest, // {"code":-1104,"msg":"Not all sent parameters were read, read 8 parameters but was sent 9"}
+                    '-1105': errors.BadRequest, // {"code":-1105,"msg":"Parameter %s was empty."}
+                    '-1106': errors.BadRequest, // {"code":-1106,"msg":"Parameter %s sent when not required."}
+                    '-1108': errors.BadRequest, // {"code":-1108,"msg":"Invalid asset."}
+                    '-1109': errors.AuthenticationError, // {"code":-1109,"msg":"Invalid account."}
+                    '-1110': errors.BadRequest, // {"code":-1110,"msg":"Invalid symbolType."}
+                    '-1111': errors.BadRequest, // {"code":-1111,"msg":"Precision is over the maximum defined for this asset."}
+                    '-1112': errors.InvalidOrder, // {"code":-1112,"msg":"No orders on book for symbol."}
+                    '-1113': errors.BadRequest, // {"code":-1113,"msg":"Withdrawal amount must be negative."}
+                    '-1114': errors.BadRequest, // {"code":-1114,"msg":"TimeInForce parameter sent when not required."}
+                    '-1115': errors.BadRequest, // {"code":-1115,"msg":"Invalid timeInForce."}
+                    '-1116': errors.BadRequest, // {"code":-1116,"msg":"Invalid orderType."}
+                    '-1117': errors.BadRequest, // {"code":-1117,"msg":"Invalid side."}
+                    '-1118': errors.BadRequest, // {"code":-1118,"msg":"New client order ID was empty."}
+                    '-1119': errors.BadRequest, // {"code":-1119,"msg":"Original client order ID was empty."}
+                    '-1120': errors.BadRequest, // {"code":-1120,"msg":"Invalid interval."}
+                    '-1121': errors.BadSymbol, // {"code":-1121,"msg":"Invalid symbol."}
+                    '-1125': errors.AuthenticationError, // {"code":-1125,"msg":"This listenKey does not exist."}
+                    '-1127': errors.BadRequest, // {"code":-1127,"msg":"More than %s hours between startTime and endTime."}
+                    '-1128': errors.BadRequest, // {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
+                    '-1130': errors.BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
+                    '-1131': errors.BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                    '-1136': errors.BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
+                    '-2008': errors.AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
+                    '-2010': errors.ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
+                    '-2011': errors.OrderNotFound, // {"code":-2011,"msg":"cancelOrder(1, 'BTC/USDT') -> 'UNKNOWN_ORDER'"}
+                    '-2013': errors.OrderNotFound, // {"code":-2013,"msg":"fetchOrder (1, 'BTC/USDT') -> 'Order does not exist'"}
+                    '-2014': errors.AuthenticationError, // {"code":-2014,"msg":"API-key format invalid."}
+                    '-2015': errors.AuthenticationError, // {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+                    '-2016': errors.BadRequest, // {"code":-2016,"msg":"No trading window could be found for the symbol. Try ticker/24hrs instead."}
+                    '-2018': errors.InsufficientFunds, // {"code":-2018,"msg":"Balance is insufficient"}
+                    '-2019': errors.InsufficientFunds, // {"code":-2019,"msg":"Margin is insufficient."}
+                    '-2020': errors.OrderNotFillable, // {"code":-2020,"msg":"Unable to fill."}
+                    '-2021': errors.OrderImmediatelyFillable, // {"code":-2021,"msg":"Order would immediately trigger."}
+                    '-2022': errors.InvalidOrder, // {"code":-2022,"msg":"ReduceOnly Order is rejected."}
+                    '-2023': errors.InsufficientFunds, // {"code":-2023,"msg":"User in liquidation mode now."}
+                    '-2024': errors.InsufficientFunds, // {"code":-2024,"msg":"Position is not sufficient."}
+                    '-2025': errors.InvalidOrder, // {"code":-2025,"msg":"Reach max open order limit."}
+                    '-2026': errors.InvalidOrder, // {"code":-2026,"msg":"This OrderType is not supported when reduceOnly."}
+                    '-2027': errors.InvalidOrder, // {"code":-2027,"msg":"Exceeded the maximum allowable position at current leverage."}
+                    '-2028': errors.InsufficientFunds, // {"code":-2028,"msg":"Leverage is smaller than permitted: insufficient margin balance"}
+                    '-3000': errors.ExchangeError, // {"code":-3000,"msg":"Internal server error."}
+                    '-3001': errors.AuthenticationError, // {"code":-3001,"msg":"Please enable 2FA first."}
+                    '-3002': errors.BadSymbol, // {"code":-3002,"msg":"We don't have this asset."}
+                    '-3003': errors.BadRequest, // {"code":-3003,"msg":"Margin account does not exist."}
+                    '-3004': errors.ExchangeError, // {"code":-3004,"msg":"Trade not allowed."}
+                    '-3005': errors.InsufficientFunds, // {"code":-3005,"msg":"Transferring out not allowed. Transfer out amount exceeds max amount."}
+                    '-3006': errors.InsufficientFunds, // {"code":-3006,"msg":"Your borrow amount has exceed maximum borrow amount."}
+                    '-3007': errors.ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
+                    '-3008': errors.InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
+                    '-3009': errors.BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3010': errors.ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3011': errors.BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
+                    '-3012': errors.ExchangeError, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                    '-3013': errors.BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
+                    '-3014': errors.AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
+                    '-3015': errors.ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3016': errors.BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
+                    '-3017': errors.ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
+                    '-3018': errors.AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
+                    '-3019': errors.AccountSuspended, // {"code":-3019,"msg":"Transferring out has been banned for this account."}
+                    '-3020': errors.InsufficientFunds, // {"code":-3020,"msg":"Transfer out amount exceeds max amount."}
+                    '-3021': errors.BadRequest, // {"code":-3021,"msg":"Margin account are not allowed to trade this trading pair."}
+                    '-3022': errors.AccountSuspended, // {"code":-3022,"msg":"You account's trading is banned."}
+                    '-3023': errors.BadRequest, // {"code":-3023,"msg":"You can't transfer out/place order under current margin level."}
+                    '-3024': errors.ExchangeError, // {"code":-3024,"msg":"The unpaid debt is too small after this repayment."}
+                    '-3025': errors.BadRequest, // {"code":-3025,"msg":"Your input date is invalid."}
+                    '-3026': errors.BadRequest, // {"code":-3026,"msg":"Your input param is invalid."}
+                    '-3027': errors.BadSymbol, // {"code":-3027,"msg":"Not a valid margin asset."}
+                    '-3028': errors.BadSymbol, // {"code":-3028,"msg":"Not a valid margin pair."}
+                    '-3029': errors.ExchangeError, // {"code":-3029,"msg":"Transfer failed."}
+                    '-3036': errors.AccountSuspended, // {"code":-3036,"msg":"This account is not allowed to repay."}
+                    '-3037': errors.ExchangeError, // {"code":-3037,"msg":"PNL is clearing. Wait a second."}
+                    '-3038': errors.BadRequest, // {"code":-3038,"msg":"Listen key not found."}
+                    '-3041': errors.InsufficientFunds, // {"code":-3041,"msg":"Balance is not enough"}
+                    '-3042': errors.BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
+                    '-3043': errors.BadRequest, // {"code":-3043,"msg":"Transferring in not allowed."}
+                    '-3044': errors.DDoSProtection, // {"code":-3044,"msg":"System busy."}
+                    '-3045': errors.ExchangeError, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                    '-3999': errors.ExchangeError, // {"code":-3999,"msg":"This function is only available for invited users."}
+                    '-4001': errors.BadRequest, // {"code":-4001 ,"msg":"Invalid operation."}
+                    '-4002': errors.BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
+                    '-4003': errors.BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
+                    '-4004': errors.AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
+                    '-4005': errors.RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4006': errors.BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
+                    '-4007': errors.BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
+                    '-4008': errors.BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
+                    '-4010': errors.BadRequest, // {"code":-4010 ,"msg":"White list mail has been confirmed."} // [TODO] possible bug: it should probably be "has not been confirmed"
+                    '-4011': errors.BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
+                    '-4012': errors.BadRequest, // {"code":-4012 ,"msg":"White list is not opened."}
+                    '-4013': errors.AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
+                    '-4014': errors.PermissionDenied, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                    '-4015': errors.ExchangeError, // {"code":-4015 ,"msg":"Withdraw is limited."}
+                    '-4016': errors.PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
+                    '-4017': errors.PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
+                    '-4018': errors.BadSymbol, // {"code":-4018,"msg":"We don't have this asset."}
+                    '-4019': errors.BadSymbol, // {"code":-4019,"msg":"Current asset is not open for withdrawal."}
+                    '-4021': errors.BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
+                    '-4022': errors.BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
+                    '-4023': errors.ExchangeError, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                    '-4024': errors.InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
+                    '-4025': errors.InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
+                    '-4026': errors.InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
+                    '-4027': errors.ExchangeError, // {"code":-4027,"msg":"Failed to obtain tranId."}
+                    '-4028': errors.BadRequest, // {"code":-4028,"msg":"The amount of withdrawal must be greater than the Commission."}
+                    '-4029': errors.BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
+                    '-4030': errors.ExchangeError, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
+                    '-4031': errors.ExchangeError, // {"code":-4031,"msg":"Cancellation failed."}
+                    '-4032': errors.ExchangeError, // {"code":-4032,"msg":"Withdraw verification exception."}
+                    '-4033': errors.BadRequest, // {"code":-4033,"msg":"Illegal address."}
+                    '-4034': errors.ExchangeError, // {"code":-4034,"msg":"The address is suspected of fake."}
+                    '-4035': errors.PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
+                    '-4036': errors.BadRequest, // {"code":-4036,"msg":"The new address needs to be withdrawn in {0} hours."}
+                    '-4037': errors.ExchangeError, // {"code":-4037,"msg":"Re-sending Mail failed."}
+                    '-4038': errors.ExchangeError, // {"code":-4038,"msg":"Please try again in 5 minutes."}
+                    '-4039': errors.BadRequest, // {"code":-4039,"msg":"The user does not exist."}
+                    '-4040': errors.BadRequest, // {"code":-4040,"msg":"This address not charged."}
+                    '-4041': errors.ExchangeError, // {"code":-4041,"msg":"Please try again in one minute."}
+                    '-4042': errors.ExchangeError, // {"code":-4042,"msg":"This asset cannot get deposit address again."}
+                    '-4043': errors.BadRequest, // {"code":-4043,"msg":"More than 100 recharge addresses were used in 24 hours."}
+                    '-4044': errors.BadRequest, // {"code":-4044,"msg":"This is a blacklist country."}
+                    '-4045': errors.ExchangeError, // {"code":-4045,"msg":"Failure to acquire assets."}
+                    '-4046': errors.AuthenticationError, // {"code":-4046,"msg":"Agreement not confirmed."}
+                    '-4047': errors.BadRequest, // {"code":-4047,"msg":"Time interval must be within 0-90 days"}
+                    '-5001': errors.BadRequest, // {"code":-5001,"msg":"Don't allow transfer to micro assets."}
+                    '-5002': errors.InsufficientFunds, // {"code":-5002,"msg":"You have insufficient balance."}
+                    '-5003': errors.InsufficientFunds, // {"code":-5003,"msg":"You don't have this asset."}
+                    '-5004': errors.BadRequest, // {"code":-5004,"msg":"The residual balances of %s have exceeded 0.001BTC, Please re-choose."}
+                    '-5005': errors.InsufficientFunds, // {"code":-5005,"msg":"The residual balances of %s is too low, Please re-choose."}
+                    '-5006': errors.BadRequest, // {"code":-5006,"msg":"Only transfer once in 24 hours."}
+                    '-5007': errors.BadRequest, // {"code":-5007,"msg":"Quantity must be greater than zero."}
+                    '-5008': errors.InsufficientFunds, // {"code":-5008,"msg":"Insufficient amount of returnable assets."}
+                    '-5009': errors.BadRequest, // {"code":-5009,"msg":"Product does not exist."}
+                    '-5010': errors.ExchangeError, // {"code":-5010,"msg":"Asset transfer fail."}
+                    '-5011': errors.BadRequest, // {"code":-5011,"msg":"future account not exists."}
+                    '-5012': errors.ExchangeError, // {"code":-5012,"msg":"Asset transfer is in pending."}
+                    '-5013': errors.InsufficientFunds, // {"code":-5013,"msg":"Asset transfer failed: insufficient balance""} // undocumented
+                    '-5021': errors.BadRequest, // {"code":-5021,"msg":"This parent sub have no relation"}
+                    '-6001': errors.BadRequest, // {"code":-6001,"msg":"Daily product not exists."}
+                    '-6003': errors.BadRequest, // {"code":-6003,"msg":"Product not exist or you don't have permission"}
+                    '-6004': errors.ExchangeError, // {"code":-6004,"msg":"Product not in purchase status"}
+                    '-6005': errors.InvalidOrder, // {"code":-6005,"msg":"Smaller than min purchase limit"}
+                    '-6006': errors.BadRequest, // {"code":-6006,"msg":"Redeem amount error"}
+                    '-6007': errors.BadRequest, // {"code":-6007,"msg":"Not in redeem time"}
+                    '-6008': errors.BadRequest, // {"code":-6008,"msg":"Product not in redeem status"}
+                    '-6009': errors.RateLimitExceeded, // {"code":-6009,"msg":"Request frequency too high"}
+                    '-6011': errors.BadRequest, // {"code":-6011,"msg":"Exceeding the maximum num allowed to purchase per user"}
+                    '-6012': errors.InsufficientFunds, // {"code":-6012,"msg":"Balance not enough"}
+                    '-6013': errors.ExchangeError, // {"code":-6013,"msg":"Purchasing failed"}
+                    '-6014': errors.BadRequest, // {"code":-6014,"msg":"Exceed up-limit allowed to purchased"}
+                    '-6015': errors.BadRequest, // {"code":-6015,"msg":"Empty request body"}
+                    '-6016': errors.BadRequest, // {"code":-6016,"msg":"Parameter err"}
+                    '-6017': errors.BadRequest, // {"code":-6017,"msg":"Not in whitelist"}
+                    '-6018': errors.BadRequest, // {"code":-6018,"msg":"Asset not enough"}
+                    '-6019': errors.AuthenticationError, // {"code":-6019,"msg":"Need confirm"}
+                    '-6020': errors.BadRequest, // {"code":-6020,"msg":"Project not exists"}
+                    '-7001': errors.BadRequest, // {"code":-7001,"msg":"Date range is not supported."}
+                    '-7002': errors.BadRequest, // {"code":-7002,"msg":"Data request type is not supported."}
+                    '-9000': errors.InsufficientFunds, // {"code":-9000,"msg":"user have no avaliable amount"}"
+                    '-10017': errors.BadRequest, // {"code":-10017,"msg":"Repay amount should not be larger than liability."}
+                    '-11008': errors.InsufficientFunds, // {"code":-11008,"msg":"Exceeding the account's maximum borrowable limit."} // undocumented
+                    '-12014': errors.RateLimitExceeded, // {"code":-12014,"msg":"More than 1 request in 3 seconds"}
+                    '-13000': errors.BadRequest, // {"code":-13000,"msg":"Redeption of the token is forbiden now"}
+                    '-13001': errors.BadRequest, // {"code":-13001,"msg":"Exceeds individual 24h redemption limit of the token"}
+                    '-13002': errors.BadRequest, // {"code":-13002,"msg":"Exceeds total 24h redemption limit of the token"}
+                    '-13003': errors.BadRequest, // {"code":-13003,"msg":"Subscription of the token is forbiden now"}
+                    '-13004': errors.BadRequest, // {"code":-13004,"msg":"Exceeds individual 24h subscription limit of the token"}
+                    '-13005': errors.BadRequest, // {"code":-13005,"msg":"Exceeds total 24h subscription limit of the token"}
+                    '-13006': errors.InvalidOrder, // {"code":-13006,"msg":"Subscription amount is too small"}
+                    '-13007': errors.AuthenticationError, // {"code":-13007,"msg":"The Agreement is not signed"}
+                    '-21001': errors.BadRequest, // {"code":-21001,"msg":"USER_IS_NOT_UNIACCOUNT"}
+                    '-21002': errors.BadRequest, // {"code":-21002,"msg":"UNI_ACCOUNT_CANT_TRANSFER_FUTURE"}
+                    '-21003': errors.BadRequest, // {"code":-21003,"msg":"NET_ASSET_MUST_LTE_RATIO"}
+                    '100001003': errors.BadRequest, // {"code":100001003,"msg":"Verification failed"} // undocumented
+                    '2202': errors.InsufficientFunds, // {"code":2202,"msg":"Insufficient balance","data":{"code":-2010,"msg":"Account has insufficient balance for requested action."},"timestamp":1662733681161}
+                    '3210': errors.InvalidOrder, // {"code":3210,"msg":"The total volume is too low","data":{"code":-1013,"msg":"Filter failure: MIN_NOTIONAL"},"timestamp":1662734704462}
+                    '3203': errors.InvalidOrder, // {"code":3203,"msg":"Incorrect Order Quantity","timestamp":1662734809758}
+                    '3211': errors.InvalidOrder, // {"code":3211,"msg":"The total volume must be greater than 10","timestamp":1662739358179}
+                    '3207': errors.InvalidOrder, // {"code":3207,"msg":"The price cannot be lower than 12.18","timestamp":1662739502856}
                     '3218': errors.OrderNotFound, // {"code":3218,"msg":"Order does not exist","timestamp":1662739749275}
                 },
                 'broad': {
@@ -603,8 +628,8 @@ class tokocrypto extends tokocrypto$1 {
                         'triggerPrice': true,
                         'triggerDirection': false,
                         'triggerPriceType': undefined,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
@@ -617,15 +642,15 @@ class tokocrypto extends tokocrypto$1 {
                         'leverage': false,
                         'marketBuyByCost': true,
                         'marketBuyRequiresPrice': true,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo
                         'iceberg': true, // todo
                     },
                     'createOrders': undefined,
                     'fetchMyTrades': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'untilDays': 100000, // todo
                         'symbolRequired': true,
                     },
                     'fetchOrder': {
@@ -653,9 +678,9 @@ class tokocrypto extends tokocrypto$1 {
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 1000,
-                        'daysBack': 100000,
-                        'daysBackCanceled': 1,
-                        'untilDays': 100000,
+                        'daysBack': 100000, // todo
+                        'daysBackCanceled': 1, // todo
+                        'untilDays': 100000, // todo
                         'trigger': false,
                         'trailing': false,
                         'symbolRequired': true,
@@ -870,18 +895,20 @@ class tokocrypto extends tokocrypto$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let response = undefined;
+        let response;
         if (market['quote'] === 'USDT') {
-            request['symbol'] = market['baseId'] + market['quoteId'];
+            request['symbol'] = this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', '');
             response = await this.binanceGetDepth(this.extend(request, params));
         }
         else {
@@ -1080,10 +1107,12 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': this.getMarketIdByType(market),
@@ -1252,7 +1281,7 @@ class tokocrypto extends tokocrypto$1 {
             'open': this.safeString(ticker, 'openPrice'),
             'close': last,
             'last': last,
-            'previousClose': this.safeString(ticker, 'prevClosePrice'),
+            'previousClose': this.safeString(ticker, 'prevClosePrice'), // previous day close
             'change': this.safeString(ticker, 'priceChange'),
             'percentage': this.safeString(ticker, 'priceChangePercent'),
             'average': undefined,
@@ -1268,10 +1297,12 @@ class tokocrypto extends tokocrypto$1 {
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.binanceGetTicker24hr(params);
         return this.parseTickers(response, symbols);
     }
@@ -1288,13 +1319,15 @@ class tokocrypto extends tokocrypto$1 {
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
-            'symbol': market['baseId'] + market['quoteId'],
+            'symbol': this.safeString(market, 'baseId', '') + this.safeString(market, 'quoteId', ''),
         };
         const response = await this.binanceGetTicker24hr(this.extend(request, params));
         if (Array.isArray(response)) {
@@ -1310,10 +1343,12 @@ class tokocrypto extends tokocrypto$1 {
      * @description fetches the bid and ask price and volume for multiple markets
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.binanceGetTickerBookTicker(params);
         return this.parseTickers(response, symbols);
     }
@@ -1376,7 +1411,9 @@ class tokocrypto extends tokocrypto$1 {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         // the reality is that the time range wider than 500 candles won't work right
@@ -1429,10 +1466,12 @@ class tokocrypto extends tokocrypto$1 {
      * @param {string} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
      * @param {string} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
      * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const defaultType = this.safeString2(this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString(params, 'type', defaultType);
         const defaultMarginMode = this.safeString2(this.options, 'marginMode', 'defaultMarginMode');
@@ -1488,18 +1527,18 @@ class tokocrypto extends tokocrypto$1 {
     parseOrderStatus(status) {
         const statuses = {
             '-2': 'open',
-            '0': 'open',
-            '1': 'open',
-            '2': 'closed',
-            '3': 'canceled',
-            '4': 'canceling',
-            '5': 'rejected',
-            '6': 'expired',
+            '0': 'open', // NEW
+            '1': 'open', // PARTIALLY_FILLED
+            '2': 'closed', // FILLED
+            '3': 'canceled', // CANCELED
+            '4': 'canceling', // PENDING_CANCEL (currently unused)
+            '5': 'rejected', // REJECTED
+            '6': 'expired', // EXPIRED
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
-            'PENDING_CANCEL': 'canceling',
+            'PENDING_CANCEL': 'canceling', // currently unused
             'REJECTED': 'rejected',
             'EXPIRED': 'expired',
         };
@@ -1679,10 +1718,12 @@ class tokocrypto extends tokocrypto$1 {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
      * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId');
         const postOnly = this.safeBool(params, 'postOnly', false);
@@ -1865,7 +1906,7 @@ class tokocrypto extends tokocrypto$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         const request = {
@@ -1916,13 +1957,15 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1987,7 +2030,7 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = { 'type': 1 }; // -1 = all, 1 = open, 2 = closed
@@ -2002,7 +2045,7 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const request = { 'type': 2 }; // -1 = all, 1 = open, 2 = closed
@@ -2016,7 +2059,7 @@ class tokocrypto extends tokocrypto$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         const request = {
@@ -2062,13 +2105,15 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2121,10 +2166,12 @@ class tokocrypto extends tokocrypto$1 {
      * @see https://www.tokocrypto.com/apidocs/#deposit-address-signed
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'asset': currency['id'],
@@ -2180,10 +2227,12 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch deposits for
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         const until = this.safeInteger(params, 'until');
@@ -2240,10 +2289,12 @@ class tokocrypto extends tokocrypto$1 {
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2295,12 +2346,12 @@ class tokocrypto extends tokocrypto$1 {
                 '1': 'ok',
             },
             'withdrawal': {
-                '0': 'pending',
-                '1': 'canceled',
-                '2': 'pending',
-                '3': 'failed',
-                '4': 'pending',
-                '5': 'failed',
+                '0': 'pending', // Email Sent
+                '1': 'canceled', // Cancelled (different from 1 = ok in deposits)
+                '2': 'pending', // Awaiting Approval
+                '3': 'failed', // Rejected
+                '4': 'pending', // Processing
+                '5': 'failed', // Failure
                 '10': 'ok', // Completed
             },
         };
@@ -2433,11 +2484,13 @@ class tokocrypto extends tokocrypto$1 {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -2452,7 +2505,7 @@ class tokocrypto extends tokocrypto$1 {
             request['addressTag'] = tag;
         }
         const [networkCode, query] = this.handleNetworkCodeAndParams(params);
-        const networkId = this.networkCodeToId(networkCode);
+        const networkId = this.networkCodeToId(networkCode, code);
         if (networkId !== undefined) {
             request['network'] = networkId.toUpperCase();
         }
@@ -2517,7 +2570,7 @@ class tokocrypto extends tokocrypto$1 {
             else {
                 query = this.urlencode(extendedParams);
             }
-            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha256.sha256);
+            const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
             query += '&' + 'signature=' + signature;
             headers = {
                 'X-MBX-APIKEY': this.apiKey,
@@ -2637,4 +2690,4 @@ class tokocrypto extends tokocrypto$1 {
     }
 }
 
-module.exports = tokocrypto;
+exports["default"] = tokocrypto;

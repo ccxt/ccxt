@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 export default class bitmex extends bitmexRest {
     describe() {
@@ -43,7 +43,7 @@ export default class bitmex extends bitmexRest {
             //     'ws': '0.2.0',
             // },
             'options': {
-                'watchOrderBookLevel': 'orderBookL2',
+                'watchOrderBookLevel': 'orderBookL2', // 'orderBookL2' = L2 full order book, 'orderBookL2_25' = L2 top 25, 'orderBook10' L3 top 10
                 'tradesLimit': 1000,
                 'OHLCVLimit': 1000,
             },
@@ -64,10 +64,12 @@ export default class bitmex extends bitmexRest {
      * @see https://www.bitmex.com/app/wsAPI#Subscriptions
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -79,10 +81,12 @@ export default class bitmex extends bitmexRest {
      * @see https://www.bitmex.com/app/wsAPI#Subscriptions
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true);
         const name = 'instrument';
         const url = this.urls['api']['ws'];
@@ -385,8 +389,10 @@ export default class bitmex extends bitmexRest {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
-    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+    async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHashes = [];
         const subscriptionHashes = [];
@@ -442,17 +448,15 @@ export default class bitmex extends bitmexRest {
         //
         const rawLiquidations = this.safeValue(message, 'data', []);
         const newLiquidations = [];
+        if (this.liquidations === undefined) {
+            const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+            this.liquidations = new ArrayCache(limit);
+        }
+        const cache = this.liquidations;
         for (let i = 0; i < rawLiquidations.length; i++) {
             const rawLiquidation = rawLiquidations[i];
             const liquidation = this.parseLiquidation(rawLiquidation);
-            const symbol = liquidation['symbol'];
-            let liquidations = this.safeValue(this.liquidations, symbol);
-            if (liquidations === undefined) {
-                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
-                liquidations = new ArrayCache(limit);
-            }
-            liquidations.append(liquidation);
-            this.liquidations[symbol] = liquidations;
+            cache.append(liquidation);
             newLiquidations.push(liquidation);
         }
         client.resolve(newLiquidations, 'liquidations');
@@ -469,10 +473,12 @@ export default class bitmex extends bitmexRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.bitmex.com/app/wsAPI#Subscriptions
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const messageHash = 'margin';
         const url = this.urls['api']['ws'];
@@ -680,7 +686,7 @@ export default class bitmex extends bitmexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
@@ -689,7 +695,7 @@ export default class bitmex extends bitmexRest {
         const url = this.urls['api']['ws'];
         const client = this.client(url);
         const messageHash = 'authenticated';
-        const future = client.future(messageHash);
+        const future = client.reusableFuture(messageHash);
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             this.checkRequiredCredentials();
@@ -737,7 +743,9 @@ export default class bitmex extends bitmexRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const subscriptionHash = 'position';
         let messageHash = 'positions';
@@ -915,6 +923,26 @@ export default class bitmex extends bitmexRest {
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition(rawPosition);
+            let side = this.safeString(position, 'side');
+            if (side === undefined) {
+                // BitMEX 'update' rows are deltas and may omit homeNotional, so
+                // parsePosition returns side = undefined. Carry the side forward from
+                // the cached position for this symbol, otherwise appending would break
+                // the ArrayCacheBySymbolBySide index (see issue #29001).
+                const symbol = this.safeString(position, 'symbol');
+                const cachedBySide = this.safeDict(cache.hashmap, symbol, {});
+                const cachedSides = Object.keys(cachedBySide);
+                const sidesLength = cachedSides.length;
+                if (sidesLength === 1) {
+                    side = cachedSides[0];
+                    position['side'] = side;
+                }
+            }
+            if (side === undefined) {
+                // still unresolved (e.g. the very first message is a partial without
+                // homeNotional); skip this row rather than corrupt the cache
+                continue;
+            }
             newPositions.push(position);
             cache.append(position);
         }
@@ -940,10 +968,12 @@ export default class bitmex extends bitmexRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const name = 'order';
         const subscriptionHash = name;
@@ -1156,10 +1186,12 @@ export default class bitmex extends bitmexRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const name = 'execution';
         const subscriptionHash = name;
@@ -1273,7 +1305,7 @@ export default class bitmex extends bitmexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         return await this.watchOrderBookForSymbols([symbol], limit, params);
@@ -1286,7 +1318,7 @@ export default class bitmex extends bitmexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         let table = undefined;
@@ -1302,7 +1334,9 @@ export default class bitmex extends bitmexRest {
         else {
             throw new ExchangeError(this.id + ' watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
@@ -1331,10 +1365,12 @@ export default class bitmex extends bitmexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const table = 'trade';
         const topics = [];
@@ -1373,7 +1409,9 @@ export default class bitmex extends bitmexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const table = 'tradeBin' + this.safeString(this.timeframes, timeframe, timeframe);
@@ -1470,8 +1508,8 @@ export default class bitmex extends bitmexRest {
             const symbol = market['symbol'];
             const messageHash = table + ':' + market['id'];
             const result = [
-                this.parse8601(this.safeString(candle, 'timestamp')) - duration * 1000,
-                undefined,
+                this.parseToInt(this.parse8601(this.safeString(candle, 'timestamp'))) - duration * 1000,
+                undefined, // set open price to undefined, see: https://github.com/ccxt/ccxt/pull/21356#issuecomment-1969565862
                 this.safeFloat(candle, 'high'),
                 this.safeFloat(candle, 'low'),
                 this.safeFloat(candle, 'close'),
@@ -1494,7 +1532,9 @@ export default class bitmex extends bitmexRest {
         }
     }
     async watchHeartbeat(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
         return await this.watch(url, event);
@@ -1600,7 +1640,7 @@ export default class bitmex extends bitmexRest {
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }
-                numUpdatesByMarketId[marketId] = this.sum(numUpdatesByMarketId, 1);
+                numUpdatesByMarketId[marketId] = this.sum(numUpdatesByMarketId[marketId], 1);
                 const market = this.safeMarket(marketId);
                 const symbol = market['symbol'];
                 const orderbook = this.orderbooks[symbol];

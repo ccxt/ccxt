@@ -22,7 +22,6 @@ CCXT
 .. toctree::
    :caption: CCXT Pro
 
-   ccxt.pro.install.rst
    ccxt.pro.manual.rst
 
 .. toctree::

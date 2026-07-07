@@ -1,21 +1,23 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var binance = require('./binance.js');
 var binanceus$1 = require('../binanceus.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-class binanceus extends binance {
+class binanceus extends binance["default"] {
     describe() {
         // eslint-disable-next-line new-cap
-        const restInstance = new binanceus$1();
+        const restInstance = new binanceus$1["default"]();
         const restDescribe = restInstance.describe();
         const parentWsDescribe = super.describeData();
         const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binanceus',
             'name': 'Binance US',
-            'countries': ['US'],
+            'countries': ['US'], // US
             'certified': false,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
@@ -36,14 +38,34 @@ class binanceus extends binance {
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
                 'fees': 'https://www.binance.us/en/fee/schedule',
             },
+            'has': {
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createReduceOnlyOrderWs': false,
+                'createStopLossOrderWs': false,
+                'createTakeProfitOrderWs': false,
+                'fetchPositionForSymbolWs': false,
+                'fetchPositionsForSymbolWs': false,
+                'fetchPositionsWs': false,
+                'fetchPositionWs': false,
+                'unWatchPositions': false,
+                'watchLiquidations': false,
+                'watchLiquidationsForSymbols': false,
+                'watchMarkPrice': false,
+                'watchMarkPrices': false,
+                'watchMyLiquidations': false,
+                'watchMyLiquidationsForSymbols': false,
+                'watchPosition': false,
+                'watchPositions': false,
+            },
             'options': {
-                'fetchCurrencies': false,
                 'quoteOrderQty': false,
                 'defaultType': 'spot',
-                'fetchMarkets': ['spot'],
+                'fetchMarkets': {
+                    'types': ['spot'],
+                },
             },
         });
     }
 }
 
-module.exports = binanceus;
+exports["default"] = binanceus;

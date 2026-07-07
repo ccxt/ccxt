@@ -1,0 +1,3992 @@
+{
+    "exchange": "hibachi",
+    "skipKeys": ["timestamp", "datetime"],
+    "privateKey": "AF4Edn4Qf3/QH0pCYGaaagg+I2DhgL5YyjvlWlMx4iE=",
+    "options": {},
+    "methods": {
+        "fetchPositions": [
+            {
+                "description": "fetch positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "assets": [
+                        {
+                            "quantity": "99.939670",
+                            "symbol": "USDT"
+                        }
+                    ],
+                    "balance": "99.990151",
+                    "maximalWithdraw": "97.958610",
+                    "numFreeTransfersRemaining": "100",
+                    "positions": [
+                        {
+                            "direction": "Long",
+                            "entryNotional": "33.808533",
+                            "markPrice": "169.2950738",
+                            "notionalValue": "33.859014",
+                            "openPrice": "169.0426650",
+                            "quantity": "0.20000000",
+                            "symbol": "SOL/USDT-P",
+                            "unrealizedFundingPnl": "0.000000",
+                            "unrealizedTradingPnl": "0.050481"
+                        }
+                    ],
+                    "totalOrderNotional": "0.000000",
+                    "totalPositionNotional": "33.859014",
+                    "totalUnrealizedFundingPnl": "0.000000",
+                    "totalUnrealizedPnl": "0.050481",
+                    "totalUnrealizedTradingPnl": "0.050481",
+                    "tradeMakerFeeRate": "0.00000000",
+                    "tradeTakerFeeRate": "0.00020000"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "direction": "Long",
+                            "entryNotional": "33.808533",
+                            "markPrice": "169.2950738",
+                            "notionalValue": "33.859014",
+                            "openPrice": "169.0426650",
+                            "quantity": "0.20000000",
+                            "symbol": "SOL/USDT-P",
+                            "unrealizedFundingPnl": "0.000000",
+                            "unrealizedTradingPnl": "0.050481"
+                        },
+                        "id": null,
+                        "symbol": "SOL/USDT:USDT",
+                        "entryPrice": null,
+                        "markPrice": null,
+                        "notional": "33.859014",
+                        "collateral": null,
+                        "unrealizedPnl": "0.050481",
+                        "side": "long",
+                        "contracts": 0.2,
+                        "contractSize": 1,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": null,
+                        "initialMarginPercentage": null,
+                        "leverage": null,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null
+                    }
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder",
+                "disabledPHP": true,
+                "method": "cancelOrder",
+                "input": [
+                    "589562710433989632"
+                ],
+                "httpResponse": {},
+                "parsedResponse": {
+                    "id": "589562710433989632",
+                    "status": "canceled",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null,
+                    "info": {}
+                }
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": "13787",
+                        "availableQuantity": "0.10000000",
+                        "contractId": "3",
+                        "creationTime": "1754047203",
+                        "orderId": "589562710433989632",
+                        "orderType": "LIMIT",
+                        "price": "100.0000000",
+                        "side": "BID",
+                        "status": "PLACED",
+                        "symbol": "SOL/USDT-P",
+                        "totalQuantity": "0.10000000"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "accountId": "13787",
+                            "availableQuantity": "0.10000000",
+                            "contractId": "3",
+                            "creationTime": "1754047203",
+                            "orderId": "589562710433989632",
+                            "orderType": "LIMIT",
+                            "price": "100.0000000",
+                            "side": "BID",
+                            "status": "PLACED",
+                            "symbol": "SOL/USDT-P",
+                            "totalQuantity": "0.10000000"
+                        },
+                        "id": "589562710433989632",
+                        "clientOrderId": null,
+                        "datetime": null,
+                        "timestamp": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "status": "open",
+                        "symbol": "SOL/USDT:USDT",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "side": "buy",
+                        "price": 100,
+                        "average": null,
+                        "amount": 0.1,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "cost": 0,
+                        "trades": [],
+                        "fee": null,
+                        "reduceOnly": false,
+                        "postOnly": false,
+                        "triggerPrice": null,
+                        "fees": [],
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades",
+                "method": "fetchMyTrades",
+                "input": [],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "askAccountId": "8434",
+                            "askOrderId": "589562637477740545",
+                            "bidAccountId": "13787",
+                            "bidOrderId": "589562638199161856",
+                            "fee": "0.003369",
+                            "id": "219735501",
+                            "orderType": "MARKET",
+                            "price": "168.4853424",
+                            "quantity": "0.10000000",
+                            "realizedPnl": "0.000000",
+                            "side": "Buy",
+                            "symbol": "SOL/USDT-P",
+                            "timestamp": "1754046928"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "219735501",
+                        "timestamp": 1754046928000,
+                        "datetime": "2025-08-01T11:15:28.000Z",
+                        "symbol": "SOL/USDT:USDT",
+                        "side": "buy",
+                        "price": 168.4853424,
+                        "amount": 0.1,
+                        "cost": 16.84853424,
+                        "order": "589562638199161856",
+                        "takerOrMaker": null,
+                        "type": "market",
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.003369
+                        },
+                        "info": {
+                            "askAccountId": "8434",
+                            "askOrderId": "589562637477740545",
+                            "bidAccountId": "13787",
+                            "bidOrderId": "589562638199161856",
+                            "fee": "0.003369",
+                            "id": "219735501",
+                            "orderType": "MARKET",
+                            "price": "168.4853424",
+                            "quantity": "0.10000000",
+                            "realizedPnl": "0.000000",
+                            "side": "Buy",
+                            "symbol": "SOL/USDT-P",
+                            "timestamp": "1754046928"
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.003369
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch market order",
+                "method": "fetchOrder",
+                "input": [
+                    "589562638199161856"
+                ],
+                "httpResponse": {
+                    "accountId": "13787",
+                    "availableQuantity": "0.00000000",
+                    "contractId": "3",
+                    "orderId": "589562638199161856",
+                    "orderType": "MARKET",
+                    "side": "BID",
+                    "status": "FILLED",
+                    "symbol": "SOL/USDT-P",
+                    "totalQuantity": "0.10000000"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "accountId": "13787",
+                        "availableQuantity": "0.00000000",
+                        "contractId": "3",
+                        "orderId": "589562638199161856",
+                        "orderType": "MARKET",
+                        "side": "BID",
+                        "status": "FILLED",
+                        "symbol": "SOL/USDT-P",
+                        "totalQuantity": "0.10000000"
+                    },
+                    "id": "589562638199161856",
+                    "clientOrderId": null,
+                    "datetime": null,
+                    "timestamp": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": "closed",
+                    "symbol": "SOL/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "GTC",
+                    "side": "buy",
+                    "price": null,
+                    "average": null,
+                    "amount": 0.1,
+                    "filled": 0.1,
+                    "remaining": 0,
+                    "cost": null,
+                    "trades": [],
+                    "fee": null,
+                    "reduceOnly": false,
+                    "postOnly": false,
+                    "triggerPrice": null,
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    100
+                ],
+                "httpResponse": {
+                    "orderId": "589562710433989632"
+                },
+                "parsedResponse": {
+                    "id": "589562710433989632",
+                    "status": "pending",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            },
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "input": [
+                    "SOL/USDT:USDT",
+                    "market",
+                    "buy",
+                    0.1
+                ],
+                "httpResponse": {
+                    "orderId": "589562638199161856"
+                },
+                "parsedResponse": {
+                    "id": "589562638199161856",
+                    "status": "pending",
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "symbol": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "orderbook",
+                "method": "fetchOrderBook",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "ask": {
+                        "endPrice": "3616.35",
+                        "levels": [
+                            {
+                                "price": "3608.65",
+                                "quantity": "1.380000000"
+                            },
+                            {
+                                "price": "3608.75",
+                                "quantity": "1.660000000"
+                            },
+                            {
+                                "price": "3608.81",
+                                "quantity": "1.940000000"
+                            },
+                            {
+                                "price": "3609.67",
+                                "quantity": "2.210000000"
+                            },
+                            {
+                                "price": "3610.29",
+                                "quantity": "2.490000000"
+                            },
+                            {
+                                "price": "3610.66",
+                                "quantity": "2.186183632"
+                            },
+                            {
+                                "price": "3610.96",
+                                "quantity": "2.428835360"
+                            },
+                            {
+                                "price": "3611.13",
+                                "quantity": "2.186684480"
+                            },
+                            {
+                                "price": "3611.40",
+                                "quantity": "2.770000000"
+                            },
+                            {
+                                "price": "3611.59",
+                                "quantity": "0.277312971"
+                            },
+                            {
+                                "price": "3611.75",
+                                "quantity": "0.060000000"
+                            },
+                            {
+                                "price": "3612.07",
+                                "quantity": "3.040000000"
+                            },
+                            {
+                                "price": "3612.51",
+                                "quantity": "0.300000000"
+                            },
+                            {
+                                "price": "3613.03",
+                                "quantity": "4.337791923"
+                            },
+                            {
+                                "price": "3613.18",
+                                "quantity": "0.142616460"
+                            },
+                            {
+                                "price": "3613.86",
+                                "quantity": "0.192609730"
+                            },
+                            {
+                                "price": "3615.19",
+                                "quantity": "0.554625942"
+                            },
+                            {
+                                "price": "3615.55",
+                                "quantity": "0.270251910"
+                            },
+                            {
+                                "price": "3616.12",
+                                "quantity": "0.300000000"
+                            },
+                            {
+                                "price": "3616.35",
+                                "quantity": "7.401364124"
+                            }
+                        ],
+                        "startPrice": "3608.65"
+                    },
+                    "bid": {
+                        "endPrice": "3600.76",
+                        "levels": [
+                            {
+                                "price": "3608.63",
+                                "quantity": "1.380000000"
+                            },
+                            {
+                                "price": "3608.44",
+                                "quantity": "1.660000000"
+                            },
+                            {
+                                "price": "3608.26",
+                                "quantity": "1.940000000"
+                            },
+                            {
+                                "price": "3607.72",
+                                "quantity": "2.428768196"
+                            },
+                            {
+                                "price": "3607.55",
+                                "quantity": "2.210000000"
+                            },
+                            {
+                                "price": "3607.44",
+                                "quantity": "2.186017036"
+                            },
+                            {
+                                "price": "3607.34",
+                                "quantity": "2.490000000"
+                            },
+                            {
+                                "price": "3607.15",
+                                "quantity": "2.186957263"
+                            },
+                            {
+                                "price": "3607.05",
+                                "quantity": "0.346227964"
+                            },
+                            {
+                                "price": "3605.80",
+                                "quantity": "4.341009516"
+                            },
+                            {
+                                "price": "3605.29",
+                                "quantity": "0.300000000"
+                            },
+                            {
+                                "price": "3604.50",
+                                "quantity": "3.320000000"
+                            },
+                            {
+                                "price": "3604.36",
+                                "quantity": "0.277312971"
+                            },
+                            {
+                                "price": "3603.43",
+                                "quantity": "0.300000000"
+                            },
+                            {
+                                "price": "3603.40",
+                                "quantity": "3.600000000"
+                            },
+                            {
+                                "price": "3602.79",
+                                "quantity": "0.271208430"
+                            },
+                            {
+                                "price": "3602.30",
+                                "quantity": "3.880000000"
+                            },
+                            {
+                                "price": "3601.90",
+                                "quantity": "7.587657972"
+                            },
+                            {
+                                "price": "3601.81",
+                                "quantity": "0.391189270"
+                            },
+                            {
+                                "price": "3600.76",
+                                "quantity": "0.554625942"
+                            }
+                        ],
+                        "startPrice": "3608.63"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "ETH/USDT:USDT",
+                    "bids": [
+                        [
+                            3608.63,
+                            1.38
+                        ],
+                        [
+                            3608.44,
+                            1.66
+                        ],
+                        [
+                            3608.26,
+                            1.94
+                        ],
+                        [
+                            3607.72,
+                            2.428768196
+                        ],
+                        [
+                            3607.55,
+                            2.21
+                        ],
+                        [
+                            3607.44,
+                            2.186017036
+                        ],
+                        [
+                            3607.34,
+                            2.49
+                        ],
+                        [
+                            3607.15,
+                            2.186957263
+                        ],
+                        [
+                            3607.05,
+                            0.346227964
+                        ],
+                        [
+                            3605.8,
+                            4.341009516
+                        ],
+                        [
+                            3605.29,
+                            0.3
+                        ],
+                        [
+                            3604.5,
+                            3.32
+                        ],
+                        [
+                            3604.36,
+                            0.277312971
+                        ],
+                        [
+                            3603.43,
+                            0.3
+                        ],
+                        [
+                            3603.4,
+                            3.6
+                        ],
+                        [
+                            3602.79,
+                            0.27120843
+                        ],
+                        [
+                            3602.3,
+                            3.88
+                        ],
+                        [
+                            3601.9,
+                            7.587657972
+                        ],
+                        [
+                            3601.81,
+                            0.39118927
+                        ],
+                        [
+                            3600.76,
+                            0.554625942
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            3608.65,
+                            1.38
+                        ],
+                        [
+                            3608.75,
+                            1.66
+                        ],
+                        [
+                            3608.81,
+                            1.94
+                        ],
+                        [
+                            3609.67,
+                            2.21
+                        ],
+                        [
+                            3610.29,
+                            2.49
+                        ],
+                        [
+                            3610.66,
+                            2.186183632
+                        ],
+                        [
+                            3610.96,
+                            2.42883536
+                        ],
+                        [
+                            3611.13,
+                            2.18668448
+                        ],
+                        [
+                            3611.4,
+                            2.77
+                        ],
+                        [
+                            3611.59,
+                            0.277312971
+                        ],
+                        [
+                            3611.75,
+                            0.06
+                        ],
+                        [
+                            3612.07,
+                            3.04
+                        ],
+                        [
+                            3612.51,
+                            0.3
+                        ],
+                        [
+                            3613.03,
+                            4.337791923
+                        ],
+                        [
+                            3613.18,
+                            0.14261646
+                        ],
+                        [
+                            3613.86,
+                            0.19260973
+                        ],
+                        [
+                            3615.19,
+                            0.554625942
+                        ],
+                        [
+                            3615.55,
+                            0.27025191
+                        ],
+                        [
+                            3616.12,
+                            0.3
+                        ],
+                        [
+                            3616.35,
+                            7.401364124
+                        ]
+                    ],
+                    "timestamp": 1754046405854,
+                    "datetime": "2025-08-01T11:06:45.854Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetch trades",
+                "disabledGO": true,
+                "method": "fetchTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1754042749000
+                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "price": "3607.870000",
+                            "quantity": "0.003472222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046360"
+                        },
+                        {
+                            "price": "3607.052104",
+                            "quantity": "0.006428725",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046350"
+                        },
+                        {
+                            "price": "3607.450000",
+                            "quantity": "0.000279967",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046344"
+                        },
+                        {
+                            "price": "3610.969310",
+                            "quantity": "0.003472222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046330"
+                        },
+                        {
+                            "price": "3607.625900",
+                            "quantity": "0.007585983",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046318"
+                        },
+                        {
+                            "price": "3608.010932",
+                            "quantity": "0.006594104",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046314"
+                        },
+                        {
+                            "price": "3608.310000",
+                            "quantity": "0.412624868",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046302"
+                        },
+                        {
+                            "price": "3608.540000",
+                            "quantity": "0.003472222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046300"
+                        },
+                        {
+                            "price": "3609.110000",
+                            "quantity": "0.000279862",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046289"
+                        },
+                        {
+                            "price": "3609.388409",
+                            "quantity": "0.000277127",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046258"
+                        },
+                        {
+                            "price": "3609.590000",
+                            "quantity": "0.000273004",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046236"
+                        },
+                        {
+                            "price": "3609.450000",
+                            "quantity": "0.000279821",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046235"
+                        },
+                        {
+                            "price": "3609.620000",
+                            "quantity": "0.008496250",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046231"
+                        },
+                        {
+                            "price": "3611.020000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046190"
+                        },
+                        {
+                            "price": "3609.090000",
+                            "quantity": "0.000273027",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046181"
+                        },
+                        {
+                            "price": "3609.090000",
+                            "quantity": "0.000279850",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046180"
+                        },
+                        {
+                            "price": "3608.970000",
+                            "quantity": "0.008747760",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046171"
+                        },
+                        {
+                            "price": "3608.290000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046160"
+                        },
+                        {
+                            "price": "3610.666384",
+                            "quantity": "0.300000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046148"
+                        },
+                        {
+                            "price": "3612.970000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046130"
+                        },
+                        {
+                            "price": "3612.030000",
+                            "quantity": "0.000279650",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046123"
+                        },
+                        {
+                            "price": "3611.930000",
+                            "quantity": "0.005994823",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046105"
+                        },
+                        {
+                            "price": "3612.610000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046100"
+                        },
+                        {
+                            "price": "3612.040000",
+                            "quantity": "0.007762918",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046099"
+                        },
+                        {
+                            "price": "3615.488615",
+                            "quantity": "0.000276747",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046093"
+                        },
+                        {
+                            "price": "3615.037882",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046070"
+                        },
+                        {
+                            "price": "3613.504803",
+                            "quantity": "0.000279507",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046068"
+                        },
+                        {
+                            "price": "3612.560000",
+                            "quantity": "0.042160139",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046052"
+                        },
+                        {
+                            "price": "3613.540000",
+                            "quantity": "0.007616558",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046047"
+                        },
+                        {
+                            "price": "3613.320000",
+                            "quantity": "0.006719265",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046043"
+                        },
+                        {
+                            "price": "3614.280000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046040"
+                        },
+                        {
+                            "price": "3614.650000",
+                            "quantity": "0.008244392",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046037"
+                        },
+                        {
+                            "price": "3616.752915",
+                            "quantity": "0.000279256",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046014"
+                        },
+                        {
+                            "price": "3617.717201",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046010"
+                        },
+                        {
+                            "price": "3615.820000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045980"
+                        },
+                        {
+                            "price": "3617.185632",
+                            "quantity": "0.000279222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045960"
+                        },
+                        {
+                            "price": "3617.200000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045950"
+                        },
+                        {
+                            "price": "3618.685388",
+                            "quantity": "0.000276482",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045942"
+                        },
+                        {
+                            "price": "3615.670000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045920"
+                        },
+                        {
+                            "price": "3616.782128",
+                            "quantity": "0.000279253",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045905"
+                        },
+                        {
+                            "price": "3618.637082",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045890"
+                        },
+                        {
+                            "price": "3618.290000",
+                            "quantity": "0.300000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045876"
+                        },
+                        {
+                            "price": "3617.620000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045860"
+                        },
+                        {
+                            "price": "3616.561893",
+                            "quantity": "0.000279270",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045852"
+                        },
+                        {
+                            "price": "3617.826487",
+                            "quantity": "0.008435673",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045834"
+                        },
+                        {
+                            "price": "3618.334411",
+                            "quantity": "0.006335647",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045831"
+                        },
+                        {
+                            "price": "3618.334411",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045830"
+                        },
+                        {
+                            "price": "3616.910000",
+                            "quantity": "0.008630792",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045829"
+                        },
+                        {
+                            "price": "3615.960000",
+                            "quantity": "0.000276456",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045804"
+                        },
+                        {
+                            "price": "3618.010000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045800"
+                        },
+                        {
+                            "price": "3617.685000",
+                            "quantity": "0.000279184",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045796"
+                        },
+                        {
+                            "price": "3618.711172",
+                            "quantity": "0.007596385",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045793"
+                        },
+                        {
+                            "price": "3615.910000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045770"
+                        },
+                        {
+                            "price": "3615.910000",
+                            "quantity": "0.006583836",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045770"
+                        },
+                        {
+                            "price": "3616.540000",
+                            "quantity": "0.000279355",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045742"
+                        },
+                        {
+                            "price": "3615.310000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045740"
+                        },
+                        {
+                            "price": "3617.892873",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045710"
+                        },
+                        {
+                            "price": "3616.421997",
+                            "quantity": "0.007361899",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045706"
+                        },
+                        {
+                            "price": "3614.499999",
+                            "quantity": "0.006828131",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045701"
+                        },
+                        {
+                            "price": "3613.590000",
+                            "quantity": "0.000279455",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045688"
+                        },
+                        {
+                            "price": "3612.550000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045680"
+                        },
+                        {
+                            "price": "3614.290000",
+                            "quantity": "0.007826194",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045677"
+                        },
+                        {
+                            "price": "3616.468799",
+                            "quantity": "0.000276625",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045658"
+                        },
+                        {
+                            "price": "3617.662557",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045650"
+                        },
+                        {
+                            "price": "3614.420000",
+                            "quantity": "0.000279437",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045634"
+                        },
+                        {
+                            "price": "3614.580000",
+                            "quantity": "0.006488249",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045622"
+                        },
+                        {
+                            "price": "3614.861074",
+                            "quantity": "0.830000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045621"
+                        },
+                        {
+                            "price": "3614.890000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045620"
+                        },
+                        {
+                            "price": "3614.890000",
+                            "quantity": "0.008403668",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045620"
+                        },
+                        {
+                            "price": "3615.720000",
+                            "quantity": "0.007773752",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045615"
+                        },
+                        {
+                            "price": "3615.500000",
+                            "quantity": "0.008008591",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045604"
+                        },
+                        {
+                            "price": "3618.712779",
+                            "quantity": "0.000276494",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045591"
+                        },
+                        {
+                            "price": "3618.712779",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045590"
+                        },
+                        {
+                            "price": "3618.768191",
+                            "quantity": "0.005994077",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045587"
+                        },
+                        {
+                            "price": "3617.456584",
+                            "quantity": "0.000279201",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045579"
+                        },
+                        {
+                            "price": "3618.899998",
+                            "quantity": "0.007886242",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045576"
+                        },
+                        {
+                            "price": "3616.273123",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045560"
+                        },
+                        {
+                            "price": "3614.450000",
+                            "quantity": "0.008289209",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045549"
+                        },
+                        {
+                            "price": "3613.560000",
+                            "quantity": "0.007393169",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045547"
+                        },
+                        {
+                            "price": "3611.684334",
+                            "quantity": "0.007318999",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045538"
+                        },
+                        {
+                            "price": "3615.612169",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045530"
+                        },
+                        {
+                            "price": "3615.015597",
+                            "quantity": "0.000279390",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045524"
+                        },
+                        {
+                            "price": "3614.330000",
+                            "quantity": "0.006297195",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045516"
+                        },
+                        {
+                            "price": "3614.363364",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045500"
+                        },
+                        {
+                            "price": "3613.540000",
+                            "quantity": "0.000276727",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045489"
+                        },
+                        {
+                            "price": "3615.612525",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045470"
+                        },
+                        {
+                            "price": "3614.280665",
+                            "quantity": "0.000279447",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045469"
+                        },
+                        {
+                            "price": "3612.288209",
+                            "quantity": "0.008804587",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045468"
+                        },
+                        {
+                            "price": "3613.264492",
+                            "quantity": "0.006291513",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045463"
+                        },
+                        {
+                            "price": "3614.930000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045440"
+                        },
+                        {
+                            "price": "3614.750000",
+                            "quantity": "0.150000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045436"
+                        },
+                        {
+                            "price": "3615.226901",
+                            "quantity": "0.000279373",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045415"
+                        },
+                        {
+                            "price": "3617.364800",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045410"
+                        },
+                        {
+                            "price": "3617.599394",
+                            "quantity": "0.000276672",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045408"
+                        },
+                        {
+                            "price": "3610.342392",
+                            "quantity": "0.008113833",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045399"
+                        },
+                        {
+                            "price": "3610.239999",
+                            "quantity": "0.051666667",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045382"
+                        },
+                        {
+                            "price": "3610.239999",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045380"
+                        },
+                        {
+                            "price": "3612.800000",
+                            "quantity": "0.000279511",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045361"
+                        },
+                        {
+                            "price": "3615.198511",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045350"
+                        },
+                        {
+                            "price": "3610.089569",
+                            "quantity": "0.142487129",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045337"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1754045337000,
+                        "datetime": "2025-08-01T10:48:57.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3610.089569,
+                        "amount": 0.142487129,
+                        "cost": 514.3912981196574,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3610.089569",
+                            "quantity": "0.142487129",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045337"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045350000,
+                        "datetime": "2025-08-01T10:49:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.198511,
+                        "amount": 0.008333333,
+                        "cost": 30.126653053267162,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.198511",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045350"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045361000,
+                        "datetime": "2025-08-01T10:49:21.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3612.8,
+                        "amount": 0.000279511,
+                        "cost": 1.0098173408,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.800000",
+                            "quantity": "0.000279511",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045361"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045380000,
+                        "datetime": "2025-08-01T10:49:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3610.239999,
+                        "amount": 0.008333333,
+                        "cost": 30.085332121586667,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3610.239999",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045380"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045382000,
+                        "datetime": "2025-08-01T10:49:42.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3610.239999,
+                        "amount": 0.051666667,
+                        "cost": 186.52906781841332,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3610.239999",
+                            "quantity": "0.051666667",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045382"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045399000,
+                        "datetime": "2025-08-01T10:49:59.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3610.342392,
+                        "amount": 0.008113833,
+                        "cost": 29.293715241508536,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3610.342392",
+                            "quantity": "0.008113833",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045399"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045408000,
+                        "datetime": "2025-08-01T10:50:08.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.599394,
+                        "amount": 0.000276672,
+                        "cost": 1.000888459536768,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.599394",
+                            "quantity": "0.000276672",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045408"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045410000,
+                        "datetime": "2025-08-01T10:50:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.3648,
+                        "amount": 0.008333333,
+                        "cost": 30.1447054608784,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.364800",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045410"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045415000,
+                        "datetime": "2025-08-01T10:50:15.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.226901,
+                        "amount": 0.000279373,
+                        "cost": 1.009996785013073,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.226901",
+                            "quantity": "0.000279373",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045415"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045436000,
+                        "datetime": "2025-08-01T10:50:36.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3614.75,
+                        "amount": 0.15,
+                        "cost": 542.2125,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.750000",
+                            "quantity": "0.150000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045436"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045440000,
+                        "datetime": "2025-08-01T10:50:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.93,
+                        "amount": 0.008333333,
+                        "cost": 30.12441546169,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.930000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045440"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045463000,
+                        "datetime": "2025-08-01T10:51:03.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3613.264492,
+                        "amount": 0.006291513,
+                        "cost": 22.732900523856397,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.264492",
+                            "quantity": "0.006291513",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045463"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045468000,
+                        "datetime": "2025-08-01T10:51:08.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3612.288209,
+                        "amount": 0.008804587,
+                        "cost": 31.804705805214684,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.288209",
+                            "quantity": "0.008804587",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045468"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045469000,
+                        "datetime": "2025-08-01T10:51:09.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3614.280665,
+                        "amount": 0.000279447,
+                        "cost": 1.009999888992255,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.280665",
+                            "quantity": "0.000279447",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045469"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045470000,
+                        "datetime": "2025-08-01T10:51:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.612525,
+                        "amount": 0.008333333,
+                        "cost": 30.130103169795824,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.612525",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045470"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045489000,
+                        "datetime": "2025-08-01T10:51:29.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3613.54,
+                        "amount": 0.000276727,
+                        "cost": 0.99996408358,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.540000",
+                            "quantity": "0.000276727",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045489"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045500000,
+                        "datetime": "2025-08-01T10:51:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.363364,
+                        "amount": 0.008333333,
+                        "cost": 30.11969349521221,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.363364",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045500"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045516000,
+                        "datetime": "2025-08-01T10:51:56.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3614.33,
+                        "amount": 0.006297195,
+                        "cost": 22.76014080435,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.330000",
+                            "quantity": "0.006297195",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045516"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045524000,
+                        "datetime": "2025-08-01T10:52:04.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.015597,
+                        "amount": 0.00027939,
+                        "cost": 1.00999920764583,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.015597",
+                            "quantity": "0.000279390",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045524"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045530000,
+                        "datetime": "2025-08-01T10:52:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.612169,
+                        "amount": 0.008333333,
+                        "cost": 30.130100203129278,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.612169",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045530"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045538000,
+                        "datetime": "2025-08-01T10:52:18.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3611.684334,
+                        "amount": 0.007318999,
+                        "cost": 26.433914028861665,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3611.684334",
+                            "quantity": "0.007318999",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045538"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045547000,
+                        "datetime": "2025-08-01T10:52:27.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3613.56,
+                        "amount": 0.007393169,
+                        "cost": 26.71565977164,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.560000",
+                            "quantity": "0.007393169",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045547"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045549000,
+                        "datetime": "2025-08-01T10:52:29.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.45,
+                        "amount": 0.008289209,
+                        "cost": 29.96093147005,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.450000",
+                            "quantity": "0.008289209",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045549"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045560000,
+                        "datetime": "2025-08-01T10:52:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3616.273123,
+                        "amount": 0.008333333,
+                        "cost": 30.135608152908958,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.273123",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045560"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045576000,
+                        "datetime": "2025-08-01T10:52:56.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.899998,
+                        "amount": 0.007886242,
+                        "cost": 28.539521158027515,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.899998",
+                            "quantity": "0.007886242",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045576"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045579000,
+                        "datetime": "2025-08-01T10:52:59.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3617.456584,
+                        "amount": 0.000279201,
+                        "cost": 1.009997495709384,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.456584",
+                            "quantity": "0.000279201",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045579"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045587000,
+                        "datetime": "2025-08-01T10:53:07.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.768191,
+                        "amount": 0.005994077,
+                        "cost": 21.691175182004706,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.768191",
+                            "quantity": "0.005994077",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045587"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045590000,
+                        "datetime": "2025-08-01T10:53:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.712779,
+                        "amount": 0.008333333,
+                        "cost": 30.155938618762406,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.712779",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045590"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045591000,
+                        "datetime": "2025-08-01T10:53:11.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.712779,
+                        "amount": 0.000276494,
+                        "cost": 1.000552371116826,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.712779",
+                            "quantity": "0.000276494",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045591"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045604000,
+                        "datetime": "2025-08-01T10:53:24.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.5,
+                        "amount": 0.008008591,
+                        "cost": 28.9550607605,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.500000",
+                            "quantity": "0.008008591",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045604"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045615000,
+                        "datetime": "2025-08-01T10:53:35.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.72,
+                        "amount": 0.007773752,
+                        "cost": 28.10771058144,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.720000",
+                            "quantity": "0.007773752",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045615"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045620000,
+                        "datetime": "2025-08-01T10:53:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.89,
+                        "amount": 0.008333333,
+                        "cost": 30.12408212837,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.890000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045620"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045620000,
+                        "datetime": "2025-08-01T10:53:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.89,
+                        "amount": 0.008403668,
+                        "cost": 30.37833541652,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.890000",
+                            "quantity": "0.008403668",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045620"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045621000,
+                        "datetime": "2025-08-01T10:53:41.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3614.861074,
+                        "amount": 0.83,
+                        "cost": 3000.33469142,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.861074",
+                            "quantity": "0.830000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045621"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045622000,
+                        "datetime": "2025-08-01T10:53:42.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.58,
+                        "amount": 0.006488249,
+                        "cost": 23.45229507042,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.580000",
+                            "quantity": "0.006488249",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045622"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045634000,
+                        "datetime": "2025-08-01T10:53:54.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3614.42,
+                        "amount": 0.000279437,
+                        "cost": 1.01000268154,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.420000",
+                            "quantity": "0.000279437",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045634"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045650000,
+                        "datetime": "2025-08-01T10:54:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.662557,
+                        "amount": 0.008333333,
+                        "cost": 30.14718676911248,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.662557",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045650"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045658000,
+                        "datetime": "2025-08-01T10:54:18.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3616.468799,
+                        "amount": 0.000276625,
+                        "cost": 1.000405681523375,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.468799",
+                            "quantity": "0.000276625",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045658"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045677000,
+                        "datetime": "2025-08-01T10:54:37.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.29,
+                        "amount": 0.007826194,
+                        "cost": 28.28613471226,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.290000",
+                            "quantity": "0.007826194",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045677"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045680000,
+                        "datetime": "2025-08-01T10:54:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3612.55,
+                        "amount": 0.008333333,
+                        "cost": 30.10458212915,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.550000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045680"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045688000,
+                        "datetime": "2025-08-01T10:54:48.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3613.59,
+                        "amount": 0.000279455,
+                        "cost": 1.00983579345,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.590000",
+                            "quantity": "0.000279455",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045688"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045701000,
+                        "datetime": "2025-08-01T10:55:01.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.499999,
+                        "amount": 0.006828131,
+                        "cost": 24.68027949267187,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.499999",
+                            "quantity": "0.006828131",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045701"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045706000,
+                        "datetime": "2025-08-01T10:55:06.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3616.421997,
+                        "amount": 0.007361899,
+                        "cost": 26.623733483292302,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.421997",
+                            "quantity": "0.007361899",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045706"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045710000,
+                        "datetime": "2025-08-01T10:55:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.892873,
+                        "amount": 0.008333333,
+                        "cost": 30.14910606903571,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.892873",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045710"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045740000,
+                        "datetime": "2025-08-01T10:55:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.31,
+                        "amount": 0.008333333,
+                        "cost": 30.12758212823,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.310000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045740"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045742000,
+                        "datetime": "2025-08-01T10:55:42.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3616.54,
+                        "amount": 0.000279355,
+                        "cost": 1.0102985317,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.540000",
+                            "quantity": "0.000279355",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045742"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045770000,
+                        "datetime": "2025-08-01T10:56:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.91,
+                        "amount": 0.008333333,
+                        "cost": 30.13258212803,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.910000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045770"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045770000,
+                        "datetime": "2025-08-01T10:56:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.91,
+                        "amount": 0.006583836,
+                        "cost": 23.80655843076,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.910000",
+                            "quantity": "0.006583836",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045770"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045793000,
+                        "datetime": "2025-08-01T10:56:33.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.711172,
+                        "amount": 0.007596385,
+                        "cost": 27.48912326631322,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.711172",
+                            "quantity": "0.007596385",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045793"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045796000,
+                        "datetime": "2025-08-01T10:56:36.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.685,
+                        "amount": 0.000279184,
+                        "cost": 1.00999976904,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.685000",
+                            "quantity": "0.000279184",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045796"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045800000,
+                        "datetime": "2025-08-01T10:56:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.01,
+                        "amount": 0.008333333,
+                        "cost": 30.15008212733,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.010000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045800"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045804000,
+                        "datetime": "2025-08-01T10:56:44.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3615.96,
+                        "amount": 0.000276456,
+                        "cost": 0.99965383776,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.960000",
+                            "quantity": "0.000276456",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045804"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045829000,
+                        "datetime": "2025-08-01T10:57:09.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3616.91,
+                        "amount": 0.008630792,
+                        "cost": 31.21679789272,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.910000",
+                            "quantity": "0.008630792",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045829"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045830000,
+                        "datetime": "2025-08-01T10:57:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.334411,
+                        "amount": 0.008333333,
+                        "cost": 30.152785552221864,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.334411",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045830"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045831000,
+                        "datetime": "2025-08-01T10:57:11.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.334411,
+                        "amount": 0.006335647,
+                        "cost": 22.92448955604892,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.334411",
+                            "quantity": "0.006335647",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045831"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045834000,
+                        "datetime": "2025-08-01T10:57:14.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.826487,
+                        "amount": 0.008435673,
+                        "cost": 30.518801215070752,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.826487",
+                            "quantity": "0.008435673",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045834"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045852000,
+                        "datetime": "2025-08-01T10:57:32.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3616.561893,
+                        "amount": 0.00027927,
+                        "cost": 1.00999723985811,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.561893",
+                            "quantity": "0.000279270",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045852"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045860000,
+                        "datetime": "2025-08-01T10:57:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.62,
+                        "amount": 0.008333333,
+                        "cost": 30.14683212746,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.620000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045860"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045876000,
+                        "datetime": "2025-08-01T10:57:56.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3618.29,
+                        "amount": 0.3,
+                        "cost": 1085.487,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.290000",
+                            "quantity": "0.300000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045876"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045890000,
+                        "datetime": "2025-08-01T10:58:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.637082,
+                        "amount": 0.008333333,
+                        "cost": 30.155307810454307,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.637082",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045890"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045905000,
+                        "datetime": "2025-08-01T10:58:25.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3616.782128,
+                        "amount": 0.000279253,
+                        "cost": 1.009997259590384,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.782128",
+                            "quantity": "0.000279253",
+                            "takerSide": "Sell",
+                            "timestamp": "1754045905"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045920000,
+                        "datetime": "2025-08-01T10:58:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.67,
+                        "amount": 0.008333333,
+                        "cost": 30.13058212811,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.670000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045920"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045942000,
+                        "datetime": "2025-08-01T10:59:02.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3618.685388,
+                        "amount": 0.000276482,
+                        "cost": 1.000501373445016,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3618.685388",
+                            "quantity": "0.000276482",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045942"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045950000,
+                        "datetime": "2025-08-01T10:59:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.2,
+                        "amount": 0.008333333,
+                        "cost": 30.1433321276,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.200000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045950"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045960000,
+                        "datetime": "2025-08-01T10:59:20.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.185632,
+                        "amount": 0.000279222,
+                        "cost": 1.009997806538304,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.185632",
+                            "quantity": "0.000279222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045960"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754045980000,
+                        "datetime": "2025-08-01T10:59:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.82,
+                        "amount": 0.008333333,
+                        "cost": 30.13183212806,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.820000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754045980"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046010000,
+                        "datetime": "2025-08-01T11:00:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3617.717201,
+                        "amount": 0.008333333,
+                        "cost": 30.147642135760933,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3617.717201",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046010"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046014000,
+                        "datetime": "2025-08-01T11:00:14.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3616.752915,
+                        "amount": 0.000279256,
+                        "cost": 1.00999995203124,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3616.752915",
+                            "quantity": "0.000279256",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046014"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046037000,
+                        "datetime": "2025-08-01T11:00:37.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3614.65,
+                        "amount": 0.008244392,
+                        "cost": 29.8005915428,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.650000",
+                            "quantity": "0.008244392",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046037"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046040000,
+                        "datetime": "2025-08-01T11:00:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3614.28,
+                        "amount": 0.008333333,
+                        "cost": 30.11899879524,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3614.280000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046040"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046043000,
+                        "datetime": "2025-08-01T11:00:43.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3613.32,
+                        "amount": 0.006719265,
+                        "cost": 24.2788546098,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.320000",
+                            "quantity": "0.006719265",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046043"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046047000,
+                        "datetime": "2025-08-01T11:00:47.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3613.54,
+                        "amount": 0.007616558,
+                        "cost": 27.52273699532,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.540000",
+                            "quantity": "0.007616558",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046047"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046052000,
+                        "datetime": "2025-08-01T11:00:52.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3612.56,
+                        "amount": 0.042160139,
+                        "cost": 152.30603174584,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.560000",
+                            "quantity": "0.042160139",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046052"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046068000,
+                        "datetime": "2025-08-01T11:01:08.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3613.504803,
+                        "amount": 0.000279507,
+                        "cost": 1.009999886972121,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3613.504803",
+                            "quantity": "0.000279507",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046068"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046070000,
+                        "datetime": "2025-08-01T11:01:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.037882,
+                        "amount": 0.008333333,
+                        "cost": 30.125314478320707,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.037882",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046070"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046093000,
+                        "datetime": "2025-08-01T11:01:33.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3615.488615,
+                        "amount": 0.000276747,
+                        "cost": 1.000575627735405,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3615.488615",
+                            "quantity": "0.000276747",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046093"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046099000,
+                        "datetime": "2025-08-01T11:01:39.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3612.04,
+                        "amount": 0.007762918,
+                        "cost": 28.03997033272,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.040000",
+                            "quantity": "0.007762918",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046099"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046100000,
+                        "datetime": "2025-08-01T11:01:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3612.61,
+                        "amount": 0.008333333,
+                        "cost": 30.10508212913,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.610000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046100"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046105000,
+                        "datetime": "2025-08-01T11:01:45.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3611.93,
+                        "amount": 0.005994823,
+                        "cost": 21.65288103839,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3611.930000",
+                            "quantity": "0.005994823",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046105"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046123000,
+                        "datetime": "2025-08-01T11:02:03.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3612.03,
+                        "amount": 0.00027965,
+                        "cost": 1.0101041895,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.030000",
+                            "quantity": "0.000279650",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046123"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046130000,
+                        "datetime": "2025-08-01T11:02:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3612.97,
+                        "amount": 0.008333333,
+                        "cost": 30.10808212901,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3612.970000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046130"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046148000,
+                        "datetime": "2025-08-01T11:02:28.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3610.666384,
+                        "amount": 0.3,
+                        "cost": 1083.1999152,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3610.666384",
+                            "quantity": "0.300000000",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046148"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046160000,
+                        "datetime": "2025-08-01T11:02:40.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3608.29,
+                        "amount": 0.008333333,
+                        "cost": 30.06908213057,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3608.290000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046160"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046171000,
+                        "datetime": "2025-08-01T11:02:51.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3608.97,
+                        "amount": 0.00874776,
+                        "cost": 31.5704034072,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3608.970000",
+                            "quantity": "0.008747760",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046171"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046180000,
+                        "datetime": "2025-08-01T11:03:00.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3609.09,
+                        "amount": 0.00027985,
+                        "cost": 1.0100038365,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.090000",
+                            "quantity": "0.000279850",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046180"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046181000,
+                        "datetime": "2025-08-01T11:03:01.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3609.09,
+                        "amount": 0.000273027,
+                        "cost": 0.98537901543,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.090000",
+                            "quantity": "0.000273027",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046181"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046190000,
+                        "datetime": "2025-08-01T11:03:10.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3611.02,
+                        "amount": 0.008333333,
+                        "cost": 30.09183212966,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3611.020000",
+                            "quantity": "0.008333333",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046190"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046231000,
+                        "datetime": "2025-08-01T11:03:51.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3609.62,
+                        "amount": 0.00849625,
+                        "cost": 30.668233925,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.620000",
+                            "quantity": "0.008496250",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046231"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046235000,
+                        "datetime": "2025-08-01T11:03:55.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3609.45,
+                        "amount": 0.000279821,
+                        "cost": 1.00999990845,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.450000",
+                            "quantity": "0.000279821",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046235"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046236000,
+                        "datetime": "2025-08-01T11:03:56.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3609.59,
+                        "amount": 0.000273004,
+                        "cost": 0.98543250836,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.590000",
+                            "quantity": "0.000273004",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046236"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046258000,
+                        "datetime": "2025-08-01T11:04:18.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3609.388409,
+                        "amount": 0.000277127,
+                        "cost": 1.000258981620943,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.388409",
+                            "quantity": "0.000277127",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046258"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046289000,
+                        "datetime": "2025-08-01T11:04:49.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3609.11,
+                        "amount": 0.000279862,
+                        "cost": 1.01005274282,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3609.110000",
+                            "quantity": "0.000279862",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046289"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046300000,
+                        "datetime": "2025-08-01T11:05:00.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3608.54,
+                        "amount": 0.003472222,
+                        "cost": 12.52965197588,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3608.540000",
+                            "quantity": "0.003472222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046300"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046302000,
+                        "datetime": "2025-08-01T11:05:02.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3608.31,
+                        "amount": 0.412624868,
+                        "cost": 1488.87843745308,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3608.310000",
+                            "quantity": "0.412624868",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046302"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046314000,
+                        "datetime": "2025-08-01T11:05:14.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3608.010932,
+                        "amount": 0.006594104,
+                        "cost": 23.79159931874493,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3608.010932",
+                            "quantity": "0.006594104",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046314"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046318000,
+                        "datetime": "2025-08-01T11:05:18.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3607.6259,
+                        "amount": 0.007585983,
+                        "cost": 27.3673887477597,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3607.625900",
+                            "quantity": "0.007585983",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046318"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046330000,
+                        "datetime": "2025-08-01T11:05:30.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3610.96931,
+                        "amount": 0.003472222,
+                        "cost": 12.53808707950682,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3610.969310",
+                            "quantity": "0.003472222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046330"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046344000,
+                        "datetime": "2025-08-01T11:05:44.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3607.45,
+                        "amount": 0.000279967,
+                        "cost": 1.00996695415,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3607.450000",
+                            "quantity": "0.000279967",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046344"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046350000,
+                        "datetime": "2025-08-01T11:05:50.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 3607.052104,
+                        "amount": 0.006428725,
+                        "cost": 23.1887460372874,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3607.052104",
+                            "quantity": "0.006428725",
+                            "takerSide": "Sell",
+                            "timestamp": "1754046350"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1754046360000,
+                        "datetime": "2025-08-01T11:06:00.000Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "buy",
+                        "price": 3607.87,
+                        "amount": 0.003472222,
+                        "cost": 12.52732558714,
+                        "order": null,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "price": "3607.870000",
+                            "quantity": "0.003472222",
+                            "takerSide": "Buy",
+                            "timestamp": "1754046360"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "assets": [
+                        {
+                            "quantity": "99.944313",
+                            "symbol": "USDT"
+                        }
+                    ],
+                    "balance": "99.944313",
+                    "maximalWithdraw": "99.944313",
+                    "numFreeTransfersRemaining": "100",
+                    "positions": [],
+                    "totalOrderNotional": "0.000000",
+                    "totalPositionNotional": "0.000000",
+                    "totalUnrealizedFundingPnl": "0.000000",
+                    "totalUnrealizedPnl": "0.000000",
+                    "totalUnrealizedTradingPnl": "0.000000",
+                    "tradeMakerFeeRate": "0.00000000",
+                    "tradeTakerFeeRate": "0.00020000"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "assets": [
+                            {
+                                "quantity": "99.944313",
+                                "symbol": "USDT"
+                            }
+                        ],
+                        "balance": "99.944313",
+                        "maximalWithdraw": "99.944313",
+                        "numFreeTransfersRemaining": "100",
+                        "positions": [],
+                        "totalOrderNotional": "0.000000",
+                        "totalPositionNotional": "0.000000",
+                        "totalUnrealizedFundingPnl": "0.000000",
+                        "totalUnrealizedPnl": "0.000000",
+                        "totalUnrealizedTradingPnl": "0.000000",
+                        "tradeMakerFeeRate": "0.00000000",
+                        "tradeTakerFeeRate": "0.00020000"
+                    },
+                    "USDT": {
+                        "free": 99.944313,
+                        "used": 0,
+                        "total": 99.944313
+                    },
+                    "free": {
+                        "USDT": 99.944313
+                    },
+                    "used": {
+                        "USDT": 0
+                    },
+                    "total": {
+                        "USDT": 99.944313
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetch ohlcv",
+                "method": "fetchOHLCV",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "1h",
+                    1754020936000
+                ],
+                "httpResponse": {
+                    "klines": [
+                        {
+                            "close": "3717.390000",
+                            "high": "3725.249229",
+                            "interval": "1h",
+                            "low": "3684.126451",
+                            "open": "3692.427630",
+                            "timestamp": "1754013600",
+                            "volumeNotional": "164843.281135"
+                        },
+                        {
+                            "close": "3706.800000",
+                            "high": "3725.290000",
+                            "interval": "1h",
+                            "low": "3703.401365",
+                            "open": "3717.390000",
+                            "timestamp": "1754017200",
+                            "volumeNotional": "162034.824592"
+                        },
+                        {
+                            "close": "3683.730000",
+                            "high": "3706.800000",
+                            "interval": "1h",
+                            "low": "3679.040861",
+                            "open": "3706.800000",
+                            "timestamp": "1754020800",
+                            "volumeNotional": "159606.168071"
+                        },
+                        {
+                            "close": "3676.520000",
+                            "high": "3694.490000",
+                            "interval": "1h",
+                            "low": "3665.810000",
+                            "open": "3683.730000",
+                            "timestamp": "1754024400",
+                            "volumeNotional": "133810.480330"
+                        },
+                        {
+                            "close": "3662.800000",
+                            "high": "3684.987134",
+                            "interval": "1h",
+                            "low": "3644.541810",
+                            "open": "3676.520000",
+                            "timestamp": "1754028000",
+                            "volumeNotional": "301742.182952"
+                        },
+                        {
+                            "close": "3652.450000",
+                            "high": "3669.419190",
+                            "interval": "1h",
+                            "low": "3625.740000",
+                            "open": "3662.800000",
+                            "timestamp": "1754031600",
+                            "volumeNotional": "178025.929389"
+                        },
+                        {
+                            "close": "3610.835055",
+                            "high": "3652.450000",
+                            "interval": "1h",
+                            "low": "3586.520000",
+                            "open": "3652.450000",
+                            "timestamp": "1754035200",
+                            "volumeNotional": "263706.940504"
+                        },
+                        {
+                            "close": "3618.100000",
+                            "high": "3642.210119",
+                            "interval": "1h",
+                            "low": "3607.200000",
+                            "open": "3610.835055",
+                            "timestamp": "1754038800",
+                            "volumeNotional": "136163.735983"
+                        },
+                        {
+                            "close": "3615.820000",
+                            "high": "3633.052852",
+                            "interval": "1h",
+                            "low": "3610.089569",
+                            "open": "3618.100000",
+                            "timestamp": "1754042400",
+                            "volumeNotional": "72938.060064"
+                        },
+                        {
+                            "close": "3607.625900",
+                            "high": "3617.717201",
+                            "interval": "1h",
+                            "low": "3607.625900",
+                            "open": "3615.820000",
+                            "timestamp": "1754046000",
+                            "volumeNotional": "3202.404521"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1754024400000,
+                        3683.73,
+                        3694.49,
+                        3665.81,
+                        3676.52,
+                        133810.48033
+                    ],
+                    [
+                        1754028000000,
+                        3676.52,
+                        3684.987134,
+                        3644.54181,
+                        3662.8,
+                        301742.182952
+                    ],
+                    [
+                        1754031600000,
+                        3662.8,
+                        3669.41919,
+                        3625.74,
+                        3652.45,
+                        178025.929389
+                    ],
+                    [
+                        1754035200000,
+                        3652.45,
+                        3652.45,
+                        3586.52,
+                        3610.835055,
+                        263706.940504
+                    ],
+                    [
+                        1754038800000,
+                        3610.835055,
+                        3642.210119,
+                        3607.2,
+                        3618.1,
+                        136163.735983
+                    ],
+                    [
+                        1754042400000,
+                        3618.1,
+                        3633.052852,
+                        3610.089569,
+                        3615.82,
+                        72938.060064
+                    ],
+                    [
+                        1754046000000,
+                        3615.82,
+                        3617.717201,
+                        3607.6259,
+                        3607.6259,
+                        3202.404521
+                    ]
+                ]
+            }
+        ]
+  }
+}

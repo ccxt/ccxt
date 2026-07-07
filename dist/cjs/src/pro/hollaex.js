@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var sha2_js = require('@noble/hashes/sha2.js');
 var hollaex$1 = require('../hollaex.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha256 = require('../static_dependencies/noble-hashes/sha256.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class hollaex extends hollaex$1 {
+class hollaex extends hollaex$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -18,7 +20,7 @@ class hollaex extends hollaex$1 {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': false, // for now
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -44,7 +46,7 @@ class hollaex extends hollaex$1 {
             'exceptions': {
                 'ws': {
                     'exact': {
-                        'Bearer or HMAC authentication required': errors.BadSymbol,
+                        'Bearer or HMAC authentication required': errors.BadSymbol, // { error: 'Bearer or HMAC authentication required' }
                         'Error: wrong input': errors.BadRequest, // { error: 'Error: wrong input' }
                     },
                 },
@@ -59,10 +61,12 @@ class hollaex extends hollaex$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
         const orderbook = await this.watchPublic(messageHash, params);
@@ -119,10 +123,12 @@ class hollaex extends hollaex$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
@@ -176,10 +182,12 @@ class hollaex extends hollaex$1 {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'usertrade';
         let market = undefined;
         if (symbol !== undefined) {
@@ -257,10 +265,12 @@ class hollaex extends hollaex$1 {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'order';
         let market = undefined;
         if (symbol !== undefined) {
@@ -376,7 +386,7 @@ class hollaex extends hollaex$1 {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.hollaex.com/#sending-receiving-messages
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         const messageHash = 'wallet';
@@ -442,7 +452,7 @@ class hollaex extends hollaex$1 {
         }
         const url = this.urls['api']['ws'];
         const auth = 'CONNECT' + '/stream' + expires;
-        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256.sha256);
+        const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256);
         const authParams = {
             'api-key': this.apiKey,
             'api-signature': signature,
@@ -473,7 +483,7 @@ class hollaex extends hollaex$1 {
                 return false;
             }
         }
-        return message;
+        return true;
     }
     handleMessage(client, message) {
         //
@@ -592,12 +602,12 @@ class hollaex extends hollaex$1 {
     }
     onError(client, error) {
         this.options['ws-expires'] = undefined;
-        this.onError(client, error);
+        super.onError(client, error);
     }
     onClose(client, error) {
         this.options['ws-expires'] = undefined;
-        this.onClose(client, error);
+        super.onClose(client, error);
     }
 }
 
-module.exports = hollaex;
+exports["default"] = hollaex;

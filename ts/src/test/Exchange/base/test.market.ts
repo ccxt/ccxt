@@ -1,9 +1,12 @@
 import assert from 'assert';
 import Precise from '../../../base/Precise.js';
-import { Exchange, Market } from "../../../../ccxt";
+import { Exchange, Market } from "../../../../ccxt.js";
 import testSharedMethods from './test.sharedMethods.js';
 
 function testMarket (exchange: Exchange, skippedProperties: object, method: string, market: Market) {
+    if (market === undefined) {
+        return;
+    }
     const format = {
         'id': 'btcusd', // string literal for referencing within an exchange
         'symbol': 'BTC/USD', // uppercase string literal of a pair of currencies
@@ -74,6 +77,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
     const inverse = market['inverse'];
     const quanto = exchange.safeBool (market, 'quanto'); // todo: unify
     const isQuanto = (quanto !== undefined) && quanto;
+    const isInactiveMarket = market['active'] === false;
 
     //
     const emptyAllowedFor = [ 'margin' ];
@@ -93,11 +97,21 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         emptyAllowedFor.push ('optionType');
         emptyAllowedFor.push ('strike');
     }
+    if (isInactiveMarket) {
+        emptyAllowedFor.push ('contractSize');
+        emptyAllowedFor.push ('settle');
+        emptyAllowedFor.push ('settleId');
+        emptyAllowedFor.push ('baseId');
+        emptyAllowedFor.push ('quoteId');
+        emptyAllowedFor.push ('base');
+        emptyAllowedFor.push ('quote');
+    }
     testSharedMethods.assertStructure (exchange, skippedProperties, method, market, format, emptyAllowedFor);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, market, 'symbol');
     const logText = testSharedMethods.logTemplate (exchange, method, market);
 
     // check taker/maker
+    // todo: check not all to be within 0-1.0
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'taker', '-100');
     testSharedMethods.assertLess (exchange, skippedProperties, method, market, 'taker', '100');
     testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'maker', '-100');
@@ -149,7 +163,7 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
 
     const contractSize = exchange.safeString (market, 'contractSize');
     // contract fields
-    if (contract) {
+    if (contract && !isInactiveMarket) {
         if (isQuanto) {
             assert (linear === false, 'linear must be false when "quanto" is true' + logText);
             assert (inverse === false, 'inverse must be false when "quanto" is true' + logText);
@@ -160,12 +174,12 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             assert (linear !== inverse, 'linear and inverse must not be the same' + logText);
         }
         // contract size should be defined
-        assert ((!('contractSize' in skippedProperties) || contractSize !== undefined), '"contractSize" must be defined when "contract" is true' + logText);
+        assert ((('contractSize' in skippedProperties) || contractSize !== undefined), '"contractSize" must be defined when "contract" is true' + logText);
         // contract size should be above zero
-        assert (!('contractSize' in skippedProperties) || Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
+        assert (('contractSize' in skippedProperties) || Precise.stringGt (contractSize, '0'), '"contractSize" must be > 0 when "contract" is true' + logText);
         // settle should be defined
-        assert (!('settle' in skippedProperties) || (market['settle'] !== undefined && market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
-    } else {
+        assert (('settle' in skippedProperties) || (market['settle'] !== undefined && market['settleId'] !== undefined), '"settle" & "settleId" must be defined when "contract" is true' + logText);
+    } else if (!contract) {
         // linear & inverse needs to be undefined
         assert (linear === undefined && inverse === undefined && quanto === undefined, 'market linear and inverse (and quanto) must be undefined when "contract" is false' + logText);
         // contract size should be undefined
@@ -194,44 +208,52 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
         testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'expiry', '0');
         if (option) {
             // strike should be defined
-            assert (market['strike'] !== undefined, '"strike" must be defined when "option" is true' + logText);
+            assert ((('strike' in skippedProperties) || market['strike'] !== undefined), '"strike" must be defined when "option" is true' + logText);
             testSharedMethods.assertGreater (exchange, skippedProperties, method, market, 'strike', '0');
             // optionType should be defined
-            assert (market['optionType'] !== undefined, '"optionType" must be defined when "option" is true' + logText);
+            assert ((('optionType' in skippedProperties) || market['optionType'] !== undefined), '"optionType" must be defined when "option" is true' + logText);
             testSharedMethods.assertInArray (exchange, skippedProperties, method, market, 'optionType', [ 'put', 'call' ]);
         } else {
             // if not option, then strike and optionType should be undefined
             assert (market['strike'] === undefined, '"strike" must be undefined when "option" is false' + logText);
             assert (market['optionType'] === undefined, '"optionType" must be undefined when "option" is false' + logText);
         }
-    } else {
+    } else if (spot) {
         // otherwise, expiry needs to be undefined
         assert ((market['expiry'] === undefined) && (market['expiryDatetime'] === undefined), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' + logText);
     }
 
-
     // check precisions
-    if (!('precision' in skippedProperties)) {
-        const precisionKeys = Object.keys (market['precision']);
-        const keysLength = precisionKeys.length;
-        assert (keysLength >= 2, 'precision should have "amount" and "price" keys at least' + logText);
-        for (let i = 0; i < precisionKeys.length; i++) {
-            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], precisionKeys[i]);
+    const precisionKeys = Object.keys (market['precision']);
+    const precisionKeysLen = precisionKeys.length;
+    assert (precisionKeysLen >= 2, 'precision should have "amount" and "price" keys at least' + logText);
+    for (let i = 0; i < precisionKeys.length; i++) {
+        const priceOrAmountKey = precisionKeys[i];
+        // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
+        const isExclusivePair = market['baseId'] === 'BTC';
+        const isNonSpot = !spot; // such high precision is only allowed in contract markets
+        const isPrice = priceOrAmountKey === 'price';
+        const isTickSize5 = Precise.stringEq ('5', exchange.safeString (market['precision'], priceOrAmountKey));
+        if (isNonSpot && isPrice && isExclusivePair && isTickSize5) {
+            continue;
+        }
+        if (!('precision' in skippedProperties)) {
+            testSharedMethods.checkPrecisionAccuracy (exchange, skippedProperties, method, market['precision'], priceOrAmountKey);
         }
     }
-    const isInactiveMarket = market['active'] === false;
+
     // check limits
-    if (!('limits' in skippedProperties)) {
-        const limitsKeys = Object.keys (market['limits']);
-        const keysLength = limitsKeys.length;
-        assert (keysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
-        for (let i = 0; i < limitsKeys.length; i++) {
-            const key = limitsKeys[i];
-            const limitEntry = market['limits'][key];
-            if (isInactiveMarket) {
-                // for inactive markets, there might be `0` for min & max values, so we skip
-                continue;
-            }
+    const limitsKeys = Object.keys (market['limits']);
+    const limitsKeysLength = limitsKeys.length;
+    assert (limitsKeysLength >= 3, 'limits should have "amount", "price" and "cost" keys at least' + logText);
+    for (let i = 0; i < limitsKeys.length; i++) {
+        const key = limitsKeys[i];
+        const limitEntry = market['limits'][key];
+        if (isInactiveMarket) {
+            // for inactive markets, there might be `0` for min & max values, so we skip
+            continue;
+        }    // check limits
+        if (!('limits' in skippedProperties)) {
             // min >= 0
             testSharedMethods.assertGreaterOrEqual (exchange, skippedProperties, method, limitEntry, 'min', '0');
             // max >= 0
@@ -243,16 +265,17 @@ function testMarket (exchange: Exchange, skippedProperties: object, method: stri
             }
         }
     }
-    // check whether valid currency ID and CODE is used
-    if (!('currency' in skippedProperties) && !('currencyIdAndCode' in skippedProperties)) {
+    // check currencies
+    if (!isInactiveMarket) {
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['baseId'], market['base']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['quoteId'], market['quote']);
         testSharedMethods.assertValidCurrencyIdAndCode (exchange, skippedProperties, method, market, market['settleId'], market['settle']);
     }
+    // check ts
     testSharedMethods.assertTimestamp (exchange, skippedProperties, method, market, undefined, 'created');
     // margin modes
     if (!('marginModes' in skippedProperties)) {
-        const marginModes = exchange.safeDict (market, 'marginModes'); // in future, remove safeDict
+        const marginModes = exchange.safeDict (market, 'marginModes', {}); // in future, remove safeDict
         assert ('cross' in marginModes, 'marginModes should have "cross" key' + logText);
         assert ('isolated' in marginModes, 'marginModes should have "isolated" key' + logText);
         testSharedMethods.assertInArray (exchange, skippedProperties, method, marginModes, 'cross', [ true, false, undefined ]);

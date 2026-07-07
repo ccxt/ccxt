@@ -8,7 +8,7 @@ require('../types/lib/index.js');
 var typedData = require('../types/typedData.js');
 var assert = require('./assert.js');
 var byteArray = require('./calldata/byteArray.js');
-require('../../noble-curves/abstract/modular.js');
+require('@noble/curves/abstract/poseidon.js');
 var selector = require('./selector.js');
 var classHash = require('./hash/classHash.js');
 var merkle = require('./merkle.js');
@@ -39,7 +39,7 @@ const revisionConfiguration = {
 };
 function assertRange(data, type, { min, max }) {
     const value = BigInt(data);
-    assert(value >= min && value <= max, `${value} (${type}) is out of bounds [${min}, ${max}]`);
+    assert["default"](value >= min && value <= max, `${value} (${type}) is out of bounds [${min}, ${max}]`);
 }
 function identifyRevision({ types, domain }) {
     if (revisionConfiguration[typedData.TypedDataRevision.Active].domain in types && domain.revision === typedData.TypedDataRevision.Active)
@@ -265,7 +265,7 @@ function encodeValue(types, type, data, ctx = {}, revision = typedData.TypedData
         }
         case 'bool': {
             if (revision === typedData.TypedDataRevision.Active) {
-                assert(typeof data === 'boolean', `Type mismatch for ${type} ${data}`);
+                assert["default"](typeof data === 'boolean', `Type mismatch for ${type} ${data}`);
             } // else fall through to default
             return [type, getHex(data)];
         }

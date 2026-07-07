@@ -1,54 +1,573 @@
 {
   "BTC": {
-    "id": "BTC",
-    "code": "BTC",
-    "limits": {
-      "deposit": {},
-      "withdraw": {}
-    },
     "info": {
       "currency": "BTC",
-      "spot_price": "97009.314732850007769088",
-      "spot_price_24h": "98441.779959899998912512"
+      "instrument_types": [
+        "perp",
+        "option",
+        "erc20"
+      ],
+      "protocol_asset_addresses": {
+        "perp": "0xDBa83C0C654DB1cd914FA2710bA743e925B53086",
+        "option": "0xd0711b9eBE84b778483709CDe62BacFDBAE13623",
+        "spot": "0x7da2D398dddDfC946Efd2C758c4688D21887790d",
+        "underlying_erc20": "0x9b80ab732a6F1030326Af0014f106E12C4Db18EC"
+      },
+      "managers": [
+        {
+          "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+          "margin_type": "SM",
+          "currency": null
+        },
+        {
+          "address": "0x45DA02B9cCF384d7DbDD7b2b13e705BADB43Db0D",
+          "margin_type": "PM",
+          "currency": null
+        },
+        {
+          "address": "0xC7adAB7A2b92019098dA55Ba4C5A8C65Ae7e52DC",
+          "margin_type": "PM2",
+          "currency": "BTC"
+        },
+        {
+          "address": "0xc755DAe3fd295A687adf3e192387163f813F0598",
+          "margin_type": "PM2",
+          "currency": "ETH"
+        }
+      ],
+      "srm_im_discount": "0.6975",
+      "srm_mm_discount": "0.75",
+      "pm2_collateral_discounts": [
+        {
+          "manager_currency": "BTC",
+          "im_discount": "0.01400000000000000029143354396410359186120331287384",
+          "mm_discount": "0.10599999999999999700239783351207734085619449615479"
+        },
+        {
+          "manager_currency": "ETH",
+          "im_discount": "0.052499999999999998057109706905976054258644580841064",
+          "mm_discount": "0.25"
+        }
+      ],
+      "borrow_apy": "0",
+      "supply_apy": "0",
+      "total_borrow": "0",
+      "total_supply": "198.6904",
+      "asset_cap_and_supply_per_manager": {
+        "erc20": {
+          "PM": [
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "BTC"
+            }
+          ],
+          "PM2": [
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "ADA"
+            },
+            {
+              "current_open_interest": "30.9971",
+              "interest_cap": "160",
+              "manager_currency": "BTC"
+            },
+            {
+              "current_open_interest": "2.2569",
+              "interest_cap": "40",
+              "manager_currency": "ETH"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "HYPE"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "SOL"
+            }
+          ],
+          "SM": [
+            {
+              "current_open_interest": "165.4364",
+              "interest_cap": "320",
+              "manager_currency": null
+            }
+          ]
+        },
+        "perp": {
+          "PM": [
+            {
+              "current_open_interest": "0.5086",
+              "interest_cap": "12000",
+              "manager_currency": "BTC"
+            }
+          ],
+          "PM2": [
+            {
+              "current_open_interest": "148.818",
+              "interest_cap": "12000",
+              "manager_currency": "BTC"
+            }
+          ],
+          "SM": [
+            {
+              "current_open_interest": "154.3999",
+              "interest_cap": "12000",
+              "manager_currency": null
+            }
+          ]
+        },
+        "option": {
+          "PM": [
+            {
+              "current_open_interest": "0",
+              "interest_cap": "100000",
+              "manager_currency": "BTC"
+            }
+          ],
+          "PM2": [
+            {
+              "current_open_interest": "5213.288",
+              "interest_cap": "100000",
+              "manager_currency": "BTC"
+            }
+          ],
+          "SM": [
+            {
+              "current_open_interest": "1025.9715",
+              "interest_cap": "100000",
+              "manager_currency": null
+            }
+          ]
+        }
+      },
+      "market_type": "ALL",
+      "spot_price": "73425.23239739628",
+      "spot_price_24h": "73965.92276360298",
+      "erc20_details": {
+        "sub_id": "0",
+        "decimals": 8
+      },
+      "srm_perp_margin_requirements": {
+        "mm_perp_req": "0.05",
+        "im_perp_req": "0.066",
+        "max_leverage": "15.15"
+      }
+    },
+    "id": "BTC",
+    "numericId": null,
+    "code": "BTC",
+    "precision": null,
+    "type": null,
+    "name": null,
+    "active": null,
+    "deposit": null,
+    "withdraw": null,
+    "fee": null,
+    "fees": {},
+    "networks": null,
+    "limits": {
+      "deposit": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      }
     }
   },
   "USDT": {
-    "id": "USDT",
-    "code": "USDT",
-    "limits": {
-      "deposit": {},
-      "withdraw": {}
-    },
     "info": {
       "currency": "USDT",
-      "spot_price": "1.000389870750000128",
-      "spot_price_24h": "1.000299427549999872"
+      "instrument_types": [
+        "erc20"
+      ],
+      "protocol_asset_addresses": {
+        "perp": null,
+        "option": null,
+        "spot": "0x5E72430EC945CCc183c34e2860FFC2b5bac712c2",
+        "underlying_erc20": "0x954bE1803546150bfd887c9ff70fd221F2F505d3"
+      },
+      "managers": [
+        {
+          "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+          "margin_type": "SM",
+          "currency": null
+        },
+        {
+          "address": "0xF728557D1129196cc43de5a6ec61fBf5d105db95",
+          "margin_type": "PM2",
+          "currency": "SOL"
+        },
+        {
+          "address": "0x18b385853a605a9B37E181919D3808C739729347",
+          "margin_type": "PM2",
+          "currency": "HYPE"
+        },
+        {
+          "address": "0xC7adAB7A2b92019098dA55Ba4C5A8C65Ae7e52DC",
+          "margin_type": "PM2",
+          "currency": "BTC"
+        },
+        {
+          "address": "0xc755DAe3fd295A687adf3e192387163f813F0598",
+          "margin_type": "PM2",
+          "currency": "ETH"
+        }
+      ],
+      "srm_im_discount": "0.95941999999999998260946654227154795080423355102539",
+      "srm_mm_discount": "0.98",
+      "pm2_collateral_discounts": [
+        {
+          "manager_currency": "SOL",
+          "im_discount": "0.020000000000000000416333634234433702658861875534058",
+          "mm_discount": "0.020000000000000000416333634234433702658861875534058"
+        },
+        {
+          "manager_currency": "HYPE",
+          "im_discount": "0.020000000000000000416333634234433702658861875534058",
+          "mm_discount": "0.020000000000000000416333634234433702658861875534058"
+        },
+        {
+          "manager_currency": "BTC",
+          "im_discount": "0.020000000000000000416333634234433702658861875534058",
+          "mm_discount": "0.020000000000000000416333634234433702658861875534058"
+        },
+        {
+          "manager_currency": "ETH",
+          "im_discount": "0.020000000000000000416333634234433702658861875534058",
+          "mm_discount": "0.020000000000000000416333634234433702658861875534058"
+        }
+      ],
+      "borrow_apy": "0",
+      "supply_apy": "0",
+      "total_borrow": "0",
+      "total_supply": "1957738.9858",
+      "asset_cap_and_supply_per_manager": {
+        "erc20": {
+          "PM2": [
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "ADA"
+            },
+            {
+              "current_open_interest": "95538.9978",
+              "interest_cap": "10000000",
+              "manager_currency": "BTC"
+            },
+            {
+              "current_open_interest": "10196.5718",
+              "interest_cap": "10000000",
+              "manager_currency": "ETH"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "10000000",
+              "manager_currency": "HYPE"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "10000000",
+              "manager_currency": "SOL"
+            }
+          ],
+          "SM": [
+            {
+              "current_open_interest": "1852003.4162",
+              "interest_cap": "10000000",
+              "manager_currency": null
+            }
+          ]
+        },
+        "perp": {},
+        "option": {}
+      },
+      "market_type": "SRM_BASE_ONLY",
+      "spot_price": "0.9994880195",
+      "spot_price_24h": "0.9990331061",
+      "erc20_details": {
+        "sub_id": "0",
+        "decimals": 6
+      },
+      "srm_perp_margin_requirements": {
+        "mm_perp_req": "0",
+        "im_perp_req": "0",
+        "max_leverage": "0"
+      }
+    },
+    "id": "USDT",
+    "numericId": null,
+    "code": "USDT",
+    "precision": null,
+    "type": null,
+    "name": null,
+    "active": null,
+    "deposit": null,
+    "withdraw": null,
+    "fee": null,
+    "fees": {},
+    "networks": null,
+    "limits": {
+      "deposit": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      }
     }
   },
   "USDC": {
-    "id": "USDC",
-    "code": "USDC",
-    "limits": {
-      "deposit": {},
-      "withdraw": {}
-    },
     "info": {
       "currency": "USDC",
-      "spot_price": "1.00008621975",
-      "spot_price_24h": "0.999991844500000000"
+      "instrument_types": [
+        "erc20"
+      ],
+      "protocol_asset_addresses": {
+        "perp": null,
+        "option": null,
+        "spot": "0x57B03E14d409ADC7fAb6CFc44b5886CAD2D5f02b",
+        "underlying_erc20": "0x6879287835A86F50f784313dBEd5E5cCC5bb8481"
+      },
+      "managers": [
+        {
+          "address": "0x4695A17dCF9d52a7eE4540fC8aE0C54B787E2135",
+          "margin_type": "PM2",
+          "currency": "ADA"
+        },
+        {
+          "address": "0xF728557D1129196cc43de5a6ec61fBf5d105db95",
+          "margin_type": "PM2",
+          "currency": "SOL"
+        },
+        {
+          "address": "0x18b385853a605a9B37E181919D3808C739729347",
+          "margin_type": "PM2",
+          "currency": "HYPE"
+        },
+        {
+          "address": "0x45DA02B9cCF384d7DbDD7b2b13e705BADB43Db0D",
+          "margin_type": "PM",
+          "currency": "BTC"
+        },
+        {
+          "address": "0xC7adAB7A2b92019098dA55Ba4C5A8C65Ae7e52DC",
+          "margin_type": "PM2",
+          "currency": "BTC"
+        },
+        {
+          "address": "0xe7cD9370CdE6C9b5eAbCe8f86d01822d3de205A0",
+          "margin_type": "PM",
+          "currency": "ETH"
+        },
+        {
+          "address": "0xc755DAe3fd295A687adf3e192387163f813F0598",
+          "margin_type": "PM2",
+          "currency": "ETH"
+        },
+        {
+          "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+          "margin_type": "SM",
+          "currency": null
+        }
+      ],
+      "srm_im_discount": "1",
+      "srm_mm_discount": "1",
+      "pm2_collateral_discounts": [
+        {
+          "manager_currency": "ADA",
+          "im_discount": "0",
+          "mm_discount": "0"
+        },
+        {
+          "manager_currency": "SOL",
+          "im_discount": "0",
+          "mm_discount": "0"
+        },
+        {
+          "manager_currency": "HYPE",
+          "im_discount": "0",
+          "mm_discount": "0"
+        },
+        {
+          "manager_currency": "BTC",
+          "im_discount": "0",
+          "mm_discount": "0"
+        },
+        {
+          "manager_currency": "ETH",
+          "im_discount": "0",
+          "mm_discount": "0"
+        }
+      ],
+      "borrow_apy": "0.02359",
+      "supply_apy": "0.008811",
+      "total_borrow": "21320156.695245437500942722",
+      "total_supply": "54227541.734405039129012206",
+      "asset_cap_and_supply_per_manager": {
+        "erc20": {},
+        "perp": {},
+        "option": {}
+      },
+      "market_type": "SRM_BASE_ONLY",
+      "spot_price": "1.0004071391325653",
+      "spot_price_24h": "1.0001051605380822",
+      "erc20_details": {
+        "sub_id": "0",
+        "decimals": 6
+      },
+      "srm_perp_margin_requirements": null
+    },
+    "id": "USDC",
+    "numericId": null,
+    "code": "USDC",
+    "precision": null,
+    "type": null,
+    "name": null,
+    "active": null,
+    "deposit": null,
+    "withdraw": null,
+    "fee": null,
+    "fees": {},
+    "networks": null,
+    "limits": {
+      "deposit": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      }
     }
   },
   "LBTC": {
-    "id": "LBTC",
-    "code": "LBTC",
-    "limits": {
-      "deposit": {},
-      "withdraw": {}
-    },
     "info": {
       "currency": "LBTC",
-      "spot_price": "96916.649684422767935488",
-      "spot_price_24h": "97983.562755768242405376"
+      "instrument_types": [
+        "erc20"
+      ],
+      "protocol_asset_addresses": {
+        "perp": null,
+        "option": null,
+        "spot": "0xeaF03Bb3280C609d35E7F84d24a996c7C0b74F5f",
+        "underlying_erc20": "0x36b5C126A3D7B25F6032653A0d18823Ee48a890e"
+      },
+      "managers": [
+        {
+          "address": "0x28c9ddF9A3B29c2E6a561c1BC520954e5A33de5D",
+          "margin_type": "SM",
+          "currency": null
+        },
+        {
+          "address": "0xC7adAB7A2b92019098dA55Ba4C5A8C65Ae7e52DC",
+          "margin_type": "PM2",
+          "currency": "BTC"
+        },
+        {
+          "address": "0xc755DAe3fd295A687adf3e192387163f813F0598",
+          "margin_type": "PM2",
+          "currency": "ETH"
+        }
+      ],
+      "srm_im_discount": "0.59499999999999996225241716274467762559652328491211",
+      "srm_mm_discount": "0.7",
+      "pm2_collateral_discounts": [
+        {
+          "manager_currency": "BTC",
+          "im_discount": "0.018999999999999999528155214534308470319956541061401",
+          "mm_discount": "0.15599999999999999977795539507496869191527366638184"
+        },
+        {
+          "manager_currency": "ETH",
+          "im_discount": "0.049000000000000001887379141862766118720173835754395",
+          "mm_discount": "0.2999999999999999888977697537484345957636833190918"
+        }
+      ],
+      "borrow_apy": "0",
+      "supply_apy": "0",
+      "total_borrow": "0",
+      "total_supply": "125.6056",
+      "asset_cap_and_supply_per_manager": {
+        "erc20": {
+          "PM2": [
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "ADA"
+            },
+            {
+              "current_open_interest": "0.1693",
+              "interest_cap": "10",
+              "manager_currency": "BTC"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0.01",
+              "manager_currency": "ETH"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "HYPE"
+            },
+            {
+              "current_open_interest": "0",
+              "interest_cap": "0",
+              "manager_currency": "SOL"
+            }
+          ],
+          "SM": [
+            {
+              "current_open_interest": "125.4363",
+              "interest_cap": "150",
+              "manager_currency": null
+            }
+          ]
+        },
+        "perp": {},
+        "option": {}
+      },
+      "market_type": "SRM_BASE_ONLY",
+      "spot_price": "73646.01927777664",
+      "spot_price_24h": "74234.25844646309",
+      "erc20_details": {
+        "sub_id": "0",
+        "decimals": 8
+      },
+      "srm_perp_margin_requirements": {
+        "mm_perp_req": "0",
+        "im_perp_req": "0",
+        "max_leverage": "0"
+      }
+    },
+    "id": "LBTC",
+    "numericId": null,
+    "code": "LBTC",
+    "precision": null,
+    "type": null,
+    "name": null,
+    "active": null,
+    "deposit": null,
+    "withdraw": null,
+    "fee": null,
+    "fees": {},
+    "networks": null,
+    "limits": {
+      "deposit": {
+        "min": null,
+        "max": null
+      },
+      "withdraw": {
+        "min": null,
+        "max": null
+      }
     }
   }
 }

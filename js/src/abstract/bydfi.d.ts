@@ -1,0 +1,52 @@
+import { implicitReturnType } from '../base/types.js';
+import { Exchange as _Exchange } from '../base/Exchange.js';
+interface Exchange {
+    publicGetV1PublicApiLimits(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketExchangeInfo(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketDepth(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketTrades(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketKlines(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketTicker24hr(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketTickerPrice(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketMarkPrice(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketFundingRate(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketFundingRateHistory(params?: {}): Promise<implicitReturnType>;
+    publicGetV1FapiMarketRiskLimit(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AccountAssets(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AccountTransferRecords(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SpotDepositRecords(params?: {}): Promise<implicitReturnType>;
+    privateGetV1SpotWithdrawRecords(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradeOpenOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradePlanOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradeLeverage(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradeHistoryOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradeHistoryTrade(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradePositionHistory(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiTradePositions(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiAccountBalance(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiUserDataAssetsMargin(params?: {}): Promise<implicitReturnType>;
+    privateGetV1FapiUserDataPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentTeams(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAgentLinks(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentRegularOverview(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAgentSubOverview(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentPartenerUserDeposit(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentPartenerUsersData(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAffiliateUids(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentAffiliateCommission(params?: {}): Promise<implicitReturnType>;
+    privateGetV1AgentInternalWithdrawalStatus(params?: {}): Promise<implicitReturnType>;
+    privatePostV1AccountTransfer(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradePlaceOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradeBatchPlaceOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradeEditOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradeBatchEditOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradeCancelAllOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradeLeverage(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiTradeBatchLeverageMargin(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiUserDataMarginType(params?: {}): Promise<implicitReturnType>;
+    privatePostV1FapiUserDataPositionSideDual(params?: {}): Promise<implicitReturnType>;
+    privatePostV1AgentInternalWithdrawal(params?: {}): Promise<implicitReturnType>;
+}
+declare abstract class Exchange extends _Exchange {
+}
+export default Exchange;

@@ -1,6 +1,6 @@
 import { sleep } from '../../../base/functions.js';
 import { ExchangeClosedByUser } from '../../../base/errors.js';
-import ccxt, { Exchange } from '../../../../ccxt.js';
+import ccxt from '../../../../ccxt.js';
 
 async function watchTickerLoop (exchange) {
     const method = 'watchTicker';
@@ -12,7 +12,7 @@ async function watchTickerLoop (exchange) {
     }
 }
 
-async function watchOrderBookForSymbolsLoop (exchange: Exchange) {
+async function watchOrderBookForSymbolsLoop (exchange) {
     const method = 'watchTicker';
     /* eslint-disable */
     while (true) {
@@ -31,7 +31,7 @@ async function testWsClose () {
     // --------------------------------------------
 
     console.log ('Testing exchange.close(): No future awaiting, should close with no errors');
-    await exchange.watchTicker ('BTC/USD');
+    await exchange.watchTicker ('BTC/USDT');
     console.log ('ticker received');
     await exchange.close ();
     console.log ('PASSED - exchange closed with no errors');

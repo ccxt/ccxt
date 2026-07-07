@@ -1,7 +1,308 @@
 {
     "exchange": "bitvavo",
-    "options": {},
+    "options": {
+        "operatorId": 123456
+    },
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "symbol": "USDC",
+                        "name": "USD Coin",
+                        "decimals": "6",
+                        "depositFee": "0",
+                        "depositConfirmations": "32",
+                        "depositStatus": "OK",
+                        "withdrawalFee": "1.2",
+                        "withdrawalMinAmount": "1.2",
+                        "withdrawalStatus": "OK",
+                        "networks": [
+                            "ETH"
+                        ],
+                        "message": ""
+                    }
+                ],
+                "parsedResponse": {
+                    "USDC": {
+                        "info": {
+                            "symbol": "USDC",
+                            "name": "USD Coin",
+                            "decimals": "6",
+                            "depositFee": "0",
+                            "depositConfirmations": "32",
+                            "depositStatus": "OK",
+                            "withdrawalFee": "1.2",
+                            "withdrawalMinAmount": "1.2",
+                            "withdrawalStatus": "OK",
+                            "networks": [
+                                "ETH"
+                            ],
+                            "message": ""
+                        },
+                        "id": "USDC",
+                        "numericId": null,
+                        "code": "USDC",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "USD Coin",
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 1.2,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "info": {
+                                    "symbol": "USDC",
+                                    "name": "USD Coin",
+                                    "decimals": "6",
+                                    "depositFee": "0",
+                                    "depositConfirmations": "32",
+                                    "depositStatus": "OK",
+                                    "withdrawalFee": "1.2",
+                                    "withdrawalMinAmount": "1.2",
+                                    "withdrawalStatus": "OK",
+                                    "networks": [
+                                        "ETH"
+                                    ],
+                                    "message": ""
+                                },
+                                "id": "ETH",
+                                "network": "ERC20",
+                                "active": true,
+                                "deposit": true,
+                                "withdraw": true,
+                                "fee": 1.2,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.2,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 1.2,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "BTC/EUR"
+                ],
+                "httpResponse": {
+                    "tier": "0",
+                    "volume": "10000.00",
+                    "taker": "0.0025",
+                    "maker": "0.0015"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "tier": "0",
+                        "volume": "10000.00",
+                        "taker": "0.0025",
+                        "maker": "0.0015"
+                    },
+                    "symbol": "BTC/EUR",
+                    "maker": 0.0015,
+                    "taker": 0.0025,
+                    "percentage": true,
+                    "tierBased": true
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "type": "spot",
+                            "status": "open",
+                            "label": "string"
+                        }
+                    ],
+                    "currentPage": 1,
+                    "totalPages": 1,
+                    "maxItems": 100
+                },
+                "parsedResponse": [
+                    {
+                        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "type": "spot",
+                        "code": null,
+                        "info": {
+                            "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "type": "spot",
+                            "status": "open",
+                            "label": "string"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers",
+                "method": "fetchTransfers",
+                "input": [
+                    "BTC",
+                    0,
+                    2,
+                    {
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "direction": "masterToSub",
+                            "symbol": "BTC",
+                            "amount": "0.1",
+                            "status": "completed",
+                            "createdAt": "1700000000000"
+                        }
+                    ],
+                    "start": 0,
+                    "end": 0,
+                    "limit": 25
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                            "direction": "masterToSub",
+                            "symbol": "BTC",
+                            "amount": "0.1",
+                            "status": "completed",
+                            "createdAt": "1700000000000"
+                        },
+                        "id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "timestamp": 1700000000000,
+                        "datetime": "2023-11-14T22:13:20.000Z",
+                        "currency": "BTC",
+                        "amount": 0.1,
+                        "fromAccount": "master",
+                        "toAccount": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "status": "ok"
+                    }
+                ]
+            }
+        ],
+        "fetchTransfer": [
+            {
+                "description": "fetch transfer",
+                "method": "fetchTransfer",
+                "input": [
+                    "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "BTC"
+                ],
+                "httpResponse": {
+                    "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "direction": "subToMaster",
+                    "symbol": "BTC",
+                    "amount": "0.2",
+                    "status": "pending",
+                    "createdAt": "1700000000001"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "direction": "subToMaster",
+                        "symbol": "BTC",
+                        "amount": "0.2",
+                        "status": "pending",
+                        "createdAt": "1700000000001"
+                    },
+                    "id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "timestamp": 1700000000001,
+                    "datetime": "2023-11-14T22:13:20.001Z",
+                    "currency": "BTC",
+                    "amount": 0.2,
+                    "fromAccount": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "toAccount": "master",
+                    "status": "pending"
+                }
+            }
+        ],
+        "transfer": [
+            {
+                "description": "transfer master to subaccount",
+                "method": "transfer",
+                "input": [
+                    "BTC",
+                    0.1,
+                    "master",
+                    "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    {
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6"
+                    }
+                ],
+                "httpResponse": {
+                    "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "direction": "masterToSub",
+                    "symbol": "BTC",
+                    "amount": "0.1",
+                    "status": "completed",
+                    "createdAt": "1700000000000"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "transferId": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "clientRequestId": "5fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "subaccountId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                        "direction": "masterToSub",
+                        "symbol": "BTC",
+                        "amount": "0.1",
+                        "status": "completed",
+                        "createdAt": "1700000000000"
+                    },
+                    "id": "4fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "timestamp": 1700000000000,
+                    "datetime": "2023-11-14T22:13:20.000Z",
+                    "currency": "BTC",
+                    "amount": 0.1,
+                    "fromAccount": "master",
+                    "toAccount": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "status": "ok"
+                }
+            }
+        ],
         "createOrder": [
             {
                 "description": "create order limit buy",
@@ -237,6 +538,108 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null
                 }
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    30000
+                ],
+                "httpResponse": {
+                    "codGroupId": 1,
+                    "timeOfExpirySeconds": 17202139111
+                },
+                "parsedResponse": {
+                    "codGroupId": 1,
+                    "timeOfExpirySeconds": 17202139111
+                }
+            },
+            {
+                "description": "remove cancel all orders after group",
+                "method": "cancelAllOrdersAfter",
+                "input": [
+                    0,
+                    {
+                        "codGroupId": 2
+                    }
+                ],
+                "httpResponse": {
+                    "codGroupId": 2,
+                    "timeOfExpirySeconds": 0
+                },
+                "parsedResponse": {
+                    "codGroupId": 2,
+                    "timeOfExpirySeconds": 0
+                }
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger",
+                "method": "fetchLedger",
+                "input": [
+                    null,
+                    0,
+                    3
+                ],
+                "httpResponse": {
+                    "items": [
+                        {
+                            "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                            "executedAt": "2021-01-01T00:00:00.000Z",
+                            "type": "sell",
+                            "priceCurrency": "EUR",
+                            "priceAmount": "1000.00",
+                            "sentCurrency": "BTC",
+                            "sentAmount": "0.1",
+                            "receivedCurrency": "EUR",
+                            "receivedAmount": "1000.00",
+                            "feesCurrency": "EUR",
+                            "feesAmount": "0.01",
+                            "address": "string"
+                        }
+                    ],
+                    "currentPage": 1,
+                    "totalPages": 1,
+                    "maxItems": 100
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "transactionId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                            "executedAt": "2021-01-01T00:00:00.000Z",
+                            "type": "sell",
+                            "priceCurrency": "EUR",
+                            "priceAmount": "1000.00",
+                            "sentCurrency": "BTC",
+                            "sentAmount": "0.1",
+                            "receivedCurrency": "EUR",
+                            "receivedAmount": "1000.00",
+                            "feesCurrency": "EUR",
+                            "feesAmount": "0.01",
+                            "address": "string"
+                        },
+                        "id": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                        "direction": "in",
+                        "account": null,
+                        "referenceId": "5f5e7b3b-4f5b-4b2d-8b2f-4f2b5b3f5e5f",
+                        "referenceAccount": "string",
+                        "type": "trade",
+                        "currency": "EUR",
+                        "amount": 1000,
+                        "timestamp": 1609459200000,
+                        "datetime": "2021-01-01T00:00:00.000Z",
+                        "before": null,
+                        "after": null,
+                        "status": "ok",
+                        "fee": {
+                            "cost": 0.01,
+                            "currency": "EUR"
+                        }
+                    }
+                ]
             }
         ],
         "fetchOHLCV": [

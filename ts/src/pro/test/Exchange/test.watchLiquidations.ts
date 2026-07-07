@@ -1,11 +1,13 @@
+
 import assert from 'assert';
-import { Exchange } from "../../../../ccxt";
-import errors from '../../../base/errors.js';
+import { Exchange } from "../../../../ccxt.js";
 import testLiquidation from '../../../test/Exchange/base/test.liquidation.js';
+import { NetworkError } from '../../../base/errors.js';
+import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import type { Liquidation } from '../../../base/types.js';
 
-/*  ------------------------------------------------------------------------ */
 
-export default async (exchange: Exchange, skippedProperties: object, symbol: string) => {
+async function testWatchLiquidations (exchange: Exchange, skippedProperties: object, symbol: string) {
 
     // log (symbol.green, 'watching trades...')
 
@@ -14,17 +16,19 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [];
 
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (exchange.id, method + '() test skipped');
-        return;
+    if (exchange.inArray (exchange.id, skippedExchanges)) {
+        const m1 = (exchange.id + ' ' + method + '() test skipped');
+        console.log (m1);
+        return false;
     }
 
     if (!exchange.has[method]) {
-        console.log (exchange.id, 'does not support', method + '() method');
-        return;
+        const m2 = (exchange.id + ' does not support ' + method + '() method');
+        console.log (m2);
+        return false;
     }
 
-    let response = undefined;
+    let response: Liquidation[] = [];
 
     let now = Date.now ();
     const ends = now + 10000;
@@ -37,9 +41,11 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
 
             now = Date.now ();
 
-            assert (response instanceof Array);
+            const isArray = Array.isArray (response);
+            assert (isArray, "response must be an array");
 
-            console.log (exchange.iso8601 (now), exchange.id, symbol, method, Object.values (response).length, 'liquidations');
+            const m3 = (exchange.id + ' ' + method + '() returned ' + response.length + ' liquidations');
+            console.log (m3);
 
             // log.noLocate (asTable (response))
 
@@ -48,7 +54,7 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
             }
         } catch (e) {
 
-            if (!(e instanceof errors.NetworkError)) {
+            if (!(e instanceof NetworkError)) {
                 throw e;
             }
 
@@ -57,4 +63,5 @@ export default async (exchange: Exchange, skippedProperties: object, symbol: str
     }
 
     return response;
-};
+}
+export default testWatchLiquidations;

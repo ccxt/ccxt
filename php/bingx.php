@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bingx as Exchange;
 
 class bingx extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bingx',
@@ -27,6 +26,9 @@ class bingx extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -47,9 +49,18 @@ class bingx extends Exchange {
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
                 'editOrder' => true,
+                'fetchAllGreeks' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDepositAddresses' => false,
@@ -57,13 +68,18 @@ class bingx extends Exchange {
                 'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => true,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => true,
+                'fetchGreeks' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
                 'fetchLeverage' => true,
                 'fetchLiquidations' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => true,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => true,
                 'fetchMarkPrice' => true,
@@ -73,6 +89,8 @@ class bingx extends Exchange {
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
@@ -87,8 +105,11 @@ class bingx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTransfers' => true,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'sandbox' => true,
                 'setLeverage' => true,
                 'setMargin' => true,
@@ -100,6 +121,7 @@ class bingx extends Exchange {
             'urls' => array(
                 'logo' => 'https://github-production-user-asset-6210df.s3.amazonaws.com/1294454/253675376-6983b72e-4999-4549-b177-33b374c195e3.jpg',
                 'api' => array(
+                    'fund' => 'https://open-api.{hostname}/openApi',
                     'spot' => 'https://open-api.{hostname}/openApi',
                     'swap' => 'https://open-api.{hostname}/openApi',
                     'contract' => 'https://open-api.{hostname}/openApi',
@@ -109,9 +131,20 @@ class bingx extends Exchange {
                     'account' => 'https://open-api.{hostname}/openApi',
                     'copyTrading' => 'https://open-api.{hostname}/openApi',
                     'cswap' => 'https://open-api.{hostname}/openApi',
+                    'api' => 'https://open-api.{hostname}/openApi',
                 ),
                 'test' => array(
-                    'swap' => 'https://open-api-vst.{hostname}/openApi', // only swap is really "test" but since the API keys are the same, we want to keep all the functionalities when the user enables the sandboxmode
+                    'fund' => 'https://open-api-vst.{hostname}/openApi',
+                    'spot' => 'https://open-api-vst.{hostname}/openApi',
+                    'swap' => 'https://open-api-vst.{hostname}/openApi',
+                    'contract' => 'https://open-api-vst.{hostname}/openApi',
+                    'wallets' => 'https://open-api-vst.{hostname}/openApi',
+                    'user' => 'https://open-api-vst.{hostname}/openApi',
+                    'subAccount' => 'https://open-api-vst.{hostname}/openApi',
+                    'account' => 'https://open-api-vst.{hostname}/openApi',
+                    'copyTrading' => 'https://open-api-vst.{hostname}/openApi',
+                    'cswap' => 'https://open-api-vst.{hostname}/openApi',
+                    'api' => 'https://open-api-vst.{hostname}/openApi',
                 ),
                 'www' => 'https://bingx.com/',
                 'doc' => 'https://bingx-api.github.io/docs/',
@@ -135,6 +168,15 @@ class bingx extends Exchange {
                 'secret' => true,
             ),
             'api' => array(
+                'fund' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'account/balance' => 1,
+                            ),
+                        ),
+                    ),
+                ),
                 'spot' => array(
                     'v1' => array(
                         'public' => array(
@@ -145,7 +187,7 @@ class bingx extends Exchange {
                                 'market/depth' => 1,
                                 'market/kline' => 1,
                                 'ticker/24hr' => 1,
-                                'ticker/price' => 1,
+                                'ticker/price' => 1, // deprecated, still can be used
                                 'ticker/bookTicker' => 1,
                             ),
                         ),
@@ -157,6 +199,9 @@ class bingx extends Exchange {
                                 'trade/myTrades' => 2,
                                 'user/commissionRate' => 5,
                                 'account/balance' => 2,
+                                'oco/orderList' => 5,
+                                'oco/openOrderList' => 5,
+                                'oco/historyOrderList' => 5,
                             ),
                             'post' => array(
                                 'trade/order' => 2,
@@ -166,6 +211,8 @@ class bingx extends Exchange {
                                 'trade/cancelOrders' => 5,
                                 'trade/cancelOpenOrders' => 5,
                                 'trade/cancelAllAfter' => 5,
+                                'oco/order' => 5,
+                                'oco/cancel' => 5,
                             ),
                         ),
                     ),
@@ -174,6 +221,7 @@ class bingx extends Exchange {
                             'get' => array(
                                 'market/depth' => 1,
                                 'market/kline' => 1,
+                                'ticker/price' => 1,
                             ),
                         ),
                     ),
@@ -199,6 +247,7 @@ class bingx extends Exchange {
                                 'market/historicalTrades' => 1,
                                 'market/markPriceKlines' => 1,
                                 'trade/multiAssetsRules' => 1,
+                                'tradingRules' => 1,
                             ),
                         ),
                         'private' => array(
@@ -216,14 +265,17 @@ class bingx extends Exchange {
                                 'user/marginAssets' => 5,
                             ),
                             'post' => array(
+                                'trade/amend' => 2,
                                 'trade/cancelReplace' => 2,
                                 'positionSide/dual' => 5,
                                 'trade/batchCancelReplace' => 5,
                                 'trade/closePosition' => 2,
-                                'trade/getVst' => 5,
+                                'trade/getVst' => 5, // deprecated
                                 'twap/order' => 5,
                                 'twap/cancelOrder' => 5,
                                 'trade/assetMode' => 5,
+                                'trade/reverse' => 5,
+                                'trade/autoAddMargin' => 5,
                             ),
                         ),
                     ),
@@ -262,6 +314,7 @@ class bingx extends Exchange {
                                 'quote/bookTicker' => 1,
                             ),
                             'post' => array(
+                                'trade/getVst' => 5,
                                 'trade/order' => 2,
                                 'trade/batchOrders' => 2,
                                 'trade/closeAllPositions' => 2,
@@ -282,6 +335,11 @@ class bingx extends Exchange {
                         'public' => array(
                             'get' => array(
                                 'quote/klines' => 1,
+                            ),
+                        ),
+                        'private' => array(
+                            'get' => array(
+                                'user/balance' => 2,
                             ),
                         ),
                     ),
@@ -424,10 +482,19 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'swap/trace/currentTrack' => 2,
+                                'PFutures/traderDetail' => 2,
+                                'PFutures/profitHistorySummarys' => 2,
+                                'PFutures/profitDetail' => 2,
+                                'PFutures/tradingPairs' => 2,
+                                'spot/traderDetail' => 2,
+                                'spot/profitHistorySummarys' => 2,
+                                'spot/profitDetail' => 2,
+                                'spot/historyOrder' => 2,
                             ),
                             'post' => array(
                                 'swap/trace/closeTrackOrder' => 2,
                                 'swap/trace/setTPSL' => 2,
+                                'PFutures/setCommission' => 2,
                                 'spot/trader/sellOrder' => 10,
                             ),
                         ),
@@ -438,11 +505,42 @@ class bingx extends Exchange {
                         'private' => array(
                             'get' => array(
                                 'asset/transfer' => 1,
+                                'asset/transferRecord' => 5,
                                 'capital/deposit/hisrec' => 1,
                                 'capital/withdraw/history' => 1,
                             ),
                             'post' => array(
                                 'post/asset/transfer' => 1,
+                            ),
+                        ),
+                    ),
+                    'asset' => array(
+                        'v1' => array(
+                            'private' => array(
+                                'post' => array(
+                                    'transfer' => 5,
+                                ),
+                            ),
+                            'public' => array(
+                                'get' => array(
+                                    'transfer/supportCoins' => 5,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+                'agent' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'account/inviteAccountList' => 5,
+                                'reward/commissionDataList' => 5,
+                                'account/inviteRelationCheck' => 5,
+                                'asset/depositDetailList' => 5,
+                                'reward/third/commissionDataList' => 5,
+                                'asset/partnerData' => 5,
+                                'commissionDataList/referralCode' => 5,
+                                'account/superiorCheck' => 5,
                             ),
                         ),
                     ),
@@ -495,6 +593,8 @@ class bingx extends Exchange {
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                     '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
                     '110425' => '\\ccxt\\InvalidOrder', // array("code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":array())
+                    'Insufficient assets' => '\\ccxt\\InsufficientFunds', // array("transferErrorMsg":"Insufficient assets")
+                    'illegal transferType' => '\\ccxt\\BadRequest', // array("transferErrorMsg":"illegal transferType")
                 ),
                 'broad' => array(),
             ),
@@ -508,14 +608,19 @@ class bingx extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'accountsByType' => array(
-                    'spot' => 'FUND',
-                    'swap' => 'PFUTURES',
-                    'future' => 'SFUTURES',
+                    'funding' => 'fund',
+                    'spot' => 'spot',
+                    'future' => 'stdFutures',
+                    'swap' => 'USDTMPerp',
+                    'linear' => 'USDTMPerp',
+                    'inverse' => 'coinMPerp',
                 ),
                 'accountsById' => array(
-                    'FUND' => 'spot',
-                    'PFUTURES' => 'swap',
-                    'SFUTURES' => 'future',
+                    'fund' => 'funding',
+                    'spot' => 'spot',
+                    'stdFutures' => 'future',
+                    'USDTMPerp' => 'linear',
+                    'coinMPerp' => 'inverse',
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec
                 'broker' => 'CCXT',
@@ -527,8 +632,11 @@ class bingx extends Exchange {
                     'LTC' => 'LTC',
                 ),
                 'networks' => array(
-                    'ARB' => 'ARBITRUM',
+                    'ARBITRUM' => 'ARB',
                     'MATIC' => 'POLYGON',
+                    'ZKSYNC' => 'ZKSYNCERA',
+                    'AVAXC' => 'AVAX-C',
+                    'HBAR' => 'HEDERA',
                 ),
             ),
             'features' => array(
@@ -625,6 +733,9 @@ class bingx extends Exchange {
                 //
                 'spot' => array(
                     'extends' => 'defaultForLinear',
+                    'fetchCurrencies' => array(
+                        'private' => true,
+                    ),
                     'createOrder' => array(
                         'triggerPriceType' => null,
                         'attachedStopLossTakeProfit' => null,
@@ -662,10 +773,11 @@ class bingx extends Exchange {
                     ),
                 ),
             ),
+            'rollingWindowSize' => 2000.0,  // Some endpoints have a 10s window, some have a 5s window, a more complicated rate limiter is needed to accomodate for this
         ));
     }
 
-    public function fetch_time($params = array ()): ?int {
+    public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the bingx server
          *
@@ -674,7 +786,7 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the bingx server
          */
-        $response = $this->swapV2PublicGetServerTime ($params);
+        $response = $this->swapV2PublicGetServerTime($params);
         //
         //    {
         //        "code" => 0,
@@ -688,131 +800,125 @@ class bingx extends Exchange {
         return $this->safe_integer($data, 'serverTime');
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
-         * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
         if (!$this->check_required_credentials(false)) {
-            return null;
+            return array();
         }
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
         if ($isSandbox) {
-            return null;
+            return array();
         }
-        $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
+        $response = $this->walletsV1PrivateGetCapitalConfigGetall($params);
         //
         //    {
-        //      "code" => 0,
-        //      "timestamp" => 1702623271477,
-        //      "data" => array(
-        //        {
-        //          "coin" => "BTC",
-        //          "name" => "BTC",
-        //          "networkList" => array(
-        //            array(
-        //              "name" => "BTC",
-        //              "network" => "BTC",
-        //              "isDefault" => true,
-        //              "minConfirm" => 2,
-        //              "withdrawEnable" => true,
-        //              "depositEnable" => true,
-        //              "withdrawFee" => "0.0006",
-        //              "withdrawMax" => "1.17522",
-        //              "withdrawMin" => "0.0005",
-        //              "depositMin" => "0.0002"
-        //            ),
+        //        "code" => "0",
+        //        "timestamp" => "1779364918914",
+        //        "data" => [
         //            {
-        //              "name" => "BTC",
-        //              "network" => "BEP20",
-        //              "isDefault" => false,
-        //              "minConfirm" => 15,
-        //              "withdrawEnable" => true,
-        //              "depositEnable" => true,
-        //              "withdrawFee" => "0.0000066",
-        //              "withdrawMax" => "1.17522",
-        //              "withdrawMin" => "0.0000066",
-        //              "depositMin" => "0.0002"
-        //            }
-        //          )
-        //        }
-        //      )
-        //    }
+        //                "coin" => "BTC",
+        //                "name" => "BTC",
+        //                "networkList" => array(
+        //                    array(
+        //                        "name" => "BTC",
+        //                        "network" => "BTC",
+        //                        "isDefault" => true,
+        //                        "minConfirm" => "2",
+        //                        "withdrawEnable" => true,
+        //                        "depositEnable" => true,
+        //                        "withdrawFee" => "0.00004",
+        //                        "withdrawMax" => "64.77131128",
+        //                        "withdrawMin" => "0.000046",
+        //                        "depositMin" => "0.00009",
+        //                        "withdrawPrecision" => "8",
+        //                        "depositPrecision" => "8",
+        //                        "contractAddress" => "",
+        //                        "needTagOrMemo" => "false",
+        //                        "displayName" => "BTC"
+        //                    ),
+        //                    array(
+        //                        "name" => "BTC",
+        //                        "network" => "BEP20",
+        //                        "isDefault" => true,
+        //                        "minConfirm" => "10",
+        //                        "withdrawEnable" => true,
+        //                        "depositEnable" => true,
+        //                        "withdrawFee" => "0.000001",
+        //                        "withdrawMax" => "64.77131128",
+        //                        "withdrawMin" => "0.000065",
+        //                        "depositMin" => "0.000012",
+        //                        "withdrawPrecision" => "8",
+        //                        "depositPrecision" => "18",
+        //                        "contractAddress" => "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c",
+        //                        "needTagOrMemo" => "false",
+        //                        "displayName" => "BTCBEP20"
+        //                    }
+        //                )
+        //            ),
+        //            ...
         //
         $data = $this->safe_list($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $currencyId = $this->safe_string($entry, 'coin');
-            $code = $this->safe_currency_code($currencyId);
-            $name = $this->safe_string($entry, 'name');
-            $networkList = $this->safe_list($entry, 'networkList');
-            $networks = array();
-            $fee = null;
-            $depositEnabled = false;
-            $withdrawEnabled = false;
-            $defaultLimits = array();
-            for ($j = 0; $j < count($networkList); $j++) {
-                $rawNetwork = $networkList[$j];
-                $network = $this->safe_string($rawNetwork, 'network');
-                $networkCode = $this->network_id_to_code($network);
-                $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
-                $networkDepositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
-                if ($networkDepositEnabled) {
-                    $depositEnabled = true;
-                }
-                $networkWithdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
-                if ($networkWithdrawEnabled) {
-                    $withdrawEnabled = true;
-                }
-                $limits = array(
-                    'withdraw' => array(
-                        'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
-                        'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
-                    ),
-                );
-                $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                if ($isDefault) {
-                    $defaultLimits = $limits;
-                }
-                $precision = $this->safe_number($rawNetwork, 'withdrawPrecision');
-                $networkActive = $networkDepositEnabled || $networkWithdrawEnabled;
-                $networks[$networkCode] = array(
-                    'info' => $rawNetwork,
-                    'id' => $network,
-                    'network' => $networkCode,
-                    'fee' => $fee,
-                    'active' => $networkActive,
-                    'deposit' => $networkDepositEnabled,
-                    'withdraw' => $networkWithdrawEnabled,
-                    'precision' => $precision,
-                    'limits' => $limits,
-                );
-            }
-            $active = $depositEnabled || $withdrawEnabled;
-            $result[$code] = array(
-                'info' => $entry,
-                'code' => $code,
-                'id' => $currencyId,
-                'precision' => null,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'networks' => $networks,
-                'fee' => $fee,
-                'limits' => $defaultLimits,
+        return $this->parse_currencies($data);
+    }
+
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'coin');
+        $code = $this->safe_currency_code($currencyId);
+        $name = $this->safe_string($rawCurrency, 'name');
+        $networkList = $this->safe_list($rawCurrency, 'networkList');
+        $networks = array();
+        for ($j = 0; $j < count($networkList); $j++) {
+            $rawNetwork = $networkList[$j];
+            $network = $this->safe_string($rawNetwork, 'network');
+            $networkCode = $this->network_id_to_code($network, $code);
+            $limits = array(
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
+                    'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
+                ),
+                'deposit' => array(
+                    'min' => $this->safe_number($rawNetwork, 'depositMin'),
+                    'max' => null,
+                ),
+            );
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($rawNetwork, 'withdrawPrecision')));
+            $networks[$networkCode] = array(
+                'info' => $rawNetwork,
+                'id' => $network,
+                'network' => $networkCode,
+                'fee' => $this->safe_number($rawNetwork, 'withdrawFee'),
+                'active' => null,
+                'deposit' => $this->safe_bool($rawNetwork, 'depositEnable'),
+                'withdraw' => $this->safe_bool($rawNetwork, 'withdrawEnable'),
+                'precision' => $precision,
+                'limits' => $limits,
             );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'precision' => null,
+            'name' => $name,
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'networks' => $networks,
+            'fee' => null,
+            'limits' => null,
+            'type' => 'crypto', // only cryptos now
+        ));
     }
 
     public function fetch_spot_markets($params): array {
-        $response = $this->spotV1PublicGetCommonSymbols ($params);
+        $response = $this->spotV1PublicGetCommonSymbols($params);
         //
         //    {
         //        "code" => 0,
@@ -846,7 +952,7 @@ class bingx extends Exchange {
     }
 
     public function fetch_swap_markets($params) {
-        $response = $this->swapV2PublicGetQuoteContracts ($params);
+        $response = $this->swapV2PublicGetQuoteContracts($params);
         //
         //    {
         //        "code" => 0,
@@ -883,7 +989,7 @@ class bingx extends Exchange {
     }
 
     public function fetch_inverse_swap_markets($params) {
-        $response = $this->cswapV1PublicGetMarketContracts ($params);
+        $response = $this->cswapV1PublicGetMarketContracts($params);
         //
         //     {
         //         "code" => 0,
@@ -1011,13 +1117,13 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for bingx
          *
-         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20Symbols
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Contract%20Information
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Contract%20Information
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Spot%20trading%20symbols
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/USDT-M%20Perp%20Futures%20symbols
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Contract%20Information
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -1036,15 +1142,14 @@ class bingx extends Exchange {
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#K-Line%20Data
-         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Candlestick%20chart%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#%20K-Line%20Data
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20Kline/Candlestick%20Data
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20K-line%20Data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Kline%2FCandlestick%20Data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Kline%2FCandlestick%20Data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20Kline%2FCandlestick%20Data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20K-line%20Data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -1055,7 +1160,9 @@ class bingx extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
@@ -1067,7 +1174,7 @@ class bingx extends Exchange {
         );
         $request['interval'] = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         if ($since !== null) {
-            $request['startTime'] = max ($since - 1, 0);
+            $request['startTime'] = max($since - 1, 0);
         }
         if ($limit !== null) {
             $request['limit'] = $limit;
@@ -1077,19 +1184,18 @@ class bingx extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['endTime'] = $until;
         }
-        $response = null;
         if ($market['spot']) {
-            $response = $this->spotV1PublicGetMarketKline ($this->extend($request, $params));
+            $response = $this->spotV1PublicGetMarketKline($this->extend($request, $params));
         } else {
             if ($market['inverse']) {
-                $response = $this->cswapV1PublicGetMarketKlines ($this->extend($request, $params));
+                $response = $this->cswapV1PublicGetMarketKlines($this->extend($request, $params));
             } else {
                 $price = $this->safe_string($params, 'price');
                 $params = $this->omit($params, 'price');
                 if ($price === 'mark') {
-                    $response = $this->swapV1PublicGetMarketMarkPriceKlines ($this->extend($request, $params));
+                    $response = $this->swapV1PublicGetMarketMarkPriceKlines($this->extend($request, $params));
                 } else {
-                    $response = $this->swapV3PublicGetQuoteKlines ($this->extend($request, $params));
+                    $response = $this->swapV3PublicGetQuoteKlines($this->extend($request, $params));
                 }
             }
         }
@@ -1129,7 +1235,7 @@ class bingx extends Exchange {
         //    }
         //
         $ohlcvs = $this->safe_value($response, 'data', array());
-        if (gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs))) {
+        if ((gettype($ohlcvs) !== 'array' || array_keys($ohlcvs) !== array_keys(array_keys($ohlcvs)))) {
             $ohlcvs = array( $ohlcvs );
         }
         return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
@@ -1169,7 +1275,7 @@ class bingx extends Exchange {
         //        17221.07
         //    )
         //
-        if (gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv))) {
+        if ((gettype($ohlcv) === 'array' && array_keys($ohlcv) === array_keys(array_keys($ohlcv)))) {
             return array(
                 $this->safe_integer($ohlcv, 0),
                 $this->safe_number($ohlcv, 1),
@@ -1189,34 +1295,35 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
-         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20transaction%20records
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#The%20latest%20Trade%20of%20a%20Trading%20Pair
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Recent%20Trades%20List
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Recent%20Trades%20List
          *
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of $trades to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 100); // avoid API exception "limit should less than 100"
+            $request['limit'] = min($limit, 100); // avoid API exception "limit should less than 100"
         }
-        $response = null;
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchTrades', $market, $params);
         if ($marketType === 'spot') {
-            $response = $this->spotV1PublicGetMarketTrades ($this->extend($request, $params));
+            $response = $this->spotV1PublicGetMarketTrades($this->extend($request, $params));
         } else {
-            $response = $this->swapV2PublicGetQuoteTrades ($this->extend($request, $params));
+            $response = $this->swapV2PublicGetQuoteTrades($this->extend($request, $params));
         }
         //
         // spot
@@ -1424,20 +1531,22 @@ class bingx extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
-         * @see https://bingx-api.github.io/docs/#/spot/market-api.html#Query%20depth%20information
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Market%20Depth
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%20Depth%20Data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/Order%20Book
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Order%20Book
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1445,16 +1554,15 @@ class bingx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = null;
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
         if ($marketType === 'spot') {
-            $response = $this->spotV1PublicGetMarketDepth ($this->extend($request, $params));
+            $response = $this->spotV1PublicGetMarketDepth($this->extend($request, $params));
         } else {
             if ($market['inverse']) {
-                $response = $this->cswapV1PublicGetMarketDepth ($this->extend($request, $params));
+                $response = $this->cswapV1PublicGetMarketDepth($this->extend($request, $params));
             } else {
-                $response = $this->swapV2PublicGetQuoteDepth ($this->extend($request, $params));
+                $response = $this->swapV2PublicGetQuoteDepth($this->extend($request, $params));
             }
         }
         //
@@ -1464,16 +1572,16 @@ class bingx extends Exchange {
         //         "code":0,
         //         "timestamp":1743240504535,
         //         "data":{
-        //             "bids":[
+        //             "bids":array(
         //                 ["83775.39","1.981875"],
         //                 ["83775.38","0.001076"],
         //                 ["83775.34","0.254716"],
-        //             ],
-        //             "asks":[
+        //             ),
+        //             "asks":array(
         //                 ["83985.40","0.000013"],
         //                 ["83980.00","0.000011"],
         //                 ["83975.70","0.000061000000000000005"],
-        //             ],
+        //             ),
         //             "ts":1743240504535,
         //             "lastUpdateId":13565639906
         //         }
@@ -1487,26 +1595,26 @@ class bingx extends Exchange {
         //         "msg":"",
         //         "data":{
         //             "T":1743240836255,
-        //             "bids":[
+        //             "bids":array(
         //                 ["83760.7","7.0861"],
         //                 ["83760.6","0.0044"],
         //                 ["83757.7","1.9526"],
-        //             ],
-        //             "asks":[
+        //             ),
+        //             "asks":array(
         //                 ["83784.3","8.3531"],
         //                 ["83782.8","23.7289"],
         //                 ["83780.1","18.0617"],
-        //             ],
-        //             "bidsCoin":[
+        //             ),
+        //             "bidsCoin":array(
         //                 ["83760.7","0.0007"],
         //                 ["83760.6","0.0000"],
         //                 ["83757.7","0.0002"],
-        //             ],
-        //             "asksCoin":[
+        //             ),
+        //             "asksCoin":array(
         //                 ["83784.3","0.0008"],
         //                 ["83782.8","0.0024"],
         //                 ["83780.1","0.0018"],
-        //             ]
+        //             )
         //         }
         //     }
         //
@@ -1518,16 +1626,16 @@ class bingx extends Exchange {
         //         "timestamp":1743240979146,
         //         "data":{
         //             "T":1743240978691,
-        //             "bids":[
+        //             "bids":array(
         //                 ["83611.4","241.0"],
         //                 ["83611.3","1.0"],
         //                 ["83602.9","666.0"],
-        //             ],
-        //             "asks":[
+        //             ),
+        //             "asks":array(
         //                 ["83645.0","4253.0"],
         //                 ["83640.5","3188.0"],
         //                 ["83636.0","5540.0"],
-        //             ]
+        //             )
         //         }
         //     }
         //
@@ -1539,27 +1647,28 @@ class bingx extends Exchange {
         return $result;
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): array {
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
         /**
          * fetch the current funding rate
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Price%20&%20Current%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['inverse']) {
-            $response = $this->cswapV1PublicGetMarketPremiumIndex ($this->extend($request, $params));
+            $response = $this->cswapV1PublicGetMarketPremiumIndex($this->extend($request, $params));
         } else {
-            $response = $this->swapV2PublicGetQuotePremiumIndex ($this->extend($request, $params));
+            $response = $this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $params));
         }
         //
         //    {
@@ -1577,23 +1686,34 @@ class bingx extends Exchange {
         //        )
         //    }
         //
-        $data = $this->safe_list($response, 'data', array());
+        $data = $this->safe_dict($response, 'data');
         return $this->parse_funding_rate($data, $market);
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): array {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
         /**
          * fetch the current funding rate for multiple $symbols
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Current%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
          *
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structures~
+         * @param {string} [$params->subType] "linear" or "inverse" (default is linear)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
-        $symbols = $this->market_symbols($symbols, 'swap', true);
-        $response = $this->swapV2PublicGetQuotePremiumIndex ($this->extend($params));
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols, 'swap', true, true, true);
+        $firstMarket = $this->get_market_from_symbols($symbols);
+        $subType = 'linear';
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingRates', $firstMarket, $params, $subType);
+        if ($subType === 'inverse') {
+            $response = $this->cswapV1PublicGetMarketPremiumIndex($params);
+        } else {
+            $response = $this->swapV2PublicGetQuotePremiumIndex($params);
+        }
         $data = $this->safe_list($response, 'data', array());
         return $this->parse_funding_rates($data, $symbols);
     }
@@ -1632,24 +1752,26 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Funding%20Rate%20History
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Get%20Funding%20Rate%20History
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest funding rate to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -1670,7 +1792,7 @@ class bingx extends Exchange {
             $params = $this->omit($params, array( 'until' ));
             $request['startTime'] = $until;
         }
-        $response = $this->swapV2PublicGetQuoteFundingRate ($this->extend($request, $params));
+        $response = $this->swapV2PublicGetQuoteFundingRate($this->extend($request, $params));
         //
         //    {
         //        "code":0,
@@ -1707,27 +1829,115 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical funding received
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for
+         * @param {int} [$since] timestamp in ms of the earliest funding to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~ to fetch
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest funding to fetch
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_deterministic('fetchFundingHistory', $symbol, $since, $limit, '24h', $params);
+        }
+        $request = array(
+            'incomeType' => 'FUNDING_FEE',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = $this->safe_integer_2($params, 'until', 'endTime');
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until' ));
+            $request['endTime'] = $until;
+        }
+        $response = $this->swapV2PrivateGetUserIncome($this->extend($request, $params));
+        //         {
+        //             "code" => 0,
+        //             "msg" => "",
+        //             "data" => array(
+        //                 {
+        //                 "symbol" => "LDO-USDT",
+        //                 "incomeType" => "FUNDING_FEE",
+        //                 "income" => "-0.0292",
+        //                 "asset" => "USDT",
+        //                 "info" => "Funding Fee",
+        //                 "time" => 1702713615000,
+        //                 "tranId" => "170***6*2_3*9_20***97",
+        //                 "tradeId" => "170***6*2_3*9_20***97"
+        //                 }
+        //             )
+        //         }
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_incomes($data, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        // {
+        //     "symbol" => "LDO-USDT",
+        //     "incomeType" => "FUNDING_FEE",
+        //     "income" => "-0.0292",
+        //     "asset" => "USDT",
+        //     "info" => "Funding Fee",
+        //     "time" => 1702713615000,
+        //     "tranId" => "170***6*2_3*9_20***97",
+        //     "tradeId" => "170***6*2_3*9_20***97"
+        // }
+        $marketId = $this->safe_string($income, 'symbol');
+        $currencyId = $this->safe_string($income, 'asset');
+        $timestamp = $this->safe_integer($income, 'time');
+        return array(
+            'info' => $income,
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'swap'),
+            'code' => $this->safe_currency_code($currencyId),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'tranId'),
+            'amount' => $this->safe_number($income, 'income'),
+            'type' => 'funding',
+        );
+    }
+
+    public function fetch_open_interest(string $symbol, $params = array()) {
         /**
          * retrieves the open interest of a trading pair
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Swap%20Open%20Positions
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Get%20Swap%20Open%20Positions
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Open%20Interest%20Statistics
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Get%20Swap%20Open%20Positions
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {array} [$params] exchange specific parameters
-         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['inverse']) {
-            $response = $this->cswapV1PublicGetMarketOpenInterest ($this->extend($request, $params));
+            $response = $this->cswapV1PublicGetMarketOpenInterest($this->extend($request, $params));
         } else {
-            $response = $this->swapV2PublicGetQuoteOpenInterest ($this->extend($request, $params));
+            $response = $this->swapV2PublicGetQuoteOpenInterest($this->extend($request, $params));
         }
         //
         // linear swap
@@ -1801,31 +2011,32 @@ class bingx extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['spot']) {
-            $response = $this->spotV1PublicGetTicker24hr ($this->extend($request, $params));
+            $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
         } else {
             if ($market['inverse']) {
-                $response = $this->cswapV1PublicGetMarketTicker ($this->extend($request, $params));
+                $response = $this->cswapV1PublicGetMarketTicker($this->extend($request, $params));
             } else {
-                $response = $this->swapV2PublicGetQuoteTicker ($this->extend($request, $params));
+                $response = $this->swapV2PublicGetQuoteTicker($this->extend($request, $params));
             }
         }
         //
@@ -1865,19 +2076,21 @@ class bingx extends Exchange {
         return $this->parse_ticker($dataDict, $market);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/24hr%20Ticker%20Price%20Change%20Statistics
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%2024-Hour%20Price%20Change
          *
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
@@ -1890,14 +2103,13 @@ class bingx extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
-        $response = null;
         if ($type === 'spot') {
-            $response = $this->spotV1PublicGetTicker24hr ($params);
+            $response = $this->spotV1PublicGetTicker24hr($params);
         } else {
             if ($subType === 'inverse') {
-                $response = $this->cswapV1PublicGetMarketTicker ($params);
+                $response = $this->cswapV1PublicGetMarketTicker($params);
             } else {
-                $response = $this->swapV2PublicGetQuoteTicker ($params);
+                $response = $this->swapV2PublicGetQuoteTicker($params);
             }
         }
         //
@@ -1933,26 +2145,28 @@ class bingx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function fetch_mark_price(string $symbol, $params = array ()): array {
+    public function fetch_mark_price(string $symbol, $params = array()): array {
         /**
          * fetches mark prices for the $market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrice', $market, $params, 'linear');
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($subType === 'inverse') {
-            $response = $this->cswapV1PublicGetMarketPremiumIndex ($this->extend($request, $params));
+            $response = $this->cswapV1PublicGetMarketPremiumIndex($this->extend($request, $params));
             //
             // {
             //     "code" => 0,
@@ -1970,7 +2184,7 @@ class bingx extends Exchange {
             // }
             //
         } else {
-            $response = $this->swapV2PublicGetQuotePremiumIndex ($this->extend($request, $params));
+            $response = $this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $params));
             //
             // {
             //     "code" => 0,
@@ -1985,23 +2199,26 @@ class bingx extends Exchange {
             // }
             //
         }
-        if (gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data']))) {
+        if ((gettype($response['data']) === 'array' && array_keys($response['data']) === array_keys(array_keys($response['data'])))) {
             return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
         }
         return $this->parse_ticker($response['data'], $market);
     }
 
-    public function fetch_mark_prices(?array $symbols = null, $params = array ()): array {
+    public function fetch_mark_prices(?array $symbols = null, $params = array()): array {
         /**
          * fetches mark prices for multiple markets
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Mark%20Price%20and%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Market%20Data/Mark%20Price%20and%20Funding%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Price%20%26%20Current%20Funding%20Rate
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
@@ -2012,11 +2229,10 @@ class bingx extends Exchange {
         }
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarkPrices', $market, $params, 'linear');
-        $response = null;
         if ($subType === 'inverse') {
-            $response = $this->cswapV1PublicGetMarketPremiumIndex ($params);
+            $response = $this->cswapV1PublicGetMarketPremiumIndex($params);
         } else {
-            $response = $this->swapV2PublicGetQuotePremiumIndex ($params);
+            $response = $this->swapV2PublicGetQuotePremiumIndex($params);
         }
         //
         // spot and swap
@@ -2154,28 +2370,30 @@ class bingx extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
-         * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
-         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Account%20Endpoints/Query%20Assets
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20account%20data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Account%20Assets
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Query%20Assets
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->standard] whether to fetch $standard contract balances
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @param {string} [$params->type] the type of balance to fetch (spot, swap, funding) default is `spot`
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
-        $response = null;
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $standard = null;
         list($standard, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'standard', false);
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($standard) {
-            $response = $this->contractV1PrivateGetBalance ($marketTypeQuery);
+            $response = $this->contractV1PrivateGetBalance($marketTypeQuery);
             //
             //     {
             //         "code" => 0,
@@ -2194,8 +2412,23 @@ class bingx extends Exchange {
             //         )
             //     }
             //
+        } elseif (($marketType === 'funding') || ($marketType === 'fund')) {
+            $response = $this->fundV1PrivateGetAccountBalance($marketTypeQuery);
+            // {
+            //     code => '0',
+            //     timestamp => '1754906016631',
+            //     data => {
+            //         assets => array(
+            //             {
+            //                 asset => 'USDT',
+            //                 free => '44.37692200000000237300',
+            //                 locked => '0.00000000000000000000'
+            //             }
+            //         )
+            //     }
+            // }
         } elseif ($marketType === 'spot') {
-            $response = $this->spotV1PrivateGetAccountBalance ($marketTypeQuery);
+            $response = $this->spotV1PrivateGetAccountBalance($marketTypeQuery);
             //
             //     {
             //         "code" => 0,
@@ -2214,7 +2447,7 @@ class bingx extends Exchange {
             //
         } else {
             if ($subType === 'inverse') {
-                $response = $this->cswapV1PrivateGetUserBalance ($marketTypeQuery);
+                $response = $this->cswapV1PrivateGetUserBalance($marketTypeQuery);
                 //
                 //     {
                 //         "code" => 0,
@@ -2235,27 +2468,26 @@ class bingx extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->swapV2PrivateGetUserBalance ($marketTypeQuery);
+                $response = $this->swapV3PrivateGetUserBalance($marketTypeQuery);
                 //
                 //     {
                 //         "code" => 0,
                 //         "msg" => "",
-                //         "data" => {
-                //             "balance" => {
-                //                 "userId" => "1177064765068660742",
+                //         "data" => array(
+                //             {
+                //                 "userId" => "116***295",
                 //                 "asset" => "USDT",
-                //                 "balance" => "51.5198",
-                //                 "equity" => "50.5349",
-                //                 "unrealizedProfit" => "-0.9849",
-                //                 "realisedProfit" => "-0.2134",
-                //                 "availableMargin" => "49.1428",
-                //                 "usedMargin" => "1.3922",
+                //                 "balance" => "194.8212",
+                //                 "equity" => "196.7431",
+                //                 "unrealizedProfit" => "1.9219",
+                //                 "realisedProfit" => "-109.2504",
+                //                 "availableMargin" => "193.7609",
+                //                 "usedMargin" => "1.0602",
                 //                 "freezedMargin" => "0.0000",
                 //                 "shortUid" => "12851936"
                 //             }
-                //         }
+                //         )
                 //     }
-                //
             }
         }
         return $this->parse_balance($response);
@@ -2324,34 +2556,35 @@ class bingx extends Exchange {
         //     {
         //         "code" => 0,
         //         "msg" => "",
-        //         "data" => {
-        //             "balance" => {
-        //                 "userId" => "1177064765068660742",
+        //         "data" => array(
+        //             {
+        //                 "userId" => "116***295",
         //                 "asset" => "USDT",
-        //                 "balance" => "51.5198",
-        //                 "equity" => "50.5349",
-        //                 "unrealizedProfit" => "-0.9849",
-        //                 "realisedProfit" => "-0.2134",
-        //                 "availableMargin" => "49.1428",
-        //                 "usedMargin" => "1.3922",
+        //                 "balance" => "194.8212",
+        //                 "equity" => "196.7431",
+        //                 "unrealizedProfit" => "1.9219",
+        //                 "realisedProfit" => "-109.2504",
+        //                 "availableMargin" => "193.7609",
+        //                 "usedMargin" => "1.0602",
         //                 "freezedMargin" => "0.0000",
         //                 "shortUid" => "12851936"
         //             }
-        //         }
+        //         )
         //     }
         //
         $result = array( 'info' => $response );
-        $standardAndInverseBalances = $this->safe_list($response, 'data');
-        $firstStandardOrInverse = $this->safe_dict($standardAndInverseBalances, 0);
-        $isStandardOrInverse = $firstStandardOrInverse !== null;
+        $contractBalances = $this->safe_list($response, 'data');
+        $firstContractBalances = $this->safe_dict($contractBalances, 0);
+        $isContract = $firstContractBalances !== null;
         $spotData = $this->safe_dict($response, 'data', array());
-        $spotBalances = $this->safe_list($spotData, 'balances');
-        $firstSpot = $this->safe_dict($spotBalances, 0);
-        $isSpot = $firstSpot !== null;
-        if ($isStandardOrInverse) {
-            for ($i = 0; $i < count($standardAndInverseBalances); $i++) {
-                $balance = $standardAndInverseBalances[$i];
+        $spotBalances = $this->safe_list_2($spotData, 'balances', 'assets', array());
+        if ($isContract) {
+            for ($i = 0; $i < count($contractBalances); $i++) {
+                $balance = $contractBalances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
+                if ($currencyId === null) { // linear v3 returns empty asset
+                    break;
+                }
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
@@ -2359,7 +2592,7 @@ class bingx extends Exchange {
                 $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
                 $result[$code] = $account;
             }
-        } elseif ($isSpot) {
+        } else {
             for ($i = 0; $i < count($spotBalances); $i++) {
                 $balance = $spotBalances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
@@ -2369,35 +2602,26 @@ class bingx extends Exchange {
                 $account['used'] = $this->safe_string($balance, 'locked');
                 $result[$code] = $account;
             }
-        } else {
-            $linearSwapData = $this->safe_dict($response, 'data', array());
-            $linearSwapBalance = $this->safe_dict($linearSwapData, 'balance');
-            if ($linearSwapBalance) {
-                $currencyId = $this->safe_string($linearSwapBalance, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
-                $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
-                $result[$code] = $account;
-            }
         }
         return $this->safe_balance($result);
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical $positions
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Position%20History
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Position%20History
          *
          * @param {string} $symbol unified contract $symbol
          * @param {int} [$since] the earliest time in ms to fetch $positions for
          * @param {int} [$limit] the maximum amount of $records to fetch
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $positions for
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2409,9 +2633,8 @@ class bingx extends Exchange {
             $request['startTs'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endTs', $request, $params);
-        $response = null;
         if ($market['linear']) {
-            $response = $this->swapV1PrivateGetTradePositionHistory ($this->extend($request, $params));
+            $response = $this->swapV1PrivateGetTradePositionHistory($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchPositionHistory() is not supported for inverse swap positions');
         }
@@ -2449,26 +2672,27 @@ class bingx extends Exchange {
         return $this->filter_by_symbol_since_limit($positions, $symbol, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()) {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open $positions
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
          * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->standard] whether to fetch $standard contract $positions
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $standard = null;
         list($standard, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'standard', false);
-        $response = null;
         if ($standard) {
-            $response = $this->contractV1PrivateGetAllPosition ($params);
+            $response = $this->contractV1PrivateGetAllPosition($params);
         } else {
             $market = null;
             if ($symbols !== null) {
@@ -2481,7 +2705,7 @@ class bingx extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
             if ($subType === 'inverse') {
-                $response = $this->cswapV1PrivateGetUserPositions ($params);
+                $response = $this->cswapV1PrivateGetUserPositions($params);
                 //
                 //     {
                 //         "code" => 0,
@@ -2509,7 +2733,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->swapV2PrivateGetUserPositions ($params);
+                $response = $this->swapV2PrivateGetUserPositions($params);
                 //
                 //     {
                 //         "code" => 0,
@@ -2547,18 +2771,20 @@ class bingx extends Exchange {
         return $this->parse_positions($positions, $symbols);
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         /**
          * fetch $data on a single open contract trade position
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20position%20data
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20warehouse
          *
          * @param {string} $symbol unified $market $symbol of the $market the position is held in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadRequest($this->id . ' fetchPosition() supports swap markets only');
@@ -2566,9 +2792,8 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['inverse']) {
-            $response = $this->cswapV1PrivateGetUserPositions ($this->extend($request, $params));
+            $response = $this->cswapV1PrivateGetUserPositions($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -2596,7 +2821,7 @@ class bingx extends Exchange {
             //     }
             //
         } else {
-            $response = $this->swapV2PrivateGetUserPositions ($this->extend($request, $params));
+            $response = $this->swapV2PrivateGetUserPositions($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -2757,44 +2982,44 @@ class bingx extends Exchange {
         ));
     }
 
-    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
+    public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $params['quoteOrderQty'] = $cost;
         return $this->create_order($symbol, 'market', $side, $cost, null, $params);
     }
 
-    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a market buy order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $params['quoteOrderQty'] = $cost;
         return $this->create_order($symbol, 'market', 'buy', $cost, null, $params);
     }
 
-    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array ()) {
+    public function create_market_sell_order_with_cost(string $symbol, float $cost, $params = array()) {
         /**
          * create a market sell order by providing the $symbol and $cost
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $params['quoteOrderQty'] = $cost;
         return $this->create_order($symbol, 'market', 'sell', $cost, null, $params);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * @ignore
          * helper function to build $request
@@ -2911,8 +3136,8 @@ class bingx extends Exchange {
             $isTrailing = $isTrailingAmountOrder || $isTrailingPercentOrder;
             $stopLoss = $this->safe_value($params, 'stopLoss');
             $takeProfit = $this->safe_value($params, 'takeProfit');
-            $isStopLoss = $stopLoss !== null;
-            $isTakeProfit = $takeProfit !== null;
+            $hasStopLoss = $stopLoss !== null;
+            $hasTakeProfit = $takeProfit !== null;
             if ((($type === 'LIMIT') || ($type === 'TRIGGER_LIMIT') || ($type === 'STOP') || ($type === 'TAKE_PROFIT')) && !$isTrailing) {
                 $request['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $price));
             }
@@ -2951,9 +3176,9 @@ class bingx extends Exchange {
                     $request['priceRate'] = $this->parse_to_numeric($requestTrailingPercent);
                 }
             }
-            if ($isStopLoss || $isTakeProfit) {
+            if ($hasStopLoss || $hasTakeProfit) {
                 $stringifiedAmount = $this->number_to_string($amount);
-                if ($isStopLoss) {
+                if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLoss, 'triggerPrice', 'stopPrice', $stopLoss);
                     $slWorkingType = $this->safe_string($stopLoss, 'workingType', 'MARK_PRICE');
                     $slType = $this->safe_string($stopLoss, 'type', 'STOP_MARKET');
@@ -2970,7 +3195,7 @@ class bingx extends Exchange {
                     $slRequest['quantity'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $slQuantity));
                     $request['stopLoss'] = $this->json($slRequest);
                 }
-                if ($isTakeProfit) {
+                if ($hasTakeProfit) {
                     $tkTriggerPrice = $this->safe_string_2($takeProfit, 'triggerPrice', 'stopPrice', $takeProfit);
                     $tkWorkingType = $this->safe_string($takeProfit, 'workingType', 'MARK_PRICE');
                     $tpType = $this->safe_string($takeProfit, 'type', 'TAKE_PROFIT_MARKET');
@@ -3001,24 +3226,27 @@ class bingx extends Exchange {
                 $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
-            $amountReq = $amount;
-            if (!$market['inverse']) {
-                $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+            $closePosition = $this->safe_bool($params, 'closePosition', false);
+            if (!$closePosition) {
+                $amountReq = $amount;
+                if (!$market['inverse']) {
+                    $amountReq = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
+                }
+                $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
-            $request['quantity'] = $amountReq; // precision not available for inverse contracts
         }
         $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Trade%20order
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Create%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Trade%20order
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Place%20TWAP%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20TWAP%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Trade%20order
          *
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -3036,16 +3264,19 @@ class bingx extends Exchange {
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
-         * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
          * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @param {bool} [$params->closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $test = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
@@ -3053,16 +3284,16 @@ class bingx extends Exchange {
         $response = null;
         if ($market['swap']) {
             if ($test) {
-                $response = $this->swapV2PrivatePostTradeOrderTest ($request);
+                $response = $this->swapV2PrivatePostTradeOrderTest($request);
             } elseif ($market['inverse']) {
-                $response = $this->cswapV1PrivatePostTradeOrder ($request);
+                $response = $this->cswapV1PrivatePostTradeOrder($request);
             } elseif ($type === 'twap') {
-                $response = $this->swapV1PrivatePostTwapOrder ($request);
+                $response = $this->swapV1PrivatePostTwapOrder($request);
             } else {
-                $response = $this->swapV2PrivatePostTradeOrder ($request);
+                $response = $this->swapV2PrivatePostTradeOrder($request);
             }
         } else {
-            $response = $this->spotV1PrivatePostTradeOrder ($request);
+            $response = $this->spotV1PrivatePostTradeOrder($request);
         }
         //
         // spot
@@ -3146,22 +3377,33 @@ class bingx extends Exchange {
         } else {
             $result = $data;
         }
+        // when the $response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        $stopLoss = $this->safe_string($result, 'stopLoss');
+        if (($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
+            $result['stopLoss'] = $this->parse_json($stopLoss);
+        }
+        $takeProfit = $this->safe_string($result, 'takeProfit');
+        if (($takeProfit !== null) && (mb_strpos($takeProfit, '{') === 0)) {
+            $result['takeProfit'] = $this->parse_json($takeProfit);
+        }
         return $this->parse_order($result, $market);
     }
 
-    public function create_orders(array $orders, $params = array ()) {
+    public function create_orders(array $orders, $params = array()) {
         /**
          * create a list of trade $orders
          *
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Batch%20Placing%20Orders
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Bulk%20order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Place%20multiple%20orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Place%20multiple%20orders
          *
          * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->sync] *spot only* if true, multiple $orders are ordered serially and all $orders do not require the same symbol/side/type
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         $marketIds = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -3186,14 +3428,14 @@ class bingx extends Exchange {
                 throw new InvalidOrder($this->id . ' createOrders() can not create more than 5 $orders at once for swap markets');
             }
             $request['batchOrders'] = $this->json($ordersRequests);
-            $response = $this->swapV2PrivatePostTradeBatchOrders ($request);
+            $response = $this->swapV2PrivatePostTradeBatchOrders($request);
         } else {
             $sync = $this->safe_bool($params, 'sync', false);
             if ($sync) {
                 $request['sync'] = true;
             }
             $request['data'] = $this->json($ordersRequests);
-            $response = $this->spotV1PrivatePostTradeBatchOrders ($request);
+            $response = $this->spotV1PrivatePostTradeBatchOrders($request);
         }
         //
         // spot
@@ -3670,31 +3912,32 @@ class bingx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open $order
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20TWAP%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20TWAP%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20an%20Order
          *
          * @param {string} $id $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique $id for the $order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isTwapOrder = $this->safe_bool($params, 'twap', false);
         $params = $this->omit($params, 'twap');
-        $response = null;
         $market = null;
         if ($isTwapOrder) {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
-            $response = $this->swapV1PrivatePostTwapCancelOrder ($this->extend($twapRequest, $params));
+            $response = $this->swapV1PrivatePostTwapCancelOrder($this->extend($twapRequest, $params));
             //
             //     {
             //         "code" => 0,
@@ -3739,12 +3982,12 @@ class bingx extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('cancelOrder', $market, $params);
             if ($type === 'spot') {
-                $response = $this->spotV1PrivatePostTradeCancel ($this->extend($request, $params));
+                $response = $this->spotV1PrivatePostTradeCancel($this->extend($request, $params));
             } else {
                 if ($subType === 'inverse') {
-                    $response = $this->cswapV1PrivateDeleteTradeCancelOrder ($this->extend($request, $params));
+                    $response = $this->cswapV1PrivateDeleteTradeCancelOrder($this->extend($request, $params));
                 } else {
-                    $response = $this->swapV2PrivateDeleteTradeOrder ($this->extend($request, $params));
+                    $response = $this->swapV2PrivateDeleteTradeOrder($this->extend($request, $params));
                 }
             }
         }
@@ -3851,29 +4094,35 @@ class bingx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open $orders
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20all%20Open%20Orders%20on%20a%20Symbol
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20Open%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Cancel%20all%20orders
          *
          * @param {string} [$symbol] unified $market $symbol, only $orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @param {string} [$params->type] 'spot' or 'swap' (default is 'spot' if $symbol is not provided)
+         * @param {string} [$params->subType] 'linear' or 'inverse' for swap markets (default is 'linear' if $symbol is not provided)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+        if ($this->markets === null) {
+            $this->load_markets();
         }
-        $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = null;
-        if ($market['spot']) {
-            $response = $this->spotV1PrivatePostTradeCancelOpenOrders ($this->extend($request, $params));
+        $market = null;
+        $request = array();
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['symbol'] = $market['id'];
+        }
+        $marketType = 'spot';
+        $subType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('cancelAllOrders', $market, $params);
+        if ($marketType === 'spot') {
+            $response = $this->spotV1PrivatePostTradeCancelOpenOrders($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -3896,9 +4145,9 @@ class bingx extends Exchange {
             //         }
             //     }
             //
-        } elseif ($market['swap']) {
-            if ($market['inverse']) {
-                $response = $this->cswapV1PrivateDeleteTradeAllOpenOrders ($this->extend($request, $params));
+        } elseif ($marketType === 'swap') {
+            if ($subType === 'inverse') {
+                $response = $this->cswapV1PrivateDeleteTradeAllOpenOrders($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -3955,7 +4204,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->swapV2PrivateDeleteTradeAllOpenOrders ($this->extend($request, $params));
+                $response = $this->swapV2PrivateDeleteTradeAllOpenOrders($this->extend($request, $params));
                 //
                 //    {
                 //        "code" => 0,
@@ -3994,23 +4243,25 @@ class bingx extends Exchange {
         return $this->parse_orders($orders);
     }
 
-    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
         /**
          * cancel multiple orders
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20a%20Batch%20of%20Orders
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20a%20Batch%20of%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20multiple%20orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20multiple%20orders
          *
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified $market $symbol, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client order $ids
-         * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
+         * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4028,11 +4279,10 @@ class bingx extends Exchange {
             $stringId = (string) $id;
             $parsedIds[] = $stringId;
         }
-        $response = null;
         if ($market['spot']) {
             $spotReqKey = $areClientOrderIds ? 'clientOrderIDs' : 'orderIds';
             $request[$spotReqKey] = implode(',', $parsedIds);
-            $response = $this->spotV1PrivatePostTradeCancelOrders ($this->extend($request, $params));
+            $response = $this->spotV1PrivatePostTradeCancelOrders($this->extend($request, $params));
             //
             //    {
             //       "code" => 0,
@@ -4065,7 +4315,7 @@ class bingx extends Exchange {
             } else {
                 $request['orderIdList'] = $parsedIds;
             }
-            $response = $this->swapV2PrivateDeleteTradeBatchOrders ($this->extend($request, $params));
+            $response = $this->swapV2PrivateDeleteTradeBatchOrders($this->extend($request, $params));
             //
             //    {
             //        "code" => 0,
@@ -4101,31 +4351,32 @@ class bingx extends Exchange {
         return $this->parse_orders($success);
     }
 
-    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+    public function cancel_all_orders_after(?int $timeout, $params = array()) {
         /**
          * dead man's switch, cancel all orders after the given $timeout
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20all%20orders%20in%20countdown
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20all%20orders%20in%20countdown
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20All%20After
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20All%20After
          *
          * @param {number} $timeout time in milliseconds, 0 represents cancel the timer
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] spot or swap market
          * @return {array} the api result
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isActive = ($timeout > 0);
         $request = array(
             'type' => ($isActive) ? 'ACTIVATE' : 'CLOSE',
             'timeOut' => ($isActive) ? ($this->parse_to_int($timeout / 1000)) : 0,
         );
-        $response = null;
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params);
         if ($type === 'spot') {
-            $response = $this->spotV1PrivatePostTradeCancelAllAfter ($this->extend($request, $params));
+            $response = $this->spotV1PrivatePostTradeCancelAllAfter($this->extend($request, $params));
         } elseif ($type === 'swap') {
-            $response = $this->swapV2PrivatePostTradeCancelAllAfter ($this->extend($request, $params));
+            $response = $this->swapV2PrivatePostTradeCancelAllAfter($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' cancelAllOrdersAfter() is not supported for ' . $type . ' markets');
         }
@@ -4143,22 +4394,24 @@ class bingx extends Exchange {
         return $response;
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an $order made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#TWAP%20Order%20Details
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20details
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20details
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/TWAP%20Order%20Details
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order
          *
          * @param {string} $id the $order $id
          * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->twap] if fetching twap $order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isTwapOrder = $this->safe_bool($params, 'twap', false);
         $params = $this->omit($params, 'twap');
         $response = null;
@@ -4167,7 +4420,7 @@ class bingx extends Exchange {
             $twapRequest = array(
                 'mainOrderId' => $id,
             );
-            $response = $this->swapV1PrivateGetTwapOrderDetail ($this->extend($twapRequest, $params));
+            $response = $this->swapV1PrivateGetTwapOrderDetail($this->extend($twapRequest, $params));
             //
             //     {
             //         "code" => 0,
@@ -4207,7 +4460,7 @@ class bingx extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
             list($subType, $params) = $this->handle_sub_type_and_params('fetchOrder', $market, $params);
             if ($type === 'spot') {
-                $response = $this->spotV1PrivateGetTradeQuery ($this->extend($request, $params));
+                $response = $this->spotV1PrivateGetTradeQuery($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -4232,7 +4485,7 @@ class bingx extends Exchange {
                 //
             } else {
                 if ($subType === 'inverse') {
-                    $response = $this->cswapV1PrivateGetTradeOrderDetail ($this->extend($request, $params));
+                    $response = $this->cswapV1PrivateGetTradeOrderDetail($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -4285,7 +4538,7 @@ class bingx extends Exchange {
                     //     }
                     //
                 } else {
-                    $response = $this->swapV2PrivateGetTradeOrder ($this->extend($request, $params));
+                    $response = $this->swapV2PrivateGetTradeOrder($this->extend($request, $params));
                     //
                     //     {
                     //         "code" => 0,
@@ -4320,12 +4573,12 @@ class bingx extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#All%20Orders
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history (returns less fields than above)
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/All%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history (returns less fields than above)
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -4333,9 +4586,11 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {int} [$params->orderId] Only return subsequent $orders, and return the latest order by default
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -4354,7 +4609,7 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
-        $response = $this->swapV1PrivateGetTradeFullOrder ($this->extend($request, $params));
+        $response = $this->swapV1PrivateGetTradeFullOrder($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -4412,23 +4667,25 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open $orders
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Entrusted%20Order
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Current%20Open%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Current%20All%20Open%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20all%20current%20pending%20orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Entrusted%20Order
          *
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open $orders for
          * @param {int} [$limit] the maximum number of open order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->twap] if fetching twap open $orders
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -4437,20 +4694,19 @@ class bingx extends Exchange {
         }
         $type = null;
         $subType = null;
-        $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchOpenOrders', $market, $params);
         if ($type === 'spot') {
-            $response = $this->spotV1PrivateGetTradeOpenOrders ($this->extend($request, $params));
+            $response = $this->spotV1PrivateGetTradeOpenOrders($this->extend($request, $params));
         } else {
             $isTwapOrder = $this->safe_bool($params, 'twap', false);
             $params = $this->omit($params, 'twap');
             if ($isTwapOrder) {
-                $response = $this->swapV1PrivateGetTwapOpenOrders ($this->extend($request, $params));
+                $response = $this->swapV1PrivateGetTwapOpenOrders($this->extend($request, $params));
             } elseif ($subType === 'inverse') {
-                $response = $this->cswapV1PrivateGetTradeOpenOrders ($this->extend($request, $params));
+                $response = $this->cswapV1PrivateGetTradeOpenOrders($this->extend($request, $params));
             } else {
-                $response = $this->swapV2PrivateGetTradeOpenOrders ($this->extend($request, $params));
+                $response = $this->swapV2PrivateGetTradeOpenOrders($this->extend($request, $params));
             }
         }
         //
@@ -4597,13 +4853,13 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed $orders made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          *
          * @param {string} $symbol unified market $symbol of the closed $orders
@@ -4612,20 +4868,22 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $orders for
          * @param {boolean} [$params->standard] whether to fetch standard contract $orders
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple canceled $orders made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          *
          * @param {string} $symbol unified market $symbol of the canceled $orders
@@ -4634,22 +4892,24 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch $orders for
          * @param {boolean} [$params->standard] whether to fetch standard contract $orders
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'canceled');
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple closed $orders made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Order%20history
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Order%20history
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20TWAP%20Historical%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20TWAP%20Historical%20Orders
          *
          * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -4658,9 +4918,11 @@ class bingx extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch $orders for
          * @param {boolean} [$params->standard] whether to fetch $standard contract $orders
          * @param {boolean} [$params->twap] if fetching twap $orders
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -4670,17 +4932,16 @@ class bingx extends Exchange {
         $type = null;
         $subType = null;
         $standard = null;
-        $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         list($subType, $params) = $this->handle_sub_type_and_params('fetchClosedOrders', $market, $params);
         list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
         if ($standard) {
-            $response = $this->contractV1PrivateGetAllOrders ($this->extend($request, $params));
+            $response = $this->contractV1PrivateGetAllOrders($this->extend($request, $params));
         } elseif ($type === 'spot') {
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            $response = $this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params));
+            $response = $this->spotV1PrivateGetTradeHistoryOrders($this->extend($request, $params));
             //
             //    {
             //        "code" => 0,
@@ -4715,7 +4976,7 @@ class bingx extends Exchange {
                 $until = $this->safe_integer($params, 'until', $this->milliseconds());
                 $params = $this->omit($params, 'until');
                 $request['endTime'] = $until;
-                $response = $this->swapV1PrivateGetTwapHistoryOrders ($this->extend($request, $params));
+                $response = $this->swapV1PrivateGetTwapHistoryOrders($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -4746,7 +5007,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } elseif ($subType === 'inverse') {
-                $response = $this->cswapV1PrivateGetTradeOrderHistory ($this->extend($request, $params));
+                $response = $this->cswapV1PrivateGetTradeOrderHistory($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -4801,7 +5062,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->swapV2PrivateGetTradeAllOrders ($this->extend($request, $params));
+                $response = $this->swapV2PrivateGetTradeAllOrders($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -4837,38 +5098,58 @@ class bingx extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
-         * @see https://bingx-api.github.io/docs/#/spot/account-api.html#User%20Universal%20Transfer
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20Transfer%20New
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from
-         * @param {string} $toAccount account to transfer to
+         * @param {string} $fromAccount account to transfer from (spot, swap, futures, or funding)
+         * @param {string} $toAccount account to transfer to (spot, swap (linear or inverse), future, or funding)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('transfer', null, $params);
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
+        if ($fromId === 'swap') {
+            if ($subType === 'inverse') {
+                $fromId = 'coinMPerp';
+            } else {
+                $fromId = 'USDTMPerp';
+            }
+        }
+        if ($toId === 'swap') {
+            if ($subType === 'inverse') {
+                $toId = 'coinMPerp';
+            } else {
+                $toId = 'USDTMPerp';
+            }
+        }
         $request = array(
+            'fromAccount' => $fromId,
+            'toAccount' => $toId,
             'asset' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
-            'type' => $fromId . '_' . $toId,
         );
-        $response = $this->spotV3PrivateGetGetAssetTransfer ($this->extend($request, $params));
+        $response = $this->apiAssetV1PrivatePostTransfer($this->extend($request, $params));
         //
-        //    {
-        //        "tranId":13526853623
-        //    }
+        //     {
+        //         "tranId" => 1933130865269936128,
+        //         "transferId" => "1051450703949464903736"
+        //     }
         //
         return array(
             'info' => $response,
-            'id' => $this->safe_string($response, 'tranId'),
+            'id' => $this->safe_string($response, 'transferId'),
             'timestamp' => null,
             'datetime' => null,
             'currency' => $code,
@@ -4879,19 +5160,25 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal transfers made on an account
          *
-         * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Query%20User%20Universal%20Transfer%20History%20(USER_DATA)
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Fund%20Account/Asset%20transfer%20records%20new
          *
          * @param {string} [$code] unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch transfers for
-         * @param {int} [$limit] the maximum number of transfers structures to retrieve
+         * @param {int} [$limit] the maximum number of transfers structures to retrieve (default 10, max 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @param {string} $params->fromAccount(mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
+         * @param {string} $params->toAccount(mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+         * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $request = array();
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -4902,30 +5189,42 @@ class bingx extends Exchange {
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
         if ($fromId === null || $toId === null) {
-            throw new ExchangeError($this->id . ' $fromAccount & $toAccount parameter are required');
+            throw new ExchangeError($this->id . ' $fromAccount & $toAccount parameters are required');
         }
-        $request = array(
-            'type' => $fromId . '_' . $toId,
-        );
+        if ($fromAccount !== null) {
+            $request['fromAccount'] = $fromId;
+        }
+        if ($toAccount !== null) {
+            $request['toAccount'] = $toId;
+        }
+        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
+        $maxLimit = 100;
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
+        if ($paginate) {
+            return $this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit);
+        }
         if ($since !== null) {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['pageSize'] = $limit;
         }
-        $response = $this->spotV3PrivateGetAssetTransfer ($this->extend($request, $params));
+        list($request, $params) = $this->handle_until_option('endTime', $request, $params);
+        $response = $this->apiV3PrivateGetAssetTransferRecord($this->extend($request, $params));
         //
         //     {
-        //         "total" => 3,
+        //         "total" => 2,
         //         "rows" => array(
-        //             array(
-        //                 "asset":"USDT",
-        //                 "amount":"-100.00000000000000000000",
-        //                 "type":"FUND_SFUTURES",
-        //                 "status":"CONFIRMED",
-        //                 "tranId":1067594500957016069,
-        //                 "timestamp":1658388859000
-        //             ),
+        //             {
+        //                 "asset" => "LTC",
+        //                 "amount" => "0.05000000000000000000",
+        //                 "status" => "CONFIRMED",
+        //                 "transferId" => "1051461075661819338791",
+        //                 "timestamp" => 1752202092000,
+        //                 "fromAccount" => "spot",
+        //                 "toAccount" => "USDTMPerp"
+        //             }
         //         )
         //     }
         //
@@ -4934,15 +5233,14 @@ class bingx extends Exchange {
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
-        $tranId = $this->safe_string($transfer, 'tranId');
+        $tranId = $this->safe_string($transfer, 'transferId');
         $timestamp = $this->safe_integer($transfer, 'timestamp');
-        $currencyCode = $this->safe_currency_code(null, $currency);
+        $currencyId = $this->safe_string($transfer, 'asset');
+        $currencyCode = $this->safe_currency_code($currencyId, $currency);
         $status = $this->safe_string($transfer, 'status');
         $accountsById = $this->safe_dict($this->options, 'accountsById', array());
-        $typeId = $this->safe_string($transfer, 'type');
-        $typeIdSplit = explode('_', $typeId);
-        $fromId = $this->safe_string($typeIdSplit, 0);
-        $toId = $this->safe_string($typeId, 1);
+        $fromId = $this->safe_string($transfer, 'fromAccount');
+        $toId = $this->safe_string($transfer, 'toAccount');
         $fromAccount = $this->safe_string($accountsById, $fromId, $fromId);
         $toAccount = $this->safe_string($accountsById, $toId, $toId);
         return array(
@@ -4954,31 +5252,40 @@ class bingx extends Exchange {
             'amount' => $this->safe_number($transfer, 'amount'),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
-            'status' => $status,
+            'status' => $this->parse_transfer_status($status),
         );
     }
 
-    public function fetch_deposit_addresses_by_network(string $code, $params = array ()): array {
+    public function parse_transfer_status(?string $status): ?string {
+        $statuses = array(
+            'CONFIRMED' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_deposit_addresses_by_network(string $code, $params = array()): array {
         /**
          * fetch the deposit addresses for a $currency associated with this account
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
          *
          * @param {string} $code unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary ~@link https://docs.ccxt.com/#/?id=address-structure address structures~, indexed by the network
+         * @return {array} a dictionary ~@link https://docs.ccxt.com/?id=address-structure address structures~, indexed by the network
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-        $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+        $recvWindow = $this->safe_integer($params, 'recvWindow', $defaultRecvWindow);
         $request = array(
             'coin' => $currency['id'],
             'offset' => 0,
             'limit' => 1000,
             'recvWindow' => $recvWindow,
         );
-        $response = $this->walletsV1PrivateGetCapitalDepositAddress ($this->extend($request, $params));
+        $response = $this->walletsV1PrivateGetCapitalDepositAddress($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -4998,20 +5305,20 @@ class bingx extends Exchange {
         //     }
         //
         $data = $this->safe_list($this->safe_dict($response, 'data'), 'data');
-        $parsed = $this->parse_deposit_addresses($data, [ $currency['code'] ], false);
+        $parsed = $this->parse_deposit_addresses($data, array( $currency['code'] ), false);
         return $this->index_by($parsed, 'network');
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): array {
+    public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch the deposit address for a currency associated with this account
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/common/wallet-api.html#Query%20Main%20Account%20Deposit%20Address
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Main%20Account%20Deposit%20Address
          *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->network] The chain of currency. This only apply for multi-chain currency, and there is no need for single chain currency
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=address-structure address structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $network = $this->safe_string($params, 'network');
         $params = $this->omit($params, array( 'network' ));
@@ -5058,19 +5365,21 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
-         * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Deposit%20History(supporting%20network)
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Deposit%20records
          *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
         );
         $currency = null;
@@ -5084,7 +5393,7 @@ class bingx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 1000
         }
-        $response = $this->spotV3PrivateGetCapitalDepositHisrec ($this->extend($request, $params));
+        $response = $this->spotV3PrivateGetCapitalDepositHisrec($this->extend($request, $params));
         //
         //    array(
         //        array(
@@ -5105,19 +5414,21 @@ class bingx extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://bingx-api.github.io/docs/#/spot/account-api.html#Withdraw%20History%20(supporting%20network)
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Wallet%20deposits%20and%20withdrawals/Withdraw%20records
          *
          * @param {string} [$code] unified $currency $code
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
         );
         $currency = null;
@@ -5131,7 +5442,7 @@ class bingx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit; // default 1000
         }
-        $response = $this->spotV3PrivateGetCapitalWithdrawHistory ($this->extend($request, $params));
+        $response = $this->spotV3PrivateGetCapitalWithdrawHistory($this->extend($request, $params));
         //
         //    array(
         //        array(
@@ -5207,7 +5518,7 @@ class bingx extends Exchange {
         $id = $this->safe_string($transaction, 'id', $dataId);
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string($transaction, 'addressTag');
-        $timestamp = $this->safe_integer($transaction, 'insertTime');
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'timestamp');
         $datetime = $this->iso8601($timestamp);
         if ($timestamp === null) {
             $datetime = $this->safe_string($transaction, 'applyTime');
@@ -5229,7 +5540,7 @@ class bingx extends Exchange {
             'txid' => $this->safe_string($transaction, 'txId'),
             'type' => $type,
             'currency' => $code,
-            'network' => $this->network_id_to_code($network),
+            'network' => $this->network_id_to_code($network, $code),
             'amount' => $this->safe_number($transaction, 'amount'),
             'status' => $this->parse_transaction_status($this->safe_string($transaction, 'status')),
             'timestamp' => $timestamp,
@@ -5271,12 +5582,12 @@ class bingx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
         /**
          * set margin mode to 'cross' or 'isolated'
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Change%20Margin%20Type
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Set%20Margin%20Type
          *
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
@@ -5286,7 +5597,9 @@ class bingx extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
@@ -5305,36 +5618,36 @@ class bingx extends Exchange {
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('setMarginMode', $market, $params);
         if ($subType === 'inverse') {
-            return $this->cswapV1PrivatePostTradeMarginType ($this->extend($request, $params));
+            return $this->cswapV1PrivatePostTradeMarginType($this->extend($request, $params));
         } else {
-            return $this->swapV2PrivatePostTradeMarginType ($this->extend($request, $params));
+            return $this->swapV2PrivatePostTradeMarginType($this->extend($request, $params));
         }
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+    public function add_margin(string $symbol, float $amount, $params = array()): array {
         $request = array(
             'type' => 1,
         );
         return $this->set_margin($symbol, $amount, $this->extend($request, $params));
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): array {
         $request = array(
             'type' => 2,
         );
         return $this->set_margin($symbol, $amount, $this->extend($request, $params));
     }
 
-    public function set_margin(string $symbol, float $amount, $params = array ()): array {
+    public function set_margin(string $symbol, float $amount, $params = array()): array {
         /**
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Adjust%20isolated%20margin
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
          *
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the bingx api endpoint
-         * @return {array} A ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
         if ($type === null) {
@@ -5343,14 +5656,16 @@ class bingx extends Exchange {
         if (!$this->in_array($type, array( 1, 2 ))) {
             throw new ArgumentsRequired($this->id . ' setMargin() requires a $type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
             'amount' => $this->amount_to_precision($market['symbol'], $amount),
             'type' => $type,
         );
-        $response = $this->swapV2PrivatePostTradePositionMargin ($this->extend($request, $params));
+        $response = $this->swapV2PrivatePostTradePositionMargin($this->extend($request, $params));
         //
         //    {
         //        "code" => 0,
@@ -5386,25 +5701,26 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): array {
+    public function fetch_leverage(string $symbol, $params = array()): array {
         /**
          * fetch the set leverage for a $market
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Leverage%20and%20Available%20Positions
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Leverage
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
         if ($market['inverse']) {
-            $response = $this->cswapV1PrivateGetTradeLeverage ($this->extend($request, $params));
+            $response = $this->cswapV1PrivateGetTradeLeverage($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -5422,7 +5738,7 @@ class bingx extends Exchange {
             //     }
             //
         } else {
-            $response = $this->swapV2PrivateGetTradeLeverage ($this->extend($request, $params));
+            $response = $this->swapV2PrivateGetTradeLeverage($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -5485,12 +5801,12 @@ class bingx extends Exchange {
         );
     }
 
-    public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Leverage
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Modify%20Leverage
          *
          * @param {float} $leverage the rate of $leverage
          * @param {string} $symbol unified $market $symbol
@@ -5503,7 +5819,9 @@ class bingx extends Exchange {
         }
         $side = $this->safe_string_upper($params, 'side');
         $this->check_required_argument('setLeverage', $side, 'side', array( 'LONG', 'SHORT', 'BOTH' ));
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -5511,7 +5829,7 @@ class bingx extends Exchange {
             'leverage' => $leverage,
         );
         if ($market['inverse']) {
-            return $this->cswapV1PrivatePostTradeLeverage ($this->extend($request, $params));
+            return $this->cswapV1PrivatePostTradeLeverage($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -5529,7 +5847,7 @@ class bingx extends Exchange {
             //     }
             //
         } else {
-            return $this->swapV2PrivatePostTradeLeverage ($this->extend($request, $params));
+            return $this->swapV2PrivatePostTradeLeverage($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -5549,14 +5867,13 @@ class bingx extends Exchange {
         }
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20details
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20transaction%20details
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20historical%20transaction%20orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Order%20Trade%20Detail
          *
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -5565,16 +5882,16 @@ class bingx extends Exchange {
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is null
          * @param {string} $params->trandingUnit COIN (directly represent assets such and ETH) or CONT (represents the number of contract sheets)
          * @param {string} $params->orderId the order id required for inverse swap
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
-        $fills = null;
-        $response = null;
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params);
         if ($subType === 'inverse') {
@@ -5582,7 +5899,7 @@ class bingx extends Exchange {
             if ($orderId === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an $orderId argument for inverse swap trades');
             }
-            $response = $this->cswapV1PrivateGetTradeAllFillOrders ($this->extend($request, $params));
+            $response = $this->cswapV1PrivateGetTradeAllFillOrders($this->extend($request, $params));
             $fills = $this->safe_list($response, 'data', array());
             //
             //     {
@@ -5631,7 +5948,7 @@ class bingx extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 500, maximum 1000
                 }
-                $response = $this->spotV1PrivateGetTradeMyTrades ($this->extend($request, $params));
+                $response = $this->spotV1PrivateGetTradeMyTrades($this->extend($request, $params));
                 $data = $this->safe_dict($response, 'data', array());
                 $fills = $this->safe_list($data, 'fills', array());
                 //
@@ -5662,7 +5979,7 @@ class bingx extends Exchange {
                 $tradingUnit = $this->safe_string_upper($params, 'tradingUnit', 'CONT');
                 $params = $this->omit($params, 'tradingUnit');
                 $request['tradingUnit'] = $tradingUnit;
-                $response = $this->swapV2PrivateGetTradeAllFillOrders ($this->extend($request, $params));
+                $response = $this->swapV2PrivateGetTradeAllFillOrders($this->extend($request, $params));
                 $data = $this->safe_dict($response, 'data', array());
                 $fills = $this->safe_list($data, 'fill_orders', array());
                 //
@@ -5692,37 +6009,13 @@ class bingx extends Exchange {
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
         //
-        //    {
-        //        "coin" => "BTC",
-        //        "name" => "BTC",
-        //        "networkList" => array(
-        //          array(
-        //            "name" => "BTC",
-        //            "network" => "BTC",
-        //            "isDefault" => true,
-        //            "minConfirm" => "2",
-        //            "withdrawEnable" => true,
-        //            "withdrawFee" => "0.00035",
-        //            "withdrawMax" => "1.62842",
-        //            "withdrawMin" => "0.0005"
-        //          ),
-        //          {
-        //            "name" => "BTC",
-        //            "network" => "BEP20",
-        //            "isDefault" => false,
-        //            "minConfirm" => "15",
-        //            "withdrawEnable" => true,
-        //            "withdrawFee" => "0.00001",
-        //            "withdrawMax" => "1.62734",
-        //            "withdrawMin" => "0.0001"
-        //          }
-        //        )
-        //    }
+        // currencie structure
         //
-        $networkList = $this->safe_list($fee, 'networkList', array());
-        $networkListLength = count($networkList);
+        $networks = $this->safe_dict($fee, 'networks', array());
+        $networkCodes = is_array($networks) ? array_keys($networks) : array();
+        $networksLength = count($networkCodes);
         $result = array(
-            'info' => $fee,
+            'info' => $networks,
             'withdraw' => array(
                 'fee' => null,
                 'percentage' => null,
@@ -5733,18 +6026,15 @@ class bingx extends Exchange {
             ),
             'networks' => array(),
         );
-        if ($networkListLength !== 0) {
-            for ($i = 0; $i < $networkListLength; $i++) {
-                $network = $networkList[$i];
-                $networkId = $this->safe_string($network, 'network');
-                $isDefault = $this->safe_bool($network, 'isDefault');
-                $currencyCode = $this->safe_string($currency, 'code');
-                $networkCode = $this->network_id_to_code($networkId, $currencyCode);
+        if ($networksLength !== 0) {
+            for ($i = 0; $i < $networksLength; $i++) {
+                $networkCode = $networkCodes[$i];
+                $network = $networks[$networkCode];
                 $result['networks'][$networkCode] = array(
                     'deposit' => array( 'fee' => null, 'percentage' => null ),
-                    'withdraw' => array( 'fee' => $this->safe_number($network, 'withdrawFee'), 'percentage' => false ),
+                    'withdraw' => array( 'fee' => $this->safe_number($network, 'fee'), 'percentage' => false ),
                 );
-                if ($isDefault) {
+                if ($networksLength === 1) {
                     $result['withdraw']['fee'] = $this->safe_number($network, 'withdrawFee');
                     $result['withdraw']['percentage'] = false;
                 }
@@ -5753,47 +6043,63 @@ class bingx extends Exchange {
         return $result;
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         /**
          * fetch deposit and withdraw fees
          *
-         * @see https://bingx-api.github.io/docs/#/common/account-api.html#All%20Coins'%20Information
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Query%20currency%20deposit%20and%20withdrawal%20data
          *
          * @param {string[]|null} $codes list of unified currency $codes
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+         * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
-        $response = $this->walletsV1PrivateGetCapitalConfigGetall ($params);
-        $coins = $this->safe_list($response, 'data');
-        return $this->parse_deposit_withdraw_fees($coins, $codes, 'coin');
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->fetch_currencies($params);
+        $depositWithdrawFees = array();
+        $responseCodes = is_array($response) ? array_keys($response) : array();
+        for ($i = 0; $i < count($responseCodes); $i++) {
+            $code = $responseCodes[$i];
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $entry = $response[$code];
+                $depositWithdrawFees[$code] = $this->parse_deposit_withdraw_fee($entry);
+            }
+        }
+        return $depositWithdrawFees;
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/wallet-api.html#Withdraw
+         * @see https://bingx-api.github.io/docs-v3/#/en/Account%20and%20Wallet/Wallet%20Deposits%20and%20Withdrawals/Withdraw
          *
          * @param {string} $code unified $currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} [$tag]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->walletType] 1 fund account, 2 standard account, 3 perpetual account
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @param {int} [$params->walletType] 1 fund (funding) account, 2 standard account, 3 perpetual account, 15 spot account
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
-        $walletType = $this->safe_integer($params, 'walletType');
-        if ($walletType === null) {
-            $walletType = 1;
-        }
-        if (!$this->in_array($walletType, array( 1, 2, 3 ))) {
-            throw new BadRequest($this->id . ' withdraw() requires either 1 fund account, 2 standard futures account, 3 perpetual account for walletType');
-        }
+        $defaultWalletType = 15; // spot
+        $walletType = null;
+        list($walletType, $params) = $this->handle_option_and_params_2($params, 'withdraw', 'type', 'walletType', $defaultWalletType);
+        $walletTypes = array(
+            'funding' => 1,
+            'fund' => 1,
+            'standard' => 2,
+            'perpetual' => 3,
+            'spot' => 15,
+        );
+        $walletType = $this->safe_integer($walletTypes, $walletType, $defaultWalletType);
         $request = array(
             'coin' => $currency['id'],
             'address' => $address,
@@ -5802,13 +6108,13 @@ class bingx extends Exchange {
         );
         $network = $this->safe_string_upper($params, 'network');
         if ($network !== null) {
-            $request['network'] = $this->network_code_to_id($network);
+            $request['network'] = $this->network_code_to_id($network, $currency['code']);
         }
         if ($tag !== null) {
             $request['addressTag'] = $tag;
         }
         $params = $this->omit($params, array( 'walletType', 'network' ));
-        $response = $this->walletsV1PrivatePostCapitalWithdrawApply ($this->extend($request, $params));
+        $response = $this->walletsV1PrivatePostCapitalWithdrawApply($this->extend($request, $params));
         $data = $this->safe_value($response, 'data');
         //    {
         //        "code":0,
@@ -5821,12 +6127,13 @@ class bingx extends Exchange {
     }
 
     public function parse_params($params) {
-        $sortedParams = $this->keysort($params);
-        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        // $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($params) ? array_keys($params) : array();
+        $keys = $this->sort($rawKeys);
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $sortedParams[$key];
-            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+            $value = $params[$key];
+            if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = '[';
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];
@@ -5836,27 +6143,29 @@ class bingx extends Exchange {
                     $arrStr .= (string) $arrayElement;
                 }
                 $arrStr .= ']';
-                $sortedParams[$key] = $arrStr;
+                $params[$key] = $arrStr;
             }
         }
-        return $sortedParams;
+        return $params;
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * retrieves the users liquidated positions
          *
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/User's%20Force%20Orders
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20force%20orders
          *
          * @param {string} [$symbol] unified CCXT $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch $liquidations for
          * @param {int} [$limit] the maximum number of liquidation structures to retrieve
          * @param {array} [$params] exchange specific parameters for the bingx api endpoint
          * @param {int} [$params->until] timestamp in ms of the latest liquidation
-         * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+         * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'autoCloseType' => 'LIQUIDATION',
         );
@@ -5874,10 +6183,9 @@ class bingx extends Exchange {
         }
         $subType = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $params);
-        $response = null;
         $liquidations = null;
         if ($subType === 'inverse') {
-            $response = $this->cswapV1PrivateGetTradeForceOrders ($this->extend($request, $params));
+            $response = $this->cswapV1PrivateGetTradeForceOrders($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -5907,7 +6215,7 @@ class bingx extends Exchange {
             //
             $liquidations = $this->safe_list($response, 'data', array());
         } else {
-            $response = $this->swapV2PrivateGetTradeForceOrders ($this->extend($request, $params));
+            $response = $this->swapV2PrivateGetTradeForceOrders($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -5985,26 +6293,28 @@ class bingx extends Exchange {
         ));
     }
 
-    public function close_position(string $symbol, ?string $side = null, $params = array ()): array {
+    public function close_position(string $symbol, ?string $side = null, $params = array()): array {
         /**
          * closes open positions for a $market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20position%20by%20position%20ID
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} [$side] not used by bingx
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          * @param {string|null} [$params->positionId] the id of the position you would like to close
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'positionId');
         $request = array();
-        $response = null;
         if ($positionId !== null) {
-            $response = $this->swapV1PrivatePostTradeClosePosition ($this->extend($request, $params));
+            $response = $this->swapV1PrivatePostTradeClosePosition($this->extend($request, $params));
             //
             //    {
             //        "code" => 0,
@@ -6024,7 +6334,7 @@ class bingx extends Exchange {
         } else {
             $request['symbol'] = $market['id'];
             if ($market['inverse']) {
-                $response = $this->cswapV1PrivatePostTradeCloseAllPositions ($this->extend($request, $params));
+                $response = $this->cswapV1PrivatePostTradeCloseAllPositions($this->extend($request, $params));
                 //
                 //     {
                 //         "code" => 0,
@@ -6037,7 +6347,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } else {
-                $response = $this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params));
+                $response = $this->swapV2PrivatePostTradeCloseAllPositions($this->extend($request, $params));
                 //
                 //    {
                 //        "code" => 0,
@@ -6056,20 +6366,22 @@ class bingx extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function close_all_positions($params = array ()): array {
+    public function close_all_positions($params = array()): array {
         /**
          * closes open $positions for a market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Close%20All%20Positions
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Close%20all%20positions%20in%20bulk
          *
          * @param {array} [$params] extra parameters specific to the bingx api endpoint
          * @param {string} [$params->recvWindow] $request valid time window value
-         * @return {array[]} ~@link https://docs.ccxt.com/#/?id=$position-structure a list of $position structures~
+         * @return {array[]} ~@link https://docs.ccxt.com/?id=$position-structure a list of $position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
-        $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
+        $recvWindow = $this->safe_integer($params, 'recvWindow', $defaultRecvWindow);
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('closeAllPositions', null, $params);
         $subType = null;
@@ -6080,9 +6392,8 @@ class bingx extends Exchange {
         $request = array(
             'recvWindow' => $recvWindow,
         );
-        $response = null;
         if ($subType === 'inverse') {
-            $response = $this->cswapV1PrivatePostTradeCloseAllPositions ($this->extend($request, $params));
+            $response = $this->cswapV1PrivatePostTradeCloseAllPositions($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -6095,7 +6406,7 @@ class bingx extends Exchange {
             //     }
             //
         } else {
-            $response = $this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params));
+            $response = $this->swapV2PrivatePostTradeCloseAllPositions($this->extend($request, $params));
             //
             //    {
             //        "code" => 0,
@@ -6120,17 +6431,17 @@ class bingx extends Exchange {
         return $positions;
     }
 
-    public function fetch_position_mode(?string $symbol = null, $params = array ()) {
+    public function fetch_position_mode(?string $symbol = null, $params = array()) {
         /**
          * fetchs the position mode, hedged or one way, hedged for binance is set identically for all linear markets or all inverse markets
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Get%20Position%20Mode
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20position%20mode
          *
          * @param {string} $symbol unified $symbol of the market to fetch the order book for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an object detailing whether the market is in hedged or one-way mode
          */
-        $response = $this->swapV1PrivateGetPositionSideDual ($params);
+        $response = $this->swapV1PrivateGetPositionSideDual($params);
         //
         //     {
         //         "code" => "0",
@@ -6149,11 +6460,11 @@ class bingx extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
         /**
          * set $hedged to true or false for a market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Set%20Position%20Mode
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Set%20Position%20Mode
          *
          * @param {bool} $hedged set to true to use $dualSidePosition
          * @param {string} $symbol not used by bingx setPositionMode ()
@@ -6177,15 +6488,15 @@ class bingx extends Exchange {
         //         data => array( $dualSidePosition => 'false' )
         //     }
         //
-        return $this->swapV1PrivatePostPositionSideDual ($this->extend($request, $params));
+        return $this->swapV1PrivatePostPositionSideDual($this->extend($request, $params));
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()): array {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
         /**
          * cancels an order and places a new order
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20order%20and%20place%20a%20new%20order  // spot
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20an%20order%20and%20then%20Place%20a%20new%20order  // swap
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Order  // spot
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Cancel%20an%20Existing%20Order%20and%20Send%20a%20New%20Orde  // swap
          *
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
@@ -6210,16 +6521,17 @@ class bingx extends Exchange {
          * @param {string} [$params->reduceOnly] *contract only* true or false, default=false for single position mode. this parameter is not accepted for both long and short positions mode
          * @param {float} [$params->priceRate] *contract only* for $type TRAILING_STOP_Market or TRAILING_TP_SL, Max = 1
          * @param {string} [$params->workingType] *contract only* StopPrice trigger $price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $request['cancelOrderId'] = $id;
         $request['cancelReplaceMode'] = 'STOP_ON_FAILURE';
-        $response = null;
         if ($market['swap']) {
-            $response = $this->swapV1PrivatePostTradeCancelReplace ($this->extend($request, $params));
+            $response = $this->swapV1PrivatePostTradeCancelReplace($this->extend($request, $params));
             //
             //    {
             //        code => '0',
@@ -6275,7 +6587,7 @@ class bingx extends Exchange {
             //    }
             //
         } else {
-            $response = $this->spotV1PrivatePostTradeOrderCancelReplace ($this->extend($request, $params));
+            $response = $this->spotV1PrivatePostTradeOrderCancelReplace($this->extend($request, $params));
             //
             //    {
             //        code => '0',
@@ -6318,27 +6630,28 @@ class bingx extends Exchange {
         return $this->parse_order($data, $market);
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): array {
+    public function fetch_margin_mode(string $symbol, $params = array()): array {
         /**
          * fetches the margin mode of the trading pair
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Query%20Margin%20Type
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Margin%20Type
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $subType = null;
-        $response = null;
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
         if ($subType === 'inverse') {
-            $response = $this->cswapV1PrivateGetTradeMarginType ($this->extend($request, $params));
+            $response = $this->cswapV1PrivateGetTradeMarginType($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -6351,7 +6664,7 @@ class bingx extends Exchange {
             //     }
             //
         } else {
-            $response = $this->swapV2PrivateGetTradeMarginType ($this->extend($request, $params));
+            $response = $this->swapV2PrivateGetTradeMarginType($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -6377,28 +6690,29 @@ class bingx extends Exchange {
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+    public function fetch_trading_fee(string $symbol, $params = array()): array {
         /**
          * fetch the trading fees for a $market
          *
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
-         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Spot/Trades%20Endpoints/Query%20Trading%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Query%20Trading%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Query%20Trade%20Commission%20Rate
          *
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
         );
         $response = null;
         $commission = array();
-        $data = $this->safe_dict($response, 'data', array());
         if ($market['spot']) {
-            $response = $this->spotV1PrivateGetUserCommissionRate ($this->extend($request, $params));
+            $response = $this->spotV1PrivateGetUserCommissionRate($this->extend($request, $params));
             //
             //     {
             //         "code" => 0,
@@ -6410,10 +6724,10 @@ class bingx extends Exchange {
             //         }
             //     }
             //
-            $commission = $data;
+            $commission = $this->safe_dict($response, 'data', array());
         } else {
             if ($market['inverse']) {
-                $response = $this->cswapV1PrivateGetUserCommissionRate ($params);
+                $response = $this->cswapV1PrivateGetUserCommissionRate($params);
                 //
                 //     {
                 //         "code" => 0,
@@ -6425,9 +6739,9 @@ class bingx extends Exchange {
                 //         }
                 //     }
                 //
-                $commission = $data;
+                $commission = $this->safe_dict($response, 'data', array());
             } else {
-                $response = $this->swapV2PrivateGetUserCommissionRate ($params);
+                $response = $this->swapV2PrivateGetUserCommissionRate($params);
                 //
                 //     {
                 //         "code" => 0,
@@ -6440,6 +6754,7 @@ class bingx extends Exchange {
                 //         }
                 //     }
                 //
+                $data = $this->safe_dict($response, 'data', array());
                 $commission = $this->safe_dict($data, 'commission', array());
             }
         }
@@ -6465,14 +6780,15 @@ class bingx extends Exchange {
     }
 
     public function custom_encode($params) {
-        $sortedParams = $this->keysort($params);
-        $keys = is_array($sortedParams) ? array_keys($sortedParams) : array();
+        // $sortedParams = $this->keysort($params);
+        $rawKeys = is_array($params) ? array_keys($params) : array();
+        $keys = $this->sort($rawKeys);
         $adjustedValue = null;
         $result = null;
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $value = $sortedParams[$key];
-            if (gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value))) {
+            $value = $params[$key];
+            if ((gettype($value) === 'array' && array_keys($value) === array_keys(array_keys($value)))) {
                 $arrStr = null;
                 for ($j = 0; $j < count($value); $j++) {
                     $arrayElement = $value[$j];
@@ -6503,18 +6819,100 @@ class bingx extends Exchange {
         return $result;
     }
 
-    public function sign($path, $section = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array()): array {
+        /**
+         * retrieve information on the maximum leverage, for different trade sizes for a single $market
+         *
+         * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Position%20and%20Maintenance%20Margin%20Ratio
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapV1PrivateGetMaintMarginRatio($this->extend($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "timestamp" => 1767789967284,
+        //         "data" => array(
+        //             {
+        //                 "tier" => "Tier 1",
+        //                 "symbol" => "ETH-USDT",
+        //                 "minPositionVal" => "0",
+        //                 "maxPositionVal" => "900000",
+        //                 "maintMarginRatio" => "0.003300",
+        //                 "maintAmount" => "0.000000"
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
+        //
+        //     array(
+        //         {
+        //             "tier" => "Tier 1",
+        //             "symbol" => "ETH-USDT",
+        //             "minPositionVal" => "0",
+        //             "maxPositionVal" => "900000",
+        //             "maintMarginRatio" => "0.003300",
+        //             "maintAmount" => "0.000000"
+        //         }
+        //     )
+        //
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $this->safe_dict($info, $i);
+            $tierString = $this->safe_string($tier, 'tier');
+            $tierParts = explode(' ', $tierString);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $market = $this->safe_market($marketId, $market, null, 'swap');
+            $tiers[] = array(
+                'tier' => $this->safe_number($tierParts, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'currency' => $this->safe_string($market, 'settle'),
+                'minNotional' => $this->safe_number($tier, 'minPositionVal'),
+                'maxNotional' => $this->safe_number($tier, 'maxPositionVal'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintMarginRatio'),
+                'maxLeverage' => null,
+                'info' => $tier,
+            );
+        }
+        return $tiers;
+    }
+
+    public function sign($path, $section = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $type = $section[0];
         $version = $section[1];
         $access = $section[2];
         $isSandbox = $this->safe_bool($this->options, 'sandboxMode', false);
-        if ($isSandbox && ($type !== 'swap')) {
+        $url = $this->implode_hostname($this->urls['api'][$type]);
+        if ($isSandbox && $url === null) {
             throw new NotSupported($this->id . ' does not have a testnet/sandbox URL for ' . $type . ' endpoints');
         }
-        $url = $this->implode_hostname($this->urls['api'][$type]);
         $path = $this->implode_params($path, $params);
-        if ($version === 'transfer') {
-            $type = 'account/transfer';
+        $versionIsTransfer = ($version === 'transfer');
+        $versionIsAsset = ($version === 'asset');
+        if ($versionIsTransfer || $versionIsAsset) {
+            if ($versionIsTransfer) {
+                $type = 'account/transfer';
+            } else {
+                $type = 'api/asset';
+            }
             $version = $section[2];
             $access = $section[3];
         }
@@ -6542,7 +6940,7 @@ class bingx extends Exchange {
                 $encodeRequest = $this->custom_encode($params);
             } else {
                 $parsedParams = $this->parse_params($params);
-                $encodeRequest = $this->rawencode($parsedParams);
+                $encodeRequest = $this->rawencode($parsedParams, true);
             }
             $signature = $this->hmac($this->encode($encodeRequest), $this->encode($this->secret), 'sha256');
             $headers = array(
@@ -6554,7 +6952,7 @@ class bingx extends Exchange {
                 $params['signature'] = $signature;
                 $body = $this->json($params);
             } else {
-                $query = $this->urlencode($parsedParams);
+                $query = $this->urlencode($parsedParams, true);
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
@@ -6584,7 +6982,11 @@ class bingx extends Exchange {
         //
         $code = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'msg');
-        if ($code !== null && $code !== '0') {
+        $transferErrorMsg = $this->safe_string($response, 'transferErrorMsg'); // handling with errors from transfer endpoint
+        if (($transferErrorMsg !== null) || ($code !== null && $code !== '0')) {
+            if ($transferErrorMsg !== null) {
+                $message = $transferErrorMsg;
+            }
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);

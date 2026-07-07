@@ -10,7 +10,9 @@ public partial class kucoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470063w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470081w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470222w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -18,9 +20,15 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> WatchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTicker(symbol, parameters);
@@ -30,7 +38,10 @@ public partial class kucoin
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/ticker"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470063w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470064w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470081w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470222w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -41,22 +52,34 @@ public partial class kucoin
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+    /// string : *spot markets only* either '/market/snapshot' or '/market/ticker' default is '/market/ticker'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> WatchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    public async Task<Tickers> WatchUtaTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchUtaTickers(symbols, parameters);
         return new Tickers(res);
     }
     /// <summary>
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470067w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470080w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -66,22 +89,24 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.watchBidsAsks(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Dictionary<string, object>> WatchMultiHelper(object methodName, string channelName, List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> WatchMultiHelper(object methodName, string channelName, bool isFuturesChannel, List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchMultiHelper(methodName, channelName, symbols, parameters);
+        var res = await this.watchMultiHelper(methodName, channelName, isFuturesChannel, symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470071w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470086w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470223w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -101,6 +126,12 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
@@ -115,7 +146,9 @@ public partial class kucoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470072w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470084w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470224w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -135,9 +168,15 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> WatchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -149,7 +188,8 @@ public partial class kucoin
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470072w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470084w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -171,7 +211,7 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -183,10 +223,13 @@ public partial class kucoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470069w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470070w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470068w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470083w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470097w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470082w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470221w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -201,6 +244,12 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta), default is false
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.method</term>
     /// <description>
     /// string : either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
@@ -208,7 +257,7 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -219,10 +268,13 @@ public partial class kucoin
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470069w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470070w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470068w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470083w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470097w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470082w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470221w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -236,15 +288,9 @@ public partial class kucoin
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
-    /// <item>
-    /// <term>params.method</term>
-    /// <description>
-    /// string : either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
-    /// </description>
-    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -255,8 +301,11 @@ public partial class kucoin
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change"/>  <br/>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470074w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470139w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470090w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470091w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470228w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -277,14 +326,26 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.trigger</term>
     /// <description>
     /// boolean : trigger orders are watched if true
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : 'spot' or 'swap' (default is 'spot' if symbol is not provided)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> WatchOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -293,10 +354,12 @@ public partial class kucoin
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
-    /// watches information on multiple trades made by the user
+    /// watches information on multiple trades made by the user on spot
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470074w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470090w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470264w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -317,14 +380,20 @@ public partial class kucoin
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+    /// string : *classic (non-uta) account only* '/spotMarket/tradeOrders' or '/spot/tradeFills' or '/contractMarket/tradeOrders', default is '/spotMarket/tradeOrders'
     /// </description>
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -336,7 +405,89 @@ public partial class kucoin
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470075w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470092w0"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs-new/3470231w0"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.type</term>
+    /// <description>
+    /// string : *classic (non-uta) account only* 'spot' or 'swap' (default is 'spot')
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
+    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchBalance(parameters);
+        return new Balances(res);
+    }
+    /// <summary>
+    /// watch open positions for a specific symbol
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470093w0"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
+    public async Task<Position> WatchPosition(string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchPosition(symbol, parameters);
+        return new Position(res);
+    }
+    /// <summary>
+    /// watch all open positions
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470233w0"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch positions for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of positions to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.uta</term>
+    /// <description>
+    /// boolean : set to true for the unified trading account (uta)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}.</returns>
+    public async Task<List<Position>> WatchPositions(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.watchPositions(symbols, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// watch the current funding rate
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470270w0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -346,10 +497,30 @@ public partial class kucoin
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
-    public async Task<Balances> WatchBalance(Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}.</returns>
+    public async Task<FundingRate> WatchFundingRate(string symbol, Dictionary<string, object> parameters = null)
     {
-        var res = await this.watchBalance(parameters);
-        return new Balances(res);
+        var res = await this.watchFundingRate(symbol, parameters);
+        return new FundingRate(res);
+    }
+    /// <summary>
+    /// watches a mark price for a specific market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.kucoin.com/docs-new/3470272w0"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Ticker> WatchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.watchMarkPrice(symbol, parameters);
+        return new Ticker(res);
     }
 }

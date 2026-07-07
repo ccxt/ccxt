@@ -1,13 +1,15 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var sha2_js = require('@noble/hashes/sha2.js');
 var bitopro$1 = require('../bitopro.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
-var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-class bitopro extends bitopro$1 {
+class bitopro extends bitopro$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -57,7 +59,7 @@ class bitopro extends bitopro$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         if (limit !== undefined) {
@@ -65,7 +67,9 @@ class bitopro extends bitopro$1 {
                 throw new errors.ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
@@ -124,10 +128,12 @@ class bitopro extends bitopro$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'TRADE' + ':' + symbol;
@@ -184,11 +190,13 @@ class bitopro extends bitopro$1 {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -326,10 +334,12 @@ class bitopro extends bitopro$1 {
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/public/ticker_stream.md
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'TICKER' + ':' + symbol;
@@ -355,15 +365,16 @@ class bitopro extends bitopro$1 {
         //     }
         //
         const marketId = this.safeString(message, 'pair');
-        const market = this.safeMarket(marketId, undefined, '_');
+        // market-ids are lowercase in REST API and uppercase in WS API
+        const market = this.safeMarket(marketId !== undefined ? marketId.toLowerCase() : undefined, undefined, '_');
         const symbol = market['symbol'];
         const event = this.safeString(message, 'event');
         const messageHash = event + ':' + symbol;
-        const result = this.parseTicker(message);
+        const result = this.parseTicker(message, market);
+        result['symbol'] = this.safeString(market, 'symbol'); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         const timestamp = this.safeInteger(message, 'timestamp');
-        const datetime = this.safeString(message, 'datetime');
         result['timestamp'] = timestamp;
-        result['datetime'] = datetime;
+        result['datetime'] = this.iso8601(timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         this.tickers[symbol] = result;
         client.resolve(result, messageHash);
     }
@@ -378,7 +389,7 @@ class bitopro extends bitopro$1 {
             'identity': this.login,
         });
         const payload = this.stringToBase64(rawData);
-        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512.sha384);
+        const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha384);
         const defaultOptions = {
             'ws': {
                 'options': {
@@ -406,11 +417,13 @@ class bitopro extends bitopro$1 {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/ws/private/user_balance_stream.md
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const messageHash = 'ACCOUNT_BALANCE';
         const url = this.urls['ws']['private'] + '/' + 'account-balance';
         this.authenticate(url);
@@ -472,4 +485,4 @@ class bitopro extends bitopro$1 {
     }
 }
 
-module.exports = bitopro;
+exports["default"] = bitopro;

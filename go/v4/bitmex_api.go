@@ -7,1490 +7,374 @@
 
 package ccxt
 
-func (this *bitmex) PublicGetAnnouncement (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAnnouncement", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetAnnouncementUrgent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetAnnouncementUrgent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetChat (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChat", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetChatChannels (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChatChannels", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetChatConnected (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChatConnected", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetChatPinned (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetChatPinned", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetFunding (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetFunding", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetGuild (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetGuild", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrument (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrument", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrumentActive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrumentActive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrumentActiveAndIndices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrumentActiveAndIndices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrumentActiveIntervals (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrumentActiveIntervals", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrumentCompositeIndex (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrumentCompositeIndex", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrumentIndices (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrumentIndices", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInstrumentUsdVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInstrumentUsdVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetInsurance (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetInsurance", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetLeaderboard (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetLeaderboard", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetLiquidation (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetLiquidation", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetOrderBookL2 (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBookL2", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetPorlNonce (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPorlNonce", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetQuote (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuote", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetQuoteBucketed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetQuoteBucketed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetSchema (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSchema", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetSchemaWebsocketHelp (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSchemaWebsocketHelp", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetSettlement (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetSettlement", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetStats (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStats", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetStatsHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStatsHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetStatsHistoryUSD (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetStatsHistoryUSD", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetTrade (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrade", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetTradeBucketed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTradeBucketed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetWalletAssets (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetWalletAssets", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PublicGetWalletNetworks (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetWalletNetworks", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetApiKey (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetApiKey", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetExecution (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExecution", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetExecutionTradeHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetExecutionTradeHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetGlobalNotification (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetGlobalNotification", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetLeaderboardName (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetLeaderboardName", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetPorlSnapshots (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPorlSnapshots", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetPosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetPosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUser (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUser", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserAffiliateStatus (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserAffiliateStatus", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserCheckReferralCode (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserCheckReferralCode", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserCommission (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserCommission", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserCsa (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserCsa", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserExecutionHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserExecutionHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserGetWalletTransferAccounts (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserGetWalletTransferAccounts", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserQuoteFillRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserQuoteFillRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserQuoteValueRatio (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserQuoteValueRatio", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserStaking (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserStaking", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserStakingInstruments (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserStakingInstruments", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserStakingTiers (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserStakingTiers", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserTradingVolume (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserTradingVolume", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserUnstakingRequests (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserUnstakingRequests", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserWallet (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserWallet", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserWalletHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserWalletHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserWalletSummary (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserWalletSummary", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserAffiliates (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserAffiliates", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateGetUserEvent (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateGetUserEvent", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostChat (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostChat", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostGuild (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGuild", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostGuildArchive (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGuildArchive", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostGuildJoin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGuildJoin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostGuildKick (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGuildKick", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostGuildLeave (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGuildLeave", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostGuildSharesTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostGuildSharesTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostOrderCancelAllAfter (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCancelAllAfter", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostOrderClosePosition (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderClosePosition", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostPositionIsolate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionIsolate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostPositionLeverage (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionLeverage", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostPositionRiskLimit (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionRiskLimit", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostPositionTransferMargin (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostPositionTransferMargin", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserAddSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserAddSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserCancelWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserCancelWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserCommunicationToken (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserCommunicationToken", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserConfirmEmail (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserConfirmEmail", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserConfirmWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserConfirmWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserLogout (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserLogout", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserPreferences (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserPreferences", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserRequestWithdrawal (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserRequestWithdrawal", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserUnstakingRequests (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserUnstakingRequests", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserUpdateSubaccount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserUpdateSubaccount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePostUserWalletTransfer (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserWalletTransfer", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePutGuild (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutGuild", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivatePutOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePutOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateDeleteOrder (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrder", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateDeleteOrderAll (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteOrderAll", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
-}
-
-func (this *bitmex) PrivateDeleteUserUnstakingRequests (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privateDeleteUserUnstakingRequests", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *BitmexCore) PublicGetAnnouncement(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAnnouncement", args...)
+}
+
+func (this *BitmexCore) PublicGetAnnouncementUrgent(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetAnnouncementUrgent", args...)
+}
+
+func (this *BitmexCore) PublicGetChat(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChat", args...)
+}
+
+func (this *BitmexCore) PublicGetChatChannels(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChatChannels", args...)
+}
+
+func (this *BitmexCore) PublicGetChatConnected(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChatConnected", args...)
+}
+
+func (this *BitmexCore) PublicGetChatPinned(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetChatPinned", args...)
+}
+
+func (this *BitmexCore) PublicGetFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFunding", args...)
+}
+
+func (this *BitmexCore) PublicGetGuild(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGuild", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrument(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrument", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrumentActive(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentActive", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrumentActiveAndIndices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentActiveAndIndices", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrumentActiveIntervals(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentActiveIntervals", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrumentCompositeIndex(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentCompositeIndex", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrumentIndices(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentIndices", args...)
+}
+
+func (this *BitmexCore) PublicGetInstrumentUsdVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentUsdVolume", args...)
+}
+
+func (this *BitmexCore) PublicGetInsurance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInsurance", args...)
+}
+
+func (this *BitmexCore) PublicGetLeaderboard(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLeaderboard", args...)
+}
+
+func (this *BitmexCore) PublicGetLiquidation(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLiquidation", args...)
+}
+
+func (this *BitmexCore) PublicGetOrderBookL2(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderBookL2", args...)
+}
+
+func (this *BitmexCore) PublicGetPorlNonce(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPorlNonce", args...)
+}
+
+func (this *BitmexCore) PublicGetQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetQuote", args...)
+}
+
+func (this *BitmexCore) PublicGetQuoteBucketed(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetQuoteBucketed", args...)
+}
+
+func (this *BitmexCore) PublicGetSchema(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSchema", args...)
+}
+
+func (this *BitmexCore) PublicGetSchemaWebsocketHelp(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSchemaWebsocketHelp", args...)
+}
+
+func (this *BitmexCore) PublicGetSettlement(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSettlement", args...)
+}
+
+func (this *BitmexCore) PublicGetStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStats", args...)
+}
+
+func (this *BitmexCore) PublicGetStatsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStatsHistory", args...)
+}
+
+func (this *BitmexCore) PublicGetStatsHistoryUSD(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetStatsHistoryUSD", args...)
+}
+
+func (this *BitmexCore) PublicGetTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrade", args...)
+}
+
+func (this *BitmexCore) PublicGetTradeBucketed(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradeBucketed", args...)
+}
+
+func (this *BitmexCore) PublicGetWalletAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWalletAssets", args...)
+}
+
+func (this *BitmexCore) PublicGetWalletNetworks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWalletNetworks", args...)
+}
+
+func (this *BitmexCore) PrivateGetAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAddress", args...)
+}
+
+func (this *BitmexCore) PrivateGetApiKey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiKey", args...)
+}
+
+func (this *BitmexCore) PrivateGetExecution(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExecution", args...)
+}
+
+func (this *BitmexCore) PrivateGetExecutionTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExecutionTradeHistory", args...)
+}
+
+func (this *BitmexCore) PrivateGetGlobalNotification(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGlobalNotification", args...)
+}
+
+func (this *BitmexCore) PrivateGetLeaderboardName(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLeaderboardName", args...)
+}
+
+func (this *BitmexCore) PrivateGetOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrder", args...)
+}
+
+func (this *BitmexCore) PrivateGetPorlSnapshots(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPorlSnapshots", args...)
+}
+
+func (this *BitmexCore) PrivateGetPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPosition", args...)
+}
+
+func (this *BitmexCore) PrivateGetUser(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUser", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserAffiliateStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserAffiliateStatus", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserCheckReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserCheckReferralCode", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserCommission", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserCsa(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserCsa", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserDepositAddress", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserExecutionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserExecutionHistory", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserGetWalletTransferAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserGetWalletTransferAccounts", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserMargin", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserQuoteFillRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserQuoteFillRatio", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserQuoteValueRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserQuoteValueRatio", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserStaking(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStaking", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserStakingInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStakingInstruments", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserStakingTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStakingTiers", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserTradingVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserTradingVolume", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserUnstakingRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserUnstakingRequests", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserWallet(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWallet", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserWalletHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWalletHistory", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserWalletSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWalletSummary", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserAffiliates(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserAffiliates", args...)
+}
+
+func (this *BitmexCore) PrivateGetUserEvent(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserEvent", args...)
+}
+
+func (this *BitmexCore) PrivatePostAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddress", args...)
+}
+
+func (this *BitmexCore) PrivatePostChat(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostChat", args...)
+}
+
+func (this *BitmexCore) PrivatePostGuild(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuild", args...)
+}
+
+func (this *BitmexCore) PrivatePostGuildArchive(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildArchive", args...)
+}
+
+func (this *BitmexCore) PrivatePostGuildJoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildJoin", args...)
+}
+
+func (this *BitmexCore) PrivatePostGuildKick(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildKick", args...)
+}
+
+func (this *BitmexCore) PrivatePostGuildLeave(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildLeave", args...)
+}
+
+func (this *BitmexCore) PrivatePostGuildSharesTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGuildSharesTrades", args...)
+}
+
+func (this *BitmexCore) PrivatePostOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrder", args...)
+}
+
+func (this *BitmexCore) PrivatePostOrderCancelAllAfter(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderCancelAllAfter", args...)
+}
+
+func (this *BitmexCore) PrivatePostOrderClosePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderClosePosition", args...)
+}
+
+func (this *BitmexCore) PrivatePostPositionIsolate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionIsolate", args...)
+}
+
+func (this *BitmexCore) PrivatePostPositionLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionLeverage", args...)
+}
+
+func (this *BitmexCore) PrivatePostPositionRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionRiskLimit", args...)
+}
+
+func (this *BitmexCore) PrivatePostPositionTransferMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionTransferMargin", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserAddSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserAddSubaccount", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserCancelWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserCancelWithdrawal", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserCommunicationToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserCommunicationToken", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserConfirmEmail(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserConfirmEmail", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserConfirmWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserConfirmWithdrawal", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserLogout(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserLogout", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserPreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserPreferences", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserRequestWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserRequestWithdrawal", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserUnstakingRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserUnstakingRequests", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserUpdateSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserUpdateSubaccount", args...)
+}
+
+func (this *BitmexCore) PrivatePostUserWalletTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserWalletTransfer", args...)
+}
+
+func (this *BitmexCore) PrivatePutGuild(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutGuild", args...)
+}
+
+func (this *BitmexCore) PrivatePutOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutOrder", args...)
+}
+
+func (this *BitmexCore) PrivateDeleteOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrder", args...)
+}
+
+func (this *BitmexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteOrderAll", args...)
+}
+
+func (this *BitmexCore) PrivateDeleteUserUnstakingRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteUserUnstakingRequests", args...)
 }

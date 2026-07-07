@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 
@@ -54,7 +54,7 @@ class hashkey(ccxt.async_support.hashkey):
         })
 
     async def wath_public(self, market: Market, topic: str, messageHash: str, params={}):
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'topic': topic,
             'event': 'sub',
@@ -70,7 +70,7 @@ class hashkey(ccxt.async_support.hashkey):
     def get_private_url(self, listenKey):
         return self.urls['api']['ws']['private'] + '/' + listenKey
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -84,7 +84,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param bool [params.binary]: True or False - default False
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -173,9 +174,10 @@ class hashkey(ccxt.async_support.hashkey):
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'realtimes'
@@ -229,9 +231,10 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.binary]: True or False - default False
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'trade'
@@ -292,9 +295,10 @@ class hashkey(ccxt.async_support.hashkey):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = 'depth'
@@ -357,9 +361,10 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         if symbol is not None:
             symbol = self.symbol(symbol)
@@ -422,11 +427,11 @@ class hashkey(ccxt.async_support.hashkey):
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(order, 'O')
         side = self.safe_string_lower(order, 'S')
-        reduceOnly: Bool = None
+        reduceOnly = None
         side, reduceOnly = self.parseOrderSideAndReduceOnly(side)
         type = self.parseOrderType(self.safe_string(order, 'o'))
         timeInForce = self.safe_string(order, 'f')
-        postOnly: Bool = None
+        postOnly = None
         type, timeInForce, postOnly = self.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce)
         if market['contract']:  # swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = None
@@ -444,18 +449,18 @@ class hashkey(ccxt.async_support.hashkey):
             'side': side,
             'price': self.safe_string(order, 'p'),
             'average': self.safe_string(order, 'V'),
-            'amount': self.omit_zero(self.safe_string(order, 'q')),
+            'amount': self.omit_zero((self.safe_string(order, 'q'))),
             'filled': self.safe_string(order, 'z'),
             'remaining': self.safe_string(order, 'r'),
             'stopPrice': None,
             'triggerPrice': None,
             'takeProfitPrice': None,
             'stopLossPrice': None,
-            'cost': self.omit_zero(self.safe_string(order, 'Z')),
+            'cost': self.omit_zero((self.safe_string(order, 'Z'))),
             'trades': None,
             'fee': {
                 'currency': self.safe_currency_code(self.safe_string(order, 'N')),
-                'amount': self.omit_zero(self.safe_string(order, 'n')),
+                'amount': self.omit_zero((self.safe_string(order, 'n'))),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -472,9 +477,10 @@ class hashkey(ccxt.async_support.hashkey):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         if symbol is not None:
             symbol = self.symbol(symbol)
@@ -514,7 +520,7 @@ class hashkey(ccxt.async_support.hashkey):
         symbolSpecificMessageHash = messageHash + ':' + symbol
         client.resolve(tradesArray, symbolSpecificMessageHash)
 
-    def parse_ws_trade(self, trade, market=None) -> Trade:
+    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
         #
         # watchTrades
         #     {
@@ -544,19 +550,23 @@ class hashkey(ccxt.async_support.hashkey):
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_integer(trade, 't')
-        isMaker = self.safe_bool(trade, 'm')
-        takerOrMaker: Str = None
-        if isMaker is not None:
-            if isMaker:
-                takerOrMaker = 'maker'
-            else:
+        isBuyerMaker = self.safe_bool(trade, 'm')
+        isPublicTrade = self.safe_string(trade, 'e') is None
+        side = None
+        takerOrMaker = None
+        if isBuyerMaker is not None:
+            if isPublicTrade:
                 takerOrMaker = 'taker'
+                side = 'sell' if isBuyerMaker else 'buy'
+            else:
+                takerOrMaker = 'maker' if isBuyerMaker else 'taker'
+                side = self.safe_string_lower(trade, 'S')
         return self.safe_trade({
             'id': self.safe_string_2(trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'side': self.safe_string_lower(trade, 'S'),
+            'side': side,
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': None,
@@ -579,7 +589,8 @@ class hashkey(ccxt.async_support.hashkey):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         listenKey = await self.authenticate()
         symbols = self.market_symbols(symbols)
         messageHash = 'positions'
@@ -671,10 +682,11 @@ class hashkey(ccxt.async_support.hashkey):
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: 'spot' or 'swap' - the type of the market to watch balance for(default 'spot')
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         listenKey = await self.authenticate()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = 'spot'
         type, params = self.handle_market_type_and_params('watchBalance', None, params, type)
         messageHash = 'balance:' + type
@@ -706,9 +718,10 @@ class hashkey(ccxt.async_support.hashkey):
         response = await self.fetch_balance({'type': type})
         self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve()
-        client.resolve(self.balance[type], 'balance:' + type)
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve()
+            client.resolve(self.balance[type], 'balance:' + type)
 
     def handle_balance(self, client: Client, message):
         #
@@ -766,7 +779,7 @@ class hashkey(ccxt.async_support.hashkey):
     async def keep_alive_listen_key(self, listenKey, params={}):
         if listenKey is None:
             return
-        request: dict = {
+        request = {
             'listenKey': listenKey,
         }
         try:

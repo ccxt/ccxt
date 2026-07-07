@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.lbank import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Any, Balances, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -62,6 +62,7 @@ class lbank(Exchange, ImplicitAPI):
                 'fetchClosedOrders': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
@@ -136,7 +137,8 @@ class lbank(Exchange, ImplicitAPI):
                             'currencyPairs': 2.5,
                             'accuracy': 2.5,
                             'usdToCny': 2.5,
-                            'withdrawConfigs': 2.5,
+                            'assetConfigs': 2.5,
+                            'withdrawConfigs': 2.5 * 1.5,  # frequently rate-limits, so increase self endpoint RL
                             'timestamp': 2.5,
                             'ticker/24hr': 2.5,
                             'ticker': 2.5,
@@ -222,6 +224,7 @@ class lbank(Exchange, ImplicitAPI):
                 },
             },
             'commonCurrencies': {
+                'XBT': 'XBT',  # not BTC!
                 'HIT': 'Hiver',
                 'VET_ERC20': 'VEN',
                 'PNT': 'Penta',
@@ -289,21 +292,12 @@ class lbank(Exchange, ImplicitAPI):
                     #     ptx: 1
                     # }
                 },
-                'inverse-networks': {
+                'networksById': {
                     'erc20': 'ERC20',
                     'trc20': 'TRC20',
-                    'omni': 'OMNI',
-                    'asa': 'ASA',
-                    'bep20(bsc)': 'BSC',
-                    'bep20': 'BSC',
-                    'heco': 'HT',
-                    'bep2': 'BNB',
-                    'btc': 'BTC',
-                    'dogecoin': 'DOGE',
-                    'matic': 'MATIC',
-                    'oec': 'OEC',
-                    'btctron': 'BTCTRON',
-                    'xrp': 'XRP',
+                    'TRX': 'TRC20',
+                    'bep20(bsc)': 'BEP20',
+                    'bep20': 'BEP20',
                 },
                 'defaultNetworks': {
                     'USDT': 'TRC20',
@@ -397,7 +391,7 @@ class lbank(Exchange, ImplicitAPI):
         """
         type = None
         type, params = self.handle_market_type_and_params('fetchTime', None, params)
-        response = None
+        response: dict
         if type == 'swap':
             response = await self.contractPublicGetCfdOpenApiV1PubGetTime(params)
         else:
@@ -423,6 +417,106 @@ class lbank(Exchange, ImplicitAPI):
         #     }
         #
         return self.safe_integer(response, 'data')
+
+    async def fetch_currencies(self, params={}) -> Currencies:
+        """
+        fetches all available currencies on an exchange
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        response = await self.spotPublicGetWithdrawConfigs(params)
+        #
+        #    {
+        #        "msg": "Success",
+        #        "result": "true",
+        #        "data": [
+        #            {
+        #                "amountScale": "4",
+        #                "chain": "bep20(bsc)",
+        #                "assetCode": "usdt",
+        #                "min": "10",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "0.0000",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
+        #            },
+        #            {
+        #                "amountScale": "4",
+        #                "chain": "trc20",
+        #                "assetCode": "usdt",
+        #                "min": "1",
+        #                "transferAmtScale": "4",
+        #                "canWithDraw": True,
+        #                "fee": "1.0000",
+        #                "minTransfer": "0.0001",
+        #                "type": "1"
+        #            },
+        #            ...
+        #        ],
+        #        "error_code": "0",
+        #        "ts": "1747973911431"
+        #    }
+        #
+        currenciesData = self.safe_list(response, 'data', [])
+        grouped = self.group_by(currenciesData, 'assetCode')
+        values = list(grouped.values())
+        return self.parse_currencies(values)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency[0], 'assetCode')  # first member is guaranteed
+        code = self.safe_currency_code(id)
+        networksRaw = rawCurrency
+        networks = {}
+        for j in range(0, len(networksRaw)):
+            networkEntry = networksRaw[j]
+            networkId = self.safe_string(networkEntry, 'chain')
+            if networkId is None:
+                networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
+            networkCode = self.network_id_to_code(networkId, code)
+            networks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': self.safe_number(networkEntry, 'min'),
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': self.safe_number(networkEntry, 'minTransfer'),
+                        'max': None,
+                    },
+                },
+                'active': None,
+                'deposit': None,
+                'withdraw': self.safe_bool(networkEntry, 'canWithDraw'),
+                'fee': self.safe_number(networkEntry, 'fee'),
+                'precision': self.parse_number(self.parse_precision(self.safe_string(networkEntry, 'transferAmtScale'))),
+                'info': networkEntry,
+            }
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'precision': None,
+            'type': None,
+            'name': None,
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'limits': {
+                'withdraw': {
+                    'min': None,
+                    'max': None,
+                },
+                'deposit': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'networks': networks,
+            'info': networksRaw,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -521,7 +615,7 @@ class lbank(Exchange, ImplicitAPI):
         return result
 
     async def fetch_swap_markets(self, params={}):
-        request: dict = {
+        request = {
             'productGroup': 'SwapU',
         }
         response = await self.contractPublicGetCfdOpenApiV1PubInstrument(self.extend(request, params))
@@ -583,7 +677,7 @@ class lbank(Exchange, ImplicitAPI):
                 'active': True,
                 'contract': True,
                 'linear': True,
-                'inverse': None,
+                'inverse': False,
                 'contractSize': self.safe_number(market, 'volumeMultiple'),
                 'expiry': None,
                 'expiryDatetime': None,
@@ -684,14 +778,15 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if market['swap']:
             responseForSwap = await self.fetch_tickers([market['symbol']], params)
             return self.safe_value(responseForSwap, market['symbol'])
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.spotPublicGetTicker24hr(self.extend(request, params))
@@ -729,19 +824,20 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             symbolsLength = len(symbols)
             if symbolsLength > 0:
                 market = self.market(symbols[0])
-        request: dict = {}
+        request = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
-        response = None
+        response: dict
         if type == 'swap':
             request['productGroup'] = 'SwapU'
             response = await self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
@@ -806,18 +902,19 @@ class lbank(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 60
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         type = None
         type, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
-        response = None
+        response: dict
         if type == 'swap':
             request['depth'] = limit
             response = await self.contractPublicGetCfdOpenApiV1PubMarketOrder(self.extend(request, params))
@@ -876,7 +973,7 @@ class lbank(Exchange, ImplicitAPI):
         timestamp = self.milliseconds()
         if market['swap']:
             return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume')
-        return self.parse_order_book(orderbook, market['symbol'], timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp, 'bids', 'asks')
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
@@ -950,9 +1047,10 @@ class lbank(Exchange, ImplicitAPI):
         fee = None
         feeCost = self.safe_string(trade, 'tradeFee')
         if feeCost is not None:
+            feeCurr = self.safe_string(market, 'base') if (side == 'buy') else self.safe_string(market, 'quote')
             fee = {
                 'cost': feeCost,
-                'currency': market['base'] if (side == 'buy') else market['quote'],
+                'currency': feeCurr,
                 'rate': self.safe_string(trade, 'tradeFeeRate'),
             }
         return self.safe_trade({
@@ -982,11 +1080,12 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         if since is not None:
@@ -999,7 +1098,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'spotPublicGetTrades')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: dict
         if method == 'spotPublicGetSupplementTrades':
             response = await self.spotPublicGetSupplementTrades(self.extend(request, params))
         else:
@@ -1043,7 +1142,7 @@ class lbank(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),  # volume
         ]
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -1057,7 +1156,8 @@ class lbank(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         # endpoint doesnt work
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
@@ -1066,11 +1166,13 @@ class lbank(Exchange, ImplicitAPI):
         if since is None:
             duration = self.parse_timeframe(timeframe)
             since = self.milliseconds() - (duration * 1000 * limit)
-        request: dict = {
+        parsedSince = self.parse_to_int(since / 1000)
+        parsedLimit = min(limit + 1, 2000)  # max 2000
+        request = {
             'symbol': market['id'],
             'type': self.safe_string(self.timeframes, timeframe, timeframe),
-            'time': self.parse_to_int(since / 1000),
-            'size': min(limit + 1, 2000),  # max 2000
+            'time': parsedSince,
+            'size': parsedLimit,
         }
         response = await self.spotPublicGetKline(self.extend(request, params))
         ohlcvs = self.safe_list(response, 'data', [])
@@ -1176,7 +1278,7 @@ class lbank(Exchange, ImplicitAPI):
         #      ]
         #
         timestamp = self.safe_integer(response, 'ts')
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1276,9 +1378,10 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `funding rate structure <https://docs.ccxt.com/#/?id=funding-rate-structure>`
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         responseForSwap = await self.fetch_funding_rates([market['symbol']], params)
         return self.safe_value(responseForSwap, market['symbol'])
@@ -1291,11 +1394,12 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rates-structure>`, indexed by market symbols
+        :returns dict: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'productGroup': 'SwapU',
         }
         response = await self.contractPublicGetCfdOpenApiV1PubMarketData(self.extend(request, params))
@@ -1334,13 +1438,14 @@ class lbank(Exchange, ImplicitAPI):
         https://www.lbank.com/en-US/docs/index.html#get-all-coins-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_value(self.options, 'fetchBalance', {})
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementUserInfo')
         method = self.safe_string(params, 'method', defaultMethod)
-        response = None
+        response: dict
         if method == 'spotPrivatePostSupplementUserInfoAccount':
             response = await self.spotPrivatePostSupplementUserInfoAccount()
         elif method == 'spotPrivatePostUserInfo':
@@ -1406,7 +1511,7 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
         market = self.market(symbol)
         result = await self.fetch_trading_fees(self.extend(params, {'category': market['id']}))
@@ -1419,13 +1524,14 @@ class lbank(Exchange, ImplicitAPI):
         https://www.lbank.com/en-US/docs/index.html#transaction-fee-rate-query
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         response = await self.spotPrivatePostSupplementCustomerTradeFee(self.extend(request, params))
         fees = self.safe_value(response, 'data', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
             symbol = fee['symbol']
@@ -1442,9 +1548,10 @@ class lbank(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -1464,15 +1571,16 @@ class lbank(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'custom_id', 'clientOrderId')
         postOnly = self.safe_bool(params, 'postOnly', False)
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         params = self.omit(params, ['custom_id', 'clientOrderId', 'timeInForce', 'postOnly'])
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         ioc = (timeInForce == 'IOC')
@@ -1521,7 +1629,7 @@ class lbank(Exchange, ImplicitAPI):
         defaultMethod = self.safe_string(options, 'method', 'spotPrivatePostSupplementCreateOrder')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: dict
         if method == 'spotPrivatePostCreateOrder':
             response = await self.spotPrivatePostCreateOrder(self.extend(request, params))
         else:
@@ -1544,7 +1652,7 @@ class lbank(Exchange, ImplicitAPI):
         }, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             '-1': 'canceled',  # canceled
             '0': 'open',  # not traded
             '1': 'open',  # partial deal
@@ -1704,9 +1812,10 @@ class lbank(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         method = self.safe_string(params, 'method')
         if method is None:
             options = self.safe_value(self.options, 'fetchOrder', {})
@@ -1718,9 +1827,10 @@ class lbank(Exchange, ImplicitAPI):
     async def fetch_order_supplement(self, id: str, symbol: Str = None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderId': id,
         }
@@ -1753,9 +1863,10 @@ class lbank(Exchange, ImplicitAPI):
         # Id can be a list of ids delimited by a comma
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'order_id': id,
         }
@@ -1803,15 +1914,16 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         since = self.safe_value(params, 'start_date', since)
         params = self.omit(params, 'start_date')
-        request: dict = {
+        request = {
             'symbol': market['id'],
             # 'start_date' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
             # 'end_date' Finish time yyyy-mm-dd, the maximum is today, the default is today
@@ -1859,17 +1971,18 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # default query is for canceled and completely filled orders
         # does not return open orders unless specified explicitly
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
@@ -1917,15 +2030,16 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of open order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'current_page': 1,
             'page_length': limit,
@@ -1971,15 +2085,16 @@ class lbank(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         clientOrderId = self.safe_string_2(params, 'origClientOrderId', 'clientOrderId')
         params = self.omit(params, ['origClientOrderId', 'clientOrderId'])
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
             'orderId': id,
         }
@@ -2010,13 +2125,14 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market to cancel orders in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'symbol': market['id'],
         }
         response = await self.spotPrivatePostSupplementCancelOrderBySymbol(self.extend(request, params))
@@ -2034,7 +2150,7 @@ class lbank(Exchange, ImplicitAPI):
         #              },
         #          ],
         #          "error_code":0,
-        #          "ts":1648506641469
+        #          "ts":1648506641468
         #      }
         #
         data = self.safe_list(response, 'data', [])
@@ -2057,14 +2173,15 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         options = self.safe_value(self.options, 'fetchDepositAddress', {})
         defaultMethod = self.safe_string(options, 'method', 'fetchDepositAddressDefault')
         method = self.safe_string(params, 'method', defaultMethod)
         params = self.omit(params, 'method')
-        response = None
+        response: dict
         if method == 'fetchDepositAddressSupplement':
             response = await self.fetch_deposit_address_supplement(code, params)
         else:
@@ -2072,9 +2189,10 @@ class lbank(Exchange, ImplicitAPI):
         return response
 
     async def fetch_deposit_address_default(self, code: str, params={}) -> DepositAddress:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'assetCode': currency['id'],
         }
         network = self.get_network_code_for_currency(code, params)
@@ -2098,22 +2216,20 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data')
         address = self.safe_string(result, 'address')
         tag = self.safe_string(result, 'memo')
-        networkId = self.safe_string(result, 'netWork')
-        inverseNetworks = self.safe_value(self.options, 'inverse-networks', {})
-        networkCode = self.safe_string_upper(inverseNetworks, networkId, networkId)
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,
+            'network': self.network_id_to_code(self.safe_string(result, 'netWork'), code),
             'address': address,
             'tag': tag,
         }
 
     async def fetch_deposit_address_supplement(self, code: str, params={}) -> DepositAddress:
         # returns the address for whatever the default network is...
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'coin': currency['id'],
         }
         networks = self.safe_value(self.options, 'networks')
@@ -2138,17 +2254,15 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_value(response, 'data')
         address = self.safe_string(result, 'address')
         tag = self.safe_string(result, 'memo')
-        inverseNetworks = self.safe_value(self.options, 'inverse-networks', {})
-        networkCode = self.safe_string_upper(inverseNetworks, network, network)
         return {
             'info': response,
             'currency': code,
-            'network': networkCode,  # will be None if not specified in request
+            'network': None,
             'address': address,
             'tag': tag,
         }
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
 
@@ -2159,17 +2273,18 @@ class lbank(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         fee = self.safe_string(params, 'fee')
         params = self.omit(params, 'fee')
         # The relevant coin network fee can be found by calling fetchDepositWithdrawFees(), note: if no network param is supplied then the default network will be used, self can also be found in fetchDepositWithdrawFees().
         self.check_required_argument('withdraw', fee, 'fee')
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'address': address,
             'coin': currency['id'],
             'amount': amount,
@@ -2195,7 +2310,7 @@ class lbank(Exchange, ImplicitAPI):
         #          "result":true,
         #          "data": {
         #              "fee":10.00000000000000000000,
-        #              "withdrawId":1900376
+        #              "withdrawId":1900377
         #              },
         #          "error_code":0,
         #          "ts":1648992501414
@@ -2208,7 +2323,7 @@ class lbank(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status, type):
-        statuses: dict = {
+        statuses = {
             'deposit': {
                 '1': 'pending',
                 '2': 'ok',
@@ -2263,9 +2378,6 @@ class lbank(Exchange, ImplicitAPI):
             type = 'withdrawal'
         txid = self.safe_string(transaction, 'txId')
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
-        networks = self.safe_value(self.options, 'inverse-networks', {})
-        networkId = self.safe_string(transaction, 'networkName')
-        network = self.safe_string(networks, networkId, networkId)
         address = self.safe_string(transaction, 'address')
         addressFrom = None
         addressTo = None
@@ -2290,7 +2402,7 @@ class lbank(Exchange, ImplicitAPI):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': network,
+            'network': self.network_id_to_code(self.safe_string(transaction, 'networkName'), code),
             'address': address,
             'addressTo': addressTo,
             'addressFrom': addressFrom,
@@ -2317,10 +2429,11 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
             # 'endTime': end time, timestamp in milliseconds, default now
         }
@@ -2368,10 +2481,11 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             # 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"),("5", "Transfer")
             # 'endTime': end time, timestamp in milliseconds, default now
             # 'withdrawOrderId': Custom withdrawal id
@@ -2419,12 +2533,13 @@ class lbank(Exchange, ImplicitAPI):
         please use fetchDepositWithdrawFees instead
         :param str[]|None codes: not used by lbank fetchTransactionFees()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         # private only returns information for currencies with non-zero balance
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        result = None
+        result: dict
         if isAuthorized is True:
             options = self.safe_value(self.options, 'fetchTransactionFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateTransactionFees')
@@ -2441,7 +2556,8 @@ class lbank(Exchange, ImplicitAPI):
     async def fetch_private_transaction_fees(self, params={}):
         # complete response
         # incl. for coins which None in public method
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.spotPrivatePostSupplementUserInfo()
         #
         #    {
@@ -2474,7 +2590,7 @@ class lbank(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'data', [])
-        withdrawFees: dict = {}
+        withdrawFees = {}
         for i in range(0, len(result)):
             entry = result[i]
             currencyId = self.safe_string(entry, 'coin')
@@ -2483,10 +2599,9 @@ class lbank(Exchange, ImplicitAPI):
             withdrawFees[code] = {}
             for j in range(0, len(networkList)):
                 networkEntry = networkList[j]
-                networkId = self.safe_string(networkEntry, 'name')
-                networkCode = self.safe_string(self.options['inverse-networks'], networkId, networkId)
                 fee = self.safe_number(networkEntry, 'withdrawFee')
                 if fee is not None:
+                    networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
                     withdrawFees[code][networkCode] = fee
         return {
             'withdraw': withdrawFees,
@@ -2497,10 +2612,11 @@ class lbank(Exchange, ImplicitAPI):
     async def fetch_public_transaction_fees(self, params={}):
         # extremely incomplete response
         # vast majority fees None
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         code = self.safe_string_2(params, 'coin', 'assetCode')
         params = self.omit(params, ['coin', 'assetCode'])
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.currency(code)
             request['assetCode'] = currency['id']
@@ -2527,15 +2643,14 @@ class lbank(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_value(response, 'data', [])
-        withdrawFees: dict = {}
+        withdrawFees = {}
         for i in range(0, len(result)):
             item = result[i]
             canWithdraw = self.safe_value(item, 'canWithDraw')
             if canWithdraw == 'true':
                 currencyId = self.safe_string(item, 'assetCode')
                 codeInner = self.safe_currency_code(currencyId)
-                chain = self.safe_string(item, 'chain')
-                network = self.safe_string(self.options['inverse-networks'], chain, chain)
+                network = self.network_id_to_code(self.safe_string(item, 'chain'), codeInner)
                 if network is None:
                     network = codeInner
                 fee = self.safe_string(item, 'fee')
@@ -2557,11 +2672,12 @@ class lbank(Exchange, ImplicitAPI):
 
         :param str[] [codes]: array of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         isAuthorized = self.check_required_credentials(False)
-        response = None
+        response: dict
         if isAuthorized is True:
             options = self.safe_value(self.options, 'fetchDepositWithdrawFees', {})
             defaultMethod = self.safe_string(options, 'method', 'fetchPrivateDepositWithdrawFees')
@@ -2575,10 +2691,11 @@ class lbank(Exchange, ImplicitAPI):
             response = await self.fetch_public_deposit_withdraw_fees(codes, params)
         return response
 
-    async def fetch_private_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_private_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         # complete response
         # incl. for coins which None in public method
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.spotPrivatePostSupplementUserInfo(params)
         #
         #    {
@@ -2613,11 +2730,12 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_deposit_withdraw_fees(data, codes, 'coin')
 
-    async def fetch_public_deposit_withdraw_fees(self, codes=None, params={}):
+    async def fetch_public_deposit_withdraw_fees(self, codes: Strings = None, params={}):
         # extremely incomplete response
         # vast majority fees None
-        await self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            await self.load_markets()
+        request = {}
         response = await self.spotPublicGetWithdrawConfigs(self.extend(request, params))
         #
         #    {
@@ -2643,7 +2761,7 @@ class lbank(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_public_deposit_withdraw_fees(data, codes)
 
-    def parse_public_deposit_withdraw_fees(self, response, codes=None):
+    def parse_public_deposit_withdraw_fees(self, response, codes: Strings = None):
         #
         #    [
         #        {
@@ -2660,7 +2778,7 @@ class lbank(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        result: dict = {}
+        result = {}
         for i in range(0, len(response)):
             fee = response[i]
             canWithdraw = self.safe_value(fee, 'canWithDraw')
@@ -2676,8 +2794,7 @@ class lbank(Exchange, ImplicitAPI):
                         else:
                             resultCodeInfo = result[code]['info']
                             resultCodeInfo.append(fee)
-                        chain = self.safe_string(fee, 'chain')
-                        networkCode = self.safe_string(self.options['inverse-networks'], chain, chain)
+                        networkCode = self.network_id_to_code(self.safe_string(fee, 'chain'), code)
                         if networkCode is not None:
                             result[code]['networks'][networkCode] = {
                                 'withdraw': {
@@ -2724,11 +2841,11 @@ class lbank(Exchange, ImplicitAPI):
         #    }
         #
         result = self.deposit_withdraw_fee(fee)
+        code = self.safe_string(currency, 'code')
         networkList = self.safe_value(fee, 'networkList', [])
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
-            networkId = self.safe_string(networkEntry, 'name')
-            networkCode = self.safe_string_upper(self.options['inverse-networks'], networkId, networkId)
+            networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)
             withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
             isDefault = self.safe_value(networkEntry, 'isDefault')
             if withdrawFee is not None:
@@ -2749,7 +2866,7 @@ class lbank(Exchange, ImplicitAPI):
                 }
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/' + self.version + '/' + self.implode_params(path, params)
         # Every spot endpoint ends with ".do"
@@ -2772,9 +2889,10 @@ class lbank(Exchange, ImplicitAPI):
                 signatureMethod = 'RSA'
             else:
                 signatureMethod = 'HmacSHA256'
+            finalSig = signatureMethod  # java req
             auth = self.rawencode(self.keysort(self.extend({
                 'echostr': echostr,
-                'signature_method': signatureMethod,
+                'signature_method': finalSig,
                 'timestamp': timestamp,
             }, query)))
             encoded = self.encode(auth)

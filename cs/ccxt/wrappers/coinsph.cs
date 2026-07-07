@@ -10,7 +10,7 @@ public partial class coinsph
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#test-connectivity"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#test-connectivity"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -20,7 +20,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
@@ -30,7 +30,7 @@ public partial class coinsph
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#check-server-time"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#check-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class coinsph
     /// retrieves data on all markets for coinsph
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#exchange-information"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#exchange-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -70,9 +70,9 @@ public partial class coinsph
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -82,7 +82,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTickers(symbols, parameters);
@@ -92,9 +92,9 @@ public partial class coinsph
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-price-ticker"/>  <br/>
-    /// See <see href="https://coins-docs.github.io/rest-api/#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#24hr-ticker-price-change-statistics"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#symbol-order-book-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -104,7 +104,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    /// <returns> <term>object</term> a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
     public async Task<Ticker> FetchTicker(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTicker(symbol, parameters);
@@ -114,7 +114,7 @@ public partial class coinsph
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#order-book"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -130,7 +130,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -141,7 +141,7 @@ public partial class coinsph
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#klinecandlestick-data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#klinecandlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -181,7 +181,7 @@ public partial class coinsph
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#recent-trades-list"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#recent-trades-list"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -203,7 +203,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}.</returns>
     public async Task<List<Trade>> FetchTrades(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -215,7 +215,7 @@ public partial class coinsph
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -237,7 +237,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -249,7 +249,7 @@ public partial class coinsph
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#account-trade-list-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#account-trade-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -271,7 +271,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}.</returns>
     public async Task<List<Trade>> FetchOrderTrades(string id, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -283,7 +283,7 @@ public partial class coinsph
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#accept-the-quote"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#accept-the-quote"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -293,7 +293,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}.</returns>
+    /// <returns> <term>object</term> a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}.</returns>
     public async Task<Balances> FetchBalance(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchBalance(parameters);
@@ -303,7 +303,7 @@ public partial class coinsph
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#new-order--trade"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#new-order--trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -331,7 +331,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CreateOrder(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var price = price2 == 0 ? null : (object)price2;
@@ -342,7 +342,7 @@ public partial class coinsph
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#query-order-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#query-order-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -352,7 +352,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> FetchOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchOrder(id, symbol, parameters);
@@ -362,7 +362,7 @@ public partial class coinsph
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#current-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -384,7 +384,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchOpenOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -396,7 +396,7 @@ public partial class coinsph
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#history-orders-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#history-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -418,7 +418,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -430,7 +430,7 @@ public partial class coinsph
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#cancel-order-trade"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#cancel-order-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -440,7 +440,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
@@ -450,7 +450,7 @@ public partial class coinsph
     /// cancel open orders of market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#cancel-all-open-orders-on-a-symbol-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -460,7 +460,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
@@ -470,7 +470,7 @@ public partial class coinsph
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#trade-fee-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#trade-fee-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -480,7 +480,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}.</returns>
     public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
@@ -490,7 +490,7 @@ public partial class coinsph
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#trade-fee-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#trade-fee-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -500,7 +500,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols.</returns>
     public async Task<TradingFees> FetchTradingFees(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFees(parameters);
@@ -510,7 +510,7 @@ public partial class coinsph
     /// make a withdrawal to coins_ph account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#withdrawuser_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#withdrawuser_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -520,8 +520,8 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);
@@ -530,7 +530,7 @@ public partial class coinsph
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#deposit-history-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#deposit-history-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -552,7 +552,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchDeposits(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -564,7 +564,7 @@ public partial class coinsph
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#withdraw-history-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#withdraw-history-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -586,7 +586,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
     public async Task<List<Transaction>> FetchWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -598,7 +598,7 @@ public partial class coinsph
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://coins-docs.github.io/rest-api/#deposit-address-user_data"/>  <br/>
+    /// See <see href="https://docs.coins.ph/rest-api/#deposit-address-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -614,7 +614,7 @@ public partial class coinsph
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
+    /// <returns> <term>object</term> an [address structure]{@link https://docs.ccxt.com/?id=address-structure}.</returns>
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddress(code, parameters);

@@ -13,7 +13,8 @@ export default class binancecoinm extends binance {
         // eslint-disable-next-line new-cap
         const restInstance = new binancecoinmRest();
         const restDescribe = restInstance.describe();
-        const extended = this.deepExtend(super.describe(), restDescribe);
+        const parentWsDescribe = super.describeData();
+        const extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, {
             'id': 'binancecoinm',
             'name': 'Binance COIN-M',
@@ -22,7 +23,9 @@ export default class binancecoinm extends binance {
                 'doc': 'https://developers.binance.com/en',
             },
             'options': {
-                'fetchMarkets': ['inverse'],
+                'fetchMarkets': {
+                    'types': ['inverse'],
+                },
                 'defaultSubType': 'inverse',
             },
         });

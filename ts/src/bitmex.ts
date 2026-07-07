@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/bitmex.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { AuthenticationError, BadRequest, DDoSProtection, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidOrder, OrderNotFound, PermissionDenied, ArgumentsRequired, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { totp } from './base/functions/totp.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, Strings, Currency, MarketType, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, Liquidation, OrderBook, Balances, Str, Dict, Transaction, Ticker, Tickers, Market, MarketType, Strings, Currency, Leverage, Leverages, Num, Currencies, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, Position, OpenInterests, ADL, Fee, Bool, List, NullableDict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +38,9 @@ export default class bitmex extends Exchange {
                 'future': true,
                 'option': false,
                 'addMargin': undefined,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -50,8 +53,17 @@ export default class bitmex extends Exchange {
                 'createTrailingAmountOrder': true,
                 'createTriggerOrder': true,
                 'editOrder': true,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -63,7 +75,10 @@ export default class bitmex extends Exchange {
                 'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': 'emulated',
                 'fetchLeverages': true,
@@ -76,23 +91,34 @@ export default class bitmex extends Exchange {
                 'fetchMyLiquidations': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': 'emulated',
+                'fetchOpenInterests': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionADLRank': true,
                 'fetchPositionHistory': false,
                 'fetchPositions': true,
+                'fetchPositionsADLRank': true,
                 'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfer': false,
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
+                'index': false,
                 'reduceMargin': undefined,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'sandbox': true,
                 'setLeverage': true,
                 'setMargin': undefined,
@@ -112,7 +138,7 @@ export default class bitmex extends Exchange {
                     'public': 'https://testnet.bitmex.com',
                     'private': 'https://testnet.bitmex.com',
                 },
-                'logo': 'https://github.com/user-attachments/assets/c78425ab-78d5-49d6-bd14-db7734798f04',
+                'logo': 'https://github.com/user-attachments/assets/3360333d-35a6-4503-bbba-92a6bc0c174f',
                 'api': {
                     'public': 'https://www.bitmex.com',
                     'private': 'https://www.bitmex.com',
@@ -419,8 +445,8 @@ export default class bitmex extends Exchange {
         //            // "mediumPrecision": "8",
         //            // "shorterPrecision": "4",
         //            // "symbol": "₿",
-        //            // "weight": "1",
         //            // "tickLog": "0",
+        //            // "weight": "1",
         //            "enabled": true,
         //            "isMarginCurrency": true,
         //            "minDepositAmount": "10000",
@@ -440,92 +466,93 @@ export default class bitmex extends Exchange {
         //        },
         //     }
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const asset = this.safeString (currency, 'asset');
-            const code = this.safeCurrencyCode (asset);
-            const id = this.safeString (currency, 'currency');
-            const name = this.safeString (currency, 'name');
-            const chains = this.safeValue (currency, 'networks', []);
-            let depositEnabled = false;
-            let withdrawEnabled = false;
-            const networks: Dict = {};
-            const scale = this.safeString (currency, 'scale');
-            const precisionString = this.parsePrecision (scale);
-            const precision = this.parseNumber (precisionString);
-            for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const networkId = this.safeString (chain, 'asset');
-                const network = this.networkIdToCode (networkId);
-                const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
-                const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
-                const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
-                const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
-                const active = (isDepositEnabled && isWithdrawEnabled);
-                if (isDepositEnabled) {
-                    depositEnabled = true;
-                }
-                if (isWithdrawEnabled) {
-                    withdrawEnabled = true;
-                }
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': active,
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
-                    'fee': withdrawalFee,
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const asset = this.safeString (currency, 'asset');
+        const code = this.safeCurrencyCode (asset);
+        const id = this.safeString (currency, 'currency');
+        const name = this.safeString (currency, 'name');
+        const chains = this.safeValue (currency, 'networks', []);
+        let depositEnabled = false;
+        let withdrawEnabled = false;
+        const networks: Dict = {};
+        const scale = this.safeString (currency, 'scale');
+        const precisionString = this.parsePrecision (scale);
+        const precision = this.parseNumber (precisionString);
+        for (let j = 0; j < chains.length; j++) {
+            const chain = chains[j];
+            const networkId = this.safeString (chain, 'asset');
+            const network = this.networkIdToCode (networkId, code);
+            const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
+            const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
+            const isDepositEnabled = this.safeBool (chain, 'depositEnabled', false);
+            const isWithdrawEnabled = this.safeBool (chain, 'withdrawalEnabled', false);
+            const active = (isDepositEnabled && isWithdrawEnabled);
+            if (isDepositEnabled) {
+                depositEnabled = true;
             }
-            const currencyEnabled = this.safeValue (currency, 'enabled');
-            const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
-            const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
-            const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
-            const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
-            const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
-            const minDepositString = this.safeString (currency, 'minDepositAmount');
-            const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': name,
-                'active': currencyActive,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'precision': precision,
+            if (isWithdrawEnabled) {
+                withdrawEnabled = true;
+            }
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
+                'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': withdrawalFee,
+                'precision': undefined,
                 'limits': {
-                    'amount': {
+                    'withdraw': {
                         'min': undefined,
                         'max': undefined,
                     },
-                    'withdraw': {
-                        'min': minWithdrawal,
-                        'max': maxWithdrawal,
-                    },
                     'deposit': {
-                        'min': minDeposit,
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
-                'networks': networks,
             };
         }
-        return result;
+        const currencyEnabled = this.safeValue (currency, 'enabled');
+        const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+        const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
+        const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
+        const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
+        const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
+        const minDepositString = this.safeString (currency, 'minDepositAmount');
+        const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
+        const isCrypto = this.safeString (currency, 'currencyType') === 'Crypto';
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': name,
+            'active': currencyActive,
+            'deposit': depositEnabled,
+            'withdraw': withdrawEnabled,
+            'fee': undefined,
+            'precision': precision,
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': minWithdrawal,
+                    'max': maxWithdrawal,
+                },
+                'deposit': {
+                    'min': minDeposit,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'type': isCrypto ? 'crypto' : 'other',
+        });
     }
 
     convertFromRealAmount (code, amount) {
@@ -695,7 +722,75 @@ export default class bitmex extends Exchange {
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
         //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
+        //    },
+        //
+        //    other kind of markets have extra fields
+        //
+        //    {
+        //     "symbol": "XBTUSD-XBTU26",
+        //     "rootSymbol": "XBT",
+        //     "instrumentID": "3059",
+        //     "state": "Open",
+        //     "typ": "FFMCSX",
+        //     "listing": "2026-06-10T08:00:00.000Z",
+        //     "front": "2026-06-10T08:00:00.000Z",
+        //     "expiry": "2026-09-25T12:00:00.000Z",
+        //     "settle": "2026-09-25T12:00:00.000Z",
+        //     "positionCurrency": "USD",
+        //     "underlying": "XBT",
+        //     "quoteCurrency": "USD",
+        //     "underlyingSymbol": "XBT=",
+        //     "referenceSymbol": "XBTUSD",
+        //     "maxOrderQty": "10000000",
+        //     "minPrice": "-1000000",
+        //     "maxPrice": "1000000",
+        //     "lotSize": "100",
+        //     "tickSize": "0.5",
+        //     "multiplier": "1",
+        //     "settlCurrency": "XBt",
+        //     "underlyingToSettleMultiplier": "-100000000",
+        //     "isQuanto": false,
+        //     "isInverse": false,
+        //     "taxed": true,
+        //     "deleverage": true,
+        //     "makerFee": "0.0005",
+        //     "takerFee": "0.0005",
+        //     "limitDownPrice": null,
+        //     "limitUpPrice": null,
+        //     "prevTotalVolume": "300",
+        //     "totalVolume": "300",
+        //     "volume": "0",
+        //     "volume24h": "200",
+        //     "prevTotalTurnover": "460833",
+        //     "totalTurnover": "460833",
+        //     "turnover": "0",
+        //     "turnover24h": "298516",
+        //     "homeNotional24h": "0",
+        //     "foreignNotional24h": "0",
+        //     "prevPrice24h": "0",
+        //     "vwap": "577.5",
+        //     "highPrice": "577.5",
+        //     "lowPrice": "0",
+        //     "lastPrice": "577.5",
+        //     "lastPriceProtected": "577.5",
+        //     "lastTickDirection": "ZeroPlusTick",
+        //     "lastChangePcnt": "0",
+        //     "bidPrice": "566.5",
+        //     "midPrice": "567.25",
+        //     "askPrice": "568",
+        //     "hasLiquidity": false,
+        //     "openInterest": "0",
+        //     "openValue": "0",
+        //     "instantPnl": false,
+        //     "timestamp": "2026-06-17T05:22:50.000Z",
+        //     "capped": false,
+        //     "closingTimestamp": "2026-06-17T06:00:00.000Z",
+        //     "farLegSymbol": "XBTU26",
+        //     "nearLegSymbol": "XBTUSD",
+        //     "openingTimestamp": "2026-06-17T05:00:00.000Z",
+        //     "pool": "Primary",
+        //     "referencePrice": "65728"
+        //     }
         //  ]
         //
         return this.parseMarkets (response);
@@ -710,7 +805,7 @@ export default class bitmex extends Exchange {
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        let type: MarketType;
+        let type: MarketType = undefined;
         let swap = false;
         let spot = false;
         let future = false;
@@ -720,7 +815,7 @@ export default class bitmex extends Exchange {
         } else if (typ === 'IFXXXP') {
             type = 'spot';
             spot = true;
-        } else if (typ === 'FFCCSX') {
+        } else if (typ === 'FFCCSX' || typ === 'FFMCSX') {
             type = 'future';
             future = true;
         } else if (typ === 'FFICSX') {
@@ -729,33 +824,35 @@ export default class bitmex extends Exchange {
             baseId = this.safeString (market, 'rootSymbol');
             type = 'future';
             future = true;
+        } else if (typ === 'FFSCSX') {
+            type = 'swap';
+            swap = true;
         }
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         const contract = swap || future;
-        let contractSize = undefined;
-        const isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
-        const isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
-        const linear = contract ? (!isInverse && !isQuanto) : undefined;
+        let contractSize: Str = undefined;
+        let isInverse = this.safeValue (market, 'isInverse');  // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
+        let isQuanto = this.safeValue (market, 'isQuanto'); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
+        let linear = contract ? (!isInverse && !isQuanto) : undefined;
         const status = this.safeString (market, 'state');
-        const active = status !== 'Unlisted';
-        let expiry = undefined;
-        let expiryDatetime = undefined;
-        let symbol = undefined;
+        const active = status === 'Open'; // Open, Settled, Unlisted
+        let expiry: Int = undefined;
+        let expiryDatetime: Str = undefined;
+        let symbol: Str = undefined;
         if (spot) {
             symbol = base + '/' + quote;
         } else if (contract) {
             symbol = base + '/' + quote + ':' + settle;
             if (linear) {
                 const multiplierString = this.safeString2 (market, 'underlyingToPositionMultiplier', 'underlyingToSettleMultiplier');
-                contractSize = this.parseNumber (Precise.stringDiv ('1', multiplierString));
+                contractSize = Precise.stringAbs (Precise.stringDiv ('1', multiplierString));
             } else {
-                const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
-                contractSize = this.parseNumber (multiplierString);
+                contractSize = Precise.stringAbs (this.safeString (market, 'multiplier'));
             }
-            if (future) {
-                expiryDatetime = this.safeString (market, 'expiry');
-                expiry = this.parse8601 (expiryDatetime);
+            expiryDatetime = this.safeString2 (market, 'expiry', 'closingTimestamp');
+            expiry = this.parse8601 (expiryDatetime);
+            if (expiry !== undefined && future) {
                 symbol = symbol + '-' + this.yymmdd (expiry);
             }
         } else {
@@ -768,6 +865,12 @@ export default class bitmex extends Exchange {
         const maxOrderQty = this.safeNumber (market, 'maxOrderQty');
         const initMargin = this.safeString (market, 'initMargin', '1');
         const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+        // subtype should be undefined for spot markets
+        if (spot) {
+            isInverse = undefined;
+            isQuanto = undefined;
+            linear = undefined;
+        }
         return {
             'id': id,
             'symbol': symbol,
@@ -790,7 +893,7 @@ export default class bitmex extends Exchange {
             'quanto': isQuanto,
             'taker': this.safeNumber (market, 'takerFee'),
             'maker': this.safeNumber (market, 'makerFee'),
-            'contractSize': contractSize,
+            'contractSize': this.parseNumber (contractSize),
             'expiry': expiry,
             'expiryDatetime': expiryDatetime,
             'strike': this.safeNumber (market, 'optionStrikePrice'),
@@ -817,7 +920,7 @@ export default class bitmex extends Exchange {
                     'max': positionIsQuote ? maxOrderQty : undefined,
                 },
             },
-            'created': this.parse8601 (this.safeString (market, 'listing')),
+            'created': undefined, // 'listing' field is buggy, e.g. 2200-02-01T00:00:00.000Z
             'info': market,
         };
     }
@@ -891,10 +994,12 @@ export default class bitmex extends Exchange {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://www.bitmex.com/api/explorer/#!/User/User_getMargin
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'currency': 'all',
         };
@@ -957,10 +1062,12 @@ export default class bitmex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1003,7 +1110,7 @@ export default class bitmex extends Exchange {
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
         const filter: Dict = {
@@ -1030,16 +1137,18 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the earliest time in ms to fetch orders for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params, 100) as Order[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1076,7 +1185,7 @@ export default class bitmex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const request: Dict = {
@@ -1096,7 +1205,7 @@ export default class bitmex extends Exchange {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         // Bitmex barfs if you set 'open': false in the filter...
@@ -1114,16 +1223,18 @@ export default class bitmex extends Exchange {
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params, 100) as Trade[];
         }
-        let market = undefined;
+        let market: Market = undefined;
         let request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1276,7 +1387,7 @@ export default class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let fee = undefined;
+        let fee: Fee = undefined;
         let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
             feeCost = this.convertToRealAmount (code, feeCost);
@@ -1290,7 +1401,7 @@ export default class bitmex extends Exchange {
             after = this.convertToRealAmount (code, after);
         }
         const before = this.parseNumber (Precise.stringSub (this.numberToString (after), this.numberToString (amount)));
-        let direction = undefined;
+        let direction: Str = undefined;
         if (Precise.stringLt (amountString, '0')) {
             direction = 'out';
             amount = this.convertToRealAmount (code, Precise.stringAbs (amountString));
@@ -1326,10 +1437,12 @@ export default class bitmex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'start': 123,
         };
@@ -1341,7 +1454,7 @@ export default class bitmex extends Exchange {
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1379,10 +1492,12 @@ export default class bitmex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'currency': 'all',
             // 'start': 123,
@@ -1392,7 +1507,7 @@ export default class bitmex extends Exchange {
         //         // date-based pagination not supported
         //     }
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
             request['currency'] = currency['id'];
@@ -1443,9 +1558,9 @@ export default class bitmex extends Exchange {
         const timestamp = this.parse8601 (this.safeString (transaction, 'timestamp'));
         const type = this.safeStringLower (transaction, 'transactType');
         // Deposits have no from address or to address, withdrawals have both
-        let address = undefined;
-        let addressFrom = undefined;
-        let addressTo = undefined;
+        let address: Str = undefined;
+        let addressFrom: Str = undefined;
+        let addressTo: Str = undefined;
         if (type === 'withdrawal') {
             address = this.safeString (transaction, 'address');
             addressFrom = this.safeString (transaction, 'tx');
@@ -1463,13 +1578,14 @@ export default class bitmex extends Exchange {
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
+        const code = currency['code'];
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'transactID'),
             'txid': this.safeString (transaction, 'tx'),
             'type': type,
-            'currency': currency['code'],
-            'network': this.networkIdToCode (this.safeString (transaction, 'network'), currency['code']),
+            'currency': code,
+            'network': this.networkIdToCode (this.safeString (transaction, 'network'), code),
             'amount': this.parseNumber (amount),
             'status': status,
             'timestamp': transactTime,
@@ -1498,10 +1614,12 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1521,10 +1639,12 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
@@ -1615,8 +1735,10 @@ export default class bitmex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'paginate');
         if (paginate) {
@@ -1674,7 +1796,7 @@ export default class bitmex extends Exchange {
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
             for (let i = 0; i < result.length; i++) {
-                result[i][0] = result[i][0] - duration;
+                result[i][0] = this.parseToInt (result[i][0]) - duration;
             }
         }
         return result;
@@ -1759,7 +1881,7 @@ export default class bitmex extends Exchange {
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        let fee = undefined;
+        let fee: Dict = undefined;
         const feeCostString = this.numberToString (this.convertFromRawCost (symbol, this.safeString (trade, 'execComm')));
         if (feeCostString !== undefined) {
             const currencyId = this.safeString2 (trade, 'settlCurrency', 'currency');
@@ -1771,7 +1893,7 @@ export default class bitmex extends Exchange {
         }
         // Trade or Funding
         const execType = this.safeString (trade, 'execType');
-        let takerOrMaker = undefined;
+        let takerOrMaker: Str = undefined;
         if (feeCostString !== undefined && execType === 'Trade') {
             takerOrMaker = Precise.stringLt (feeCostString, '0') ? 'maker' : 'taker';
         }
@@ -1863,8 +1985,8 @@ export default class bitmex extends Exchange {
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         const qty = this.safeString (order, 'orderQty');
-        let cost = undefined;
-        let amount = undefined;
+        let cost: Num = undefined;
+        let amount: Num = undefined;
         let isInverse = false;
         if (marketId === undefined) {
             const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
@@ -1878,17 +2000,19 @@ export default class bitmex extends Exchange {
             amount = this.convertFromRawQuantity (symbol, qty);
         }
         const average = this.safeString (order, 'avgPx');
-        let filled = undefined;
+        let filled: Str = undefined;
         const cumQty = this.numberToString (this.convertFromRawQuantity (symbol, this.safeString (order, 'cumQty')));
         if (isInverse) {
             filled = Precise.stringDiv (cumQty, average);
         } else {
             filled = cumQty;
         }
-        const execInst = this.safeString (order, 'execInst');
-        let postOnly = undefined;
-        if (execInst !== undefined) {
-            postOnly = (execInst === 'ParticipateDoNotInitiate');
+        const execInst = this.safeString (order, 'execInst', '');
+        let postOnly: Bool = undefined;
+        let reduceOnly: Bool = undefined;
+        if (execInst.length > 0) {
+            postOnly = (execInst.indexOf ('ParticipateDoNotInitiate') >= 0);
+            reduceOnly = ((execInst.indexOf ('ReduceOnly') >= 0) || (execInst.indexOf ('Close') >= 0));
         }
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const triggerPrice = this.safeNumber (order, 'stopPx');
@@ -1904,6 +2028,7 @@ export default class bitmex extends Exchange {
             'type': this.safeStringLower (order, 'ordType'),
             'timeInForce': this.parseTimeInForce (this.safeString (order, 'timeInForce')),
             'postOnly': postOnly,
+            'reduceOnly': reduceOnly,
             'side': this.safeStringLower (order, 'side'),
             'price': this.safeString (order, 'price'),
             'triggerPrice': triggerPrice,
@@ -1928,10 +2053,12 @@ export default class bitmex extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -1999,29 +2126,45 @@ export default class bitmex extends Exchange {
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'above' or 'below'
+     * @param {object} [params.triggerDirection] the direction whenever the trigger happens with relation to price - 'ascending' or 'descending'
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let orderType = this.capitalize (type);
+        const capitalizeOrderType = orderType;
         const reduceOnly = this.safeValue (params, 'reduceOnly');
         if (reduceOnly !== undefined) {
             if ((!market['swap']) && (!market['future'])) {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const postOnly = this.safeBool (params, 'postOnly');
+        params = this.omit (params, [ 'reduceOnly', 'postOnly' ]);
         const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
         const qty = this.parseToInt (this.amountToPrecision (symbol, amount));
         const request: Dict = {
             'symbol': market['id'],
             'side': this.capitalize (side),
             'orderQty': qty, // lot size multiplied by the number of contracts
-            'ordType': orderType,
+            'ordType': capitalizeOrderType,
             'text': brokerId,
         };
+        const execInstructions: List = [];
+        if (reduceOnly === true) {
+            execInstructions.push ('ReduceOnly');
+        }
+        if (postOnly === true) {
+            execInstructions.push ('ParticipateDoNotInitiate');
+        }
+        const execInstLength = execInstructions.length;
+        if (execInstLength > 0) {
+            request['execInst'] = execInstructions.join (',');
+        }
         // support for unified trigger format
         const triggerPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
@@ -2029,7 +2172,7 @@ export default class bitmex extends Exchange {
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTriggerOrder || isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             }
@@ -2077,17 +2220,19 @@ export default class bitmex extends Exchange {
     }
 
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         let trailingAmount = this.safeString2 (params, 'trailingAmount', 'pegOffsetValue');
         const isTrailingAmountOrder = trailingAmount !== undefined;
         if (isTrailingAmountOrder) {
             const triggerDirection = this.safeString (params, 'triggerDirection');
-            const triggerAbove = (triggerDirection === 'above');
+            const triggerAbove = ((triggerDirection === 'ascending') || (triggerDirection === 'above'));
             if ((type === 'limit') || (type === 'market')) {
                 this.checkRequiredArgument ('createOrder', triggerDirection, 'triggerDirection', [ 'above', 'below' ]);
             }
-            let orderType = undefined;
+            let orderType: Str = undefined;
             if (type === 'limit') {
                 if (side === 'buy') {
                     orderType = triggerAbove ? 'StopLimit' : 'LimitIfTouched';
@@ -2141,10 +2286,12 @@ export default class bitmex extends Exchange {
      * @param {string} id order id
      * @param {string} symbol not used by bitmex cancelOrder ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         // https://github.com/ccxt/ccxt/issues/6507
         const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');
         const request: Dict = {};
@@ -2173,11 +2320,13 @@ export default class bitmex extends Exchange {
      * @param {string[]} ids order ids
      * @param {string} symbol not used by bitmex cancelOrders ()
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids, symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         // return await this.cancelOrder (ids, symbol, params);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         // https://github.com/ccxt/ccxt/issues/6507
         const clientOrderId = this.safeValue2 (params, 'clOrdID', 'clientOrderId');
         const request: Dict = {};
@@ -2198,12 +2347,14 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Order/Order_cancelAll
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -2261,7 +2412,9 @@ export default class bitmex extends Exchange {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter (timeout: Int, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'timeout': (timeout > 0) ? this.parseToInt (timeout / 1000) : 0,
         };
@@ -2282,10 +2435,12 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
      * @param {string[]} [symbols] a list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages (symbols: Strings = undefined, params = {}): Promise<Leverages> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const leverages = await this.fetchPositions (symbols, params);
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
@@ -2308,10 +2463,12 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    async fetchPositions (symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetPosition (params);
         //
         //     [
@@ -2521,7 +2678,7 @@ export default class bitmex extends Exchange {
         const unrealisedPnl = this.convertToRealAmount (settleCurrencyCode, this.safeString (position, 'unrealisedPnl'));
         const contracts = this.parseNumber (Precise.stringAbs (this.safeString (position, 'currentQty')));
         const contractSize = this.safeNumber (market, 'contractSize');
-        let side = undefined;
+        let side: Str = undefined;
         const homeNotional = this.safeString (position, 'homeNotional');
         if (homeNotional !== undefined) {
             if (homeNotional[0] === '-') {
@@ -2571,15 +2728,17 @@ export default class bitmex extends Exchange {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const qty = this.convertFromRealAmount (code, amount);
-        let networkCode = undefined;
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         const request: Dict = {
             'currency': currency['id'],
@@ -2620,13 +2779,15 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
      * @param {string[]|undefined} symbols list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexed by market symbols
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         // same response as under "fetchMarkets"
-        const filteredResponse = [];
+        const filteredResponse: List = [];
         for (let i = 0; i < response.length; i++) {
             const item = response[i];
             const marketId = this.safeString (item, 'symbol');
@@ -2675,19 +2836,21 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Funding/Funding_get
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms for ending date filter
      * @param {bool} [params.reverse] if true, will sort results newest first
      * @param {int} [params.start] starting point for results
      * @param {string} [params.columns] array of column names to fetch in info, if omitted, will return all columns
      * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the [timestamp docs]{@link https://www.bitmex.com/app/restAPI#Timestamp-Filters} for more details
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol in this.currencies) {
             const code = this.currency (symbol);
             request['symbol'] = code['id'];
@@ -2764,14 +2927,16 @@ export default class bitmex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
         }
         if ((leverage < 0.01) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 0.01 and 100');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if (market['type'] !== 'swap' && market['type'] !== 'future') {
             throw new BadSymbol (this.id + ' setLeverage() supports future and swap contracts only');
@@ -2801,7 +2966,9 @@ export default class bitmex extends Exchange {
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         if ((market['type'] !== 'swap') && (market['type'] !== 'future')) {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap and future contracts only');
@@ -2822,20 +2989,23 @@ export default class bitmex extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network] deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        await this.loadMarkets ();
-        let networkCode = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let networkCode: Str = undefined;
         [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
         const currency = this.currency (code);
         params = this.omit (params, 'network');
+        const parsedNetwork = this.networkCodeToId (networkCode, currency['code']);
         const request: Dict = {
             'currency': currency['id'],
-            'network': this.networkCodeToId (networkCode, currency['code']),
+            'network': parsedNetwork,
         };
         const response = await this.privateGetUserDepositAddress (this.extend (request, params));
         //
@@ -2921,10 +3091,12 @@ export default class bitmex extends Exchange {
      * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
      * @param {string[]|undefined} codes list of unified currency codes
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure}
+     * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const assets = await this.publicGetWalletAssets (params);
         //
         //    [
@@ -2958,6 +3130,74 @@ export default class bitmex extends Exchange {
         return this.parseDepositWithdrawFees (assets, codes, 'asset');
     }
 
+    /**
+     * @method
+     * @name bitmex#fetchOpenInterests
+     * @description Retrieves the open interest for a list of symbols
+     * @see https://docs.bitmex.com/api-explorer/get-stats
+     * @param {string[]} [symbols] a list of unified CCXT market symbols
+     * @param {object} [params] exchange specific parameters
+     * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    async fetchOpenInterests (symbols: Strings = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {};
+        let response: Dict = undefined;
+        response = await this.publicGetStats (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            currency: 'XBt',
+        //            openInterest: '0',
+        //            openValue: '323890820079',
+        //            rootSymbol: 'Total',
+        //            turnover24h: '447088001322',
+        //            volume24h: '0'
+        //        }
+        //        ...
+        //    ]
+        //
+        symbols = this.marketSymbols (symbols);
+        return this.parseOpenInterests (response, symbols) as OpenInterests;
+    }
+
+    parseOpenInterest (interest, market: Market = undefined) {
+        //
+        // fetchOpenInterest
+        //
+        //    {
+        //        currency: 'XBt',
+        //        openInterest: '0',
+        //        openValue: '323890820079',
+        //        rootSymbol: 'Total',
+        //        turnover24h: '447088001322',
+        //        volume24h: '0'
+        //    }
+        //
+        const quoteId = this.safeString (interest, 'currency');
+        const baseId = this.safeString (interest, 'rootSymbol');
+        const quoteSymbol = this.safeCurrencyCode (quoteId);
+        const baseSymbol = this.safeCurrencyCode (baseId);
+        let symbol = baseSymbol;
+        if (quoteSymbol !== undefined) {
+            symbol = baseSymbol + '/' + quoteSymbol + ':' + quoteSymbol;
+        }
+        const openInterest = this.safeNumber (interest, 'openInterest');
+        const openValue = this.safeNumber (interest, 'openValue');
+        return this.safeOpenInterest ({
+            'info': interest,
+            'symbol': symbol,
+            'baseVolume': openInterest,  // deprecated
+            'quoteVolume': openValue,  // deprecated
+            'openInterestAmount': openInterest,
+            'openInterestValue': openValue,
+            'timestamp': undefined,
+            'datetime': undefined,
+        }, market);
+    }
+
     calculateRateLimiterCost (api, method, path, params, config = {}) {
         const isAuthenticated = this.checkRequiredCredentials (false);
         const cost = this.safeValue (config, 'cost', 1);
@@ -2982,10 +3222,12 @@ export default class bitmex extends Exchange {
      * @param {object} [params] exchange specific parameters for the bitmex api endpoint
      * @param {int} [params.until] timestamp in ms of the latest liquidation
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+     * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLiquidations', 'paginate');
         if (paginate) {
@@ -3034,11 +3276,417 @@ export default class bitmex extends Exchange {
             'contracts': undefined,
             'contractSize': this.safeNumber (market, 'contractSize'),
             'price': this.safeNumber (liquidation, 'price'),
+            'side': this.safeStringLower (liquidation, 'side'),
             'baseValue': undefined,
             'quoteValue': undefined,
             'timestamp': undefined,
             'datetime': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name bitmex#fetchPositionsADLRank
+     * @description fetches the auto deleveraging rank and risk percentage for a list of symbols
+     * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
+     */
+    async fetchPositionsADLRank (symbols: Strings = undefined, params = {}): Promise<ADL[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const response = await this.privateGetPosition (params);
+        //
+        //     [
+        //         {
+        //             "account": 395724,
+        //             "symbol": "XBTUSDT",
+        //             "strategy": "OneWay",
+        //             "currency": "USDt",
+        //             "underlying": "XBT",
+        //             "quoteCurrency": "USDT",
+        //             "commission": 0.0005,
+        //             "initMarginReq": 0.01,
+        //             "maintMarginReq": 0.005,
+        //             "riskLimit": 1000000000000,
+        //             "leverage": 100,
+        //             "crossMargin": true,
+        //             "deleveragePercentile": 1,
+        //             "rebalancedPnl": -4319,
+        //             "prevRealisedPnl": 0,
+        //             "prevUnrealisedPnl": null,
+        //             "openingQty": null,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "currentQty": 100,
+        //             "currentCost": 8639330,
+        //             "currentComm": 0,
+        //             "realisedCost": 0,
+        //             "unrealisedCost": 8639330,
+        //             "grossOpenPremium": 0,
+        //             "isOpen": true,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "riskValue": 8863692,
+        //             "homeNotional": 0.0001,
+        //             "foreignNotional": -8.863692,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posComm": 0,
+        //             "posLoss": 0,
+        //             "posMargin": 44061,
+        //             "posMaint": 44061,
+        //             "posInit": 0,
+        //             "initMargin": 0,
+        //             "maintMargin": 44061,
+        //             "realisedPnl": 0,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "breakEvenPrice": 86436.5,
+        //             "marginCallPrice": null,
+        //             "liquidationPrice": 0,
+        //             "bankruptPrice": 0,
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "positionReport": {
+        //                 "account": 395724,
+        //                 "avgCostPrice": 86393.3,
+        //                 "avgEntryPrice": 86393.3,
+        //                 "bankruptPrice": 0,
+        //                 "breakEvenPrice": 86436.5,
+        //                 "commission": 0.0005,
+        //                 "crossMargin": true,
+        //                 "currency": "USDt",
+        //                 "currentComm": 0,
+        //                 "currentCost": 8639330,
+        //                 "currentQty": 100,
+        //                 "deleveragePercentile": 1,
+        //                 "foreignNotional": -8.863692,
+        //                 "grossOpenPremium": 0,
+        //                 "homeNotional": 0.0001,
+        //                 "initMargin": 0,
+        //                 "initMarginReq": 0.01,
+        //                 "isOpen": true,
+        //                 "leverage": 100,
+        //                 "liquidationPrice": 0,
+        //                 "maintMargin": 44061,
+        //                 "maintMarginReq": 0.005,
+        //                 "markPrice": 88636.92,
+        //                 "markValue": 8863692,
+        //                 "openOrderBuyCost": 0,
+        //                 "openOrderBuyPremium": 0,
+        //                 "openOrderBuyQty": 0,
+        //                 "openOrderRealisedPnl": 0,
+        //                 "openOrderSellCost": 0,
+        //                 "openOrderSellPremium": 0,
+        //                 "openOrderSellQty": 0,
+        //                 "posComm": 0,
+        //                 "posCost": 8639330,
+        //                 "posCross": 0,
+        //                 "posInit": 0,
+        //                 "posLoss": 0,
+        //                 "posMaint": 44061,
+        //                 "posMargin": 44061,
+        //                 "prevRealisedPnl": 0,
+        //                 "quoteCurrency": "USDT",
+        //                 "realisedCost": 0,
+        //                 "realisedPnl": 0,
+        //                 "rebalancedPnl": -4319,
+        //                 "riskLimit": 1000000000000,
+        //                 "riskValue": 8863692,
+        //                 "strategy": "OneWay",
+        //                 "symbol": "XBTUSDT",
+        //                 "timestamp": "2025-12-31T07:55:50.505Z",
+        //                 "underlying": "XBT",
+        //                 "unrealisedCost": 8639330,
+        //                 "unrealisedPnl": 224362,
+        //                 "unrealisedPnlPcnt": 0.026,
+        //                 "unrealisedRoePcnt": 2.597
+        //             }
+        //         }
+        //     ]
+        //
+        return this.parseADLRanks (response, symbols);
+    }
+
+    parseADLRank (info: Dict, market: Market = undefined): ADL {
+        //
+        // fetchPositionsADLRank
+        //
+        //     {
+        //         "account": 395724,
+        //         "symbol": "XBTUSDT",
+        //         "strategy": "OneWay",
+        //         "currency": "USDt",
+        //         "underlying": "XBT",
+        //         "quoteCurrency": "USDT",
+        //         "commission": 0.0005,
+        //         "initMarginReq": 0.01,
+        //         "maintMarginReq": 0.005,
+        //         "riskLimit": 1000000000000,
+        //         "leverage": 100,
+        //         "crossMargin": true,
+        //         "deleveragePercentile": 1,
+        //         "rebalancedPnl": -4319,
+        //         "prevRealisedPnl": 0,
+        //         "prevUnrealisedPnl": null,
+        //         "openingQty": null,
+        //         "openOrderBuyQty": 0,
+        //         "openOrderBuyCost": 0,
+        //         "openOrderBuyPremium": 0,
+        //         "openOrderSellQty": 0,
+        //         "openOrderSellCost": 0,
+        //         "openOrderSellPremium": 0,
+        //         "currentQty": 100,
+        //         "currentCost": 8639330,
+        //         "currentComm": 0,
+        //         "realisedCost": 0,
+        //         "unrealisedCost": 8639330,
+        //         "grossOpenPremium": 0,
+        //         "isOpen": true,
+        //         "markPrice": 88636.92,
+        //         "markValue": 8863692,
+        //         "riskValue": 8863692,
+        //         "homeNotional": 0.0001,
+        //         "foreignNotional": -8.863692,
+        //         "posCost": 8639330,
+        //         "posCross": 0,
+        //         "posComm": 0,
+        //         "posLoss": 0,
+        //         "posMargin": 44061,
+        //         "posMaint": 44061,
+        //         "posInit": 0,
+        //         "initMargin": 0,
+        //         "maintMargin": 44061,
+        //         "realisedPnl": 0,
+        //         "unrealisedPnl": 224362,
+        //         "unrealisedPnlPcnt": 0.026,
+        //         "unrealisedRoePcnt": 2.597,
+        //         "avgCostPrice": 86393.3,
+        //         "avgEntryPrice": 86393.3,
+        //         "breakEvenPrice": 86436.5,
+        //         "marginCallPrice": null,
+        //         "liquidationPrice": 0,
+        //         "bankruptPrice": 0,
+        //         "timestamp": "2025-12-31T07:55:50.505Z",
+        //         "positionReport": {
+        //             "account": 395724,
+        //             "avgCostPrice": 86393.3,
+        //             "avgEntryPrice": 86393.3,
+        //             "bankruptPrice": 0,
+        //             "breakEvenPrice": 86436.5,
+        //             "commission": 0.0005,
+        //             "crossMargin": true,
+        //             "currency": "USDt",
+        //             "currentComm": 0,
+        //             "currentCost": 8639330,
+        //             "currentQty": 100,
+        //             "deleveragePercentile": 1,
+        //             "foreignNotional": -8.863692,
+        //             "grossOpenPremium": 0,
+        //             "homeNotional": 0.0001,
+        //             "initMargin": 0,
+        //             "initMarginReq": 0.01,
+        //             "isOpen": true,
+        //             "leverage": 100,
+        //             "liquidationPrice": 0,
+        //             "maintMargin": 44061,
+        //             "maintMarginReq": 0.005,
+        //             "markPrice": 88636.92,
+        //             "markValue": 8863692,
+        //             "openOrderBuyCost": 0,
+        //             "openOrderBuyPremium": 0,
+        //             "openOrderBuyQty": 0,
+        //             "openOrderRealisedPnl": 0,
+        //             "openOrderSellCost": 0,
+        //             "openOrderSellPremium": 0,
+        //             "openOrderSellQty": 0,
+        //             "posComm": 0,
+        //             "posCost": 8639330,
+        //             "posCross": 0,
+        //             "posInit": 0,
+        //             "posLoss": 0,
+        //             "posMaint": 44061,
+        //             "posMargin": 44061,
+        //             "prevRealisedPnl": 0,
+        //             "quoteCurrency": "USDT",
+        //             "realisedCost": 0,
+        //             "realisedPnl": 0,
+        //             "rebalancedPnl": -4319,
+        //             "riskLimit": 1000000000000,
+        //             "riskValue": 8863692,
+        //             "strategy": "OneWay",
+        //             "symbol": "XBTUSDT",
+        //             "timestamp": "2025-12-31T07:55:50.505Z",
+        //             "underlying": "XBT",
+        //             "unrealisedCost": 8639330,
+        //             "unrealisedPnl": 224362,
+        //             "unrealisedPnlPcnt": 0.026,
+        //             "unrealisedRoePcnt": 2.597
+        //         }
+        //     }
+        //
+        const marketId = this.safeString (info, 'symbol');
+        const datetime = this.safeString (info, 'timestamp');
+        return {
+            'info': info,
+            'symbol': this.safeSymbol (marketId, market, undefined, 'contract'),
+            'rank': this.safeInteger (info, 'deleveragePercentile'),
+            'rating': undefined,
+            'percentage': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        } as ADL;
+    }
+
+    /**
+     * @method
+     * @name bitmex#fetchSettlementHistory
+     * @description fetches historical settlement records
+     * @see https://docs.bitmex.com/api-explorer/get-settlements
+     * @param {string} symbol unified market symbol of the settlement history
+     * @param {int} [since] timestamp in ms
+     * @param {int} [limit] number of records
+     * @param {object} [params] exchange specific params
+     * @param {int} [params.until] timestamp in ms
+     *
+     * EXCHANGE SPECIFIC PARAMETERS
+     * @param {string} [params.filter] generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the timestamp docs for more details, default value = {}
+     * @param {string} [params.columns] array of column names to fetch, if omitted, will return all columns, note that this method will always return item keys, even when not specified, so you may receive more columns that you expect
+     * @param {int} [params.start] possible values are >= 0 starting point for results, default value = 0
+     * @param {boolean} [params.reverse] if true, will sort results newest first, default value = false
+     * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
+     */
+    async fetchSettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const request: Dict = {
+            // symbol string Instrument symbol. Send a bare series (e.g. XBT) to get data for the nearest expiring contract in that series. You can also send a timeframe, e.g. XBT:quarterly. Timeframes are nearest, daily, weekly, monthly, quarterly, biquarterly, and perpetual. Symbols are case-insensitive.
+            // filter string Generic table filter. Send JSON key/value pairs, such as {"key": "value"}. You can key on individual fields, and do more advanced querying on timestamps. See the Timestamp Docs for more details. Default value: {}
+            // columns string Array of column names to fetch. If omitted, will return all columns. Note that this method will always return item keys, even when not specified, so you may receive more columns that you expect.
+            // count int32 Possible values: >= 1 and <= 500 Number of results to fetch. Must be a positive integer. Default value: 100
+            // start int32 Possible values: >= 0 Starting point for results. Default value: 0
+            // reverse boolean If true, will sort results newest first. Default value: false
+            // startTime string Starting time filter for results.
+            // endTime string Ending time filter for results.
+        };
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            request['count'] = limit;
+        }
+        const until = this.safeString (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = this.iso8601 (since);
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetSettlement (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            timestamp: '2025-03-28T12:00:00.000Z',
+        //            symbol: 'ETHUSDH25',
+        //            settlementType: 'Settlement',
+        //            settledPrice: '1897.53'
+        //        }
+        //    ]
+        //
+        return this.parseSettlements (response, market, since, limit);
+    }
+
+    parseSettlements (settlements, market = undefined, since = undefined, limit = undefined) {
+        const result: List = [];
+        for (let i = 0; i < settlements.length; i++) {
+            result.push (this.parseSettlement (settlements[i], market));
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseSettlement (settlement, market = undefined) {
+        //
+        //    {
+        //        timestamp: '2025-03-28T12:00:00.000Z',
+        //        symbol: 'ETHUSDH25',
+        //        settlementType: 'Settlement',
+        //        settledPrice: '1897.53'
+        //    }
+        //
+        const datetime = this.safeString (settlement, 'timestamp');
+        const marketId = this.safeString (settlement, 'symbol');
+        return {
+            'info': settlement,
+            'symbol': this.safeSymbol (marketId, market),
+            'price': this.safeNumber (settlement, 'settledPrice'),
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        };
+    }
+
+    /**
+     * @method
+     * @name bitmex#closePosition
+     * @description closes open positions for a market
+     * @see https://docs.bitmex.com/api-explorer/order-new
+     * @see https://docs.bitmex.com/api-explorer/order-close-position
+     * @param {string} symbol Unified CCXT market symbol
+     * @param {string} side the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied
+     * @param {object} [params] extra parameters specific to the bingx api endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'execInst': 'Close',
+        };
+        const response = await this.privatePostOrder (this.extend (request, params));
+        //
+        //     {
+        //         "account": 395724,
+        //         "avgPx": 66358.8,
+        //         "cumQty": 200,
+        //         "currency": "USDT",
+        //         "execInst": "Close",
+        //         "leavesQty": 0,
+        //         "ordStatus": "Filled",
+        //         "ordType": "Market",
+        //         "orderID": "4e1ef998-33c1-4736-b58b-9d8b4d085c49",
+        //         "orderQty": 200,
+        //         "pool": "Primary",
+        //         "settlCurrency": "USDt",
+        //         "side": "Sell",
+        //         "strategy": "OneWay",
+        //         "symbol": "XBTUSDT",
+        //         "text": "Submitted via API.",
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "timestamp": "2026-04-02T05:20:26.607Z",
+        //         "transactTime": "2026-04-02T05:20:26.606Z",
+        //         "workingIndicator": false
+        //     }
+        //
+        return this.parseOrder (response, market);
     }
 
     handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
@@ -3066,7 +3714,7 @@ export default class bitmex extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let query = '/api/' + this.version + '/' + path;
         if (method === 'GET') {
             if (Object.keys (params).length) {

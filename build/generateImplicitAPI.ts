@@ -1,6 +1,6 @@
-import ccxt from '../ts/ccxt.js';
-import { promisify } from 'util';
+import ccxt, { Dict, Exchange } from '../ts/ccxt.js';
 import fs from 'fs';
+import { writeFile, unlink } from 'fs/promises';
 import log from 'ololog'
 
 // const JS_PATH = './js/src/abstract/';
@@ -10,18 +10,18 @@ const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
 const GO_PATH = './go/v4/'
+const JAVA_PATH = './java/lib/src/main/java/io/github/ccxt/api/'
 const IDEN = '    ';
 
-
-let storedCamelCaseMethods = {};
-let storedUnderscoreMethods = {};
-let storedTypeScriptMethods = {};
-let storedCSharpMethods = {};
-let storedContext = {};
-let storedPhpMethods = {};
-let storedPyMethods = {};
-let storedGoMethods = {};
-
+let storedCamelCaseMethods: Dict = {};
+let storedUnderscoreMethods: Dict = {};
+let storedTypeScriptMethods: Dict = {};
+let storedCSharpMethods: Dict = {};
+let storedContext: Dict = {};
+let storedPhpMethods: Dict = {};
+let storedPyMethods: Dict = {};
+let storedGoMethods: Dict = {};
+let storedJavaMethods: Dict = {};
 
 const [,, ...args] = process.argv
 const langKeys = {
@@ -31,24 +31,21 @@ const langKeys = {
     '--python': false,
     '--csharp': false,
     '--go': false,
+    '--java': false,
 }
 
-
-const promisedWriteFile = promisify (fs.writeFile);
-const promisedUnlinkFile = promisify (fs.unlink)
-
-function isHttpMethod(method){
+function isHttpMethod(method: string): boolean {
     return ['get', 'post', 'put', 'delete', 'patch'].includes (method);
 }
 //-------------------------------------------------------------------------
 
-const capitalize = (s) => {
+const capitalize = (s: string): string => {
     return s.length ? (s.charAt (0).toUpperCase () + s.slice (1)) : s;
 };
 
 //-------------------------------------------------------------------------
 
-function lowercaseFirstLetter(string) {
+function lowercaseFirstLetter(string: string): string {
     return string.charAt(0).toLowerCase() + string.slice(1);
 }
 
@@ -68,7 +65,7 @@ function getPreamble () {
 
 //-------------------------------------------------------------------------
 
-function generateImplicitMethodNames(id, api, paths = []){
+function generateImplicitMethodNames(id: string, api: string, paths: string[] = []){
     const keys = Object.keys(api);
     for (const key of keys){
         let value = api[key];
@@ -96,7 +93,7 @@ function generateImplicitMethodNames(id, api, paths = []){
                 storedCamelCaseMethods[id].push (camelCasePath)
                 let underscorePath = result.map (x => x.toLowerCase ()).join ('_')
                 storedUnderscoreMethods[id].push (underscorePath)
-                let config: {} = undefined
+                let config: {} | undefined = undefined
                 if (Array.isArray (value)) {
                     config = {}
                 } else {
@@ -208,6 +205,28 @@ function createImplicitMethodsCSharp(){
     }
 }
 
+// -------------------------------------------------------------------------
+
+function createImplicitMethodsJava(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const methodNames = storedCamelCaseMethods[exchange];
+
+        const methods =  methodNames.map(method=> {
+            return [
+                `${IDEN}public java.util.concurrent.CompletableFuture<Object>  ${method} (Object... optionalArgs)`,
+                `${IDEN}{`,
+                `${IDEN}${IDEN}return this.callAsync ("${method}", optionalArgs);`,
+                `${IDEN}}`,
+                ``,
+            ].join('\n')
+        });
+        methods.push ('}')
+       storedJavaMethods[exchange] = storedJavaMethods[exchange].concat (methods)
+    }
+}
+
 //-------------------------------------------------------------------------
 
 function createImplicitMethodsGo(){
@@ -216,52 +235,60 @@ function createImplicitMethodsGo(){
         const exchange = exchanges[index];
         const methodNames = storedCamelCaseMethods[exchange];
 
+        // const reusableMethod = [
+        //     `func (this *${exchange}) callEndpointAsync(endpointName string, args ...any) <-chan any {`,
+        //     `   parameters := GetArg(args, 0, nil)`,
+        //     `   ch := make(chan any)`,
+        //     `   go func() {`,
+        //     `       defer close(ch)`,
+        //     `       defer func() {`,
+        //     `           if r := recover(); r != nil {`,
+        //     `               ch <- "panic:" + ToString(r)`,
+        //     `           }`,
+        //     `       }()`,
+        //     `       ch <- (<-this.callEndpoint (endpointName, parameters))`,
+        //     `       PanicOnError(ch)`,
+        //     `   }()`,
+        //     `   return ch`,
+        //     `}`,
+        //     ``
+        // ].join('\n');
+
         const methods = methodNames.map(method=> {
             return [
-                `func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
-                `   parameters := GetArg(args, 0, nil)`,
-                `   ch := make(chan interface{})`,
-                `   go func() {`,
-                `       defer close(ch)`,
-                `       defer func() {`,
-                `           if r := recover(); r != nil {`,
-                `               ch <- "panic:" + ToString(r)`,
-                `           }`,
-                `       }()`,
-                `       ch <- (<-this.callEndpoint ("${method}", parameters))`,
-                `       PanicOnError(ch)`,
-                `   }()`,
-                `   return ch`,
+                `func (this *${capitalize(exchange)}Core) ${capitalize(method)}(args ...any) <-chan any {`,
+                `\treturn this.callEndpointAsync("${method}", args...)`,
                 `}`,
                 ``,
             ].join('\n')
             // return [
-            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...interface{}) <-chan interface{} {`,
+            //     `${IDEN}func (this *${exchange}) ${capitalize(method)} (args ...any) <-chan any {`,
             //     `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
             //     `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
             //     `${IDEN}}`,
             //     ``,
             // ].join('\n')
         });
-       storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
+        // methods.unshift (reusableMethod);
+        storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
     }
 }
 
 
 //-------------------------------------------------------------------------
 
-async function editFiles (path, methods, extension) {
+async function editFiles (path: string, methods: Dict, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
-    await Promise.all (files.map ((path, idx) => promisedWriteFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
-    await unlinkFiles (path, extension)
+    await Promise.all (files.map ((path, idx) => writeFile (path, methods[exchanges[idx]].join ('\n') + '\n')))
+    // await unlinkFiles (path, extension)
 }
 
-async function unlinkFiles (path, extension) {
+async function unlinkFiles (path: string, extension: string) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const abstract = fs.readdirSync (path)
     const ext = new RegExp (extension + '$')
-    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => promisedUnlinkFile (path + basename)))
+    await Promise.all (abstract.filter (file => file !== '__init__.py' && file.match (ext) && !exchanges.includes (file.replace (ext, ''))).map (basename => unlink (path + basename)))
 }
 
 // -------------------------------------------------------------------------
@@ -269,7 +296,7 @@ async function unlinkFiles (path, extension) {
 async function editAPIFilesCSharp(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
 }
 
 // -------------------------------------------------------------------------
@@ -277,12 +304,23 @@ async function editAPIFilesCSharp(){
 async function editAPIFilesGo(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
-    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
+    await Promise.all(files.map((path, idx) => writeFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
+}
+
+async function editAPIFilesJava(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    // The api/ dir is auto-generated and not committed (see java/.gitignore),
+    // so on a fresh clone it doesn't exist yet — fs.writeFile won't create
+    // the parent dir on its own. mkdir -p first so this script works whether
+    // the dir is already populated (CI rebuild) or empty (first run).
+    fs.mkdirSync(JAVA_PATH, { recursive: true });
+    const files = exchanges.map(ex => JAVA_PATH + capitalize(ex) + 'Api.java');
+    await Promise.all(files.map((path, idx) => writeFile(path, storedJavaMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------
 
-function createTypescriptHeader(instance, parent){
+function createTypescriptHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
     const importType = 'import { implicitReturnType } from \'../base/types.js\';'
     const importParent = (parent === 'Exchange') ?
@@ -295,7 +333,7 @@ function createTypescriptHeader(instance, parent){
 
 //-------------------------------------------------------------------------
 
-function createPhpHeader(instance, parent){
+function createPhpHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
     const phpParent = (parent === 'Exchange') ? '\\ccxt\\Exchange' : '\\ccxt\\' + parent;
     const phpHeader = `abstract class ${instance.id} extends ${phpParent} {`
@@ -311,7 +349,7 @@ namespace ccxt\\abstract;
 
 //-------------------------------------------------------------------------
 
-function createPyHeader(instance, parent){
+function createPyHeader(instance: Exchange, parent: string){
     const exchange = instance.id;
     const pyImports = 'from ccxt.base.types import Entry'
     const pyHeader = 'class ImplicitAPI:'
@@ -319,7 +357,7 @@ function createPyHeader(instance, parent){
 }
 // -------------------------------------------------------------------------
 
-function createCSharpHeader(exchange, parent){
+function createCSharpHeader(exchange: Exchange, parent: string){
     const namespace = 'namespace ccxt;'
     const header = `public partial class ${exchange.id} : ${parent}\n{\n    public ${exchange.id} (object args = null): base(args) {}\n`;
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
@@ -327,9 +365,31 @@ function createCSharpHeader(exchange, parent){
 
 // -------------------------------------------------------------------------
 
-function createGoHeader(exchange, parent){
+function createGoHeader(exchange: Exchange, parent: string){
     const namespace = 'package ccxt'
     storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
+}
+
+// -------------------------------------------------------------------------
+
+function createJavaHeader(exchange: Exchange, parent: string){
+    // When the parent is another exchange, extend its untyped Core class
+    // (CompletableFuture<Object> methods) — extending the typed wrapper would
+    // shadow the Core signatures and break the generated typed wrapper subclass.
+    const capParent = parent === 'Exchange' ? 'Exchange' : `${capitalize(parent)}Core`;
+    const parentImport = parent === 'Exchange' ? `import io.github.ccxt.${capParent}` : `import io.github.ccxt.exchanges.${capParent}` ;
+    const namespace = `package io.github.ccxt.api;\n${parentImport};`;
+    const constructor = [
+        `${IDEN}public ${capitalize(exchange.id)}Api () {`,
+        `${IDEN}${IDEN}super();`,
+        `${IDEN}}`,
+        '',
+        `${IDEN}public ${capitalize(exchange.id)}Api (Object options) {`,
+        `${IDEN}${IDEN}super(options);`,
+        `${IDEN}}`,
+    ].join('\n');
+    const header = `public class ${capitalize(exchange.id)}Api extends ${capParent}\n{\n`;
+    storedJavaMethods[exchange.id] = [ getPreamble(), namespace, '', header, constructor, ''];
 }
 
 //-------------------------------------------------------------------------
@@ -350,6 +410,7 @@ function populateImplicitMethods(exchanges: string[]) {
         createCSharpHeader(instance, parent);
         createPyHeader(instance, parent);
         createGoHeader(instance, parent);
+        createJavaHeader(instance, parent);
 
         storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
@@ -377,7 +438,11 @@ async function main() {
     readOptions();
     const shouldGenerateAll = args.length === 0;
 
-    const exchanges = ccxt.exchanges;
+    // const exchanges = ccxt.exchanges;
+
+    let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
+    exchanges = exchanges.ids;
+    // const exchanges = ['gate', 'gateio'];
 
     log.bright.cyan ('Exporting TypeScript implicit api methods')
     populateImplicitMethods(exchanges); // common step for all languages
@@ -420,6 +485,12 @@ async function main() {
         createImplicitMethodsGo()
         await editAPIFilesGo()
         log.bright.cyan ('GO implicit api methods completed!')
+    }
+
+    if (shouldGenerateAll || langKeys['--java']) {
+        createImplicitMethodsJava()
+        await editAPIFilesJava()
+        log.bright.cyan ('Java implicit api methods completed!')
     }
 
     // await unlinkFiles (JS_PATH, '.js')

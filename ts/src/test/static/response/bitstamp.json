@@ -2,6 +2,336 @@
     "exchange": "bitstamp",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "name": "BTC/USD",
+                        "market_symbol": "btcusd",
+                        "base_currency": "BTC",
+                        "base_decimals": 8,
+                        "counter_currency": "USD",
+                        "counter_decimals": 2,
+                        "minimum_order_value": "10.00",
+                        "trading": "Enabled",
+                        "instant_order_counter_decimals": 2,
+                        "instant_and_market_orders": "Enabled",
+                        "description": "Bitcoin / U.S. dollar",
+                        "market_type": "SPOT"
+                    },
+                    {
+                        "name": "USDT/USD",
+                        "market_symbol": "usdtusd",
+                        "base_currency": "USDT",
+                        "base_decimals": 5,
+                        "counter_currency": "USD",
+                        "counter_decimals": 5,
+                        "minimum_order_value": "10.00000",
+                        "trading": "Enabled",
+                        "instant_order_counter_decimals": 5,
+                        "instant_and_market_orders": "Enabled",
+                        "description": "Tether / U.S. dollar",
+                        "market_type": "SPOT"
+                    }
+                ],
+                "parsedResponse": {
+                    "USD": {
+                        "id": "USD",
+                        "code": "USD",
+                        "info": {
+                            "name": "BTC/USD",
+                            "market_symbol": "btcusd",
+                            "base_currency": "BTC",
+                            "base_decimals": 8,
+                            "counter_currency": "USD",
+                            "counter_decimals": 2,
+                            "minimum_order_value": "10.00",
+                            "trading": "Enabled",
+                            "instant_order_counter_decimals": 2,
+                            "instant_and_market_orders": "Enabled",
+                            "description": "Bitcoin / U.S. dollar",
+                            "market_type": "SPOT"
+                        },
+                        "type": "fiat",
+                        "name": "U.S. dollar",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 0.01,
+                        "limits": {
+                            "amount": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.01,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "networks": {}
+                    },
+                    "BTC": {
+                        "id": "BTC",
+                        "code": "BTC",
+                        "info": {
+                            "name": "BTC/USD",
+                            "market_symbol": "btcusd",
+                            "base_currency": "BTC",
+                            "base_decimals": 8,
+                            "counter_currency": "USD",
+                            "counter_decimals": 2,
+                            "minimum_order_value": "10.00",
+                            "trading": "Enabled",
+                            "instant_order_counter_decimals": 2,
+                            "instant_and_market_orders": "Enabled",
+                            "description": "Bitcoin / U.S. dollar",
+                            "market_type": "SPOT"
+                        },
+                        "type": "crypto",
+                        "name": "Bitcoin",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 1e-8,
+                        "limits": {
+                            "amount": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 1e-8,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "networks": {}
+                    },
+                    "USDT": {
+                        "id": "USDT",
+                        "code": "USDT",
+                        "info": {
+                            "name": "USDT/USD",
+                            "market_symbol": "usdtusd",
+                            "base_currency": "USDT",
+                            "base_decimals": 5,
+                            "counter_currency": "USD",
+                            "counter_decimals": 5,
+                            "minimum_order_value": "10.00000",
+                            "trading": "Enabled",
+                            "instant_order_counter_decimals": 5,
+                            "instant_and_market_orders": "Enabled",
+                            "description": "Tether / U.S. dollar",
+                            "market_type": "SPOT"
+                        },
+                        "type": "crypto",
+                        "name": "Tether",
+                        "active": true,
+                        "deposit": null,
+                        "withdraw": null,
+                        "fee": null,
+                        "precision": 0.00001,
+                        "limits": {
+                            "amount": {
+                                "min": 0.00001,
+                                "max": null
+                            },
+                            "price": {
+                                "min": 0.00001,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        },
+                        "networks": {}
+                    }
+                }
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "default",
+                "method": "fetchMyTrades",
+                "input": [
+                    "LINK/USD"
+                ],
+                "httpResponse": [
+                    {
+                        "id": 556005200,
+                        "datetime": "2026-04-03 20:07:58.823000",
+                        "type": "2",
+                        "fee": "0.07724",
+                        "link": "2.22465437",
+                        "usd": "-19.30999993",
+                        "link_usd": 8.68,
+                        "btc": 0,
+                        "eur": 0,
+                        "order_id": 1992343159463936
+                    },
+                    {
+                        "id": 556005171,
+                        "datetime": "2026-04-03 20:07:36.394273",
+                        "type": "36",
+                        "fee": "0.00",
+                        "link": "-1.10000000",
+                        "usd": "9.36",
+                        "link_usd": 8.51,
+                        "btc": 0,
+                        "eur": 0
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "556005200",
+                        "info": {
+                            "id": 556005200,
+                            "datetime": "2026-04-03 20:07:58.823000",
+                            "type": "2",
+                            "fee": "0.07724",
+                            "link": "2.22465437",
+                            "usd": "-19.30999993",
+                            "link_usd": 8.68,
+                            "btc": 0,
+                            "eur": 0,
+                            "order_id": 1992343159463936
+                        },
+                        "timestamp": 1775246878823,
+                        "datetime": "2026-04-03T20:07:58.823Z",
+                        "symbol": "LINK/USD",
+                        "order": "1992343159463936",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 8.68,
+                        "amount": 2.22465437,
+                        "cost": 19.30999993,
+                        "fee": {
+                            "currency": "USD",
+                            "cost": 0.07724
+                        },
+                        "fees": [
+                            {
+                                "currency": "USD",
+                                "cost": 0.07724
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "+limit +since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USD:USD",
+                    1770000000000,
+                    2
+                ],
+                "httpResponse": {
+                    "market": "ETH/USD-PERP",
+                    "funding_rate_history": [
+                        {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        },
+                        {
+                            "funding_rate": "-0.000045",
+                            "timestamp": "1771286400"
+                        }
+                    ]
+                },
+                "parsedResponse": []
+            },
+            {
+                "description": "+limit +since",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "ETH/USD:USD",
+                    1770000000000,
+                    2
+                ],
+                "httpResponse": {
+                    "market": "ETH/USD-PERP",
+                    "funding_rate_history": [
+                        {
+                            "funding_rate": "-0.00011",
+                            "timestamp": "1771228800"
+                        },
+                        {
+                            "funding_rate": "-0.000103",
+                            "timestamp": "1771257600"
+                        }
+                    ]
+                },
+                "parsedResponse": []
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "default",
+                "method": "fetchFundingRate",
+                "input": [
+                    "ETH/USD:USD"
+                ],
+                "httpResponse": {
+                    "funding_rate": "-0.000083",
+                    "timestamp": "1771273982",
+                    "market": "ETH/USD-PERP",
+                    "next_funding_time": "1771286400"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "funding_rate": "-0.000083",
+                        "timestamp": "1771273982",
+                        "market": "ETH/USD-PERP",
+                        "next_funding_time": "1771286400"
+                    },
+                    "symbol": "ETH/USD:USD",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": 1771273982000,
+                    "datetime": "2026-02-16T20:33:02.000Z",
+                    "previousFundingRate": null,
+                    "nextFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "nextFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "nextFundingDatetime": null,
+                    "fundingRate": -0.000083,
+                    "fundingTimestamp": 1771286400000,
+                    "fundingDatetime": "2026-02-17T00:00:00.000Z",
+                    "interval": null
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -84,7 +414,7 @@
                     "previousClose": null,
                     "change": 1837,
                     "percentage": 2.5711006606203113,
-                    "average": 72366,
+                    "average": 72366.5,
                     "baseVolume": 135.29692054,
                     "quoteVolume": 9586192.71102062,
                     "markPrice":  null,

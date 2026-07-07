@@ -8,14 +8,16 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-    async static public Task testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
+    async static public Task<object> testWatchOrderBookForSymbols(Exchange exchange, object skippedProperties, object symbols)
     {
         object method = "watchOrderBookForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        while (isLessThan(now, ends))
+        object returnedSymbols = new List<object>() {};
+        while (isTrue(isLessThan(now, ends)) || isTrue(isLessThan(getArrayLength(returnedSymbols), getArrayLength(symbols))))
         {
             object response = null;
+            object success = true;
             try
             {
                 response = ((IOrderBook)(await exchange.watchOrderBookForSymbols(symbols))).Copy();
@@ -27,14 +29,24 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert((response is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
-            now = exchange.milliseconds();
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
-            testOrderBook(exchange, skippedProperties, method, response, null);
+            if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
+            {
+                // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+                assert(exchange.isDictionary(response), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an object. "), exchange.json(response)));
+                now = exchange.milliseconds();
+                testSharedMethods.assertInArray(exchange, skippedProperties, method, response, "symbol", symbols);
+                testOrderBook(exchange, skippedProperties, method, response, null);
+                object symbol = getValue(response, "symbol");
+                if (isTrue(isTrue((!isEqual(symbol, null))) && !isTrue(exchange.inArray(symbol, returnedSymbols))))
+                {
+                    ((IList<object>)returnedSymbols).Add(symbol);
+                }
+            }
         }
+        return true;
     }
 
 }

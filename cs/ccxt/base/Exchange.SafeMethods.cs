@@ -147,7 +147,7 @@ public partial class Exchange
     public Int64? safeIntegerProduct(object obj, object key, object multiplier = null, object defaultValue = null)
     {
         multiplier ??= 1;
-        var result = safeValueN(obj, new List<object> { key }, defaultValue);
+        var result = safeValueN(obj, new List<object> { key });
         Int64? convertedDefaultValue = (defaultValue == null) ? null : Convert.ToInt64(defaultValue);
         if (result == null)
         {
@@ -156,7 +156,7 @@ public partial class Exchange
         Int64? parsedValue = null;
         try
         {
-            parsedValue = Convert.ToInt64((Convert.ToDouble(result) * Convert.ToDouble(multiplier)));
+            parsedValue = (Int64)(Convert.ToDouble(result) * Convert.ToDouble(multiplier));
         }
         catch (Exception e)
         {

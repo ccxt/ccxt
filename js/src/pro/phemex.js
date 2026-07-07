@@ -5,10 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { AuthenticationError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 export default class phemex extends phemexRest {
@@ -23,7 +23,7 @@ export default class phemex extends phemexRest {
                 'watchOrders': true,
                 'watchOrderBook': true,
                 'watchOHLCV': true,
-                'watchPositions': undefined,
+                'watchPositions': undefined, // TODO
                 // mutli-endpoints are not supported: https://github.com/ccxt/ccxt/pull/21490
                 'watchOrderBookForSymbols': false,
                 'watchTradesForSymbols': false,
@@ -75,8 +75,10 @@ export default class phemex extends phemexRest {
         return this.fromEn(er, this.safeInteger(market, 'ratioScale'));
     }
     requestId() {
+        this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);
         this.options['requestId'] = requestId;
+        this.unlockId();
         return requestId;
     }
     parseSwapTicker(ticker, market = undefined) {
@@ -114,7 +116,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), '2'));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), '1'), '100'));
         }
-        const result = {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -128,7 +130,7 @@ export default class phemex extends phemexRest {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': change,
             'percentage': percentage,
             'average': average,
@@ -137,8 +139,7 @@ export default class phemex extends phemexRest {
             'markPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'markPrice'), market)),
             'indexPrice': this.parseNumber(this.fromEp(this.safeString(ticker, 'indexPrice'), market)),
             'info': ticker,
-        };
-        return result;
+        });
     }
     parsePerpetualTicker(ticker, market = undefined) {
         //
@@ -174,7 +175,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), '2'));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), '1'), '100'));
         }
-        const result = {
+        return this.safeTicker({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -188,15 +189,14 @@ export default class phemex extends phemexRest {
             'open': open,
             'close': last,
             'last': last,
-            'previousClose': undefined,
+            'previousClose': undefined, // previous day close
             'change': change,
             'percentage': percentage,
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
-        return result;
+        });
     }
     handleTicker(client, message) {
         //
@@ -309,10 +309,12 @@ export default class phemex extends phemexRest {
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.settle] set to USDT to use hedged perpetual api
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         const usePerpetualApi = this.safeString(params, 'settle') === 'USDT';
@@ -504,10 +506,12 @@ export default class phemex extends phemexRest {
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const isSwap = market['swap'];
@@ -538,10 +542,12 @@ export default class phemex extends phemexRest {
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const first = symbols[0];
         const market = this.market(first);
@@ -583,10 +589,12 @@ export default class phemex extends phemexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -621,10 +629,12 @@ export default class phemex extends phemexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -660,7 +670,9 @@ export default class phemex extends phemexRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'];
@@ -779,10 +791,12 @@ export default class phemex extends phemexRest {
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let type = undefined;
         let messageHash = 'trades:';
@@ -942,10 +956,12 @@ export default class phemex extends phemexRest {
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'orders:';
         let market = undefined;
         let type = undefined;
@@ -1146,6 +1162,10 @@ export default class phemex extends phemexRest {
             }
         }
         else {
+            const messageLength = message.length;
+            if (messageLength === 0) {
+                return;
+            }
             for (let i = 0; i < message.length; i++) {
                 const update = message[i];
                 const action = this.safeString(update, 'action');
@@ -1517,7 +1537,9 @@ export default class phemex extends phemexRest {
         }
     }
     async subscribePrivate(type, messageHash, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws'];
         const requestId = this.seconds();

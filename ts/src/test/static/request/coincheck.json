@@ -1,0 +1,15 @@
+{
+    "exchange": "coincheck",
+    "outputType": "both",
+    "methods": {
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://coincheck.com/api/exchange_status",
+                "input": [],
+                "output": null
+            }
+        ]
+    }
+}

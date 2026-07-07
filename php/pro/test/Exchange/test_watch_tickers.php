@@ -10,13 +10,12 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ticker.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_tickers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $without_symbol = test_watch_tickers_helper($exchange, $skipped_properties, null);
         $with_symbol = test_watch_tickers_helper($exchange, $skipped_properties, [$symbol]);
-        Async\await(Promise\all([$with_symbol, $without_symbol]));
+        \React\Async\await(\React\Promise\all([$with_symbol, $without_symbol]));
     }) ();
 }
 
@@ -27,9 +26,11 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
         while ($now < $ends) {
-            $response = null;
+            $response = array();
+            $success = true;
+            $should_return = false;
             try {
-                $response = Async\await($exchange->watch_tickers($arg_symbols, $arg_params));
+                $response = \React\Async\await($exchange->watch_tickers($arg_symbols, $arg_params));
             } catch(\Throwable $e) {
                 // for some exchanges, specifically watchTickers method not subscribe
                 // to "all tickers" itself, and it requires symbols to be set
@@ -37,25 +38,38 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
                 // mark tests as failed, but just skip them
                 if (($e instanceof ArgumentsRequired) && ($arg_symbols === null || count($arg_symbols) === 0)) {
                     // todo: provide random symbols to try
-                    return;
+                    // return;
+                    // return false;
+                    $should_return = true;
                 } elseif (!is_temporary_failure($e)) {
                     throw $e;
                 }
                 $now = $exchange->milliseconds();
-                continue;
+                // continue;
+                $success = false;
             }
-            assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
-            $values = is_array($response) ? array_values($response) : array();
-            $checked_symbol = null;
-            if ($arg_symbols !== null && count($arg_symbols) === 1) {
-                $checked_symbol = $arg_symbols[0];
+            if ($should_return) {
+                return false;
             }
-            assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
-            for ($i = 0; $i < count($values); $i++) {
-                $ticker = $values[$i];
-                test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
+            if ($success === true) {
+                assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return an object. ' . $exchange->json($response));
+                $values = is_array($response) ? array_values($response) : array();
+                $checked_symbol = null;
+                if ($arg_symbols !== null && count($arg_symbols) === 1) {
+                    $checked_symbol = $arg_symbols[0];
+                }
+                assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
+                for ($i = 0; $i < count($values); $i++) {
+                    $ticker = $values[$i];
+                    try {
+                        test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
+                    } catch(\Throwable $ex) {
+                        \React\Async\await(validate_ticker_exception_for_percentage($ex, $exchange, $ticker));
+                    }
+                }
+                $now = $exchange->milliseconds();
             }
-            $now = $exchange->milliseconds();
         }
+        return true;
     }) ();
 }

@@ -1,0 +1,466 @@
+{
+    "exchange": "zebpay",
+    "skipKeys": [
+        "nonce"
+    ],
+    "outputType": "both",
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "currency": "USDT",
+                            "name": "USDT",
+                            "fullName": "USDT",
+                            "precision": "6",
+                            "type": "crypto",
+                            "isDebitEnabled": false,
+                            "chains": [
+                                {
+                                    "chainName": "TRON(TRC20)",
+                                    "withdrawalMinSize": "9.440000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "8.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "tron",
+                                    "AddressRegex": "^T[a-zA-Z0-9]{33}$"
+                                },
+                                {
+                                    "chainName": "Ethereum(ERC20)",
+                                    "withdrawalMinSize": "3.540000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "3.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "ethereum",
+                                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                                }
+                            ]
+                        }
+                    ],
+                    "statusCode": "200",
+                    "statusDescription": "Success"
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "currency": "USDT",
+                            "name": "USDT",
+                            "fullName": "USDT",
+                            "precision": "6",
+                            "type": "crypto",
+                            "isDebitEnabled": false,
+                            "chains": [
+                                {
+                                    "chainName": "TRON(TRC20)",
+                                    "withdrawalMinSize": "9.440000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "8.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "tron",
+                                    "AddressRegex": "^T[a-zA-Z0-9]{33}$"
+                                },
+                                {
+                                    "chainName": "Ethereum(ERC20)",
+                                    "withdrawalMinSize": "3.540000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "3.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "ethereum",
+                                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": null,
+                        "name": "USDT",
+                        "active": false,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": 3,
+                        "fees": {},
+                        "networks": {
+                            "tron": {
+                                "info": {
+                                    "chainName": "TRON(TRC20)",
+                                    "withdrawalMinSize": "9.440000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "8.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "tron",
+                                    "AddressRegex": "^T[a-zA-Z0-9]{33}$"
+                                },
+                                "id": "tron",
+                                "network": "tron",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 8,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 9.44,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.000001,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ethereum": {
+                                "info": {
+                                    "chainName": "Ethereum(ERC20)",
+                                    "withdrawalMinSize": "3.540000",
+                                    "depositMinSize": "0.00000100",
+                                    "withdrawalFee": "3.00000000",
+                                    "isWithdrawEnabled": "true",
+                                    "isDepositEnabled": "true",
+                                    "contractAddress": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+                                    "withdrawPrecision": "6",
+                                    "maxWithdraw": "200000.00000000000000",
+                                    "maxDeposit": "10000000.00000000",
+                                    "needTag": "false",
+                                    "chainId": "ethereum",
+                                    "AddressRegex": "^0x[a-fA-F0-9]{40}$"
+                                },
+                                "id": "ethereum",
+                                "network": "ethereum",
+                                "active": false,
+                                "deposit": false,
+                                "withdraw": false,
+                                "fee": 3,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 3.54,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": 0.000001,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 3.54,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.000001,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "swap candles",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1h",
+                    null,
+                    5
+                ],
+                "httpResponse": {
+                    "statusDescription": "OK",
+                    "data": [
+                        [
+                            1765465200000,
+                            "89562.8",
+                            "89571.4",
+                            "89530",
+                            "89564",
+                            "0.035",
+                            1765465259999
+                        ],
+                        [
+                            1765465260000,
+                            "89564",
+                            "89567.2",
+                            "89528.2",
+                            "89528.2",
+                            "0.027",
+                            1765465319999
+                        ],
+                        [
+                            1765465320000,
+                            "89528.2",
+                            "89540.5",
+                            "89512.8",
+                            "89518.7",
+                            "0.005",
+                            1765465379999
+                        ],
+                        [
+                            1765465380000,
+                            "89518.7",
+                            "89518.7",
+                            "89499.9",
+                            "89508.2",
+                            "0.003",
+                            1765465439999
+                        ],
+                        [
+                            1765465440000,
+                            "89507.9",
+                            "89523",
+                            "89507.9",
+                            "89523",
+                            "0.009",
+                            1765465499999
+                        ]
+                    ],
+                    "statusCode": "201",
+                    "customMessage": [
+                        "OK"
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1765465200000,
+                        89562.8,
+                        89571.4,
+                        89530,
+                        89564,
+                        0.035
+                    ],
+                    [
+                        1765465260000,
+                        89564,
+                        89567.2,
+                        89528.2,
+                        89528.2,
+                        0.027
+                    ],
+                    [
+                        1765465320000,
+                        89528.2,
+                        89540.5,
+                        89512.8,
+                        89518.7,
+                        0.005
+                    ],
+                    [
+                        1765465380000,
+                        89518.7,
+                        89518.7,
+                        89499.9,
+                        89508.2,
+                        0.003
+                    ],
+                    [
+                        1765465440000,
+                        89507.9,
+                        89523,
+                        89507.9,
+                        89523,
+                        0.009
+                    ]
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "spot market order using cost",
+                "method": "createOrder",
+                "input": [
+                    "ETH/INR",
+                    "market",
+                    "buy",
+                    0,
+                    0,
+                    {
+                        "cost": 100
+                    }
+                ],
+                "httpResponse": {
+                    "data": {
+                        "orderId": "8230629",
+                        "clientOrderId": "ce2cd9b3-7112-4f7b-9520-5d37da801e59",
+                        "timestamp": "1765380999204",
+                        "symbol": "ETH-INR",
+                        "type": "MARKET",
+                        "timeInForce": "GTC",
+                        "side": "BUY",
+                        "price": "0",
+                        "amount": "0",
+                        "filled": "0.000397",
+                        "remaining": "0",
+                        "status": "FILLED",
+                        "quoteOrderAmount": "100"
+                    },
+                    "statusCode": "200",
+                    "statusDescription": "Success"
+                },
+                "parsedResponse": {
+                    "id": "8230629",
+                    "clientOrderId": "ce2cd9b3-7112-4f7b-9520-5d37da801e59",
+                    "symbol": "ETH/INR",
+                    "type": "MARKET",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": null,
+                    "side": "BUY",
+                    "amount": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "cost": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timestamp": 1765380999204,
+                    "datetime": "2025-12-10T15:36:39.204Z",
+                    "fee": null,
+                    "status": "filled",
+                    "info": {
+                        "orderId": "8230629",
+                        "clientOrderId": "ce2cd9b3-7112-4f7b-9520-5d37da801e59",
+                        "timestamp": "1765380999204",
+                        "symbol": "ETH-INR",
+                        "type": "MARKET",
+                        "timeInForce": "GTC",
+                        "side": "BUY",
+                        "price": "0",
+                        "amount": "0",
+                        "filled": "0.000397",
+                        "remaining": "0",
+                        "status": "FILLED",
+                        "quoteOrderAmount": "100"
+                    },
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "average": null,
+                    "trades": [],
+                    "fees": [],
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": " swap balance",
+                "method": "fetchBalance",
+                "input": [
+                    {
+                        "type": "swap"
+                    }
+                ],
+                "httpResponse": {
+                    "statusDescription": "OK",
+                    "data": [
+                        {
+                            "free": "499849.4",
+                            "used": "0",
+                            "total": "499849.4",
+                            "currency": "INR"
+                        },
+                        {
+                            "free": "176.77",
+                            "used": "23.0352",
+                            "total": "199.8052",
+                            "currency": "USDT"
+                        }
+                    ],
+                    "statusCode": "200",
+                    "customMessage": [
+                        "OK"
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "statusDescription": "OK",
+                        "data": [
+                            {
+                                "free": "499849.4",
+                                "used": "0",
+                                "total": "499849.4",
+                                "currency": "INR"
+                            },
+                            {
+                                "free": "176.77",
+                                "used": "23.0352",
+                                "total": "199.8052",
+                                "currency": "USDT"
+                            }
+                        ],
+                        "statusCode": "200",
+                        "customMessage": [
+                            "OK"
+                        ]
+                    },
+                    "timestamp": null,
+                    "datetime": null,
+                    "INR": {
+                        "free": 499849.4,
+                        "used": 0,
+                        "total": 499849.4
+                    },
+                    "USDT": {
+                        "free": 176.77,
+                        "used": 23.0352,
+                        "total": 199.8052
+                    },
+                    "free": {
+                        "INR": 499849.4,
+                        "USDT": 176.77
+                    },
+                    "used": {
+                        "INR": 0,
+                        "USDT": 23.0352
+                    },
+                    "total": {
+                        "INR": 499849.4,
+                        "USDT": 199.8052
+                    }
+                }
+            }
+        ]
+  }
+}
