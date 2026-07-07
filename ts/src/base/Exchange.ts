@@ -4091,7 +4091,8 @@ export default class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        this.marketsMutexLocker (true);
+      this.marketsMutexLocker (true);
+      try {
         const values = [];
         this.markets_by_id = this.createSafeDictionary ();
         // handle marketId conflicts
@@ -4187,6 +4188,9 @@ export default class Exchange {
         const currenciesSortedByCode = this.keysort (this.currencies);
         this.codes = Object.keys (currenciesSortedByCode);
         this.marketsMutexLocker (false);
+      } catch (e) {
+        this.marketsMutexLocker (false);
+      }
         return this.markets;
     }
 
