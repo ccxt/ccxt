@@ -139,13 +139,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTicker
+     * @name hyperliquid#parsePredictionTicker
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(raw: Dict, market?: Market): PredictionTicker;
+    parsePredictionTicker(raw: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name hyperliquid#fetchOrderBook
@@ -205,13 +205,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parsePosition
+     * @name hyperliquid#parsePredictionPosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, market?: Market): PredictionPosition;
+    parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
     findOutcomeInMarket(market: Market, sideHint?: Str): Dict;
     parseOutcomeInputSideHint(outcomeInput: string): Str;
     resolveOutcomeInput(outcomeInput: string): Dict;
@@ -302,13 +302,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseOrder
+     * @name hyperliquid#parsePredictionOrder
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder(order: Dict, market?: Market): PredictionOrder;
+    parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     parseTimeInForce(timeInForce: Str): Str;
@@ -341,13 +341,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTrade
+     * @name hyperliquid#parsePredictionTrade
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    parseTrade(trade: Dict, market?: Market): PredictionTrade;
+    parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
      * @name hyperliquid#fetchEvents

@@ -401,20 +401,20 @@ export default class myriad extends Exchange {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parsePosition(data[i]));
+            result.push(this.parsePredictionPosition(data[i]));
         }
         return this.filterByArrayPositions(result, 'outcome', outcomes, false);
     }
     /**
      * @ignore
      * @method
-     * @name myriad#parsePosition
+     * @name myriad#parsePredictionPosition
      * @description parses a raw myriad portfolio entry into a unified position structure
      * @param {object} position the raw portfolio entry
      * @param {object} [market] not used by myriad
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position, market = undefined) {
+    parsePredictionPosition(position, market = undefined) {
         const marketSlug = this.safeString(position, 'marketSlug', '');
         const outcomeTitle = this.safeString(position, 'outcomeTitle', '');
         const outcome = this.slugToOutcomeSymbol(marketSlug, marketSlug, outcomeTitle);
@@ -630,9 +630,9 @@ export default class myriad extends Exchange {
         const response = await this.myriadPublicPostOrders(request);
         const wrapper = this.extend(response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
         const outcomeObj = this.outcome(outcome);
-        const parsed = this.parseOrder(wrapper, outcomeObj);
+        const parsed = this.parsePredictionOrder(wrapper, outcomeObj);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         const sideStr = (side === undefined) ? undefined : side.toLowerCase();
         const typeStr = (type === undefined) ? 'limit' : type.toLowerCase();
         if (this.safeString(parsed, 'side') === undefined) {
@@ -953,7 +953,7 @@ export default class myriad extends Exchange {
         };
         return this.safeString(statuses, status, status);
     }
-    parseOrder(order, market = undefined) {
+    parsePredictionOrder(order, market = undefined) {
         const inner = this.safeDict(order, 'order', {});
         const orderHash = this.safeString2(order, 'orderHash', 'hash');
         const sideInt = this.safeInteger(inner, 'side');
@@ -1044,7 +1044,7 @@ export default class myriad extends Exchange {
             await this.loadOutcomes();
             market = this.outcome(outcome);
         }
-        return this.parseOrder(wrapper, market);
+        return this.parsePredictionOrder(wrapper, market);
     }
     /**
      * @method
@@ -1138,7 +1138,7 @@ export default class myriad extends Exchange {
             await this.loadOutcomes();
             market = this.outcome(outcome);
         }
-        return this.parseOrder(response, market);
+        return this.parsePredictionOrder(response, market);
     }
     /**
      * @method
@@ -1645,7 +1645,7 @@ export default class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        return this.parseTicker(response, outcomeObj);
+        return this.parsePredictionTicker(response, outcomeObj);
     }
     /**
      * @method
@@ -1689,13 +1689,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parseTicker
+     * @name myriad#parsePredictionTicker
      * @description parses a raw myriad market object into a unified ticker for the specified outcome
      * @param {object} raw the raw myriad market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(raw, market = undefined) {
+    parsePredictionTicker(raw, market = undefined) {
         //
         //     {
         //         "id": "756",
@@ -2174,7 +2174,7 @@ export default class myriad extends Exchange {
                 const m = this.parseMyriadMarket(raw);
                 const outcomesList = this.safeList(m, 'outcomes', []);
                 for (let j = 0; j < outcomesList.length; j++) {
-                    const ticker = this.parseTicker(raw, outcomesList[j]);
+                    const ticker = this.parsePredictionTicker(raw, outcomesList[j]);
                     const symbolKey = this.safeString(ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
@@ -2219,7 +2219,7 @@ export default class myriad extends Exchange {
             const grouped = outcomesByMarket[key];
             for (let j = 0; j < grouped.length; j++) {
                 const outcomeObj = grouped[j];
-                const ticker = this.parseTicker(response, outcomeObj);
+                const ticker = this.parsePredictionTicker(response, outcomeObj);
                 const symbolKey = this.safeString(ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
@@ -2296,13 +2296,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parseTrade
+     * @name myriad#parsePredictionTrade
      * @description parses a raw market action feed row into a unified trade object
      * @param {object} trade the raw action feed row
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade(trade, market = undefined) {
+    parsePredictionTrade(trade, market = undefined) {
         const timestamp = this.safeTimestamp(trade, 'timestamp');
         const amountStr = this.safeString(trade, 'shares');
         const costStr = this.safeString(trade, 'value');

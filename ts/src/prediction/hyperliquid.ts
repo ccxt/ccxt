@@ -674,7 +674,7 @@ export default class hyperliquid extends Exchange {
         //
         // l2Book returns null for coins without an order book; coerce to an empty dict
         const tickerData = this.safeDict ({ 'book': response }, 'book', {});
-        return this.parseTicker (tickerData, outcomeObj);
+        return this.parsePredictionTicker (tickerData, outcomeObj);
     }
 
     /**
@@ -720,7 +720,7 @@ export default class hyperliquid extends Exchange {
                 continue;
             }
             // Build minimal ticker from mid price
-            const ticker = this.parseTicker ({ 'levels': [ [], [] ], 'mid': mid, 'time': this.milliseconds () }, outcomeObj as any);
+            const ticker = this.parsePredictionTicker ({ 'levels': [ [], [] ], 'mid': mid, 'time': this.milliseconds () }, outcomeObj as any);
             tickers[outcomeHandle] = ticker;
         }
         return tickers;
@@ -729,13 +729,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTicker
+     * @name hyperliquid#parsePredictionTicker
      * @description parses a raw l2Book response (or a synthetic mid dict) into a unified ticker object
      * @param {object} raw l2Book response or { mid, time } object
      * @param {object} [market] the market the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "coin": "#10",
@@ -1044,7 +1044,7 @@ export default class hyperliquid extends Exchange {
                 }
             }
             const enriched = this.extend (balance, { 'markPx': this.safeString (mids, tradeCoin) });
-            positions.push (this.parsePosition (enriched, outcomeObj));
+            positions.push (this.parsePredictionPosition (enriched, outcomeObj));
         }
         return positions;
     }
@@ -1052,13 +1052,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parsePosition
+     * @name hyperliquid#parsePredictionPosition
      * @description parses a spot balance entry for an outcome token into a unified position object
      * @param {object} position the raw balance entry
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         // `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
         // enriched with the current mid price (markPx); hyperliquid does not return the position
         // value / entry price / pnl for outcome tokens, so they are computed here
@@ -1557,7 +1557,7 @@ export default class hyperliquid extends Exchange {
         }
         const response = await this.publicPostInfo (this.extend (request, params));
         const orderWrapper = this.safeDict (response, 'order', response);
-        const parsed = this.parseOrder (orderWrapper, undefined);
+        const parsed = this.parsePredictionOrder (orderWrapper, undefined);
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);
@@ -1572,13 +1572,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseOrder
+     * @name hyperliquid#parsePredictionOrder
      * @description parses a raw hyperliquid order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the market the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
         // from frontendOpenOrders:
         // {
@@ -1731,7 +1731,7 @@ export default class hyperliquid extends Exchange {
             outcomeHandle = this.safeString (outcomeObj, 'outcome');
         } else {
             // fills identify their outcome only by the raw coin handle (e.g. "#10") — warm the
-            // cache (one market load) so parseTrade can resolve the unified outcome identity
+            // cache (one market load) so parsePredictionTrade can resolve the unified outcome identity
             await this.loadOutcomes ();
         }
         let userAddress: Str;
@@ -1759,13 +1759,13 @@ export default class hyperliquid extends Exchange {
     /**
      * @ignore
      * @method
-     * @name hyperliquid#parseTrade
+     * @name hyperliquid#parsePredictionTrade
      * @description parses a single hyperliquid fill into a unified trade object
      * @param {object} trade the raw fill object
      * @param {object} [market] the market the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         //
         // {
         //   "closedPnl": "0.19343",

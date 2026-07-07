@@ -77,13 +77,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parsePosition
+     * @name myriad#parsePredictionPosition
      * @description parses a raw myriad portfolio entry into a unified position structure
      * @param {object} position the raw portfolio entry
      * @param {object} [market] not used by myriad
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, market?: Market): PredictionPosition;
+    parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
     /**
      * @method
      * @name myriad#fetchTradeQuote
@@ -229,7 +229,7 @@ export default class myriad extends Exchange {
      */
     toOrderbookWei(value: Num): string;
     parseOrderStatus(status: Str): Str;
-    parseOrder(order: Dict, market?: Market): PredictionOrder;
+    parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
     /**
      * @method
      * @name myriad#cancelOrder
@@ -394,13 +394,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parseTicker
+     * @name myriad#parsePredictionTicker
      * @description parses a raw myriad market object into a unified ticker for the specified outcome
      * @param {object} raw the raw myriad market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(raw: Dict, market?: Market): PredictionTicker;
+    parsePredictionTicker(raw: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name myriad#fetchOrderBook
@@ -470,13 +470,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parseTrade
+     * @name myriad#parsePredictionTrade
      * @description parses a raw market action feed row into a unified trade object
      * @param {object} trade the raw action feed row
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade(trade: Dict, market?: Market): PredictionTrade;
+    parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
      * @name myriad#fetchEvents

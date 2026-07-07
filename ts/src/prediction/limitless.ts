@@ -912,19 +912,19 @@ export default class limitless extends Exchange {
         //     }
         //
         const tickerInput: Dict = { 'market': response, 'book': responses[1] };
-        return this.parseTicker (tickerInput, outcomeObj);
+        return this.parsePredictionTicker (tickerInput, outcomeObj);
     }
 
     /**
      * @ignore
      * @method
-     * @name limitless#parseTicker
+     * @name limitless#parsePredictionTicker
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "id": "36814",
@@ -1107,7 +1107,7 @@ export default class limitless extends Exchange {
                 const raw = m['info'];
                 const outcomesList = this.safeList (m as any, 'outcomes', []) as any[];
                 for (let j = 0; j < outcomesList.length; j++) {
-                    const ticker = this.parseTicker (raw, outcomesList[j]);
+                    const ticker = this.parsePredictionTicker (raw, outcomesList[j]);
                     const symbolKey = this.safeString (ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
@@ -1147,7 +1147,7 @@ export default class limitless extends Exchange {
             const tickerInput: Dict = { 'market': detail, 'book': book };
             const grouped = outcomesBySlug[slug] as any[];
             for (let j = 0; j < grouped.length; j++) {
-                const ticker = this.parseTicker (tickerInput, grouped[j]);
+                const ticker = this.parsePredictionTicker (tickerInput, grouped[j]);
                 const symbolKey = this.safeString (ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
@@ -1468,9 +1468,9 @@ export default class limitless extends Exchange {
         //         }
         //     ]
         //
-        // pass undefined as market: parseOrder sets outcome to the market outcome while the outcome
+        // pass undefined as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         // lives under 'outcome', so the base outcome filter would drop every order; the per-slug
-        // endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
+        // endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return this.parsePredictionOrders (response, undefined, since, limit);
     }
 
@@ -1681,13 +1681,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parseOrder
+     * @name limitless#parsePredictionOrder
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
         // fetchOrders, fetchOpenOrders, fetchClosedOrders
         //     {
@@ -2105,7 +2105,7 @@ export default class limitless extends Exchange {
             request['postOnly'] = postOnly;
         }
         const response = await this.limitlessPrivatePostOrders (this.extend (request, params));
-        const parsedOrder = this.parseOrder (response, outcomeObj as any);
+        const parsedOrder = this.parsePredictionOrder (response, outcomeObj as any);
         // the create-order response omits a status field; a freshly accepted order is open
         if (parsedOrder['status'] === undefined) {
             parsedOrder['status'] = 'open';
@@ -2262,7 +2262,7 @@ export default class limitless extends Exchange {
         };
         const response = await this.limitlessPrivateDeleteOrdersOrderId (this.extend (request, params));
         // the delete response carries no order body, so backfill the id and the resulting status
-        const order = this.parseOrder (response);
+        const order = this.parsePredictionOrder (response);
         if (order['id'] === undefined) {
             order['id'] = id;
         }
@@ -2485,13 +2485,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parseTrade
+     * @name limitless#parsePredictionTrade
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const matchedSize = this.safeString (trade, 'matchedSize');
         if (matchedSize !== undefined) {
             // public market events feed trade, see fetchTrades for the response sample
@@ -2748,7 +2748,7 @@ export default class limitless extends Exchange {
         const rawMarket = this.safeDict (entry, 'market');
         const slug = this.safeString (rawMarket, 'slug');
         const outcomeObj = this.getOutcomeBySlugAndLabel (slug, label);
-        const parsed = this.parsePosition (position, outcomeObj);
+        const parsed = this.parsePredictionPosition (position, outcomeObj);
         parsed['contracts'] = this.parseNumber (this.applyScale (contracts));
         const latestTrade = this.safeDict (entry, 'latestTrade');
         let key = 'latestYesPrice';
@@ -2763,13 +2763,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parsePosition
+     * @name limitless#parsePredictionPosition
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         //
         //     {
         //         "cost": "995720",

@@ -1,5 +1,5 @@
 import { BaseExchange } from './Exchange.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 /**
  * @class PredictionExchange
  * @augments Exchange
@@ -304,12 +304,17 @@ export default class PredictionExchange extends BaseExchange {
     safePredictionTicker(ticker: Dict, market?: any): PredictionTicker;
     safePredictionPosition(position: Dict): PredictionPosition;
     safePredictionOrderBook(orderbook: Dict, outcomeObj?: Dict): PredictionOrderBook;
+    parsePredictionTicker(ticker: Dict, market?: Market): PredictionTicker;
+    parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
+    parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
+    parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
+    parsePredictionOpenInterest(interest: Dict, market?: Market): PredictionOpenInterest;
     toPredictionStructure(parsed: Dict, raw: Dict): any;
     /**
      * @ignore
      * @method
      * @name PredictionExchange#parsePredictionTrades
-     * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+     * @description parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
      * @param {object[]} trades the raw trades
      * @param {object} [outcomeObj] the resolved outcome object the trades belong to
      * @param {int} [since] timestamp in ms of the earliest trade to return
@@ -322,7 +327,7 @@ export default class PredictionExchange extends BaseExchange {
      * @ignore
      * @method
      * @name PredictionExchange#parsePredictionOrders
-     * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+     * @description parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
      * @param {object[]} orders the raw orders
      * @param {object} [outcomeObj] the resolved outcome object the orders belong to
      * @param {int} [since] timestamp in ms of the earliest order to return
@@ -335,7 +340,7 @@ export default class PredictionExchange extends BaseExchange {
      * @ignore
      * @method
      * @name PredictionExchange#parsePredictionPositions
-     * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+     * @description parses a list of raw positions with the exchange's parsePredictionPosition — the prediction analogue of the base parsePositions
      * @param {object[]} positions the raw positions
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)

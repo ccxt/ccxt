@@ -82,13 +82,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTicker
+     * @name polymarket#parsePredictionTicker
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(ticker: Dict, market?: Market): PredictionTicker;
+    parsePredictionTicker(ticker: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name polymarket#fetchOrderBook
@@ -142,7 +142,7 @@ export default class polymarket extends Exchange {
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
     fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
+    parsePredictionOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
     /**
      * @method
      * @name polymarket#fetchTradingFee
@@ -193,13 +193,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTrade
+     * @name polymarket#parsePredictionTrade
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade(trade: Dict, market?: Market): PredictionTrade;
+    parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
      * @name polymarket#fetchBalance
@@ -242,13 +242,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parsePosition
+     * @name polymarket#parsePredictionPosition
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, market?: Market): PredictionPosition;
+    parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
     /**
      * @method
      * @name polymarket#fetchOpenOrders
@@ -275,13 +275,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parseOrder
+     * @name polymarket#parsePredictionOrder
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder(order: Dict, market?: Market): PredictionOrder;
+    parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
     /**
      * @ignore
      * @method

@@ -409,21 +409,21 @@ export default class myriad extends Exchange {
         const data = this.safeList (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parsePosition (data[i]));
+            result.push (this.parsePredictionPosition (data[i]));
         }
-        return this.filterByArrayPositions (result, 'outcome', outcomes, false) as PredictionPosition[];
+        return this.filterByArrayPositions (result, 'outcome', outcomes, false) as any;
     }
 
     /**
      * @ignore
      * @method
-     * @name myriad#parsePosition
+     * @name myriad#parsePredictionPosition
      * @description parses a raw myriad portfolio entry into a unified position structure
      * @param {object} position the raw portfolio entry
      * @param {object} [market] not used by myriad
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const marketSlug = this.safeString (position, 'marketSlug', '');
         const outcomeTitle = this.safeString (position, 'outcomeTitle', '');
         const outcome = this.slugToOutcomeSymbol (marketSlug, marketSlug, outcomeTitle);
@@ -645,9 +645,9 @@ export default class myriad extends Exchange {
         const response = await this.myriadPublicPostOrders (request);
         const wrapper = this.extend (response, { 'order': order, 'networkId': networkId, 'timeInForce': timeInForce });
         const outcomeObj = this.outcome (outcome);
-        const parsed = this.parseOrder (wrapper, outcomeObj as any);
+        const parsed = this.parsePredictionOrder (wrapper, outcomeObj as any);
         // the POST /orders response is minimal (hash + status), so backfill the known request values
-        // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+        // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         const sideStr = (side === undefined) ? undefined : (side as string).toLowerCase ();
         const typeStr = (type === undefined) ? 'limit' : (type as string).toLowerCase ();
         if (this.safeString (parsed, 'side') === undefined) {
@@ -979,7 +979,7 @@ export default class myriad extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         const inner = this.safeDict (order, 'order', {});
         const orderHash = this.safeString2 (order, 'orderHash', 'hash');
         const sideInt = this.safeInteger (inner, 'side');
@@ -1071,7 +1071,7 @@ export default class myriad extends Exchange {
             await this.loadOutcomes ();
             market = this.outcome (outcome);
         }
-        return this.parseOrder (wrapper, market as any);
+        return this.parsePredictionOrder (wrapper, market as any);
     }
 
     /**
@@ -1168,7 +1168,7 @@ export default class myriad extends Exchange {
             await this.loadOutcomes ();
             market = this.outcome (outcome);
         }
-        return this.parseOrder (response, market as any);
+        return this.parsePredictionOrder (response, market as any);
     }
 
     /**
@@ -1686,7 +1686,7 @@ export default class myriad extends Exchange {
         //         "externalSources": []
         //     }
         //
-        return this.parseTicker (response, outcomeObj);
+        return this.parsePredictionTicker (response, outcomeObj);
     }
 
     /**
@@ -1732,13 +1732,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parseTicker
+     * @name myriad#parsePredictionTicker
      * @description parses a raw myriad market object into a unified ticker for the specified outcome
      * @param {object} raw the raw myriad market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "id": "756",
@@ -2221,7 +2221,7 @@ export default class myriad extends Exchange {
                 const m = this.parseMyriadMarket (raw);
                 const outcomesList = this.safeList (m, 'outcomes', []) as any[];
                 for (let j = 0; j < outcomesList.length; j++) {
-                    const ticker = this.parseTicker (raw, outcomesList[j]);
+                    const ticker = this.parsePredictionTicker (raw, outcomesList[j]);
                     const symbolKey = this.safeString (ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
@@ -2266,7 +2266,7 @@ export default class myriad extends Exchange {
             const grouped = outcomesByMarket[key] as any[];
             for (let j = 0; j < grouped.length; j++) {
                 const outcomeObj = grouped[j];
-                const ticker = this.parseTicker (response, outcomeObj);
+                const ticker = this.parsePredictionTicker (response, outcomeObj);
                 const symbolKey = this.safeString (ticker, 'outcome');
                 if (symbolKey !== undefined) {
                     result[symbolKey] = ticker;
@@ -2345,13 +2345,13 @@ export default class myriad extends Exchange {
     /**
      * @ignore
      * @method
-     * @name myriad#parseTrade
+     * @name myriad#parsePredictionTrade
      * @description parses a raw market action feed row into a unified trade object
      * @param {object} trade the raw action feed row
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const timestamp = this.safeTimestamp (trade, 'timestamp');
         const amountStr = this.safeString (trade, 'shares');
         const costStr = this.safeString (trade, 'value');
@@ -2916,7 +2916,7 @@ export default class myriad extends Exchange {
     async watchOHLCV (outcome: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         // Myriad has no OHLCV websocket channel, so build candles from the live trade stream
         const trades = await this.watchTrades (outcome, since, limit, params);
-        const ohlcvc = this.buildOHLCVC (trades, timeframe, 0, 2147483647);
+        const ohlcvc = this.buildOHLCVC (trades as any, timeframe, 0, 2147483647);
         const result = [];
         const ohlcvcLength = ohlcvc.length;
         for (let i = 0; i < ohlcvcLength; i++) {
@@ -2970,7 +2970,7 @@ export default class myriad extends Exchange {
                 'quoteVolume': undefined,
                 'info': oc,
             }, market);
-            this.tickers[sym] = ticker;
+            this.tickers[sym] = ticker as any;
             client.resolve (ticker, 'ticker::' + sym);
         }
         client.resolve (this.tickers, 'tickers');

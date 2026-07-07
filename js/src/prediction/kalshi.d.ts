@@ -67,17 +67,17 @@ export default class kalshi extends Exchange {
      * @returns {object} an [open interest structure](https://docs.ccxt.com/#/?id=open-interest-structure)
      */
     fetchOpenInterest(outcome: string, params?: {}): Promise<PredictionOpenInterest>;
-    parseOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
+    parsePredictionOpenInterest(interest: any, market?: Market): PredictionOpenInterest;
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTicker
+     * @name kalshi#parsePredictionTicker
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(raw: Dict, market?: Market): PredictionTicker;
+    parsePredictionTicker(raw: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name kalshi#fetchTickers
@@ -149,13 +149,13 @@ export default class kalshi extends Exchange {
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTrade
+     * @name kalshi#parsePredictionTrade
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade(trade: Dict, market?: Market): PredictionTrade;
+    parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
     /**
      * @method
      * @name kalshi#fetchMyTrades
@@ -231,13 +231,13 @@ export default class kalshi extends Exchange {
     /**
      * @ignore
      * @method
-     * @name kalshi#parsePosition
+     * @name kalshi#parsePredictionPosition
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, market?: Market): PredictionPosition;
+    parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
     /**
      * @method
      * @name kalshi#fetchOpenOrders
@@ -288,13 +288,13 @@ export default class kalshi extends Exchange {
     /**
      * @ignore
      * @method
-     * @name kalshi#parseOrder
+     * @name kalshi#parsePredictionOrder
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder(order: Dict, market?: Market): PredictionOrder;
+    parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
     /**
      * @ignore
      * @method

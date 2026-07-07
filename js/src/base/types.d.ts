@@ -173,7 +173,31 @@ export interface PredictionOutcome {
     settleFraction?: Num;
     precision?: Precision;
 }
-export interface PredictionOrder extends Order {
+export interface PredictionOrder {
+    id: Str;
+    clientOrderId: Str;
+    datetime: Str;
+    timestamp: Int;
+    lastTradeTimestamp: Int;
+    lastUpdateTimestamp?: Int;
+    status: 'open' | 'closed' | 'canceled' | Str;
+    type: Str;
+    timeInForce?: Str;
+    side: 'buy' | 'sell' | Str;
+    price: Num;
+    average?: Num;
+    amount: Num;
+    filled: Num;
+    remaining: Num;
+    stopPrice?: Num;
+    triggerPrice?: Num;
+    takeProfitPrice?: Num;
+    stopLossPrice?: Num;
+    cost: Num;
+    fee: Fee;
+    reduceOnly: Bool;
+    postOnly: Bool;
+    info: any;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -181,14 +205,53 @@ export interface PredictionOrder extends Order {
     event?: Str;
     trades: PredictionTrade[];
 }
-export interface PredictionTrade extends Trade {
+export interface PredictionTrade {
+    info: any;
+    amount: Num;
+    datetime: Str;
+    id: Str;
+    order: Str;
+    price: Num;
+    timestamp: Int;
+    type: Str;
+    side: 'buy' | 'sell' | Str;
+    takerOrMaker: 'taker' | 'maker' | Str;
+    cost: Num;
+    fee: Fee;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
     market?: Str;
     realizedPnl?: Num;
 }
-export interface PredictionPosition extends Position {
+export interface PredictionPosition {
+    id?: Str;
+    info: any;
+    timestamp?: Int;
+    datetime?: Str;
+    contracts?: Num;
+    contractSize?: Num;
+    side: Str;
+    notional?: Num;
+    leverage?: Num;
+    unrealizedPnl?: Num;
+    realizedPnl?: Num;
+    collateral?: Num;
+    entryPrice?: Num;
+    markPrice?: Num;
+    liquidationPrice?: Num;
+    marginMode?: Str;
+    hedged?: Bool;
+    maintenanceMargin?: Num;
+    maintenanceMarginPercentage?: Num;
+    initialMargin?: Num;
+    initialMarginPercentage?: Num;
+    marginRatio?: Num;
+    lastUpdateTimestamp?: Int;
+    lastPrice?: Num;
+    stopLossPrice?: Num;
+    takeProfitPrice?: Num;
+    percentage?: Num;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -199,7 +262,28 @@ export interface PredictionPosition extends Position {
     settleFraction?: Num;
     payout?: Num;
 }
-export interface PredictionTicker extends Ticker {
+export interface PredictionTicker {
+    info: any;
+    timestamp: Int;
+    datetime: Str;
+    high: Num;
+    low: Num;
+    bid: Num;
+    bidVolume: Num;
+    ask: Num;
+    askVolume: Num;
+    vwap: Num;
+    open: Num;
+    close: Num;
+    last: Num;
+    previousClose: Num;
+    change: Num;
+    percentage: Num;
+    average: Num;
+    quoteVolume: Num;
+    baseVolume: Num;
+    indexPrice: Num;
+    markPrice: Num;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -207,19 +291,36 @@ export interface PredictionTicker extends Ticker {
     event?: Str;
     openInterest?: Num;
 }
-export interface PredictionOrderBook extends OrderBook {
+export interface PredictionOrderBook {
+    asks: [Num, Num][];
+    bids: [Num, Num][];
+    datetime: Str;
+    timestamp: Int;
+    nonce: Int;
     outcome: string;
     outcomeId?: Str;
     market?: Str;
 }
 export interface PredictionTickers extends Dictionary<PredictionTicker> {
 }
-export interface PredictionTradingFee extends TradingFeeInterface {
+export interface PredictionTradingFee {
+    info: any;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
     outcome: string;
     outcomeId?: Str;
     market?: Str;
 }
-export interface PredictionOpenInterest extends OpenInterest {
+export interface PredictionOpenInterest {
+    openInterestAmount?: Num;
+    openInterestValue?: Num;
+    baseVolume?: Num;
+    quoteVolume?: Num;
+    timestamp?: Int;
+    datetime?: Str;
+    info: any;
     outcome: string;
     outcomeId?: Str;
     market?: Str;

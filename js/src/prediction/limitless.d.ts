@@ -44,13 +44,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parseTicker
+     * @name limitless#parsePredictionTicker
      * @description parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
      * @param {object} ticker a raw limitless market object or a dict with market and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker(ticker: Dict, market?: Market): PredictionTicker;
+    parsePredictionTicker(ticker: Dict, market?: Market): PredictionTicker;
     /**
      * @method
      * @name limitless#fetchTickers
@@ -159,13 +159,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parseOrder
+     * @name limitless#parsePredictionOrder
      * @description parses a raw limitless order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder(order: Dict, market?: Market): PredictionOrder;
+    parsePredictionOrder(order: Dict, market?: Market): PredictionOrder;
     /**
      * @ignore
      * @method
@@ -296,13 +296,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parseTrade
+     * @name limitless#parsePredictionTrade
      * @description parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade(trade: Dict, market?: Market): PredictionTrade;
+    parsePredictionTrade(trade: Dict, market?: Market): PredictionTrade;
     getOutcomeBySlugAndLabel(slug: Str, label: Str, market?: Market): any;
     /**
      * @method
@@ -318,13 +318,13 @@ export default class limitless extends Exchange {
     /**
      * @ignore
      * @method
-     * @name limitless#parsePosition
+     * @name limitless#parsePredictionPosition
      * @description parses a raw limitless portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition(position: Dict, market?: Market): PredictionPosition;
+    parsePredictionPosition(position: Dict, market?: Market): PredictionPosition;
     /**
      * @method
      * @name limitless#fetchEvents

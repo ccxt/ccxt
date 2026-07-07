@@ -200,7 +200,32 @@ export interface PredictionOutcome {
 // prediction fields). The inherited `symbol` is left unpopulated — `outcome` (the
 // "MARKET:LABEL" handle) is the canonical identity; price = probability 0..1,
 // amount = shares, cost = collateral.
-export interface PredictionOrder extends Order {
+export interface PredictionOrder {
+    // standalone (does not extend Order) — outcome-addressed identity, no symbol
+    id: Str;
+    clientOrderId: Str;
+    datetime: Str;
+    timestamp: Int;
+    lastTradeTimestamp: Int;
+    lastUpdateTimestamp?: Int;
+    status: 'open' | 'closed' | 'canceled' | Str;
+    type: Str;
+    timeInForce?: Str;
+    side: 'buy' | 'sell' | Str;
+    price: Num;
+    average?: Num;
+    amount: Num;
+    filled: Num;
+    remaining: Num;
+    stopPrice?: Num;
+    triggerPrice?: Num;
+    takeProfitPrice?: Num;
+    stopLossPrice?: Num;
+    cost: Num;
+    fee: Fee;
+    reduceOnly: Bool;
+    postOnly: Bool;
+    info: any;
     outcome: string;             // handle "TRUMP_WIN_2024:YES"
     outcomeId?: Str;
     label?: Str;
@@ -209,7 +234,20 @@ export interface PredictionOrder extends Order {
     trades: PredictionTrade[];
 }
 
-export interface PredictionTrade extends Trade {
+export interface PredictionTrade {
+    // standalone (does not extend Trade) — outcome-addressed identity, no symbol
+    info: any;                        // the original decoded JSON as is
+    amount: Num;                  // amount of base currency
+    datetime: Str;                // ISO8601 datetime with milliseconds;
+    id: Str;                      // string trade id
+    order: Str;                  // string order id or undefined/None/null
+    price: Num;                   // float price in quote currency
+    timestamp: Int;               // Unix timestamp in milliseconds
+    type: Str;                   // order type, 'market', 'limit', ... or undefined/None/null
+    side: 'buy' | 'sell' | Str;            // direction of the trade, 'buy' or 'sell'
+    takerOrMaker: 'taker' | 'maker' | Str; // string, 'taker' or 'maker'
+    cost: Num;                    // total cost (including fees), `price * amount`
+    fee: Fee;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -217,7 +255,35 @@ export interface PredictionTrade extends Trade {
     realizedPnl?: Num;
 }
 
-export interface PredictionPosition extends Position {
+export interface PredictionPosition {
+    // standalone (does not extend Position) — outcome-addressed identity, no symbol
+    id?: Str;
+    info: any;
+    timestamp?: Int;
+    datetime?: Str;
+    contracts?: Num;
+    contractSize?: Num;
+    side: Str;
+    notional?: Num;
+    leverage?: Num;
+    unrealizedPnl?: Num;
+    realizedPnl?: Num;
+    collateral?: Num;
+    entryPrice?: Num;
+    markPrice?: Num;
+    liquidationPrice?: Num;
+    marginMode?: Str;
+    hedged?: Bool;
+    maintenanceMargin?: Num;
+    maintenanceMarginPercentage?: Num;
+    initialMargin?: Num;
+    initialMarginPercentage?: Num;
+    marginRatio?: Num;
+    lastUpdateTimestamp?: Int;
+    lastPrice?: Num;
+    stopLossPrice?: Num;
+    takeProfitPrice?: Num;
+    percentage?: Num;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -230,7 +296,29 @@ export interface PredictionPosition extends Position {
     payout?: Num;                // claimable collateral after resolution
 }
 
-export interface PredictionTicker extends Ticker {
+export interface PredictionTicker {
+    // standalone (does not extend Ticker) — outcome-addressed identity, no symbol
+    info: any;
+    timestamp: Int;
+    datetime: Str;
+    high: Num;
+    low: Num;
+    bid: Num;
+    bidVolume: Num;
+    ask: Num;
+    askVolume: Num;
+    vwap: Num;
+    open: Num;
+    close: Num;
+    last: Num;
+    previousClose: Num;
+    change: Num;
+    percentage: Num;
+    average: Num;
+    quoteVolume: Num;
+    baseVolume: Num;
+    indexPrice: Num
+    markPrice: Num;
     outcome: string;
     outcomeId?: Str;
     label?: Str;
@@ -239,7 +327,13 @@ export interface PredictionTicker extends Ticker {
     openInterest?: Num;
 }
 
-export interface PredictionOrderBook extends OrderBook {
+export interface PredictionOrderBook {
+    // standalone (does not extend OrderBook) — outcome-addressed identity, no symbol
+    asks: [Num, Num][];
+    bids: [Num, Num][];
+    datetime: Str;
+    timestamp: Int;
+    nonce: Int;
     outcome: string;             // required — books are per-outcome
     outcomeId?: Str;
     market?: Str;
@@ -248,13 +342,27 @@ export interface PredictionOrderBook extends OrderBook {
 export interface PredictionTickers extends Dictionary<PredictionTicker> {
 }
 
-export interface PredictionTradingFee extends TradingFeeInterface {
+export interface PredictionTradingFee {
+    // standalone (does not extend TradingFeeInterface) — outcome-addressed identity, no symbol
+    info: any;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
     outcome: string;
     outcomeId?: Str;
     market?: Str;
 }
 
-export interface PredictionOpenInterest extends OpenInterest {
+export interface PredictionOpenInterest {
+    // standalone (does not extend OpenInterest) — outcome-addressed identity, no symbol
+    openInterestAmount?: Num;
+    openInterestValue?: Num;
+    baseVolume?: Num;
+    quoteVolume?: Num;
+    timestamp?: Int;
+    datetime?: Str;
+    info: any;
     outcome: string;
     outcomeId?: Str;
     market?: Str;

@@ -2,7 +2,7 @@
 
 import { BaseExchange } from './Exchange.js';
 import { ExchangeError, BadSymbol, NotSupported, ArgumentsRequired } from './errors.js';
-import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
+import type { Str, Strings, Num, Int, Dictionary, OHLCV, OrderType, OrderSide, PredictionOrderRequest, Dict, Market, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionOrderBook, PredictionTradingFee, PredictionOpenInterest, PredictionEvent, PredictionSettlement, fetchEventsParams } from './types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -595,7 +595,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async fetchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
-        return await super.fetchTicker (outcome, params) as PredictionTicker;
+        throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
     }
 
     /**
@@ -608,7 +608,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async fetchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        return await super.fetchOrderBook (outcome, limit, params) as PredictionOrderBook;
+        throw new NotSupported (this.id + ' fetchOrderBook() is not supported yet');
     }
 
     /**
@@ -637,7 +637,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async fetchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        return await super.fetchTrades (outcome, since, limit, params) as PredictionTrade[];
+        throw new NotSupported (this.id + ' fetchTrades() is not supported yet');
     }
 
     /**
@@ -653,7 +653,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
-        return await super.createOrder (outcome, type, side, amount, price, params) as PredictionOrder;
+        throw new NotSupported (this.id + ' createOrder() is not supported yet');
     }
 
     /**
@@ -666,7 +666,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
     async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
-        return await super.cancelOrder (id, outcome, params) as PredictionOrder;
+        throw new NotSupported (this.id + ' cancelOrder() is not supported yet');
     }
 
     /**
@@ -678,7 +678,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
     async watchTicker (outcome: string, params = {}): Promise<PredictionTicker> {
-        return await super.watchTicker (outcome, params) as PredictionTicker;
+        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
     }
 
     /**
@@ -691,7 +691,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
     async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
-        return await super.watchOrderBook (outcome, limit, params) as PredictionOrderBook;
+        throw new NotSupported (this.id + ' watchOrderBook() is not supported yet');
     }
 
     /**
@@ -705,7 +705,7 @@ export default class PredictionExchange extends BaseExchange {
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
     async watchTrades (outcome: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
-        return await super.watchTrades (outcome, since, limit, params) as PredictionTrade[];
+        throw new NotSupported (this.id + ' watchTrades() is not supported yet');
     }
 
     /**
@@ -963,6 +963,26 @@ export default class PredictionExchange extends BaseExchange {
         return this.omit (orderbook, 'symbol') as PredictionOrderBook;
     }
 
+    parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+        throw new NotSupported (this.id + ' parsePredictionTicker() is not supported yet');
+    }
+
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
+        throw new NotSupported (this.id + ' parsePredictionOrder() is not supported yet');
+    }
+
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+        throw new NotSupported (this.id + ' parsePredictionTrade() is not supported yet');
+    }
+
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
+        throw new NotSupported (this.id + ' parsePredictionPosition() is not supported yet');
+    }
+
+    parsePredictionOpenInterest (interest: Dict, market: Market = undefined): PredictionOpenInterest {
+        throw new NotSupported (this.id + ' parsePredictionOpenInterest() is not supported yet');
+    }
+
     toPredictionStructure (parsed: Dict, raw: Dict): any {
         // the prediction identity is the `outcome` handle (never the base `symbol`); attach it
         // and the other prediction fields (raw exchange id, label, parent market/event) that the
@@ -984,7 +1004,7 @@ export default class PredictionExchange extends BaseExchange {
      * @ignore
      * @method
      * @name PredictionExchange#parsePredictionTrades
-     * @description parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+     * @description parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
      * @param {object[]} trades the raw trades
      * @param {object} [outcomeObj] the resolved outcome object the trades belong to
      * @param {int} [since] timestamp in ms of the earliest trade to return
@@ -1000,7 +1020,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray (trades);
         let results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parseTrade (rows[i], outcomeObj);
+            const parsed = this.parsePredictionTrade (rows[i], outcomeObj);
             const trade = this.extend (parsed, params);
             results.push (trade);
         }
@@ -1013,7 +1033,7 @@ export default class PredictionExchange extends BaseExchange {
      * @ignore
      * @method
      * @name PredictionExchange#parsePredictionOrders
-     * @description parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+     * @description parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
      * @param {object[]} orders the raw orders
      * @param {object} [outcomeObj] the resolved outcome object the orders belong to
      * @param {int} [since] timestamp in ms of the earliest order to return
@@ -1026,7 +1046,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray (orders);
         let results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parseOrder (rows[i], outcomeObj);
+            const parsed = this.parsePredictionOrder (rows[i], outcomeObj);
             const order = this.extend (parsed, params);
             results.push (order);
         }
@@ -1039,7 +1059,7 @@ export default class PredictionExchange extends BaseExchange {
      * @ignore
      * @method
      * @name PredictionExchange#parsePredictionPositions
-     * @description parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+     * @description parses a list of raw positions with the exchange's parsePredictionPosition — the prediction analogue of the base parsePositions
      * @param {object[]} positions the raw positions
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
@@ -1052,7 +1072,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray (positions);
         const results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePosition (rows[i]);
+            const parsed = this.parsePredictionPosition (rows[i]);
             const position = this.extend (parsed, params);
             results.push (position);
         }

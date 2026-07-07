@@ -885,7 +885,7 @@ export default class polymarket extends Exchange {
         //         }
         //     }
         //
-        return this.parseTicker (
+        return this.parsePredictionTicker (
             response,
             outcomeObj
         );
@@ -955,7 +955,7 @@ export default class polymarket extends Exchange {
                 const outcomeObj = outcomesByTokenId[tokenId];
                 const mid = this.safeString (midpoints, tokenId);
                 const tickerInput: Dict = { 'midpoint': { 'mid': mid }, 'book': book };
-                const ticker = this.parseTicker (tickerInput, outcomeObj);
+                const ticker = this.parsePredictionTicker (tickerInput, outcomeObj);
                 const symbolKey = this.safeString (ticker, 'outcome', tokenId);
                 result[symbolKey] = ticker;
             }
@@ -967,13 +967,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTicker
+     * @name polymarket#parsePredictionTicker
      * @description parses a combined midpoint + order book response into a unified ticker object
      * @param {object} ticker a dict with midpoint and book entries
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "midpoint": {
@@ -1255,10 +1255,10 @@ export default class polymarket extends Exchange {
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         //
         const first = this.safeDict (response, 0, {});
-        return this.parseOpenInterest (first, outcomeObj as any);
+        return this.parsePredictionOpenInterest (first, outcomeObj as any);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
@@ -1277,7 +1277,7 @@ export default class polymarket extends Exchange {
         openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
         openInterest['market'] = this.safeString (market, 'market');
         delete openInterest['symbol'];
-        return openInterest as PredictionOpenInterest;
+        return openInterest as any;
     }
 
     /**
@@ -1348,7 +1348,7 @@ export default class polymarket extends Exchange {
             }
         }
         // the trades are already narrowed to this outcome by asset id above;
-        // parseTrade resolves the outcome from each trade's asset id
+        // parsePredictionTrade resolves the outcome from each trade's asset id
         return this.parsePredictionTrades (filteredTrades, undefined, since, limit);
     }
 
@@ -1413,13 +1413,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parseTrade
+     * @name polymarket#parsePredictionTrade
      * @description parses a raw data API trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         const id = this.safeStringN (trade, [ 'transactionHash', 'transaction_hash', 'id' ]);
@@ -1573,13 +1573,13 @@ export default class polymarket extends Exchange {
     /**
      * @ignore
      * @method
-     * @name polymarket#parsePosition
+     * @name polymarket#parsePredictionPosition
      * @description parses a raw data API position object into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const tokenId = this.safeString (position, 'asset');
         const marketData = this.safeOutcome (tokenId, market as any);
         const size = this.safeNumber (position, 'size');
@@ -1664,19 +1664,19 @@ export default class polymarket extends Exchange {
         await this.loadApiCredentials ();
         const request: Dict = { 'id': id };
         const response = await this.clobPrivateGetDataOrderId (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parsePredictionOrder (response);
     }
 
     /**
      * @ignore
      * @method
-     * @name polymarket#parseOrder
+     * @name polymarket#parsePredictionOrder
      * @description parses a raw CLOB order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         //
         // {
         //     "errorMsg":"",
@@ -1779,7 +1779,7 @@ export default class polymarket extends Exchange {
         const response = await this.clobPrivatePostOrder (this.safeDict (built, 'body'));
         // request echo first so the response's real orderID/status/success win on overlap
         const enriched = this.extend (this.safeDict (built, 'request'), response);
-        const order = this.parseOrder (enriched, this.safeDict (built, 'outcome') as any);
+        const order = this.parsePredictionOrder (enriched, this.safeDict (built, 'outcome') as any);
         order['info'] = response;   // keep info the raw exchange response, not the request echo
         return order;
     }
@@ -1818,12 +1818,12 @@ export default class polymarket extends Exchange {
             for (let i = 0; i < response.length; i++) {
                 // request echo first so the response's real orderID/status win on overlap
                 const enriched = this.extend (requests[i], response[i]);
-                const parsedItem = this.parseOrder (enriched, outcomes[i] as any);
+                const parsedItem = this.parsePredictionOrder (enriched, outcomes[i] as any);
                 parsedItem['info'] = response[i];   // keep info the raw exchange response
                 result.push (parsedItem);
             }
         } else {
-            result.push (this.parseOrder (response));
+            result.push (this.parsePredictionOrder (response));
         }
         return result as PredictionOrder[];
     }
@@ -1945,7 +1945,7 @@ export default class polymarket extends Exchange {
             'orderType': orderTypeStr,
         };
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        // (keyed as the fetchOrder response fields parseOrder reads) so createOrder can merge
+        // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         const requestEcho: Dict = {
             'side': sideStr,
@@ -3053,7 +3053,7 @@ export default class polymarket extends Exchange {
             this.orders = new ArrayCacheByOutcomeById (limit);
         }
         const stored = this.orders;
-        const parsed = this.parseOrder (event);
+        const parsed = this.parsePredictionOrder (event);
         stored.append (parsed);
         client.resolve (stored, 'orders');
         const outcome = this.safeString (parsed, 'outcome');
@@ -3068,7 +3068,7 @@ export default class polymarket extends Exchange {
             this.myTrades = new ArrayCacheByOutcomeById (limit);
         }
         const stored = this.myTrades;
-        const parsed = this.parseTrade (event);
+        const parsed = this.parsePredictionTrade (event);
         stored.append (parsed);
         client.resolve (stored, 'myTrades');
         const outcome = this.safeString (parsed, 'outcome');

@@ -657,7 +657,7 @@ export default class kalshi extends Exchange {
         //     }
         //
         const raw = this.safeValue (response, 'market', response);
-        return this.parseTicker (raw, outcomeObj as any);
+        return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
     /**
@@ -699,10 +699,10 @@ export default class kalshi extends Exchange {
         const request: Dict = { 'ticker': ticker };
         const response = await this.kalshiPublicGetMarketsTicker (this.extend (request, params));
         const raw = this.safeDict (response, 'market', response);
-        return this.parseOpenInterest (raw, outcomeObj as any);
+        return this.parsePredictionOpenInterest (raw, outcomeObj as any);
     }
 
-    parseOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
+    parsePredictionOpenInterest (interest, market: Market = undefined): PredictionOpenInterest {
         //
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
@@ -720,19 +720,19 @@ export default class kalshi extends Exchange {
         openInterest['outcome'] = this.safeOutcomeSymbol (undefined, market);
         openInterest['outcomeId'] = this.safeString (market, 'outcomeId');
         delete openInterest['symbol'];
-        return openInterest as PredictionOpenInterest;
+        return openInterest as any;
     }
 
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTicker
+     * @name kalshi#parsePredictionTicker
      * @description parses a raw kalshi market object into a unified ticker object
      * @param {object} raw the raw market object
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    parseTicker (raw: Dict, market: Market = undefined): PredictionTicker {
+    parsePredictionTicker (raw: Dict, market: Market = undefined): PredictionTicker {
         //
         //     {
         //         "market": {
@@ -923,7 +923,7 @@ export default class kalshi extends Exchange {
                 }
                 const grouped = outcomesByTicker[marketTicker] as any[];
                 for (let j = 0; j < grouped.length; j++) {
-                    const ticker = this.parseTicker (raw, grouped[j]);
+                    const ticker = this.parsePredictionTicker (raw, grouped[j]);
                     const symbolKey = this.safeString (ticker, 'outcome');
                     if (symbolKey !== undefined) {
                         result[symbolKey] = ticker;
@@ -1211,13 +1211,13 @@ export default class kalshi extends Exchange {
     /**
      * @ignore
      * @method
-     * @name kalshi#parseTrade
+     * @name kalshi#parsePredictionTrade
      * @description parses a raw kalshi trade object into a unified trade object
      * @param {object} trade the raw trade object
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [trade structure](https://docs.ccxt.com/#/?id=public-trades)
      */
-    parseTrade (trade: Dict, market: Market = undefined): PredictionTrade {
+    parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const id = this.safeString (trade, 'trade_id');
         const ts = this.parse8601 (this.safeString (trade, 'created_time'));
         const priceDollars = this.safeNumber2 (trade, 'yes_price_dollars', 'price_dollars');
@@ -1588,13 +1588,13 @@ export default class kalshi extends Exchange {
     /**
      * @ignore
      * @method
-     * @name kalshi#parsePosition
+     * @name kalshi#parsePredictionPosition
      * @description parses a raw kalshi portfolio position into a unified position object
      * @param {object} position the raw position object
      * @param {object} [market] the outcome object the position belongs to
      * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
      */
-    parsePosition (position: Dict, market: Market = undefined): PredictionPosition {
+    parsePredictionPosition (position: Dict, market: Market = undefined): PredictionPosition {
         const ticker = this.safeString (position, 'ticker');
         const outcomeObj = this.safeOutcome (ticker, market as any);
         const yesContracts = this.safeNumber (position, 'position');  // positive = long YES
@@ -1731,24 +1731,24 @@ export default class kalshi extends Exchange {
      */
     async fetchOrder (id: Str, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
         // outcome is only a labelling hint here — the request needs just the id, and
-        // parseOrder resolves identity cache-only, so don't force a full market scan
+        // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parseOrder (this.safeValue (response, 'order', response));
+        return this.parsePredictionOrder (this.safeValue (response, 'order', response));
     }
 
     /**
      * @ignore
      * @method
-     * @name kalshi#parseOrder
+     * @name kalshi#parsePredictionOrder
      * @description parses a raw kalshi order object into a unified order object
      * @param {object} order the raw order object
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    parseOrder (order: Dict, market: Market = undefined): PredictionOrder {
+    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder {
         const id = this.safeString (order, 'order_id');
         const ticker = this.safeString (order, 'ticker');
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
@@ -1895,7 +1895,7 @@ export default class kalshi extends Exchange {
         const response = await this.kalshiPrivatePostPortfolioEventsOrders (this.extend (request, params));
         // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
         // the known order details and resolve the status from the remaining count
-        const order = this.parseOrder (response, outcomeObj as any);
+        const order = this.parsePredictionOrder (response, outcomeObj as any);
         order['side'] = side;
         order['amount'] = amount;
         order['price'] = price;
@@ -1957,7 +1957,7 @@ export default class kalshi extends Exchange {
         // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
         // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        const order = this.parseOrder (this.safeDict (response, 'order', response));
+        const order = this.parsePredictionOrder (this.safeDict (response, 'order', response));
         // the delete response carries no id/status - backfill the requested id and the outcome
         if (order['id'] === undefined) {
             order['id'] = id;

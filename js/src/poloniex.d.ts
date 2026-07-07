@@ -204,7 +204,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<"closed" | "open">;
+    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<"open" | "closed">;
     /**
      * @method
      * @name poloniex#fetchOrderTrades
