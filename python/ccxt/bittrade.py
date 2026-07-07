@@ -100,7 +100,7 @@ class bittrade(Exchange, ImplicitAPI):
                 '1y': '1year',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/85734211-85755480-b705-11ea-8b35-0b7f1db33a2f.jpg',
+                'logo': 'https://github.com/user-attachments/assets/c5996ed2-0d56-42d8-ac40-7eaf8116dbae',
                 'api': {
                     'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
@@ -436,7 +436,8 @@ class bittrade(Exchange, ImplicitAPI):
         # self method should not be called directly, use loadTradingLimits() instead
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define symbols = ['ETH/BTC', 'LTC/BTC'] in args it will only load those
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbols is None:
             symbols = self.symbols
         result = {}
@@ -697,7 +698,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -742,7 +744,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -781,7 +784,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.marketGetTickers(params)
         tickers = self.safe_value(response, 'data', [])
@@ -885,7 +889,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'id': id,
         }
@@ -901,7 +906,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if symbol is not None:
@@ -924,7 +930,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -998,7 +1005,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1028,7 +1036,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountAccounts(params)
         return response['data']
 
@@ -1152,7 +1161,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts()
         method = self.options['fetchBalanceMethod']
         request = {
@@ -1162,7 +1172,8 @@ class bittrade(Exchange, ImplicitAPI):
         return self.parse_balance(response)
 
     def fetch_orders_by_states(self, states, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'states': states,
         }
@@ -1199,7 +1210,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'id': id,
         }
@@ -1247,7 +1259,8 @@ class bittrade(Exchange, ImplicitAPI):
         return self.fetch_orders_by_states('filled,partial-canceled,canceled', symbol, since, limit, params)
 
     def fetch_open_orders_v2(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1391,7 +1404,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -1409,7 +1423,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.load_accounts()
         market = self.market(symbol)
         request = {
@@ -1505,7 +1520,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         clientOrderIds = self.safe_value_2(params, 'clientOrderIds', 'client-order-ids')
         params = self.omit(params, ['clientOrderIds', 'client-order-ids'])
         request = {}
@@ -1609,7 +1625,8 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'account-id' string False NA The account id used for self cancel Refer to GET /v1/account/accounts
             # 'symbol': market['id'],  # a list of comma-separated symbols, all symbols by default
@@ -1678,7 +1695,8 @@ class bittrade(Exchange, ImplicitAPI):
         """
         if limit is None or limit > 100:
             limit = 100
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1705,7 +1723,8 @@ class bittrade(Exchange, ImplicitAPI):
         """
         if limit is None or limit > 100:
             limit = 100
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1833,7 +1852,8 @@ class bittrade(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {

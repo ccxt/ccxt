@@ -1,17 +1,17 @@
 [build-system]
-requires = ["setuptools>=60.9.0"]
+requires = ["setuptools==82.0.1"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ccxt"
-version = "4.5.60"
+version = "4.5.64"
 description = "A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go"
 readme = "python/README.md"
-license = { text = "MIT" }
+license = "MIT"
 authors = [
     { name = "Igor Kroitor", email = "igor.kroitor@gmail.com" },
 ]
-requires-python = ">=3.7"
+requires-python = ">=3.10"
 keywords = [
     "algorithmic", "algotrading", "altcoin", "altcoins", "api", "arbitrage", "backtest", "backtesting", "bitcoin", "bot",
     "btc", "crypto", "cryptocurrency", "crypto currency", "crypto market", "currency", "currencies", "darkcoin",
@@ -29,49 +29,86 @@ classifiers = [
     "Intended Audience :: Information Technology",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Office/Business :: Financial :: Investment",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Programming Language :: JavaScript",
     "Programming Language :: PHP",
     "Operating System :: OS Independent",
     "Environment :: Console",
 ]
+# all dependencies are pinned to exact versions to protect against
+# malicious or vulnerable releases of downstream dependencies
 dependencies = [
-    "setuptools>=60.9.0",
-    "certifi>=2018.1.18",
-    "requests>=2.18.4",
-    "cryptography>=2.6.1",
-    "typing_extensions>=4.4.0",
-    "aiohttp>=3.10.11; python_version >= \"3.5.2\"",
-    "aiodns>=1.1.1; python_version >= \"3.5.2\"",
-    "yarl>=1.7.2; python_version >= \"3.5.2\"",
-    "coincurve==21.0.0; python_version >= \"3.9\" and python_version <= \"3.13\"",
+    "setuptools==82.0.1",
+    "certifi==2026.6.17",
+    "requests==2.34.2",
+    "cryptography==49.0.0",
+    "typing_extensions==4.16.0",
+    "aiohttp==3.14.1",
+    "aiodns==4.0.4",
+    "yarl==1.24.2",
+    # fast zlib backend for aiohttp, enabled in ccxt.async_support.base.exchange
+    "aiohttp-fast-zlib==0.3.0",
+    "zlib-ng==1.0.0",
+    # event loop accelerator, installed where supported (no Windows/PyPy wheels);
+    # opt-in at the application entry point: uvloop.run(main())
+    "uvloop==0.22.1; platform_system != \"Windows\" and implementation_name == \"cpython\"",
+    # Windows counterpart of uvloop (same API, incl. winloop.run); wheels exist
+    # for CPython 3.8-3.14 on win_amd64/win_arm64 only - no win32, no sdist builds
+    "winloop==0.6.3; platform_system == \"Windows\" and implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"AMD64 ARM64\"",
+    # fast JSON, installed only where orjson 3.11.9 ships a prebuilt wheel so that
+    # `pip install ccxt` never triggers a Rust source build. Allowlist mirrors the
+    # wheel matrix on PyPI (CPython 3.10-3.14 only, no PyPy, no free-threaded builds).
+    # NOTE: lowercase "arm64" matches macOS but intentionally NOT Windows "ARM64"
+    # (marker `in` is a case-sensitive substring match; cp310 has no win_arm64 wheel)
+    "orjson==3.11.9; implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 armv7l i686 ppc64le s390x\"",
+    "coincurve==21.0.0; python_version <= \"3.13\"",
+    # transitive dependencies of aiohttp
+    "aiohappyeyeballs==2.7.1",
+    "aiosignal==1.4.0",
+    "attrs==26.1.0",
+    "frozenlist==1.8.0",
+    "multidict==6.7.1",
+    "propcache==0.5.2",
+    # transitive dependencies of aiodns
+    "pycares==5.0.1",
+    # transitive dependencies of cryptography
+    "cffi==2.0.0",
+    "pycparser==3.0",
+    # transitive dependencies of requests
+    "charset_normalizer==3.4.7",
+    "idna==3.18",
+    "urllib3==2.7.0",
 ]
 
 [project.optional-dependencies]
 qa = [
     "ruff==0.0.292",
-    "tox>=4.8.0",
+    "tox==4.56.1",
 ]
 type = [
     "mypy==1.6.1",
 ]
 dev = [
-    "setuptools>=60.9.0",
-    "certifi>=2018.1.18",
-    "requests>=2.18.4",
-    "cryptography>=2.6.1",
-    "typing_extensions>=4.4.0",
-    "aiohttp>=3.10.11",
-    "aiodns>=1.1.1",
-    "yarl>=1.7.2",
+    "setuptools==82.0.1",
+    "certifi==2026.6.17",
+    "requests==2.34.2",
+    "cryptography==49.0.0",
+    "typing_extensions==4.16.0",
+    "aiohttp==3.14.1",
+    "aiodns==4.0.4",
+    "yarl==1.24.2",
+    "aiohttp-fast-zlib==0.3.0",
+    "zlib-ng==1.0.0",
+    "uvloop==0.22.1; platform_system != \"Windows\" and implementation_name == \"cpython\"",
+    "winloop==0.6.3; platform_system == \"Windows\" and implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"AMD64 ARM64\"",
+    "orjson==3.11.9; implementation_name == \"cpython\" and python_version < \"3.15\" and platform_machine in \"x86_64 AMD64 aarch64 arm64 armv7l i686 ppc64le s390x\"",
     "ruff==0.0.292",
-    "tox>=4.8.0",
+    "tox==4.56.1",
     "mypy==1.6.1",
 ]
 

@@ -9,6 +9,15 @@ export default class coincheck extends Exchange {
     parseBalance(response: any): Balances;
     /**
      * @method
+     * @name coincheck#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://coincheck.com/documents/exchange/api#status-retrieval
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    fetchStatus(params?: {}): Promise<Dict>;
+    /**
+     * @method
      * @name coincheck#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://coincheck.com/documents/exchange/api#order-transactions-pagination

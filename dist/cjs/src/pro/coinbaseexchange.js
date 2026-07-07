@@ -58,7 +58,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         };
     }
     async subscribe(name, symbol = undefined, messageHashStart = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = messageHashStart;
         const productIds = [];
@@ -83,7 +85,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         return await this.watch(url, messageHash, request, messageHash);
     }
     async subscribeMultiple(name, symbols = [], messageHashStart = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         symbols = this.marketSymbols(symbols);
         const messageHashes = [];
@@ -131,7 +135,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const symbolsLength = symbols.length;
         if (symbolsLength === 0) {
             throw new errors.BadSymbol(this.id + ' watchTickers requires a non-empty symbols array');
@@ -157,7 +163,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'matches';
         const trades = await this.subscribe(name, symbol, name, params);
@@ -181,7 +189,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (symbolsLength === 0) {
             throw new errors.BadRequest(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const name = 'matches';
         const trades = await this.subscribeMultiple(name, symbols, name, params);
@@ -206,7 +216,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'user';
         const messageHash = 'myTrades';
@@ -229,7 +241,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      */
     async watchMyTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
         symbols = this.marketSymbols(symbols, undefined, false);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'user';
         const messageHash = 'myTrades';
         const authentication = this.authenticate();
@@ -252,7 +266,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrdersForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const name = 'user';
         const messageHash = 'orders';
@@ -279,7 +295,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (symbol === undefined) {
             throw new errors.BadSymbol(this.id + ' watchMyTrades requires a symbol');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const name = 'user';
         const messageHash = 'orders';
@@ -305,7 +323,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
             throw new errors.BadRequest(this.id + ' watchOrderBookForSymbols() requires a non-empty array of symbols');
         }
         const name = 'level2';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
         const messageHashes = [];
@@ -343,7 +363,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const name = 'level2';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = name + ':' + market['id'];

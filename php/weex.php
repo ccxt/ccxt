@@ -182,7 +182,7 @@ class weex extends Exchange {
                 'withdraw' => false,
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936', // todo
+                'logo' => 'https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c', // todo
                 'api' => array(
                     'public' => 'https://api-spot.weex.com',
                     'private' => 'https://api-spot.weex.com',
@@ -1101,7 +1101,9 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' (used if $symbols are not provided)
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
@@ -1280,7 +1282,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1334,7 +1338,9 @@ class weex extends Exchange {
          * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['spot']) {
             return $this->fetch_spot_ohlcv($symbol, $timeframe, $since, $limit, $params);
@@ -1357,7 +1363,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1387,7 +1395,9 @@ class weex extends Exchange {
          * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $maxHistoricalLimit = 100;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
@@ -1473,7 +1483,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1617,7 +1629,9 @@ class weex extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1658,7 +1672,9 @@ class weex extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $symbolsLength = 0;
         if ($symbols !== null) {
@@ -1737,7 +1753,9 @@ class weex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1864,7 +1882,9 @@ class weex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -1944,7 +1964,9 @@ class weex extends Exchange {
          * Check createSpotOrder() and createContractOrder() for more details on the extra parameters that can be used in $params
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['contract']) {
             return $this->create_contract_order($symbol, $type, $side, $amount, $price, $params);
@@ -1969,7 +1991,9 @@ class weex extends Exchange {
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', or 'FOK'
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_spot_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostApiV3Order($request);
@@ -2034,7 +2058,9 @@ class weex extends Exchange {
          * @param {string} [$params->timeInForce] GTC, IOC, or FOK (default is GTC for limit orders)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_contract_order_request($symbol, $type, $side, $amount, $price, $params);
         $triggerPrice = $this->safe_string($request, 'triggerPrice');
@@ -2178,7 +2204,9 @@ class weex extends Exchange {
          * @param {string} [$params->clientOrderId] *non-$trigger orders only* a unique $id for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2238,7 +2266,9 @@ class weex extends Exchange {
          * @param {boolean} [$params->trigger] *swap only* true for cancelling $trigger orders (default is false)
          * @return Response from the exchange
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2280,7 +2310,9 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -2333,7 +2365,9 @@ class weex extends Exchange {
          * @param {string} [$params->clientOrderId] *spot only* a unique $id for the order, used if $id is not provided
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2397,7 +2431,9 @@ class weex extends Exchange {
          * @param {boolean} [$params->trigger] *swap only* whether to fetch $trigger orders (default is false)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2533,7 +2569,9 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2567,7 +2605,9 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2603,7 +2643,9 @@ class weex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' fetchOrders() supports spot markets only');
@@ -2663,7 +2705,9 @@ class weex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2930,7 +2974,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'orderId' => $id,
         );
@@ -2952,7 +2998,9 @@ class weex extends Exchange {
          * @param {string} [$params->type] 'spot' or 'swap', used if $symbol is not provided (default is 'spot')
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -3041,7 +3089,9 @@ class weex extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
         $maxLimit = 100;
@@ -3205,7 +3255,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountPositionAllPosition($params);
         return $this->parse_positions($response, $symbols);
@@ -3236,7 +3288,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3373,7 +3427,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->contractPrivatePostCapiV3ClosePositions($params);
         //
         //     array(
@@ -3399,7 +3455,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3419,7 +3477,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['spot']) {
             // spot markets return 0 for fees
@@ -3469,7 +3529,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3501,7 +3563,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
         return $this->parse_margin_modes($response, $symbols, 'symbol', 'swap');
@@ -3539,7 +3603,9 @@ class weex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3570,7 +3636,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3590,7 +3658,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->contractPrivateGetCapiV3AccountSymbolConfig($params);
         return $this->parse_leverages($response, $symbols, 'symbol', 'swap');
@@ -3639,7 +3709,9 @@ class weex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3673,7 +3745,9 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an object detailing whether the $market is in hedged or one-way mode
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3702,7 +3776,9 @@ class weex extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setPositionMode() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('setPositionMode', $params);
@@ -3719,7 +3795,9 @@ class weex extends Exchange {
     }
 
     public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isolatedPositionId = $this->safe_string_n($params, array( 'positionId', 'id', 'isolatedPositionId' ));
         if ($isolatedPositionId === null) {
             throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a positionId parameter');

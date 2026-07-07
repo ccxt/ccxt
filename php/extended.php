@@ -22,7 +22,7 @@ class extended extends Exchange {
             'dex' => true,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -158,16 +158,16 @@ class extended extends Exchange {
             ),
             'hostname' => 'extended.exchange',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/309d44db-2a50-4529-a27f-8f4492aec299',
+                'logo' => 'https://github.com/user-attachments/assets/e2fe2bdf-6b28-4af8-b30f-38db496dc079',
                 'api' => array(
                     'rest' => 'https://api.starknet.{hostname}',
                 ),
                 'test' => array(
                     'rest' => 'https://api.starknet.sepolia.{hostname}',
                 ),
-                'www' => 'https://app.{hostname}',
-                'doc' => 'https://api.docs.{hostname}',
-                'fees' => 'https://docs.{hostname}/extended-resources/trading/trading-fees-and-rebates',
+                'www' => 'https://app.extended.exchange',
+                'doc' => 'https://api.docs.extended.exchange',
+                'fees' => 'https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates',
                 'referral' => '',
             ),
             'api' => array(
@@ -515,7 +515,7 @@ class extended extends Exchange {
         //
         $tradingConfig = $this->safe_dict($market, 'tradingConfig', array());
         $marketId = $this->safe_string($market, 'name');
-        $baseId = $this->safe_string($market, 'assetName');
+        $baseId = $this->safe_string($market, 'assetName', '');
         if (mb_strpos($baseId, 'SPOT') !== false) {
             $baseId = str_replace('SPOT', '', $baseId);
         }
@@ -676,7 +676,7 @@ class extended extends Exchange {
             $code = 'USDC';
         }
         $name = $this->safe_string($currency, 'name');
-        $precision = $this->safe_integer($currency, 'precision');
+        $precision = $this->safe_integer($currency, 'precision', 0);
         $isActive = $this->safe_bool($currency, 'isActive');
         return $this->safe_currency_structure(array(
             'id' => $currencyId,
@@ -797,7 +797,9 @@ class extended extends Exchange {
             $stats = $this->safe_dict($marketData, 'marketStats', array());
             $ticker = $this->parse_ticker($stats, $market);
             $symbol = $ticker['symbol'];
-            $tickers[$symbol] = $ticker;
+            if ($symbol !== null) {
+                $tickers[$symbol] = $ticker;
+            }
         }
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
@@ -1914,7 +1916,7 @@ class extended extends Exchange {
         $this->load_markets();
         $currency = $this->currency($code);
         $account = $this->fetch_extended_account();
-        $currentAccountId = $this->safe_string($account, 'accountId');
+        $currentAccountId = $this->safe_string($account, 'accountId', '');
         if ($fromAccount === null) {
             $fromAccount = $currentAccountId;
         } elseif ($fromAccount !== $currentAccountId) {
@@ -2158,7 +2160,9 @@ class extended extends Exchange {
             $fee = $this->safe_dict($data, $i, array());
             $parsed = $this->parse_trading_fee($fee);
             $symbol = $this->safe_string($parsed, 'symbol');
-            $result[$symbol] = $parsed;
+            if ($symbol !== null) {
+                $result[$symbol] = $parsed;
+            }
         }
         return $result;
     }
@@ -3439,16 +3443,16 @@ class extended extends Exchange {
         ));
         $domainHash = $this->get_extended_domain_hash();
         // Order fields
-        $positionId = $this->convert_to_big_int($this->safe_string($settlement, 'collateralPosition'));
-        $baseAssetId = $this->safe_string($settlement, 'baseAssetId');
-        $baseAmount = $this->convert_to_big_int($this->safe_string($settlement, 'baseAmount'));
-        $quoteAssetId = $this->safe_string($settlement, 'quoteAssetId');
-        $quoteAmount = $this->convert_to_big_int($this->safe_string($settlement, 'quoteAmount'));
-        $feeAssetId = $this->safe_string($settlement, 'feeAssetId');
-        $feeAmount = $this->convert_to_big_int($this->safe_string($settlement, 'feeAmount'));
-        $expiration = $this->convert_to_big_int($this->safe_string_2($settlement, 'expiration', 'expirationTimestamp'));
-        $salt = $this->convert_to_big_int($this->safe_string_2($settlement, 'salt', 'nonce'));
-        $starkKey = $this->convert_to_big_int($this->safe_string($settlement, 'starkKey'));
+        $positionId = $this->convert_to_big_int($this->safe_string($settlement, 'collateralPosition', '0'));
+        $baseAssetId = $this->safe_string($settlement, 'baseAssetId', '0');
+        $baseAmount = $this->convert_to_big_int($this->safe_string($settlement, 'baseAmount', '0'));
+        $quoteAssetId = $this->safe_string($settlement, 'quoteAssetId', '0');
+        $quoteAmount = $this->convert_to_big_int($this->safe_string($settlement, 'quoteAmount', '0'));
+        $feeAssetId = $this->safe_string($settlement, 'feeAssetId', '0');
+        $feeAmount = $this->convert_to_big_int($this->safe_string($settlement, 'feeAmount', '0'));
+        $expiration = $this->convert_to_big_int($this->safe_string_2($settlement, 'expiration', 'expirationTimestamp', '0'));
+        $salt = $this->convert_to_big_int($this->safe_string_2($settlement, 'salt', 'nonce', '0'));
+        $starkKey = $this->convert_to_big_int($this->safe_string($settlement, 'starkKey', '0'));
         // Order struct hash
         $orderHash = $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $orderTypeHash,
@@ -3479,12 +3483,12 @@ class extended extends Exchange {
         $expiration = $this->safe_dict($settlement, 'expiration', array());
         $withdrawalHash = $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $withdrawalTypeHash,
-            $this->convert_to_big_int($this->safe_string($settlement, 'recipient')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'positionId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'collateralId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'amount')),
-            $this->convert_to_big_int($this->safe_string($expiration, 'seconds')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'salt')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'recipient', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'positionId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'collateralId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'amount', '0')),
+            $this->convert_to_big_int($this->safe_string($expiration, 'seconds', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'salt', '0')),
         )));
         return $this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $this->get_extended_string_to_felt('StarkNet Message'),
@@ -3499,15 +3503,15 @@ class extended extends Exchange {
             '"Transfer"("sender_position_id":"PositionId","receiver_position_id":"PositionId","asset_id":"AssetId","amount":"u64","expiration":"Timestamp","salt":"felt")"PositionId"("value":"u32")"AssetId"("value":"felt")"Timestamp"("seconds":"u64")'
         ));
         $domainHash = $this->get_extended_domain_hash();
-        $senderPublicKey = $this->convert_to_big_int($this->safe_string($settlement, 'senderPublicKey'));
+        $senderPublicKey = $this->convert_to_big_int($this->safe_string($settlement, 'senderPublicKey', '0'));
         $transferHash = $this->convert_to_big_int($this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $transferTypeHash,
-            $this->convert_to_big_int($this->safe_string($settlement, 'senderPositionId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'receiverPositionId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'assetId')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'amount')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'expirationTimestamp')),
-            $this->convert_to_big_int($this->safe_string($settlement, 'nonce')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'senderPositionId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'receiverPositionId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'assetId', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'amount', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'expirationTimestamp', '0')),
+            $this->convert_to_big_int($this->safe_string($settlement, 'nonce', '0')),
         )));
         return $this->extended_starknet_compute_poseidon_hash_on_elements(array(
             $this->get_extended_string_to_felt('StarkNet Message'),

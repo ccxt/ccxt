@@ -49,12 +49,11 @@ class aster(Exchange, ImplicitAPI):
             # 150 req/s for subscribers: https://aster.markets/data
             # for brokers: https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit': 333,
-            'hostname': 'aster.markets',
             'certified': False,
             'pro': True,
             'dex': True,
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo': 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www': 'https://www.asterdex.com/en',
                 'api': {
                     'fapiPublic': 'https://fapi.asterdex.com/fapi',
@@ -71,9 +70,9 @@ class aster(Exchange, ImplicitAPI):
             },
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
                 'addMargin': True,
@@ -1020,7 +1019,8 @@ class aster(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch orders for
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {}
         if since is not None:
@@ -1174,7 +1174,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1299,7 +1300,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1430,7 +1432,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1483,7 +1486,8 @@ class aster(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -1535,7 +1539,8 @@ class aster(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a dictionary of lastprices structures
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -1598,7 +1603,8 @@ class aster(Exchange, ImplicitAPI):
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -1690,7 +1696,8 @@ class aster(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRate() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1720,7 +1727,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.fapiPublicGetV3PremiumIndex(self.extend(params))
         #
@@ -1749,7 +1757,8 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbols is not None:
             symbols = self.market_symbols(symbols)
         response = await self.fapiPublicGetV3FundingInfo(params)
@@ -1780,7 +1789,8 @@ class aster(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest funding rate
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -3899,7 +3909,7 @@ class aster(Exchange, ImplicitAPI):
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
     def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
-        url = self.implode_hostname(self.urls['api'][api]) + '/' + path
+        url = self.urls['api'][api] + '/' + path
         if api == 'fapiPublic' or api == 'sapiPublic':
             if params:
                 url += '?' + self.rawencode(params)

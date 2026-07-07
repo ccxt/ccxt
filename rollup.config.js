@@ -13,6 +13,11 @@ export default [
         dir: "./dist/cjs/",
         format: "cjs",
         exports: "named",
+        // node:zlib and fflate expose their named exports directly on module.exports,
+        // so no _interopNamespace wrapper is needed — this keeps the generated
+        // dist/cjs/src/base/ws/Client.js free of the interop helper. Everything else
+        // keeps the legacy interop (true, matching the previous default behaviour) (e.g. protobufjs/minimal.js needs `.default`).
+        interop: (id) => (id === 'node:zlib' || id === 'fflate' ? 'esModule' : true),
       }
     ],
     plugins: [
@@ -47,6 +52,8 @@ export default [
         '@scure/starknet',
         'ws',
         'bufferutil',
+        // websocket decompression fallback for browser/non-node runtimes
+        'fflate',
         // optional proxy agents (dynamically imported)
         'socks-proxy-agent',
         'http-proxy-agent',

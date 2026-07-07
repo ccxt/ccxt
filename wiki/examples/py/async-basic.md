@@ -1,7 +1,10 @@
 ```python
 # -*- coding: utf-8 -*-
 
-import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 
@@ -17,6 +20,6 @@ async def test_binance():
 
 
 if __name__ == '__main__':
-    print(asyncio.run(test_binance()))
+    print(run(test_binance()))
 
 ```

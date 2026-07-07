@@ -9,7 +9,7 @@ public partial class derive : Exchange
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "derive" },
-            { "name", "derive" },
+            { "name", "Derive" },
             { "countries", new List<object>() {} },
             { "version", "v1" },
             { "rateLimit", 50 },
@@ -125,9 +125,8 @@ public partial class derive : Exchange
                 { "1w", "1w" },
                 { "1M", "1M" },
             } },
-            { "hostname", "derive.xyz" },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://github.com/user-attachments/assets/f835b95f-033a-43dd-b6bb-24e698fc498c" },
+                { "logo", "https://github.com/user-attachments/assets/9e640700-c870-41f9-8907-fba58e120fed" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.lyra.finance/public" },
                     { "private", "https://api.lyra.finance/private" },
@@ -644,7 +643,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -817,7 +819,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -945,7 +950,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(((string)symbol));
         object request = new Dictionary<string, object>() {
             { "instrument_name", getValue(market, "id") },
@@ -1120,7 +1128,10 @@ public partial class derive : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(isEqual(price, null)))
         {
@@ -1314,7 +1325,10 @@ public partial class derive : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("editOrder", parameters);
@@ -1475,7 +1489,10 @@ public partial class derive : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         object subaccountId = null;
@@ -1575,7 +1592,10 @@ public partial class derive : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1602,7 +1622,7 @@ public partial class derive : Exchange
         //     "result": {
         //         "cancelled_orders": 0
         //     },
-        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f4"
+        //     "id": "9d633799-2098-4559-b547-605bb6f4d8f5"
         // }
         //
         // {
@@ -1632,7 +1652,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1743,7 +1766,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "open" },
         });
@@ -1765,7 +1791,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "filled" },
         });
@@ -1787,7 +1816,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object extendedParams = this.extend(parameters, new Dictionary<string, object>() {
             { "status", "cancelled" },
         });
@@ -1971,7 +2003,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchOrderTrades", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -2052,7 +2087,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2147,7 +2185,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchPositions", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -2295,7 +2336,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2410,7 +2454,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object deriveWalletAddress = null;
         var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("fetchBalance", parameters);
         deriveWalletAddress = ((IList<object>)deriveWalletAddressparametersVariable)[0];
@@ -2515,7 +2562,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchDeposits", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -2567,7 +2617,10 @@ public partial class derive : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchWithdrawals", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];

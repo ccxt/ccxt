@@ -26,7 +26,6 @@ export default class gemini extends geminiRest {
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
             },
-            'hostname': 'api.gemini.com',
             'urls': {
                 'api': {
                     'ws': 'wss://api.gemini.com',
@@ -50,7 +49,9 @@ export default class gemini extends geminiRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'trades:' + market['symbol'];
         const marketId = market['id'];
@@ -277,7 +278,9 @@ export default class gemini extends geminiRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
@@ -368,7 +371,9 @@ export default class gemini extends geminiRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const messageHash = 'orderbook:' + market['symbol'];
         const marketId = market['id'];
@@ -507,7 +512,9 @@ export default class gemini extends geminiRest {
     }
 
     async helperForWatchMultipleConstruct (itemHashName:string, symbols: string[] = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbols === undefined) {
             throw new NotSupported (this.id + ' watchMultiple requires at least one symbol');
         }
@@ -640,7 +647,9 @@ export default class gemini extends geminiRest {
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         const url = this.urls['api']['ws'] + '/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked';
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const authParams: Dict = {
             'url': url,
         };

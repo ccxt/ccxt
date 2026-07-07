@@ -160,9 +160,8 @@ public class BlofinCore extends BlofinApi
                 put( "1w", "1W" );
                 put( "1M", "1M" );
             }} );
-            put( "hostname", "www.blofin.com" );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/518cdf80-f05d-4821-a3e3-d48ceb41d73b" );
+                put( "logo", "https://github.com/user-attachments/assets/67edf117-6217-4cb8-95e7-9b03f314b1b1" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "rest", "https://openapi.blofin.com" );
                 }} );
@@ -3434,7 +3433,7 @@ public class BlofinCore extends BlofinApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest")), request);
+        Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {

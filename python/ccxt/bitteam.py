@@ -753,7 +753,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         resolution = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
@@ -823,7 +824,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -873,7 +875,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param str [params.type]: the status of the order - 'active', 'closed', 'cancelled', 'all', 'history'(default 'all')
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = self.safe_string(params, 'type', 'all')
         request = {
             'type': type,
@@ -982,7 +985,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'id': id,
         }
@@ -1042,7 +1046,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'type': 'active',
         }
@@ -1060,7 +1065,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns Order[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'type': 'closed',
         }
@@ -1078,7 +1084,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'type': 'cancelled',
         }
@@ -1098,7 +1105,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: an `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pairId': self.safe_string(market, 'numericId'),
@@ -1149,7 +1157,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: An `order structure <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'id': id,
         }
@@ -1175,7 +1184,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict[]: a list of `order structures <https://github.com/ccxt/ccxt/wiki/Manual#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if symbol is not None:
@@ -1373,7 +1383,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: a dictionary of `ticker structures <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetTradeApiCmcSummary()
         #
         #     [
@@ -1425,7 +1436,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: a `ticker structure <https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'name': market['id'],
@@ -1756,7 +1768,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'pair': market['id'],
@@ -1797,7 +1810,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2055,7 +2069,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the betteam api endpoint
         :returns dict: a `balance structure <https://github.com/ccxt/ccxt/wiki/Manual#balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetTradeApiCcxtBalance(params)
         return self.parse_balance(response)
 
@@ -2136,7 +2151,8 @@ class bitteam(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :returns dict: a list of `transaction structure <https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {}
         if code is not None:

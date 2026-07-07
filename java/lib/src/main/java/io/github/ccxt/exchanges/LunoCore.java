@@ -21,7 +21,7 @@ public class LunoCore extends LunoApi
     {
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "id", "luno" );
-            put( "name", "luno" );
+            put( "name", "Luno" );
             put( "countries", new java.util.ArrayList<Object>(java.util.Arrays.asList("GB", "SG", "ZA")) );
             put( "rateLimit", 200 );
             put( "version", "1" );

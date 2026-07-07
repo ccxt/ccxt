@@ -113,7 +113,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object} data from the websocket stream
      */
     async subscribePublic(name, symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const subscribe = {
             'event': 'subscribe',
@@ -147,7 +149,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object} data from the websocket stream
      */
     async subscribePrivate(name, messageHash, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -170,7 +174,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -185,7 +191,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const ticker = await this.watchMultiHelper('ticker', 'ticker', symbols, undefined, params);
         if (this.newUpdates) {
@@ -272,7 +280,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = '';
         symbols = this.marketSymbols(symbols);
         if (!this.isEmpty(symbols)) {
@@ -408,7 +418,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'open_orders';
         let messageHash = 'orders';
         if (symbol !== undefined) {
@@ -433,7 +445,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'fills';
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -456,7 +470,9 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const name = 'balances';
         let messageHash = name;
         let account = undefined;
@@ -1490,7 +1506,9 @@ class krakenfutures extends krakenfutures$1["default"] {
         });
     }
     async watchMultiHelper(unifiedName, channelName, symbols = undefined, subscriptionArgs = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         // symbols are required
         symbols = this.marketSymbols(symbols, undefined, false, true, false);

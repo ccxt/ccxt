@@ -62,9 +62,11 @@ func  (this *BithumbCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes538 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes538)
+                retRes5412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes5412)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
             var request any = map[string]any {
@@ -73,9 +75,9 @@ func  (this *BithumbCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
                 "tickTypes": []any{this.SafeString(params, "tickTypes", "24H")},
             }
         
-                retRes6115 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-                ccxt.PanicOnError(retRes6115)
-                ch <- retRes6115
+                retRes6315 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+                ccxt.PanicOnError(retRes6315)
+                ch <- retRes6315
                 return nil
         
             }()
@@ -99,13 +101,18 @@ func  (this *BithumbCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes748)
+                retRes7712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes7712)
+            }
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
             var marketIds any = []any{}
             var messageHashes any = []any{}
             symbols = this.MarketSymbols(symbols, nil, false, true, true)
+            if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
+                symbols = []any{}
+            }
             for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbols)); i++ {
                 var symbol any = ccxt.GetValue(symbols, i)
                 var market any = this.Market(symbol)
@@ -236,9 +243,11 @@ func  (this *BithumbCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1938 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1938)
+                retRes20112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes20112)
+            }
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -343,9 +352,11 @@ func  (this *BithumbCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2858)
+                retRes29512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes29512)
+            }
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
@@ -492,12 +503,14 @@ func  (this *BithumbCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4058 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4058)
+                retRes41712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes41712)
+            }
         
-            retRes4068 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes4068)
+            retRes4198 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes4198)
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
             var messageHash any = "myAsset"
             var request any = []any{map[string]any {
@@ -611,12 +624,14 @@ func  (this *BithumbCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4928 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4928)
+                retRes50612 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes50612)
+            }
         
-            retRes4938 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes4938)
+            retRes5088 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes5088)
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "privateV2")
             var messageHash any = "myOrder"
             var codes any = this.SafeList(params, "codes", []any{})

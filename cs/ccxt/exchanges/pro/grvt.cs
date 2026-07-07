@@ -147,7 +147,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, this.extend(parameters, new Dictionary<string, object>() {
             { "callerMethodName", "watchTicker" },
@@ -159,7 +162,7 @@ public partial class grvt : ccxt.grvt
      * @method
      * @name grvt#watchTickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
-     * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+     * @see https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -179,7 +182,10 @@ public partial class grvt : ccxt.grvt
         var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", 500);
         interval = ((IList<object>)intervalparametersVariable)[0];
         parameters = ((IList<object>)intervalparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -332,7 +338,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
@@ -422,7 +431,10 @@ public partial class grvt : ccxt.grvt
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
         object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
@@ -443,7 +455,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -538,7 +553,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
@@ -557,7 +575,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object channel = null;
         var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         channel = ((IList<object>)channelparametersVariable)[0];
@@ -714,7 +735,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object subAccountId = this.getSubAccountId(parameters);
         object messageHashes = new List<object>() {};
@@ -810,7 +834,10 @@ public partial class grvt : ccxt.grvt
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subAccountId = this.getSubAccountId(parameters);
         symbols = this.marketSymbols(symbols);
         object rawHashes = new List<object>() {};
@@ -905,7 +932,10 @@ public partial class grvt : ccxt.grvt
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object subAccountId = this.getSubAccountId(parameters);
         object messageHashes = new List<object>() {};

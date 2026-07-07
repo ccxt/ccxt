@@ -201,7 +201,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         {
             Object trade = this.parseTrade(Helpers.GetValue(payload, i));
             Object symbol = Helpers.GetValue(trade, "symbol");
-            Object tradesArray = this.safeValue(this.trades, symbol);
+            Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
                 Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -555,7 +555,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object id = this.safeInteger(message, "i");
-        Object subscription = this.safeValue(subscriptionsById, id);
+        Object subscription = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? null : this.safeValue(subscriptionsById, id);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
             Object method = this.safeValue(subscription, "method");
@@ -607,7 +607,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             put( "TickerDataUpdateEvent", "handleOHLCV");
         }};
         Object eventVar = this.safeString(message, "n");
-        Object method = this.safeValue(methods, eventVar);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});

@@ -126,7 +126,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$params->bookUpdateFrequency] Book update interval in ms. Allowed values => 100 for snapshot subscription 10 for delta subscription
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $topics = array();
             $messageHashes = array();
@@ -176,7 +178,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$params->bookUpdateFrequency] Book update interval in ms. Allowed values => 100 for snapshot subscription 10 for delta subscription
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $topics = array();
             $subMessageHashes = array();
@@ -364,7 +368,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $topics = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -394,7 +400,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $topics = array();
             $messageHashes = array();
@@ -470,7 +478,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -497,7 +507,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'ticker' . '.' . $market['id'];
             return Async\await($this->watch_public($messageHash, $params));
@@ -515,7 +527,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $subMessageHash = 'ticker' . '.' . $market['id'];
             $messageHash = 'unsubscribe:ticker:' . $market['symbol'];
@@ -534,7 +548,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $marketIds = $this->market_ids($symbols);
@@ -572,7 +588,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $subMessageHashes = array();
@@ -684,7 +702,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $topics = array();
@@ -754,7 +774,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -779,7 +801,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -838,7 +862,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -919,7 +945,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
             $id = $this->nonce();
@@ -1137,7 +1165,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $params = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $request = array(
                 'method' => 'private/create-order',
@@ -1165,7 +1195,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {string} [$params->clientOrderId] the original client order $id of the order to edit, required if $id is not provided
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $params = $this->edit_order_request($id, $symbol, $amount, $price, $params);
             $request = array(
                 'method' => 'private/amend-order',
@@ -1206,7 +1238,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $params = $this->extend(array(
                 'order_id' => $id,
             ), $params);
@@ -1230,7 +1264,9 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} Returns exchange raw message array(@link https://docs.ccxt.com/?id=order-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array(
                 'method' => 'private/cancel-all-orders',

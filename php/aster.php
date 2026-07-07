@@ -18,12 +18,11 @@ class aster extends Exchange {
             // 150 req/s for subscribers => https://aster.markets/data
             // for brokers => https://aster.markets/docs/api-references/broker-api/#authentication-and-rate-limit
             'rateLimit' => 333,
-            'hostname' => 'aster.markets',
             'certified' => false,
             'pro' => true,
             'dex' => true,
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/4982201b-73cd-4d7a-8907-e69e239e9609',
+                'logo' => 'https://github.com/user-attachments/assets/5e5909d6-c4de-4435-992f-4339c80edbd7',
                 'www' => 'https://www.asterdex.com/en',
                 'api' => array(
                     'fapiPublic' => 'https://fapi.asterdex.com/fapi',
@@ -40,9 +39,9 @@ class aster extends Exchange {
             ),
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
-                'swap' => false,
+                'swap' => true,
                 'future' => false,
                 'option' => false,
                 'addMargin' => true,
@@ -1004,7 +1003,9 @@ class aster extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         if ($since !== null) {
@@ -1167,7 +1168,9 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1302,7 +1305,9 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1437,7 +1442,9 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1491,7 +1498,9 @@ class aster extends Exchange {
          * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
@@ -1545,7 +1554,9 @@ class aster extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of lastprices structures
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
@@ -1612,7 +1623,9 @@ class aster extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $market = $this->get_market_from_symbols($symbols);
         $marketType = null;
@@ -1709,7 +1722,9 @@ class aster extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRate() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1740,7 +1755,9 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->fapiPublicGetV3PremiumIndex($this->extend($params));
         //
@@ -1770,7 +1787,9 @@ class aster extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
         }
@@ -1803,7 +1822,9 @@ class aster extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -4094,7 +4115,7 @@ class aster extends Exchange {
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
-        $url = $this->implode_hostname($this->urls['api'][$api]) . '/' . $path;
+        $url = $this->urls['api'][$api] . '/' . $path;
         if ($api === 'fapiPublic' || $api === 'sapiPublic') {
             if ($params) {
                 $url .= '?' . $this->rawencode($params);

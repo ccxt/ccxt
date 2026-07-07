@@ -14,7 +14,7 @@ func TestWatchBalance(exchange ccxt.ICoreExchange, skippedProperties any, code a
 		var now any = exchange.Milliseconds()
 		var ends any = Add(now, 15000)
 		for IsLessThan(now, ends) {
-			var response any = nil
+			var response any = map[string]any{}
 			var success any = true
 
 			{

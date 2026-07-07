@@ -126,7 +126,9 @@ export default class okx extends okxRest {
     }
 
     async subscribeMultiple (access, channel, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if (symbols === undefined) {
             symbols = this.symbols;
         }
@@ -151,7 +153,9 @@ export default class okx extends okxRest {
     }
 
     async subscribe (access, messageHash, channel, symbol, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const url = this.getUrl (channel, access);
         const firstArgument: Dict = {
             'channel': channel,
@@ -204,7 +208,9 @@ export default class okx extends okxRest {
         if (symbolsLength === 0) {
             throw new ArgumentsRequired (this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
@@ -249,7 +255,9 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTrades', 'channel', 'trades');
@@ -370,7 +378,9 @@ export default class okx extends okxRest {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' watchFundingRates() requires an array of symbols');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const channel = 'funding-rate';
         const topics: List = [];
@@ -475,7 +485,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
@@ -517,7 +529,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchMarkPrices', 'channel', 'mark-price');
@@ -539,7 +553,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
@@ -616,7 +632,9 @@ export default class okx extends okxRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let channel: Str = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
@@ -709,7 +727,9 @@ export default class okx extends okxRest {
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, true, true);
         const messageHash = 'liquidations';
         const messageHashes: List = [];
@@ -804,7 +824,9 @@ export default class okx extends okxRest {
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     async watchMyLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
         await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
@@ -990,7 +1012,9 @@ export default class okx extends okxRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbol = this.symbol (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candle' + interval;
@@ -1011,7 +1035,9 @@ export default class okx extends okxRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
     }
 
@@ -1030,7 +1056,9 @@ export default class okx extends okxRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -1073,7 +1101,9 @@ export default class okx extends okxRest {
         if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
             throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const topics: List = [];
         const messageHashes: List = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -1194,7 +1224,9 @@ export default class okx extends okxRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         let depth: Str = undefined;
         [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
@@ -1248,7 +1280,9 @@ export default class okx extends okxRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         let depth: Str = undefined;
         [ depth, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'depth', 'books');
@@ -1551,7 +1585,9 @@ export default class okx extends okxRest {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         return await this.subscribe ('private', 'account', 'account', undefined, params);
     }
@@ -1703,7 +1739,9 @@ export default class okx extends okxRest {
         [ type, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'type', 'ANY');
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop', false);
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
         const channel = isTrigger ? 'orders-algo' : 'orders';
         let messageHash = channel + '::myTrades';
@@ -1747,7 +1785,9 @@ export default class okx extends okxRest {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate (params);
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
@@ -1894,7 +1934,9 @@ export default class okx extends okxRest {
         [ type, params ] = this.handleOptionAndParams (params, 'watchOrders', 'type', 'ANY');
         const isTrigger = this.safeValue2 (params, 'stop', 'trigger', false);
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ({ 'access': isTrigger ? 'business' : 'private' });
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2124,7 +2166,9 @@ export default class okx extends okxRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
@@ -2202,7 +2246,9 @@ export default class okx extends okxRest {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
@@ -2238,7 +2284,9 @@ export default class okx extends okxRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelOrderWs() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
@@ -2280,7 +2328,9 @@ export default class okx extends okxRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelOrdersWs() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
         const messageHash = this.requestId ();
@@ -2317,7 +2367,9 @@ export default class okx extends okxRest {
         if (symbol === undefined) {
             throw new BadRequest (this.id + ' cancelAllOrdersWs() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const market = this.market (symbol);
         if (market['type'] !== 'option') {

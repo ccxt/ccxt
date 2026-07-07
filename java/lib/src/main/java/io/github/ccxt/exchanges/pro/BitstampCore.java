@@ -387,7 +387,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object subscription = this.safeValue(client.subscriptions, channel);
+        Object subscription = ((Helpers.isTrue((Helpers.isEqual(channel, null))))) ? null : this.safeValue(client.subscriptions, channel);
         Object symbol = this.safeString(subscription, "symbol");
         Object market = this.market(symbol);
         Helpers.addElementToObject(order, "event", this.safeString(message, "event"));

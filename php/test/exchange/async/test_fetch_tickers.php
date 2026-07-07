@@ -36,7 +36,11 @@ function fetch_tickers_helper_test($exchange, $skipped_properties, $arg_symbols,
         for ($i = 0; $i < count($values); $i++) {
             // todo: symbol check here
             $ticker = $values[$i];
-            test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
+            try {
+                test_ticker($exchange, $skipped_properties, $method, $ticker, $checked_symbol);
+            } catch(\Throwable $ex) {
+                \React\Async\await(validate_ticker_exception_for_percentage($ex, $exchange, $ticker));
+            }
         }
         return $response;
     }) ();

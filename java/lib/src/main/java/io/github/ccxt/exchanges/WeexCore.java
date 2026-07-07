@@ -191,7 +191,7 @@ public class WeexCore extends WeexApi
                 put( "withdraw", false );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/ccbadb2d-5035-403d-898f-dce831bdc936" );
+                put( "logo", "https://github.com/user-attachments/assets/bc67b9f2-75d2-4b8d-963a-18f2fcd9d13c" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api-spot.weex.com" );
                     put( "private", "https://api-spot.weex.com" );

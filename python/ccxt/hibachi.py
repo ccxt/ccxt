@@ -126,7 +126,7 @@ class hibachi(Exchange, ImplicitAPI):
                 '1w': '1w',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973',
+                'logo': 'https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab',
                 'api': {
                     'public': 'https://data-api.hibachi.xyz',
                     'private': 'https://api.hibachi.xyz',
@@ -140,25 +140,29 @@ class hibachi(Exchange, ImplicitAPI):
                 'public': {
                     'get': {
                         'market/exchange-info': 1,
-                        'market/data/trades': 1,
+                        'market/inventory': 1,
                         'market/data/prices': 1,
                         'market/data/stats': 1,
+                        'market/data/trades': 1,
                         'market/data/klines': 1,
-                        'market/data/orderbook': 1,
                         'market/data/open-interest': 1,
+                        'market/data/orderbook': 1,
                         'market/data/funding-rates': 1,
                         'exchange/utc-timestamp': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'capital/deposit-info': 1,
+                        'capital/balance': 1,
                         'capital/history': 1,
-                        'trade/account/trading_history': 1,
+                        'capital/deposit-info': 1,
                         'trade/account/info': 1,
-                        'trade/order': 1,
                         'trade/account/trades': 1,
+                        'trade/account/trading_history': 1,  # not in current docs, used by fetchLedger
+                        'trade/account/settlements_history': 1,
                         'trade/orders': 1,
+                        'trade/order': 1,
+                        'trade/orders/history': 1,
                     },
                     'put': {
                         'trade/order': 1,
@@ -171,6 +175,8 @@ class hibachi(Exchange, ImplicitAPI):
                         'trade/order': 1,
                         'trade/orders': 1,
                         'capital/withdraw': 1,
+                        'capital/transfer': 1,
+                        'trade/account/leverage': 1,
                     },
                 },
             },
@@ -579,7 +585,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the hibachi api endpoint
         :returns dict[]: a list of recent [trade structures]
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -603,14 +610,16 @@ class hibachi(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: Str, params={}) -> Ticker:
         """
 
-        https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+        https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+        https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
 
         fetches a price ticker and the related information for the past 24h
         :param str symbol: unified symbol of the market
         :param dict [params]: extra parameters specific to the hibachi api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -726,7 +735,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -740,10 +750,14 @@ class hibachi(Exchange, ImplicitAPI):
     def fetch_trading_fees(self, params={}) -> TradingFees:
         """
         fetch the trading fee
+
+        https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a map of market symbols to `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'accountId': self.get_account_id(),
         }
@@ -865,7 +879,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         request = self.create_order_request(nonce, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
@@ -890,7 +905,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         requestOrders = []
         for i in range(0, len(orders)):
@@ -953,7 +969,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         request = self.edit_order_request(nonce, id, symbol, type, side, amount, price, params)
         request['accountId'] = self.get_account_id()
@@ -977,7 +994,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         requestOrders = []
         for i in range(0, len(orders)):
@@ -1091,7 +1109,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         nonce = self.nonce()
         nonce16 = self.int_to_base16(nonce)
         noncePadded = nonce16.rjust(16, '0')
@@ -1230,14 +1249,15 @@ class hibachi(Exchange, ImplicitAPI):
         """
         fetches the state of the open orders on the orderbook
 
-        https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+        https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
 
         :param str symbol: unified symbol of the market
         :param int [limit]: currently unused
         :param dict [params]: extra parameters to be passed -- see documentation link above
         :returns dict: A dictionary containg `orderbook information <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1298,7 +1318,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1363,7 +1384,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1404,7 +1426,7 @@ class hibachi(Exchange, ImplicitAPI):
     def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
-         https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+        https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
 
         fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1415,7 +1437,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         timeframe = self.safe_string(self.timeframes, timeframe, timeframe)
         request = {
@@ -1455,7 +1478,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
             'accountId': self.get_account_id(),
@@ -1670,7 +1694,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency('USDT')
         request = {'accountId': self.get_account_id()}
         rawPromises = [
@@ -1767,6 +1792,9 @@ class hibachi(Exchange, ImplicitAPI):
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
         """
         fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
+
+        https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+
         :param str code: unified currency code
         :param dict [params]: extra parameters for API
         :param str [params.publicKey]: your public key, you can get it from UI after creating API key
@@ -1933,7 +1961,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+        https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -1954,7 +1982,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1983,7 +2012,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2031,7 +2061,7 @@ class hibachi(Exchange, ImplicitAPI):
         """
         fetches historical funding rate prices
 
-        https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+        https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
@@ -2039,7 +2069,8 @@ class hibachi(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],

@@ -31,7 +31,7 @@ public class LighterCore extends LighterApi
             put( "quoteJsonNumbers", false );
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "CORS", null );
-                put( "spot", false );
+                put( "spot", true );
                 put( "margin", false );
                 put( "swap", true );
                 put( "future", false );
@@ -1242,10 +1242,13 @@ public class LighterCore extends LighterApi
                 put( "nonce", nonce );
                 put( "api_key_index", finalApiKeyIndex );
                 put( "account_index", finalAccountIndex );
-                put( "integrator_account_index", Helpers.GetValue(LighterCore.this.options, "integratorAccountIndex") );
-                put( "integrator_taker_fee", Helpers.GetValue(LighterCore.this.options, "integratorTakerFee") );
-                put( "integrator_maker_fee", Helpers.GetValue(LighterCore.this.options, "integratorMakerFee") );
             }};
+            if (Helpers.isTrue(this.safeBool(this.options, "builderFee", true)))
+            {
+                Helpers.addElementToObject(signRaw, "integrator_account_index", Helpers.GetValue(this.options, "integratorAccountIndex"));
+                Helpers.addElementToObject(signRaw, "integrator_taker_fee", Helpers.GetValue(this.options, "integratorTakerFee"));
+                Helpers.addElementToObject(signRaw, "integrator_maker_fee", Helpers.GetValue(this.options, "integratorMakerFee"));
+            }
             var txTypetxInfoVariable = this.lighterSignModifyOrder(signer, this.extend(signRaw, parameters));
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);

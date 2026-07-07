@@ -60,7 +60,9 @@ class bittrade extends \ccxt\async\bittrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             // only supports a limit of 150 at this time
@@ -126,7 +128,9 @@ class bittrade extends \ccxt\async\bittrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             // only supports a $limit of 150 at this time
@@ -206,7 +210,9 @@ class bittrade extends \ccxt\async\bittrade {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -283,7 +289,9 @@ class bittrade extends \ccxt\async\bittrade {
             if (($limit !== null) && ($limit !== 150)) {
                 throw new ExchangeError($this->id . ' watchOrderBook accepts $limit = 150 only');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             // only supports a $limit of 150 at this time

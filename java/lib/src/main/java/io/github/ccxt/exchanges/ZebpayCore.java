@@ -87,7 +87,7 @@ public class ZebpayCore extends ZebpayApi
                 put( "1w", 10080 );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/8094e7be-55a7-46f4-a087-0ca31b48ecad" );
+                put( "logo", "https://github.com/user-attachments/assets/0e88d86a-a1cd-49df-a826-054cd8caafa6" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "spot", "https://sapi.zebpay.com" );
                     put( "swap", "https://futuresbe.zebpay.com" );

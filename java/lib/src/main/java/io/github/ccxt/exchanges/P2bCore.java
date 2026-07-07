@@ -149,9 +149,8 @@ public class P2bCore extends P2bApi
                 put( "1d", "1d" );
             }} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "extension", ".json" );
                 put( "referral", "https://p2pb2b.com?referral=ee784c53" );
-                put( "logo", "https://github.com/ccxt/ccxt/assets/43336371/8da13a80-1f0a-49be-bb90-ff8b25164755" );
+                put( "logo", "https://github.com/user-attachments/assets/122f0c86-f3a6-4334-910f-4d8edc865696" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.p2pb2b.com/api/v2/public" );
                     put( "private", "https://api.p2pb2b.com/api/v2" );

@@ -160,7 +160,7 @@ public class CryptomusCore extends CryptomusApi
             }} );
             put( "timeframes", new java.util.HashMap<String, Object>() {{}} );
             put( "urls", new java.util.HashMap<String, Object>() {{
-                put( "logo", "https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7" );
+                put( "logo", "https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0" );
                 put( "api", new java.util.HashMap<String, Object>() {{
                     put( "public", "https://api.cryptomus.com" );
                     put( "private", "https://api.cryptomus.com" );

@@ -118,7 +118,7 @@ class hibachi extends Exchange {
                 '1w' => '1w',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/7301bbb1-4f27-4167-8a55-75f74b14e973',
+                'logo' => 'https://github.com/user-attachments/assets/f267bf5b-5c6c-45e2-9ce4-fb0af8a9d9ab',
                 'api' => array(
                     'public' => 'https://data-api.hibachi.xyz',
                     'private' => 'https://api.hibachi.xyz',
@@ -132,25 +132,29 @@ class hibachi extends Exchange {
                 'public' => array(
                     'get' => array(
                         'market/exchange-info' => 1,
-                        'market/data/trades' => 1,
+                        'market/inventory' => 1,
                         'market/data/prices' => 1,
                         'market/data/stats' => 1,
+                        'market/data/trades' => 1,
                         'market/data/klines' => 1,
-                        'market/data/orderbook' => 1,
                         'market/data/open-interest' => 1,
+                        'market/data/orderbook' => 1,
                         'market/data/funding-rates' => 1,
                         'exchange/utc-timestamp' => 1,
                     ),
                 ),
                 'private' => array(
                     'get' => array(
-                        'capital/deposit-info' => 1,
+                        'capital/balance' => 1,
                         'capital/history' => 1,
-                        'trade/account/trading_history' => 1,
+                        'capital/deposit-info' => 1,
                         'trade/account/info' => 1,
-                        'trade/order' => 1,
                         'trade/account/trades' => 1,
+                        'trade/account/trading_history' => 1, // not in current docs, used by fetchLedger
+                        'trade/account/settlements_history' => 1,
                         'trade/orders' => 1,
+                        'trade/order' => 1,
+                        'trade/orders/history' => 1,
                     ),
                     'put' => array(
                         'trade/order' => 1,
@@ -163,6 +167,8 @@ class hibachi extends Exchange {
                         'trade/order' => 1,
                         'trade/orders' => 1,
                         'capital/withdraw' => 1,
+                        'capital/transfer' => 1,
+                        'trade/account/leverage' => 1,
                     ),
                 ),
             ),
@@ -582,7 +588,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the hibachi api endpoint
          * @return {array[]} a list of recent [trade structures]
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -607,14 +615,17 @@ class hibachi extends Exchange {
     public function fetch_ticker(?string $symbol, $params = array()): array {
         /**
          *
-         * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+         * @see https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+         * @see https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
          *
          * fetches a price $ticker and the related information for the past 24h
          * @param {string} $symbol unified $symbol of the $market
          * @param {array} [$params] extra parameters specific to the hibachi api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -736,7 +747,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -752,10 +765,15 @@ class hibachi extends Exchange {
     public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fee
+         *
+         * @see https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31
+         *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a map of market symbols to ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'accountId' => $this->get_account_id(),
         );
@@ -887,7 +905,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $nonce = $this->nonce();
         $request = $this->create_order_request($nonce, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
@@ -913,7 +933,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $nonce = $this->nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -980,7 +1002,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $nonce = $this->nonce();
         $request = $this->edit_order_request($nonce, $id, $symbol, $type, $side, $amount, $price, $params);
         $request['accountId'] = $this->get_account_id();
@@ -1005,7 +1029,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $nonce = $this->nonce();
         $requestOrders = array();
         for ($i = 0; $i < count($orders); $i++) {
@@ -1127,7 +1153,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $nonce = $this->nonce();
         $nonce16 = $this->int_to_base16($nonce);
         $noncePadded = str_pad($nonce16, 16, '0', STR_PAD_LEFT);
@@ -1273,14 +1301,16 @@ class hibachi extends Exchange {
         /**
          * fetches the state of the open orders on the orderbook
          *
-         * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+         * @see https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b
          *
          * @param {string} $symbol unified $symbol of the $market
          * @param {int} [$limit] currently unused
          * @param {array} [$params] extra parameters to be passed -- see documentation link above
          * @return {array} A dictionary containg ~@link https://docs.ccxt.com/?id=order-book-structure orderbook information~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1342,7 +1372,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1410,7 +1442,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1453,7 +1487,7 @@ class hibachi extends Exchange {
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
-         * @see  https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
+         * @see https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac
          *
          * fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1464,7 +1498,9 @@ class hibachi extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $timeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
@@ -1507,7 +1543,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array(
             'accountId' => $this->get_account_id(),
@@ -1739,7 +1777,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency('USDT');
         $request = array( 'accountId' => $this->get_account_id() );
         $rawPromises = array(
@@ -1837,6 +1877,9 @@ class hibachi extends Exchange {
     public function fetch_deposit_address(string $code, $params = array()): array {
         /**
          * fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note => This method is currently only supported for trustless accounts
+         *
+         * @see https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5
+         *
          * @param {string} $code unified currency $code
          * @param {array} [$params] extra parameters for API
          * @param {string} [$params->publicKey] your public key, you can get it from UI after creating API key
@@ -2012,7 +2055,7 @@ class hibachi extends Exchange {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
          *
-         * @see http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434
+         * @see https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int} the current integer timestamp in milliseconds from the exchange server
@@ -2034,7 +2077,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] exchange specific parameters
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2064,7 +2109,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$funding-rate-structure $funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2113,7 +2160,7 @@ class hibachi extends Exchange {
         /**
          * fetches historical funding rate prices
          *
-         * @see https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47
+         * @see https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] $timestamp in ms of the earliest funding rate to fetch
@@ -2121,7 +2168,9 @@ class hibachi extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],

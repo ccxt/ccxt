@@ -351,7 +351,7 @@ func (this *WSClient) GetUrl() string {
 	return this.Client.GetUrl()
 }
 
-func (this *WSClient) GetSubscriptions() map[string]any {
+func (this *WSClient) GetSubscriptions() any {
 	return this.Client.GetSubscriptions()
 }
 func (this *WSClient) GetLastPong() any {

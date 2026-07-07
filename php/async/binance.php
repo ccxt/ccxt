@@ -789,14 +789,15 @@ class binance extends Exchange {
                         'order' => 1,
                         'openOrder' => 1,
                         'openOrders' => array( 'cost' => 1, 'noSymbol' => 5 ),
-                        'allOrders' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'openAlgoOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'allOrders' => 5,
                         'balance' => 1,
                         'account' => 5,
                         'positionMargin/history' => 1,
                         'positionRisk' => 1,
-                        'userTrades' => array( 'cost' => 20, 'noSymbol' => 40 ),
+                        'userTrades' => 5,
                         'income' => 20,
-                        'leverageBracket' => 1,
+                        'leverageBracket' => array( 'cost' => 2, 'noSymbol' => 2 ),
                         'forceOrders' => array( 'cost' => 20, 'noSymbol' => 50 ),
                         'adlQuantile' => 5,
                         'commissionRate' => 20,
@@ -812,6 +813,7 @@ class binance extends Exchange {
                     'post' => array(
                         'positionSide/dual' => 1,
                         'order' => 4,
+                        'algoOrder' => 1,
                         'batchOrders' => 5,
                         'countdownCancelAll' => 10,
                         'leverage' => 1,
@@ -826,6 +828,7 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         'order' => 1,
+                        'algoOrder' => 1,
                         'allOpenOrders' => 1,
                         'batchOrders' => 5,
                         'listenKey' => 1,
@@ -1341,6 +1344,7 @@ class binance extends Exchange {
                 'defaultSubType' => null, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully' => false,
                 'warnOnFetchOpenOrdersWithoutSymbol' => true,
+                'warnOnSTPForInverse' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
@@ -1402,7 +1406,6 @@ class binance extends Exchange {
                     'XRP' => 'XRP',
                     'EOS' => 'EOS',
                     'DOGE' => 'DOGE',
-                    'SPL' => 'SOL', // temporarily keep support for SPL (old name)
                     'SOL' => 'SOL', // we shouldn't rename SOL
                     'SONIC' => 'SONIC',
                     // 'FIAT' => 'FIAT_MONEY', // not unified atm
@@ -3852,7 +3855,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] 'linear' or 'inverse'
              * @return {array} a ~@link https://docs.ccxt.com/?$id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
             $subType = null;
@@ -4114,7 +4119,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->rpi] *future only* set to true to use the RPI endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -4415,7 +4422,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->rolling] (spot only) default false, if true, uses the $rolling 24 hour ticker endpoint /api/v3/ticker
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -4458,7 +4467,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -4497,7 +4508,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of lastprices structures
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -4604,7 +4617,9 @@ class binance extends Exchange {
              * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -4668,7 +4683,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchMarkPrice', $market, $params, 'swap');
@@ -4705,7 +4722,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -4814,7 +4833,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
@@ -5223,7 +5244,9 @@ class binance extends Exchange {
              * @param {int} [$params->fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
             if ($paginate) {
@@ -5356,7 +5379,9 @@ class binance extends Exchange {
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for spot margin trading
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' editSpotOrder() does not support ' . $market['type'] . ' orders');
@@ -5533,6 +5558,10 @@ class binance extends Exchange {
     }
 
     public function edit_contract_order_request(string $id, string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
+            // moved here from editContractOrder for warning in case of calling editOrderWs() without $price argument for swap orders
+            throw new ArgumentsRequired($this->id . ' editOrder() and editOrderWs() require a $price argument for swap orders');
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new NotSupported($this->id . ' editContractOrder() does not support ' . $market['type'] . ' orders');
@@ -5574,15 +5603,12 @@ class binance extends Exchange {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'editContractOrder', 'papi', 'portfolioMargin', false);
-            if ($market['linear'] || $isPortfolioMargin) {
-                if (($price === null) && !(is_array($params) && array_key_exists('priceMatch', $params))) {
-                    throw new ArgumentsRequired($this->id . ' editOrder() requires a $price argument for portfolio margin and linear orders');
-                }
-            }
             $request = $this->edit_contract_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['linear']) {
@@ -5647,7 +5673,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['option']) {
                 throw new NotSupported($this->id . ' editOrder() does not support ' . $market['type'] . ' orders');
@@ -5672,7 +5700,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ordersRequests = array();
             $orderSymbols = array();
             for ($i = 0; $i < count($orders); $i++) {
@@ -6403,7 +6433,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ordersRequests = array();
             $orderSymbols = array();
             for ($i = 0; $i < count($orders); $i++) {
@@ -6516,7 +6548,9 @@ class binance extends Exchange {
              * @param {string} [$params->clientOrderId] the clientOrderId of the order
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             // don't handle/omit $params here, omitting happens inside createOrderRequest
             $marketType = $this->safe_string($params, 'type', $market['type']);
@@ -6570,7 +6604,12 @@ class binance extends Exchange {
                         $response = Async\await($this->papiPostCmOrder($request));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivatePostOrder($request));
+                    if ($isConditional) {
+                        $request['algoType'] = 'CONDITIONAL';
+                        $response = Async\await($this->dapiPrivatePostAlgoOrder($request));
+                    } else {
+                        $response = Async\await($this->dapiPrivatePostOrder($request));
+                    }
                 }
             } elseif ($marketType === 'margin' || $marginMode !== null || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -6871,7 +6910,7 @@ class binance extends Exchange {
                 }
             }
             if ($stopPrice !== null) {
-                if ($market['linear'] && $market['swap'] && !$isPortfolioMargin) {
+                if ($market['swap'] && !$isPortfolioMargin) {
                     $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
                 } else {
                     $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
@@ -6900,9 +6939,10 @@ class binance extends Exchange {
         $selfTradePrevention = null;
         list($selfTradePrevention, $params) = $this->handle_option_and_params($params, 'createOrder', 'selfTradePrevention');
         if ($selfTradePrevention !== null) {
-            if ($market['spot']) {
-                $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
+            if ($market['inverse'] && $this->options['warnOnSTPForInverse']) {
+                throw new NotSupported($this->id . ' createOrder() $selfTradePrevention is not supported for inverse markets. $selfTradePrevention for inverse markets is taken from linear $market-> To disable this warning set the "warnOnSTPForInverse" option to false.');
             }
+            $request['selfTradePreventionMode'] = strtoupper($selfTradePrevention); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
         $icebergAmount = $this->safe_number($params, 'icebergAmount');
@@ -6928,7 +6968,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketOrderWithCost() supports spot orders only');
@@ -6952,7 +6994,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -6976,7 +7020,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
@@ -7011,7 +7057,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'fetchOrder', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -7103,7 +7151,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
             if ($paginate) {
@@ -7377,7 +7427,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $type = null;
             $request = array();
@@ -7432,7 +7484,11 @@ class binance extends Exchange {
                         $response = Async\await($this->papiGetCmOpenOrders($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateGetOpenOrders($this->extend($request, $params)));
+                    if ($isConditional) {
+                        $response = Async\await($this->dapiPrivateGetOpenAlgoOrders($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->dapiPrivateGetOpenOrders($this->extend($request, $params)));
+                    }
                 }
             } elseif ($type === 'margin' || $marginMode !== null || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -7475,7 +7531,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -7796,7 +7854,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $defaultType = $this->safe_string_2($this->options, 'cancelOrder', 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -7812,7 +7872,7 @@ class binance extends Exchange {
             if ($clientOrderId !== null) {
                 if ($market['option']) {
                     $request['clientOrderId'] = $clientOrderId;
-                } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+                } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
                     $request['clientAlgoId'] = $clientOrderId;
                 } else {
                     if ($isPortfolioMargin && $isConditional) {
@@ -7824,7 +7884,7 @@ class binance extends Exchange {
             } else {
                 if ($isPortfolioMargin && $isConditional) {
                     $request['strategyId'] = $id;
-                } elseif ($market['linear'] && $market['swap'] && $isConditional && !$isPortfolioMargin) {
+                } elseif ($market['swap'] && $isConditional && !$isPortfolioMargin) {
                     $request['algoId'] = $id;
                 } else {
                     $request['orderId'] = $id;
@@ -7856,7 +7916,11 @@ class binance extends Exchange {
                         $response = Async\await($this->papiDeleteCmOrder($this->extend($request, $params)));
                     }
                 } else {
-                    $response = Async\await($this->dapiPrivateDeleteOrder($this->extend($request, $params)));
+                    if ($isConditional) {
+                        $response = Async\await($this->dapiPrivateDeleteAlgoOrder($this->extend($request, $params)));
+                    } else {
+                        $response = Async\await($this->dapiPrivateDeleteOrder($this->extend($request, $params)));
+                    }
                 }
             } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -7901,7 +7965,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -8075,7 +8141,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['contract']) {
                 throw new BadRequest($this->id . ' cancelOrders is only supported for swap markets.');
@@ -8156,7 +8224,9 @@ class binance extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = $this->safe_string($params, 'type', $market['type']);
             $params = $this->omit($params, 'type');
@@ -8192,7 +8262,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch trades for a portfolio margin account
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -8421,7 +8493,9 @@ class binance extends Exchange {
             // The corresponding $trades history is called the `Dust Log` and can be requested via the following end-point:
             // https://github.com/binance-exchange/binance-official-api-docs/blob/master/wapi-api.md#dustlog-user_data
             //
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($since !== null) {
                 $request['startTime'] = $since;
@@ -8566,7 +8640,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
             if ($paginate) {
@@ -8681,7 +8757,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
             if ($paginate) {
@@ -9125,7 +9203,9 @@ class binance extends Exchange {
              * @param {string} [$params->symbol] the unified $symbol, required for isolated margin transfers
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
@@ -9229,7 +9309,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->internal] default false, when true will fetch pay trade history
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $internal = $this->safe_bool($params, 'internal');
             $params = $this->omit($params, 'internal');
             $paginate = false;
@@ -9372,7 +9454,9 @@ class binance extends Exchange {
              * @param {string} [$params->network] network for fetch deposit address
              * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
@@ -9444,7 +9528,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->sapiGetCapitalConfigGetall($params));
             //
             //  array(
@@ -9561,7 +9647,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->sapiGetCapitalConfigGetall($params));
             //
             //    array(
@@ -9695,7 +9783,9 @@ class binance extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'coin' => $currency['id'],
@@ -9765,7 +9855,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = $market['type'];
             $subType = null;
@@ -9834,7 +9926,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTradingFees', null, $params);
             $subType = null;
@@ -10017,7 +10111,9 @@ class binance extends Exchange {
             if (($type < 1) || ($type > 4)) {
                 throw new ArgumentsRequired($this->id . ' $type must be between 1 and 4');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
@@ -10046,7 +10142,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -10095,7 +10193,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
@@ -10175,7 +10275,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $defaultType = $this->safe_string_2($this->options, 'fetchFundingRates', 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -10785,7 +10887,9 @@ class binance extends Exchange {
 
     public function load_leverage_brackets($reload = false, $params = array()) {
         return Async\async(function () use ($reload, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             // by default cache the leverage $bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
             $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets');
@@ -10849,7 +10953,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
             $subType = null;
@@ -10967,7 +11073,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['option']) {
                 throw new NotSupported($this->id . ' fetchPosition() supports option markets only');
@@ -11014,7 +11122,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $request = array();
             $market = null;
@@ -11187,7 +11297,9 @@ class binance extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchPositions() requires an array argument for symbols');
                 }
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_leverage_brackets(false, $params));
             $defaultType = $this->safe_string($this->options, 'defaultType', 'future');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -11316,7 +11428,9 @@ class binance extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchPositionsRisk() requires an array argument for symbols');
                 }
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_leverage_brackets(false, $params));
             $request = array();
             $defaultType = 'future';
@@ -11489,7 +11603,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array(
                 'incomeType' => 'FUNDING_FEE', // "TRANSFER"，"WELCOME_BONUS", "REALIZED_PNL"，"FUNDING_FEE", "COMMISSION" and "INSURANCE_CLEAR"
@@ -11559,7 +11675,9 @@ class binance extends Exchange {
             if (($leverage < 1) || ($leverage > 125)) {
                 throw new BadRequest($this->id . ' $leverage should be between 1 and 125');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -11617,7 +11735,9 @@ class binance extends Exchange {
             if (($marginMode !== 'ISOLATED') && ($marginMode !== 'CROSSED')) {
                 throw new BadRequest($this->id . ' $marginMode must be either isolated or cross');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -11731,7 +11851,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_leverage_brackets(false, $params));
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchLeverages', null, $params);
@@ -11808,7 +11930,9 @@ class binance extends Exchange {
              * @param {array} [$params] exchange specific $params
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=settlement-history-structure settlement history objects~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = ($symbol === null) ? null : $this->market($symbol);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
@@ -11857,7 +11981,9 @@ class binance extends Exchange {
              * @param {array} [$params] exchange specific $params
              * @return {array[]} a list of [settlement history objects]
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = ($symbol === null) ? null : $this->market($symbol);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
@@ -11998,7 +12124,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchLedgerEntry', null, $params);
             if ($type !== 'option') {
@@ -12048,7 +12176,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
             if ($paginate) {
@@ -12540,7 +12670,9 @@ class binance extends Exchange {
             if (($type === 'margin') || ($type === 'spot')) {
                 throw new NotSupported($this->id . ' add / reduce margin only supported with $type future or delivery');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $amount = $this->amount_to_precision($symbol, $amount);
             $request = array(
@@ -12661,7 +12793,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-$rate-structure borrow $rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
@@ -12719,7 +12853,9 @@ class binance extends Exchange {
              * @param {array} [$params->vipLevel] user's current specific margin data will be returned if viplevel is omitted
              * @return {array} a ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $symbol = $this->safe_string($params, 'symbol');
             $params = $this->omit($params, 'symbol');
@@ -12766,7 +12902,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=borrow-rate-structure borrow rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($limit === null) {
                 $limit = 93;
             } elseif ($limit > 93) {
@@ -12870,7 +13008,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} The gift $code $id, $code, $currency and $amount
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             // ensure you have enough token in your funding account before calling this $code
             $request = array(
@@ -12972,7 +13112,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch the borrow $interest in a portfolio margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isPortfolioMargin = null;
             list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'fetchBorrowInterest', 'papi', 'portfolioMargin', false);
             $request = array();
@@ -13074,7 +13216,9 @@ class binance extends Exchange {
              * @param {string} [$params->specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
@@ -13134,7 +13278,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $market = $this->market($symbol);
             $request = array(
@@ -13169,7 +13315,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
@@ -13208,7 +13356,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $market = $this->market($symbol);
             $request = array(
@@ -13279,7 +13429,9 @@ class binance extends Exchange {
             if ($timeframe === '1m') {
                 throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot use the 1m timeframe');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
             if ($paginate) {
@@ -13346,7 +13498,9 @@ class binance extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             if ($market['option']) {
@@ -13453,7 +13607,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyLiquidations', 'paginate');
             if ($paginate) {
@@ -13690,7 +13846,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -13728,7 +13886,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $request = array();
             $market = null;
@@ -13838,12 +13998,12 @@ class binance extends Exchange {
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositionMode', $market, $params);
             $response = null;
-            if ($subType === 'linear') {
-                $response = Async\await($this->fapiPrivateGetPositionSideDual($params));
-            } elseif ($subType === 'inverse') {
+            // we still have two working endpoints but positionMode is common for linear and inverse markets
+            // thus we do not throw an error if the $subType is not specified and default to linear for now
+            if ($subType === 'inverse') {
                 $response = Async\await($this->dapiPrivateGetPositionSideDual($params));
             } else {
-                throw new BadRequest($this->id . ' fetchPositionMode requires either a $symbol argument or $params["subType"]');
+                $response = Async\await($this->fapiPrivateGetPositionSideDual($params));
             }
             //
             //    {
@@ -13872,7 +14032,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
@@ -13968,7 +14130,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
@@ -14029,7 +14193,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=option-$chain-structure option $chain structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -14126,7 +14292,9 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest change to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=margin-loan-structure margin structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMarginAdjustmentHistory () requires a $symbol argument');
             }
@@ -14186,7 +14354,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->sapiGetConvertAssetInfo($params));
             //
             //     array(
@@ -14251,7 +14421,9 @@ class binance extends Exchange {
             if ($amount === null) {
                 throw new ArgumentsRequired($this->id . ' fetchConvertQuote() requires an $amount argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'fromAsset' => $fromCode,
                 'toAsset' => $toCode,
@@ -14288,7 +14460,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $response = null;
             if (($fromCode === 'BUSD') || ($toCode === 'BUSD')) {
@@ -14335,7 +14509,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $response = null;
             if ($code === 'BUSD') {
@@ -14417,7 +14593,9 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $msInThirtyDays = 2592000000;
             $now = $this->milliseconds();
@@ -14607,7 +14785,9 @@ class binance extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
@@ -14655,7 +14835,9 @@ class binance extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest ratio to fetch
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=long-short-ratio-structure long short ratio structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($timeframe === null) {
                 $timeframe = '1d';
@@ -14753,7 +14935,9 @@ class binance extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -14792,7 +14976,9 @@ class binance extends Exchange {
              * @param {boolean} [$params->portfolioMargin] set to true for the portfolio margin account
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $subType = null;

@@ -30,7 +30,7 @@ public partial class grvt
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.backpack.exchange/#tag/Streams/Public/Ticker"/>  <br/>
+    /// See <see href="https://api-docs.grvt.io/market_data_streams/#mini-ticker-snap-feed-selector"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

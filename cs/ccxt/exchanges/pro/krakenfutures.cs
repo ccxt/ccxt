@@ -121,7 +121,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async virtual Task<object> subscribePublic(object name, object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -161,7 +164,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async virtual Task<object> subscribePrivate(object name, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(this.urls, "api"), "ws");
         object subscribe = new Dictionary<string, object>() {
@@ -187,7 +193,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object tickers = await this.watchTickers(new List<object>() {symbol}, parameters);
         return getValue(tickers, symbol);
@@ -205,7 +214,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object ticker = await this.watchMultiHelper("ticker", "ticker", symbols, null, parameters);
         if (isTrue(this.newUpdates))
@@ -310,7 +322,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "";
         symbols = this.marketSymbols(symbols);
         if (!isTrue(this.isEmpty(symbols)))
@@ -460,7 +475,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "open_orders";
         object messageHash = "orders";
         if (isTrue(!isEqual(symbol, null)))
@@ -490,7 +508,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "fills";
         object messageHash = "myTrades";
         if (isTrue(!isEqual(symbol, null)))
@@ -518,7 +539,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "balances";
         object messageHash = name;
         object account = null;
@@ -1621,7 +1645,10 @@ public partial class krakenfutures : ccxt.krakenfutures
     public async virtual Task<object> watchMultiHelper(object unifiedName, object channelName, object symbols = null, object subscriptionArgs = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         // symbols are required
         symbols = this.marketSymbols(symbols, null, false, true, false);

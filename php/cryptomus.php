@@ -151,7 +151,7 @@ class cryptomus extends Exchange {
             ),
             'timeframes' => array(),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7',
+                'logo' => 'https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0',
                 'api' => array(
                     'public' => 'https://api.cryptomus.com',
                     'private' => 'https://api.cryptomus.com',
@@ -460,7 +460,9 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetV1ExchangeMarketTickers($params);
         //
@@ -528,7 +530,9 @@ class cryptomus extends Exchange {
          * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
@@ -573,7 +577,9 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
@@ -638,7 +644,9 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $response = $this->privateGetV2UserApiExchangeAccountBalance($this->extend($request, $params));
         //
@@ -696,7 +704,9 @@ class cryptomus extends Exchange {
          * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -760,7 +770,9 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $request['orderId'] = $id;
         $response = $this->privateDeleteV2UserApiExchangeOrdersOrderId($this->extend($request, $params));
@@ -789,7 +801,9 @@ class cryptomus extends Exchange {
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -865,7 +879,9 @@ class cryptomus extends Exchange {
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

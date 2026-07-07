@@ -7,7 +7,7 @@ type Digest = 'binary' | 'hex' | 'base64';
 declare function pemToDer(pem: string): Uint8Array;
 declare const hash: (request: Input, hash: CHash, digest?: Digest) => any;
 declare const hmac: (request: Input, secret: Input, hash: CHash, digest?: Digest) => any;
-declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash, fixedLength?: boolean): {
+declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash | null, fixedLength?: boolean): {
     r: string;
     s: string;
     v: number;

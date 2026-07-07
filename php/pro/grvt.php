@@ -146,7 +146,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' ))));
             return $tickers[$symbol];
@@ -158,7 +160,7 @@ class grvt extends \ccxt\async\grvt {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              *
-             * @see https://docs.backpack.exchange/#tag/Streams/Public/Ticker
+             * @see https://api-docs.grvt.io/market_data_streams/#mini-$ticker-snap-feed-selector
              *
              * @param {string[]} $symbols unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -171,7 +173,9 @@ class grvt extends \ccxt\async\grvt {
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'v1.ticker.s');
             $interval = null;
             list($interval, $params) = $this->handle_option_and_params($params, 'watchTickers', 'interval', 500);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $rawHashes = array();
             $messageHashes = array();
@@ -320,7 +324,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {string} [$params->limit] 50, 200, 500, 1000 (default 50)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $rawHashes = array();
             $messageHashes = array();
@@ -404,7 +410,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $params['callerMethodName'] = 'watchOHLCV';
             $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -425,7 +433,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $rawHashes = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -512,7 +522,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             return Async\await($this->watch_order_book_for_symbols(array( $symbol ), $limit, $params));
         })();
@@ -531,7 +543,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBook', 'channel', 'v1.book.d');
             $isSnapshot = $channel === 'v1.book.s';
@@ -673,7 +687,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {boolean} [$params->unifiedMargin] use unified margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $subAccountId = $this->getSubAccountId($params);
             $messageHashes = array();
@@ -763,7 +779,9 @@ class grvt extends \ccxt\async\grvt {
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->authenticate());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subAccountId = $this->getSubAccountId($params);
             $symbols = $this->market_symbols($symbols);
             $rawHashes = array();
@@ -851,7 +869,9 @@ class grvt extends \ccxt\async\grvt {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $subAccountId = $this->getSubAccountId($params);
             $messageHashes = array();

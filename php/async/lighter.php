@@ -29,7 +29,7 @@ class lighter extends Exchange {
             'quoteJsonNumbers' => false,
             'has' => array(
                 'CORS' => null,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => false,
@@ -928,7 +928,9 @@ class lighter extends Exchange {
              * @param {int} [$params->orderExpiry] orderExpiry
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'createOrder', 'accountIndex', 'account_index'));
             $params['accountIndex'] = $accountIndex;
@@ -1001,7 +1003,9 @@ class lighter extends Exchange {
              * @param {string} [$params->apiKeyIndex] api key index
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'editOrder', 'apiKeyIndex', 'api_key_index');
             $accountIndex = null;
@@ -1034,10 +1038,12 @@ class lighter extends Exchange {
                 'nonce' => $nonce,
                 'api_key_index' => $apiKeyIndex,
                 'account_index' => $accountIndex,
-                'integrator_account_index' => $this->options['integratorAccountIndex'],
-                'integrator_taker_fee' => $this->options['integratorTakerFee'],
-                'integrator_maker_fee' => $this->options['integratorMakerFee'],
             );
+            if ($this->safe_bool($this->options, 'builderFee', true)) {
+                $signRaw['integrator_account_index'] = $this->options['integratorAccountIndex'];
+                $signRaw['integrator_taker_fee'] = $this->options['integratorTakerFee'];
+                $signRaw['integrator_maker_fee'] = $this->options['integratorMakerFee'];
+            }
             list($txType, $txInfo) = $this->lighter_sign_modify_order($signer, $this->extend($signRaw, $params));
             $request = array(
                 'tx_type' => $txType,
@@ -1361,7 +1367,9 @@ class lighter extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderBook() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market_id' => $market['id'],
@@ -1517,7 +1525,9 @@ class lighter extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTicker() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'market_id' => $market['id'],
@@ -1586,7 +1596,9 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->publicGetOrderBookDetails($params));
             $spotTickers = $this->safe_list($response, 'spot_order_book_details', array());
@@ -1641,7 +1653,9 @@ class lighter extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'until' ));
@@ -1745,7 +1759,9 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the $exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->publicGetFundingRates($this->extend($params)));
             //
             //     {
@@ -1785,7 +1801,9 @@ class lighter extends Exchange {
              * @param {string} [$params->type] 'spot', 'swap', default is 'swap'
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchBalance', 'accountIndex', 'account_index'));
             $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
@@ -1900,7 +1918,9 @@ class lighter extends Exchange {
              * @param {string} [$params->value] fetch balance value, $account index or l1 address
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchPositions', 'accountIndex', 'account_index'));
             $request = array(
@@ -2049,7 +2069,9 @@ class lighter extends Exchange {
              * @param {string} [$params->value] fetch balance value, account index or l1 address
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$accounts-structure account structures~ indexed by the account type
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchAccounts', 'accountIndex', 'account_index'));
             $request = array(
@@ -2145,7 +2167,9 @@ class lighter extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchOpenOrders', 'accountIndex', 'account_index'));
             $apiKeyIndex = null;
@@ -2223,7 +2247,9 @@ class lighter extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchClosedOrders', 'accountIndex', 'account_index'));
             $apiKeyIndex = null;
@@ -2490,7 +2516,9 @@ class lighter extends Exchange {
              * @param {string} [$params->memo] hex encoding $memo
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'transfer', 'apiKeyIndex', 'api_key_index');
             $accountIndex = null;
@@ -2550,7 +2578,9 @@ class lighter extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate');
             if ($paginate) {
@@ -2656,7 +2686,9 @@ class lighter extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
             if ($paginate) {
@@ -2732,7 +2764,9 @@ class lighter extends Exchange {
             }
             $accountIndex = null;
             list($accountIndex, $params) = Async\await($this->handle_account_index($params, 'fetchWithdrawals', 'accountIndex', 'account_index'));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'account_index' => $accountIndex,
             );
@@ -2852,7 +2886,9 @@ class lighter extends Exchange {
              * @param {int} [$params->routeType] wallet type, 0 => perp, 1 => spot, default is 0
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'withdraw', 'apiKeyIndex', 'api_key_index');
             $accountIndex = null;
@@ -2905,7 +2941,9 @@ class lighter extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest trade to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -3098,7 +3136,9 @@ class lighter extends Exchange {
 
     public function modify_leverage_and_margin_mode(int $leverage, string $marginMode, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $marginMode, $symbol, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
                 throw new BadRequest($this->id . ' modifyLeverageAndMarginMode() requires a $marginMode parameter that must be either cross or isolated');
             }
@@ -3142,7 +3182,9 @@ class lighter extends Exchange {
              * @param {string} [$params->apiKeyIndex] api key index
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelOrder', 'apiKeyIndex', 'api_key_index');
             if ($symbol === null) {
@@ -3190,7 +3232,9 @@ class lighter extends Exchange {
              * @param {string} [$params->apiKeyIndex] api key index
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'cancelAllOrders', 'apiKeyIndex', 'api_key_index');
             $accountIndex = null;
@@ -3224,7 +3268,9 @@ class lighter extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} the api result
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if (($timeout < 300000) || ($timeout > 1296000000)) {
                 throw new BadRequest($this->id . ' $timeout should be between 5 minutes and 15 days.');
             }
@@ -3296,7 +3342,9 @@ class lighter extends Exchange {
              * @param {string} [$params->apiKeyIndex] api key index
              * @return {array} A ~@link https://docs.ccxt.com/?id=add-margin-structure margin structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $apiKeyIndex = null;
             list($apiKeyIndex, $params) = $this->handle_api_key_index($params, 'setMargin', 'apiKeyIndex', 'api_key_index');
             $direction = $this->safe_integer($params, 'direction'); // 1 increase margin 0 decrease margin

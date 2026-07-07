@@ -30,6 +30,7 @@ public partial class cex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://trade.cex.io/docs/#rest-public-api-calls-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

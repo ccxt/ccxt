@@ -141,7 +141,7 @@ class xt(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg',
+                'logo': 'https://github.com/user-attachments/assets/1f916564-6507-4549-af96-22837bb0a0c7',
                 'api': {
                     'spot': 'https://sapi.xt.com',
                     'linear': 'https://fapi.xt.com',
@@ -1395,7 +1395,8 @@ class xt(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
@@ -1521,7 +1522,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1607,7 +1609,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1681,7 +1684,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbols is not None:
             symbols = self.market_symbols(symbols)
@@ -1764,7 +1768,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         market = None
@@ -1888,7 +1893,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1957,7 +1963,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2221,7 +2228,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = None
         subType = None
         response = None
@@ -2342,7 +2350,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -2372,7 +2381,8 @@ class xt(Exchange, ImplicitAPI):
         :param float [params.takeProfit]: price to set a take-profit on an open position
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if market['spot']:
@@ -2381,7 +2391,8 @@ class xt(Exchange, ImplicitAPI):
             return self.create_contract_order(symbol, type, side, amount, price, params)
 
     def create_spot_order(self, symbol: str, type, side, amount, price=None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2435,7 +2446,8 @@ class xt(Exchange, ImplicitAPI):
         return self.parse_order(order, market)
 
     def create_contract_order(self, symbol: str, type, side, amount, price=None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2516,7 +2528,8 @@ class xt(Exchange, ImplicitAPI):
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2687,7 +2700,8 @@ class xt(Exchange, ImplicitAPI):
         :param bool [params.trigger]: if the order is a trigger order or not
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -2834,7 +2848,8 @@ class xt(Exchange, ImplicitAPI):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -3163,7 +3178,8 @@ class xt(Exchange, ImplicitAPI):
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3239,7 +3255,8 @@ class xt(Exchange, ImplicitAPI):
         :param bool [params.stopLossTakeProfit]: if the order is a stop-loss or take-profit order
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -3308,7 +3325,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderIds': ids,
         }
@@ -3531,7 +3549,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         currency = None
         if code is not None:
@@ -3641,7 +3660,8 @@ class xt(Exchange, ImplicitAPI):
         :param str params['network']: required network id
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
         currency = self.currency(code)
@@ -3695,7 +3715,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         currency = None
         if code is not None:
@@ -3748,7 +3769,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         currency = None
         if code is not None:
@@ -3803,7 +3825,8 @@ class xt(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networkCode = None
@@ -3937,7 +3960,8 @@ class xt(Exchange, ImplicitAPI):
         self.check_required_argument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT'])
         if (leverage < 1) or (leverage > 125):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not (market['contract']):
             raise BadSymbol(self.id + ' setLeverage() supports contract markets only')
@@ -3994,7 +4018,8 @@ class xt(Exchange, ImplicitAPI):
     def modify_margin_helper(self, symbol: str, amount, addOrReduce, params={}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
         self.check_required_argument('setLeverage', positionSide, 'positionSide', ['LONG', 'SHORT'])
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4043,7 +4068,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchLeverageTiers', None, params)
         response = None
@@ -4120,7 +4146,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4209,7 +4236,8 @@ class xt(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -4291,7 +4319,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
@@ -4369,7 +4398,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `funding history structures <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingHistory() supports swap contracts only')
@@ -4453,7 +4483,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -4510,7 +4541,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the xt api endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         subType = None
         subType, params = self.handle_sub_type_and_params('fetchPositions', None, params)
         response = None
@@ -4616,7 +4648,8 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the whitebit api endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_value(self.options, 'accountsById')
         fromAccountId = self.safe_string(accountsByType, fromAccount, fromAccount)
@@ -4672,7 +4705,8 @@ class xt(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['spot']:
             raise BadSymbol(self.id + ' setMarginMode() supports contract markets only')
@@ -4726,7 +4760,8 @@ class xt(Exchange, ImplicitAPI):
         """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
         stopLoss = self.safe_number_2(params, 'stopLoss', 'triggerStopPrice')

@@ -337,7 +337,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             put( "OrderBookSnapshot", "handleOrderBook");
             put( "OrderBookChange", "handleOrderBook");
         }};
-        Object handler = this.safeValue(handlers, eventVar);
+        Object handler = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(handlers, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(handler, null)))
         {
             Helpers.callDynamically(this, handler, new Object[] {client, message});

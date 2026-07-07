@@ -1158,7 +1158,9 @@ class bingx extends bingx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1306,7 +1308,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1540,7 +1544,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1654,7 +1660,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1697,7 +1705,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, 'swap', true, true, true);
         const firstMarket = this.getMarketFromSymbols(symbols);
         let subType = 'linear';
@@ -1762,7 +1772,9 @@ class bingx extends bingx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1831,7 +1843,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -1912,7 +1926,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2007,7 +2023,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -2072,7 +2090,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
@@ -2140,7 +2160,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrice(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchMarkPrice', market, params, 'linear');
@@ -2199,7 +2221,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchMarkPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             symbols = this.marketSymbols(symbols);
@@ -2365,7 +2389,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let response;
         let standard = undefined;
         [standard, params] = this.handleOptionAndParams(params, 'fetchBalance', 'standard', false);
@@ -2602,7 +2628,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {
             'symbol': market['id'],
@@ -2667,7 +2695,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let standard = undefined;
         [standard, params] = this.handleOptionAndParams(params, 'fetchPositions', 'standard', false);
@@ -2764,7 +2794,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.BadRequest(this.id + ' fetchPosition() supports swap markets only');
@@ -3228,11 +3260,14 @@ class bingx extends bingx$1["default"] {
                 positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
-            let amountReq = amount;
-            if (!market['inverse']) {
-                amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+            const closePosition = this.safeBool(params, 'closePosition', false);
+            if (!closePosition) {
+                let amountReq = amount;
+                if (!market['inverse']) {
+                    amountReq = this.parseToNumeric(this.amountToPrecision(symbol, amount));
+                }
+                request['quantity'] = amountReq; // precision not available for inverse contracts
             }
-            request['quantity'] = amountReq; // precision not available for inverse contracts
         }
         params = this.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         return this.extend(request, params);
@@ -3268,10 +3303,13 @@ class bingx extends bingx$1["default"] {
      * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
      * @param {string} [params.positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode
      * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
+     * @param {bool} [params.closePosition] *swap only* true to close the entire position with a TP/SL order, in which case the quantity is not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const test = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
@@ -3378,6 +3416,15 @@ class bingx extends bingx$1["default"] {
         else {
             result = data;
         }
+        // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
+        const stopLoss = this.safeString(result, 'stopLoss');
+        if ((stopLoss !== undefined) && (stopLoss.indexOf('{') === 0)) {
+            result['stopLoss'] = this.parseJson(stopLoss);
+        }
+        const takeProfit = this.safeString(result, 'takeProfit');
+        if ((takeProfit !== undefined) && (takeProfit.indexOf('{') === 0)) {
+            result['takeProfit'] = this.parseJson(takeProfit);
+        }
         return this.parseOrder(result, market);
     }
     /**
@@ -3392,7 +3439,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         const marketIds = [];
         for (let i = 0; i < orders.length; i++) {
@@ -3914,7 +3963,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isTwapOrder = this.safeBool(params, 'twap', false);
         params = this.omit(params, 'twap');
         let response;
@@ -4097,7 +4148,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -4249,7 +4302,9 @@ class bingx extends bingx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4353,7 +4408,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} the api result
      */
     async cancelAllOrdersAfter(timeout, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isActive = (timeout > 0);
         const request = {
             'type': (isActive) ? 'ACTIVATE' : 'CLOSE',
@@ -4399,7 +4456,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const isTwapOrder = this.safeBool(params, 'twap', false);
         params = this.omit(params, 'twap');
         let response = undefined;
@@ -4578,7 +4637,9 @@ class bingx extends bingx$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -4670,7 +4731,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -4858,7 +4921,9 @@ class bingx extends bingx$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, params);
         return this.filterBy(orders, 'status', 'closed');
     }
@@ -4879,7 +4944,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchCanceledAndClosedOrders(symbol, since, limit, params);
         return this.filterBy(orders, 'status', 'canceled');
     }
@@ -4902,7 +4969,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -5095,7 +5164,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         let subType = undefined;
@@ -5158,7 +5229,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -5251,7 +5324,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a dictionary [address structures]{@link https://docs.ccxt.com/?id=address-structure}, indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
         const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
@@ -5352,7 +5427,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -5397,7 +5474,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -5562,7 +5641,9 @@ class bingx extends bingx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['type'] !== 'swap') {
             throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap contracts only');
@@ -5617,7 +5698,9 @@ class bingx extends bingx$1["default"] {
         if (!this.inArray(type, [1, 2])) {
             throw new errors.ArgumentsRequired(this.id + ' setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -5669,7 +5752,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -5774,7 +5859,9 @@ class bingx extends bingx$1["default"] {
         }
         const side = this.safeStringUpper(params, 'side');
         this.checkRequiredArgument('setLeverage', side, 'side', ['LONG', 'SHORT', 'BOTH']);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -5840,7 +5927,9 @@ class bingx extends bingx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
         let fills;
@@ -6008,7 +6097,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.fetchCurrencies(params);
         const depositWithdrawFees = {};
         const responseCodes = Object.keys(response);
@@ -6037,7 +6128,9 @@ class bingx extends bingx$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const defaultWalletType = 15; // spot
         let walletType = undefined;
@@ -6111,7 +6204,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchMyLiquidations(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let request = {
             'autoCloseType': 'LIQUIDATION',
         };
@@ -6253,7 +6348,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const positionId = this.safeString(params, 'positionId');
         const request = {};
@@ -6323,7 +6420,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async closeAllPositions(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const defaultRecvWindow = this.safeInteger(this.options, 'recvWindow');
         const recvWindow = this.safeInteger(params, 'recvWindow', defaultRecvWindow);
         let marketType = undefined;
@@ -6467,7 +6566,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         request['cancelOrderId'] = id;
@@ -6584,7 +6685,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -6643,14 +6746,15 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         let response = undefined;
         let commission = {};
-        const data = this.safeDict(response, 'data', {});
         if (market['spot']) {
             response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, params));
             //
@@ -6664,7 +6768,7 @@ class bingx extends bingx$1["default"] {
             //         }
             //     }
             //
-            commission = data;
+            commission = this.safeDict(response, 'data', {});
         }
         else {
             if (market['inverse']) {
@@ -6680,7 +6784,7 @@ class bingx extends bingx$1["default"] {
                 //         }
                 //     }
                 //
-                commission = data;
+                commission = this.safeDict(response, 'data', {});
             }
             else {
                 response = await this.swapV2PrivateGetUserCommissionRate(params);
@@ -6696,6 +6800,7 @@ class bingx extends bingx$1["default"] {
                 //         }
                 //     }
                 //
+                const data = this.safeDict(response, 'data', {});
                 commission = this.safeDict(data, 'commission', {});
             }
         }
@@ -6771,7 +6876,9 @@ class bingx extends bingx$1["default"] {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.BadRequest(this.id + ' fetchMarketLeverageTiers() supports swap markets only');

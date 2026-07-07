@@ -138,7 +138,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object messageHash = add("trades::", getValue(market, "symbol"));
         object url = "/trading-api/v1/market-data/trades";
@@ -214,7 +217,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), getValue(market, "id"));
@@ -273,11 +279,8 @@ public partial class bullish : ccxt.bullish
         object marketId = this.safeString(data, "symbol");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object parsed = null;
-        if (isTrue((isEqual(updateType, "snapshot"))))
-        {
-            parsed = this.parseTicker(data, market);
-        } else if (isTrue(isEqual(updateType, "update")))
+        object parsed = this.parseTicker(data, market);
+        if (isTrue(isEqual(updateType, "update")))
         {
             object ticker = this.safeDict(this.tickers, symbol, new Dictionary<string, object>() {});
             object rawTicker = this.safeDict(ticker, "info", new Dictionary<string, object>() {});
@@ -302,7 +305,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object url = "/trading-api/v1/market-data/orderbook";
         object messageHash = add("orderbook::", getValue(market, "symbol"));
@@ -400,7 +406,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subscribeHash = "orders";
         object messageHash = subscribeHash;
         if (isTrue(!isEqual(symbol, null)))
@@ -496,7 +505,10 @@ public partial class bullish : ccxt.bullish
                 object parsedOrder = this.parseOrder(rawOrder);
                 callDynamically(orders, "append", new object[] {parsedOrder});
                 object symbol = this.safeString(parsedOrder, "symbol");
-                ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                }
             }
             object messageHash = "orders";
             callDynamically(client as WebSocketClient, "resolve", new object[] {orders, messageHash});
@@ -525,7 +537,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subscribeHash = "myTrades";
         object messageHash = subscribeHash;
         if (isTrue(!isEqual(symbol, null)))
@@ -614,7 +629,10 @@ public partial class bullish : ccxt.bullish
                 object parsedTrade = this.parseTrade(rawTrade);
                 callDynamically(trades, "append", new object[] {parsedTrade});
                 object symbol = this.safeString(parsedTrade, "symbol");
-                ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                if (isTrue(!isEqual(symbol, null)))
+                {
+                    ((IDictionary<string,object>)symbols)[(string)symbol] = true;
+                }
             }
             object messageHash = "myTrades";
             callDynamically(client as WebSocketClient, "resolve", new object[] {trades, messageHash});
@@ -640,7 +658,10 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "topic", "assetAccounts" },
         };
@@ -699,6 +720,10 @@ public partial class bullish : ccxt.bullish
         //     }
         //
         object tradingAccountId = this.safeString(message, "tradingAccountId");
+        if (isTrue(isEqual(tradingAccountId, null)))
+        {
+            return;
+        }
         if (!isTrue((inOp(this.balance, tradingAccountId))))
         {
             ((IDictionary<string,object>)this.balance)[(string)tradingAccountId] = new Dictionary<string, object>() {};
@@ -740,10 +765,13 @@ public partial class bullish : ccxt.bullish
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object subscribeHash = "positions";
         object messageHash = subscribeHash;
-        if (!isTrue(this.isEmpty(symbols)))
+        if (isTrue(isTrue((!isEqual(symbols, null))) && !isTrue(this.isEmpty(symbols))))
         {
             symbols = this.marketSymbols(symbols);
             messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));

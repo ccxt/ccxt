@@ -254,7 +254,7 @@ export default class okx extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
-    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: any, price?: any, params?: {}): any;
+    editOrderRequest(id: string, symbol: any, type: any, side: any, amount?: Num, price?: Num, params?: {}): any;
     /**
      * @method
      * @name okx#editOrder
@@ -921,7 +921,7 @@ export default class okx extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     /**
      * @method
      * @name okx#fetchSettlementHistory

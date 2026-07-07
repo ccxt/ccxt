@@ -76,9 +76,11 @@ func  (this *HollaexCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes688)
+                retRes6912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes6912)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), ccxt.GetValue(market, "id"))
         
@@ -154,9 +156,11 @@ func  (this *HollaexCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1298 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1298)
+                retRes13212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes13212)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add(ccxt.Add("trade", ":"), ccxt.GetValue(market, "id"))
@@ -232,9 +236,11 @@ func  (this *HollaexCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1888 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1888)
+                retRes19312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes19312)
+            }
             var messageHash any = "usertrade"
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -336,9 +342,11 @@ func  (this *HollaexCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2718 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2718)
+                retRes27812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes27812)
+            }
             var messageHash any = "order"
             var market any = nil
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
@@ -473,9 +481,9 @@ func  (this *HollaexCore) WatchBalance(optionalArgs ...any) <- chan any {
             _ = params
             var messageHash any = "wallet"
         
-                retRes39215 :=  (<-this.WatchPrivate(messageHash, params))
-                ccxt.PanicOnError(retRes39215)
-                ch <- retRes39215
+                retRes40015 :=  (<-this.WatchPrivate(messageHash, params))
+                ccxt.PanicOnError(retRes40015)
+                ch <- retRes40015
                 return nil
         
             }()
@@ -533,9 +541,9 @@ func  (this *HollaexCore) WatchPublic(messageHash any, optionalArgs ...any) <- c
             }
             var message any = this.Extend(request, params)
         
-                retRes44115 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes44115)
-                ch <- retRes44115
+                retRes44915 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes44915)
+                ch <- retRes44915
                 return nil
         
             }()
@@ -573,9 +581,9 @@ func  (this *HollaexCore) WatchPrivate(messageHash any, optionalArgs ...any) <- 
             }
             var message any = this.Extend(request, params)
         
-                retRes46915 :=  (<-this.Watch(signedUrl, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes46915)
-                ch <- retRes46915
+                retRes47715 :=  (<-this.Watch(signedUrl, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes47715)
+                ch <- retRes47715
                 return nil
         
             }()

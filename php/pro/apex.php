@@ -89,7 +89,9 @@ class apex extends \ccxt\async\apex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
@@ -160,7 +162,7 @@ class apex extends \ccxt\async\apex {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         // public
         //    {
@@ -227,7 +229,9 @@ class apex extends \ccxt\async\apex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
@@ -387,7 +391,9 @@ class apex extends \ccxt\async\apex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->get_ws_public_url();
@@ -409,13 +415,15 @@ class apex extends \ccxt\async\apex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $url = $this->get_ws_public_url();
             $topics = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
+            for ($i = 0; $i < count(($symbols)); $i++) {
+                $symbol = ($symbols)[$i];
                 $market = $this->market($symbol);
                 $topic = 'instrumentInfo' . '.H.' . $market['id2'];
                 $topics[] = $topic;
@@ -458,7 +466,7 @@ class apex extends \ccxt\async\apex {
         $updateType = $this->safe_string($message, 'type', '');
         $data = $this->safe_dict($message, 'data', array());
         $symbol = null;
-        $parsed = null;
+        $parsed = $this->parse_ticker($data);
         if (($updateType === 'snapshot')) {
             $parsed = $this->parse_ticker($data);
             $symbol = $parsed['symbol'];
@@ -514,7 +522,9 @@ class apex extends \ccxt\async\apex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->get_ws_public_url();
             $rawHashes = array();
             $messageHashes = array();
@@ -629,7 +639,9 @@ class apex extends \ccxt\async\apex {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $messageHash = 'myTrades';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
@@ -657,11 +669,13 @@ class apex extends \ccxt\async\apex {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = '';
             if (!$this->is_empty($symbols)) {
                 $symbols = $this->market_symbols($symbols);
-                $messageHash = '::' . implode(',', $symbols);
+                $messageHash = '::' . implode(',', ($symbols));
             }
             $url = $this->get_ws_private_url();
             $messageHash = 'positions' . $messageHash;
@@ -695,7 +709,9 @@ class apex extends \ccxt\async\apex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
@@ -738,7 +754,6 @@ class apex extends \ccxt\async\apex {
         $symbols = array();
         for ($i = 0; $i < count($lists); $i++) {
             $rawTrade = $lists[$i];
-            $parsed = null;
             $parsed = $this->parse_ws_trade($rawTrade);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;
@@ -791,7 +806,6 @@ class apex extends \ccxt\async\apex {
         $orders = $this->orders;
         $symbols = array();
         for ($i = 0; $i < count($lists); $i++) {
-            $parsed = null;
             $parsed = $this->parse_order($lists[$i]);
             $symbol = $parsed['symbol'];
             $symbols[$symbol] = true;

@@ -73,7 +73,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const timeframes = this.safeValue(this.options, 'timeframes', {});
@@ -146,7 +148,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (limit === undefined) {
             limit = 10; // max 100
@@ -251,7 +255,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const method = 'market_subscribe';
@@ -269,7 +275,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const method = 'market_subscribe';
         const url = this.urls['api']['ws'];
@@ -350,7 +358,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trades' + ':' + symbol;
@@ -420,7 +430,9 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -520,7 +532,9 @@ class whitebit extends whitebit$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -692,7 +706,9 @@ class whitebit extends whitebit$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
         let messageHash = 'wallet:';
@@ -757,7 +773,9 @@ class whitebit extends whitebit$1["default"] {
         return await this.watch(url, messageHash, message, messageHash);
     }
     async watchMultipleSubscription(messageHash, method, symbol, isNested = false, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws'];
         const id = this.nonce();
         const client = this.safeValue(this.clients, url);

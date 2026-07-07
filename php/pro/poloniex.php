@@ -219,7 +219,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} [$params->slippageTolerance] used to control the maximum slippage ratio, the value range is greater than 0 and less than 1
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market($symbol);
             $uppercaseType = strtoupper($type);
@@ -303,7 +305,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string[]} [$params->clientOrderIds] client order $ids
              * @return {array} an list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $request = array(
                 'orderIds' => $ids,
@@ -323,7 +327,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             return Async\await($this->trade_request('cancelAllOrders', $params));
         })();
@@ -366,7 +372,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
             $channel = $this->safe_string($timeframes, $timeframe, $timeframe);
             if ($channel === null) {
@@ -391,7 +399,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $this->safe_value($tickers, $symbol);
@@ -409,7 +419,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'ticker';
             $symbols = $this->market_symbols($symbols);
             $newTickers = Async\await($this->subscribe($name, $name, false, $symbols, $params));
@@ -450,7 +462,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $name = 'trades';
             $url = $this->urls['api']['ws']['public'];
@@ -491,7 +505,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $watchOrderBookOptions = $this->safe_value($this->options, 'watchOrderBook');
             $name = $this->safe_string($watchOrderBookOptions, 'name', 'book_lv2');
             list($name, $params) = $this->handle_option_and_params($params, 'method', 'name', $name);
@@ -513,7 +529,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'orders';
             Async\await($this->authenticate());
             if ($symbol !== null) {
@@ -541,7 +559,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the poloniex strean
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'orders';
             $messageHash = 'myTrades';
             Async\await($this->authenticate());
@@ -567,7 +587,9 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'balances';
             Async\await($this->authenticate());
             return Async\await($this->subscribe($name, $name, true, null, $params));
@@ -632,7 +654,7 @@ class poloniex extends \ccxt\async\poloniex {
         $messageHash = $channel . '::' . $symbol;
         $parsed = $this->parse_ws_ohlcv($data, $market);
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = ($timeframe === null) ? null : $this->safe_value($this->ohlcvs[$symbol], $timeframe);
         if ($symbol !== null) {
             if ($stored === null) {
                 $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
@@ -672,7 +694,7 @@ class poloniex extends \ccxt\async\poloniex {
                 $symbol = $trade['symbol'];
                 $type = 'trades';
                 $messageHash = $type . '::' . $symbol;
-                $tradesArray = $this->safe_value($this->trades, $symbol);
+                $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
                 if ($tradesArray === null) {
                     $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                     $tradesArray = new ArrayCache($tradesLimit);
@@ -868,8 +890,8 @@ class poloniex extends \ccxt\async\poloniex {
             $eventType = $this->safe_string($order, 'eventType');
             if ($marketId !== null) {
                 $symbol = $this->safe_symbol($marketId);
-                $orderId = $this->safe_string($order, 'orderId');
-                $clientOrderId = $this->safe_string($order, 'clientOrderId');
+                $orderId = $this->safe_string($order, 'orderId', '');
+                $clientOrderId = $this->safe_string($order, 'clientOrderId', '');
                 if ($eventType === 'place' || $eventType === 'canceled') {
                     $parsed = $this->parse_ws_order($order);
                     $orders->append($parsed);
@@ -1271,7 +1293,7 @@ class poloniex extends \ccxt\async\poloniex {
             'cancelAllOrders' => array($this, 'handle_order_request'),
             'auth' => array($this, 'handle_authenticate'),
         );
-        $method = $this->safe_value($methods, $type);
+        $method = ($type === null) ? null : $this->safe_value($methods, $type);
         if ($type === 'auth') {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {

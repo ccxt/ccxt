@@ -111,7 +111,9 @@ class aster extends \ccxt\async\aster {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $params['callerMethodName'] = 'watchTicker';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -155,8 +157,13 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
             $symbolsLength = count($symbols);
@@ -203,8 +210,13 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
             $symbolsLength = count($symbols);
@@ -245,7 +257,9 @@ class aster extends \ccxt\async\aster {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $params['callerMethodName'] = 'watchMarkPrice';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $tickers = Async\await($this->watch_mark_prices(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -283,8 +297,13 @@ class aster extends \ccxt\async\aster {
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
             $symbolsLength = count($symbols);
@@ -332,8 +351,13 @@ class aster extends \ccxt\async\aster {
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
             $symbolsLength = count($symbols);
@@ -400,8 +424,10 @@ class aster extends \ccxt\async\aster {
         $parsed = $this->parse_ws_ticker($ticker, $marketType);
         $symbol = $parsed['symbol'];
         $messageHash = 'ticker:' . $symbol;
-        $this->tickers[$symbol] = $parsed;
-        $client->resolve($this->tickers[$symbol], $messageHash);
+        if ($symbol !== null) {
+            $this->tickers[$symbol] = $parsed;
+            $client->resolve($this->tickers[$symbol], $messageHash);
+        }
     }
 
     public function parse_ws_ticker($message, $marketType) {
@@ -458,8 +484,13 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
             $symbolsLength = count($symbols);
@@ -503,8 +534,13 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
+            if ($symbols === null) {
+                $symbols = array();
+            }
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
             $symbolsLength = count($symbols);
@@ -548,15 +584,18 @@ class aster extends \ccxt\async\aster {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $ticker = $this->parse_ws_bid_ask($data, $market);
         $symbol = $ticker['symbol'];
-        $this->bidsasks[$symbol] = $ticker;
+        if ($symbol !== null) {
+            $this->bidsasks[$symbol] = $ticker;
+        }
         $messageHash = 'bidask:' . $symbol;
         $client->resolve($ticker, $messageHash);
     }
 
     public function parse_ws_bid_ask($message, ?array $market = null) {
         $timestamp = $this->safe_integer($message, 'T');
+        $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $bidAskSymbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'ask' => $this->safe_string($message, 'a'),
@@ -620,7 +659,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -668,7 +709,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -717,6 +760,9 @@ class aster extends \ccxt\async\aster {
         $market = $this->safe_market($marketId, null, null, $marketType);
         $parsed = $this->parse_ws_trade($trade, $market);
         $symbol = $parsed['symbol'];
+        if ($symbol === null) {
+            return;
+        }
         if (!(is_array($this->trades) && array_key_exists($symbol, $this->trades))) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->trades[$symbol] = new ArrayCache($limit);
@@ -930,7 +976,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -977,7 +1025,9 @@ class aster extends \ccxt\async\aster {
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $firstMarket = $this->get_market_from_symbols($symbols);
             $type = $this->safe_string($firstMarket, 'type', 'swap');
@@ -1067,7 +1117,9 @@ class aster extends \ccxt\async\aster {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $params['callerMethodName'] = 'watchOHLCV';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->safe_symbol($symbol);
             $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
             return $result[$symbol][$timeframe];
@@ -1106,7 +1158,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbolsAndTimeframes);
             $methodName = null;
             list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'watchOHLCVForSymbols');
@@ -1128,10 +1182,13 @@ class aster extends \ccxt\async\aster {
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
                 $symbolString = $this->safe_string($data, 0);
+                if ($symbolString === null) {
+                    continue;
+                }
                 $market = $this->market($symbolString);
                 $symbolString = $market['symbol'];
                 $unfiedTimeframe = $this->safe_string($data, 1);
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+                $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
                 $messageHashes[] = 'ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
             }
@@ -1156,7 +1213,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbolsAndTimeframes);
             $methodName = null;
             list($methodName, $params) = $this->handle_param_string($params, 'callerMethodName', 'unWatchOHLCVForSymbols');
@@ -1178,10 +1237,13 @@ class aster extends \ccxt\async\aster {
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                 $data = $symbolsAndTimeframes[$i];
                 $symbolString = $this->safe_string($data, 0);
+                if ($symbolString === null) {
+                    continue;
+                }
                 $market = $this->market($symbolString);
                 $symbolString = $market['symbol'];
                 $unfiedTimeframe = $this->safe_string($data, 1);
-                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+                $timeframeId = ($unfiedTimeframe === null) ? null : $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
                 $subscriptionArgs[] = $this->safe_string_lower($market, 'id') . '@kline_' . $timeframeId;
                 $messageHashes[] = 'unsubscribe:ohlcv:' . $market['symbol'] . ':' . $unfiedTimeframe;
             }
@@ -1224,6 +1286,9 @@ class aster extends \ccxt\async\aster {
         $kline = $this->safe_dict($data, 'k');
         $timeframeId = $this->safe_string($kline, 'i');
         $timeframe = $this->find_timeframe($timeframeId);
+        if ($timeframe === null) {
+            return;
+        }
         $ohlcvsByTimeframe = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsByTimeframe === null) {
             $this->ohlcvs[$symbol] = array();
@@ -1259,7 +1324,7 @@ class aster extends \ccxt\async\aster {
             $listenKeyRefreshRateOptions = $this->safe_dict($this->options, 'listenKeyRefreshRate', array());
             $listenKeyRefreshRate = $this->safe_integer($listenKeyRefreshRateOptions, $type, 3600000); // 1 hour
             if ($time - $lastAuthenticatedTime > $listenKeyRefreshRate) {
-                $response = null;
+                $response = array();
                 if ($type === 'spot') {
                     $response = Async\await($this->sapiPrivatePostV3ListenKey($params));
                 } else {
@@ -1325,7 +1390,9 @@ class aster extends \ccxt\async\aster {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot'
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
             Async\await($this->authenticate($type, $params));
@@ -1470,7 +1537,9 @@ class aster extends \ccxt\async\aster {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = 'swap';
             Async\await($this->authenticate($type, $params));
             $url = $this->get_private_url($type);
@@ -1526,7 +1595,7 @@ class aster extends \ccxt\async\aster {
             for ($i = 0; $i < count($positions); $i++) {
                 $position = $positions[$i];
                 $contracts = $this->safe_number($position, 'contracts', 0);
-                if ($contracts > 0) {
+                if (($contracts !== null) && ($contracts > 0)) {
                     $cache->append($position);
                 }
             }
@@ -1670,7 +1739,9 @@ class aster extends \ccxt\async\aster {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1709,7 +1780,9 @@ class aster extends \ccxt\async\aster {
              * @param {string} [$params->type] 'spot' or 'swap', default is 'spot' if $symbol is not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1770,7 +1843,8 @@ class aster extends \ccxt\async\aster {
                                 $orderFee = $fees[$i];
                                 if ($orderFee['currency'] === $tradeFee['currency']) {
                                     $feeCost = $this->sum($tradeFee['cost'], $orderFee['cost']);
-                                    $order['fees'][$i]['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                    $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
+                                    $order['fees'][$i]['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
                                     $insertNewFeeCurrency = false;
                                     break;
                                 }
@@ -1781,7 +1855,8 @@ class aster extends \ccxt\async\aster {
                         } elseif ($fee !== null) {
                             if ($fee['currency'] === $tradeFee['currency']) {
                                 $feeCost = $this->sum($fee['cost'], $tradeFee['cost']);
-                                $order['fee']['cost'] = floatval($this->currency_to_precision($tradeFee['currency'], $feeCost));
+                                $feeCostString = $this->currency_to_precision($tradeFee['currency'], $feeCost);
+                                $order['fee']['cost'] = ($feeCostString === null) ? null : floatval($feeCostString);
                             } elseif ($fee['currency'] === null) {
                                 $order['fee'] = $tradeFee;
                             } else {
@@ -1996,7 +2071,7 @@ class aster extends \ccxt\async\aster {
             'executionReport' => array($this, 'handle_order_update'),
             'ORDER_TRADE_UPDATE' => array($this, 'handle_order_update'),
         );
-        $method = $this->safe_value($methods, $event);
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $messageInner);
         }

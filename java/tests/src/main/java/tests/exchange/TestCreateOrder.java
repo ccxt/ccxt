@@ -126,7 +126,7 @@ public class TestCreateOrder extends BaseTest {
             (tcoCancelOrder(exchange, symbol, Helpers.GetValue(createdOrder, "id"))).join();
         } catch(Exception e)
         {
-            throw new Error((String)Helpers.add(Helpers.add(logPrefix, " failed for Scenario 1: "), String.valueOf(e))) ;
+            throw new RuntimeException((String)Helpers.add(Helpers.add(logPrefix, " failed for Scenario 1: "), String.valueOf(e))) ;
         }
         return true;
         });
@@ -175,7 +175,7 @@ public class TestCreateOrder extends BaseTest {
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, exitorderFilled, exitorderFetched, exitSide, amountToClose);
         } catch(Exception e)
         {
-            throw new Error((String)Helpers.add("failed for Scenario 2: ", String.valueOf(e))) ;
+            throw new RuntimeException((String)Helpers.add("failed for Scenario 2: ", String.valueOf(e))) ;
         }
         return true;
         });
@@ -222,7 +222,7 @@ public class TestCreateOrder extends BaseTest {
             cancelResult = (exchange.cancelAllOrders(symbol)).join();
         } else if (Helpers.isTrue(Helpers.GetValue(exchange.has, "cancelOrders")))
         {
-            throw new Error((String)Helpers.add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
+            throw new RuntimeException((String)Helpers.add(logPrefix, " cancelOrders method is not unified yet, coming soon...")) ;
         }
         tcoDebug(exchange, symbol, Helpers.add(Helpers.add(Helpers.add("canceled order using ", usedMethod), ":"), Helpers.GetValue(cancelResult, "id")));
         // todo:

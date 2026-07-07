@@ -143,7 +143,10 @@ public partial class blockchaincom : ccxt.blockchaincom
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -200,12 +203,12 @@ public partial class blockchaincom : ccxt.blockchaincom
             object timeframe = this.findTimeframe(timeframeId);
             object ohlcv = this.safeValue(message, "price", new List<object>() {});
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-            object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+            object stored = this.safeValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
             if (isTrue(isEqual(stored, null)))
             {
                 object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
-                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+                ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
             }
             callDynamically(stored, "append", new object[] {ohlcv});
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -227,7 +230,10 @@ public partial class blockchaincom : ccxt.blockchaincom
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -344,7 +350,10 @@ public partial class blockchaincom : ccxt.blockchaincom
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -452,7 +461,10 @@ public partial class blockchaincom : ccxt.blockchaincom
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -683,7 +695,10 @@ public partial class blockchaincom : ccxt.blockchaincom
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object type = this.safeString(parameters, "type", "l2");
@@ -797,7 +812,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "balances", this.handleBalance },
             { "trading", this.handleOrders },
         };
-        object handler = this.safeValue(handlers, channel);
+        object handler = this.safeValue(handlers, ((string)channel));
         if (isTrue(!isEqual(handler, null)))
         {
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message});
