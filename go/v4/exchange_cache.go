@@ -229,6 +229,10 @@ func (c *ArrayCache) GetLimit(symbol any, limit any) any {
 	// 	}
 	// }
 	// return len(c.ToArray())
+	// GetLimit runs on user goroutines while Append mutates the same maps and Sets
+	// under c.Mu on the WS-handler goroutine, so it must take the lock as well
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	var newUpdatesValue any = nil
 
 	if symbol == nil {
@@ -306,46 +310,52 @@ func NewArrayCacheByTimestamp(MaxSize any) *ArrayCacheByTimestamp {
 	}
 }
 
-func (c *ArrayCacheByTimestamp) Append(item any) {
-	var ts int64
+func ohlcvTimestamp(item any) int64 {
 	if arr, ok := item.([]any); ok && len(arr) > 0 {
 		if v, okCast := arr[0].(int64); okCast {
-			ts = v
+			return v
 		} else if vI, okI := arr[0].(int); okI {
-			ts = int64(vI)
+			return int64(vI)
 		} else if vF, okF := arr[0].(float64); okF {
-			ts = int64(vF)
+			return int64(vF)
 		}
 	}
+	return 0
+}
+
+func (c *ArrayCacheByTimestamp) Append(item any) {
+	ts := ohlcvTimestamp(item)
 
 	c.Mu.Lock()
 	defer c.Mu.Unlock()
 	if ts != 0 {
-		if _, exists := c.Hashmap[ts]; exists {
-			// c.Hashmap[ts] = item // update existing
-			// locate and update in Data as well
-			// to do use the reference in hashmap instead of searching
-			currItem := c.Hashmap[ts].([]any)
-			for i := range currItem {
-				if arr, ok := item.([]any); ok && len(arr) > 0 {
-					currItem[i] = arr[i]
+		if old, exists := c.Hashmap[ts]; exists {
+			// merge copy-on-write: never mutate the stored candle in place. Previously
+			// returned candles (via ToArray -> WatchOHLCV etc.) share these slice
+			// references and are read by user goroutines without holding c.Mu, so an
+			// in-place write here is a data race
+			merged := item
+			if oldArr, ok := old.([]any); ok {
+				if newArr, ok := item.([]any); ok {
+					size := len(oldArr)
+					if len(newArr) > size {
+						size = len(newArr)
+					}
+					mergedArr := make([]any, size)
+					copy(mergedArr, oldArr)
+					copy(mergedArr, newArr)
+					merged = mergedArr
 				}
 			}
-			// c.Hashmap[ts] = item
-			// for i, v := range c.Data {
-			// 	if arr, ok := v.([]any); ok && len(arr) > 0 {
-			// 		var ets int64
-			// 		if v2, okCast := arr[0].(int64); okCast {
-			// 			ets = v2
-			// 		} else if vI, okI := arr[0].(int); okI {
-			// 			ets = int64(vI)
-			// 		}
-			// 		if ets == ts {
-			// 			c.Data[i] = item
-			// 			break
-			// 		}
-			// 	}
-			// }
+			c.Hashmap[ts] = merged
+			// replace the slot in Data as well; scan backwards as the updated candle
+			// is usually the most recent one
+			for i := len(c.Data) - 1; i >= 0; i-- {
+				if ohlcvTimestamp(c.Data[i]) == ts {
+					c.Data[i] = merged
+					break
+				}
+			}
 			return
 		} else {
 			c.Hashmap[ts] = item
@@ -373,6 +383,9 @@ func (c *ArrayCacheByTimestamp) ToArray() []any {
 // GetLimit for timestamp cache ignores symbol because entries are not
 // symbol-segmented.  It mirrors the same precedence order as ArrayCache.
 func (c *ArrayCacheByTimestamp) GetLimit(symbol any, limit any) any {
+	// see ArrayCache.GetLimit: must synchronize with Append
+	c.Mu.Lock()
+	defer c.Mu.Unlock()
 	c.clearUpdates = true
 	if limit == nil {
 		return c.newUpdates
