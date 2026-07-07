@@ -372,6 +372,41 @@
                     "KRW"
                 ]
             }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "generation 2 createDepositAddress",
+                "method": "createDepositAddress",
+                "url": "https://api.bithumb.com/v1/deposits/generate_coin_address",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": "{\"currency\":\"BTC\",\"net_type\":\"BTC\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "generation 2 fetchDepositAddress",
+                "method": "fetchDepositAddress",
+                "url": "https://api.bithumb.com/v1/deposits/coin_address?currency=BTC&net_type=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ]
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "generation 2 fetchDepositAddresses",
+                "method": "fetchDepositAddresses",
+                "url": "https://api.bithumb.com/v1/deposits/coin_addresses",
+                "input": []
+            }
         ]
     }
 }

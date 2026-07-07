@@ -2685,6 +2685,95 @@
                     }
                 ]
             }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "generation 2 create deposit address",
+                "method": "createDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "currency": "BTC",
+                    "net_type": "BTC",
+                    "deposit_address": "195Y...rbJ3",
+                    "secondary_address": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "deposit_address": "195Y...rbJ3",
+                        "secondary_address": null
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "195Y...rbJ3",
+                    "tag": null
+                }
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "generation 2 fetch deposit address",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "currency": "BTC",
+                    "net_type": "BTC",
+                    "deposit_address": "195Y...rbJ3",
+                    "secondary_address": null
+                },
+                "parsedResponse": {
+                    "info": {
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "deposit_address": "195Y...rbJ3",
+                        "secondary_address": null
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "195Y...rbJ3",
+                    "tag": null
+                }
+            }
+        ],
+        "fetchDepositAddresses": [
+            {
+                "description": "generation 2 fetch deposit addresses",
+                "method": "fetchDepositAddresses",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "currency": "BTC",
+                        "net_type": "BTC",
+                        "deposit_address": "195Y...rbJ3",
+                        "secondary_address": null
+                    }
+                ],
+                "parsedResponse": {
+                    "BTC": {
+                        "info": {
+                            "currency": "BTC",
+                            "net_type": "BTC",
+                            "deposit_address": "195Y...rbJ3",
+                            "secondary_address": null
+                        },
+                        "currency": "BTC",
+                        "network": "BTC",
+                        "address": "195Y...rbJ3",
+                        "tag": null
+                    }
+                }
+            }
         ]
     }
 }

@@ -7,7 +7,7 @@ import { jwt } from './base/functions/rsa.js';
 import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, PermissionDenied, InvalidAddress, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, List, Fee } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int, NullableDict, OrderRequest, List, Fee, DepositAddress } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -38,6 +38,7 @@ export default class bithumb extends Exchange {
                 'cancelOrders': true,
                 'closeAllPositions': false,
                 'closePosition': false,
+                'createDepositAddress': true,
                 'createMarketOrder': true,
                 'createOrder': true,
                 'createOrders': true,
@@ -57,6 +58,8 @@ export default class bithumb extends Exchange {
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': false,
                 'fetchDeposit': true,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
@@ -793,7 +796,7 @@ export default class bithumb extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {};
         let response = undefined;
-        let data: Dict = {};
+        let data = undefined;
         let timestamp = undefined;
         if (generation === 2) {
             request['markets'] = market['id'];
@@ -2688,6 +2691,141 @@ export default class bithumb extends Exchange {
         //     ]
         //
         return this.parseTransactions (response, currency, since, limit);
+    }
+
+    /**
+     * @method
+     * @name bithumb#createDepositAddress
+     * @description create a currency deposit address
+     * @see https://apidocs.bithumb.com/reference/%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
+     * @param {string} code unified currency code of the currency for the deposit address
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] the blockchain network to create a deposit address on
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'createDepositAddress', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' createDepositAddress() is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const network = this.safeString2 (params, 'network', 'net_type');
+        params = this.omit (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + code + ' createDepositAddress() requires a network parameter');
+        }
+        request['net_type'] = network;
+        const response = await this.privatePostV1DepositsGenerateCoinAddress (this.extend (request, params));
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDepositAddress
+     * @description fetch the deposit address for a currency associated with this account
+     * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+     * @param {string} code unified currency code
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {string} [params.network] network for fetch deposit address
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
+     */
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddress', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchDepositAddress() is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        const currency = this.currency (code);
+        const request: Dict = {
+            'currency': currency['id'],
+        };
+        const network = this.safeString2 (params, 'network', 'net_type');
+        params = this.omit (params, 'network');
+        if (network === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + code + ' fetchDepositAddress() requires a network parameter');
+        }
+        request['net_type'] = network;
+        const response = await this.privateGetV1DepositsCoinAddress (this.extend (request, params));
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    /**
+     * @method
+     * @name bithumb#fetchDepositAddresses
+     * @description fetch deposit addresses for multiple currencies (when available)
+     * @see https://apidocs.bithumb.com/reference/%EC%A0%84%EC%B2%B4-%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%A1%B0%ED%9A%8C
+     * @param {string[]} [codes] list of unified currency codes, default is undefined (all currencies)
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
+     */
+    async fetchDepositAddresses (codes: Strings = undefined, params = {}): Promise<DepositAddress[]> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'fetchDepositAddresses', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' fetchDepositAddresses() is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        const response = await this.privateGetV1DepositsCoinAddresses (params);
+        //
+        //     [
+        //         {
+        //             "currency": "BTC",
+        //             "net_type": "BTC",
+        //             "deposit_address": "195Y...rbJ3",
+        //             "secondary_address": null
+        //         }
+        //     ]
+        //
+        return this.parseDepositAddresses (response, codes, true, {});
+    }
+
+    parseDepositAddress (response, currency: Currency = undefined): DepositAddress {
+        //
+        // generation 2: createDepositAddress, fetchDepositAddress, fetchDepositAddresses
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "net_type": "BTC",
+        //         "deposit_address": "195Y...rbJ3",
+        //         "secondary_address": null
+        //     }
+        //
+        const currencyId = this.safeString (response, 'currency');
+        const code = this.safeCurrencyCode (currencyId, currency);
+        const address = this.safeString (response, 'deposit_address');
+        this.checkAddress (address);
+        return {
+            'info': response,
+            'currency': code,
+            'network': this.safeString (response, 'net_type'),
+            'address': address,
+            'tag': this.safeString (response, 'secondary_address'),
+        } as DepositAddress;
     }
 
     fixCommaNumber (numberStr) {
