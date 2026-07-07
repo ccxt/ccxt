@@ -1806,7 +1806,11 @@ export default class bithumb extends Exchange {
             //
             data = this.safeDict (response, 'data');
         }
-        return this.parseOrder (this.extend (data, { 'order_id': id }), market);
+        const orderData: Dict = {
+            'order_id': id,
+        };
+        const parsedOrder = this.extend (data, orderData);
+        return this.parseOrder (parsedOrder, market);
     }
 
     parseOrderStatus (status: Str) {
@@ -2868,7 +2872,13 @@ export default class bithumb extends Exchange {
                 if (result.length > 0) {
                     result += '&';
                 }
-                result += this.rawencode ({ [key]: value });
+                const encodedKey = this.encodeURIComponent (key);
+                let valueString = this.safeString (query, key);
+                if (valueString === undefined) {
+                    valueString = this.json (value);
+                }
+                const encodedValue = this.encodeURIComponent (valueString);
+                result += encodedKey + '=' + encodedValue;
             }
         }
         return result;
