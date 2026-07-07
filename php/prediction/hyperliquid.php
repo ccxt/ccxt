@@ -653,7 +653,7 @@ class hyperliquid extends Exchange {
             //
             // l2Book returns null for coins without an order book; coerce to an empty dict
             $tickerData = $this->safe_dict(array( 'book' => $response ), 'book', array());
-            return $this->parse_ticker($tickerData, $outcomeObj);
+            return $this->parse_prediction_ticker($tickerData, $outcomeObj);
         })();
     }
 
@@ -701,14 +701,14 @@ class hyperliquid extends Exchange {
                     continue;
                 }
                 // Build minimal $ticker from $mid price
-                $ticker = $this->parse_ticker(array( 'levels' => array( array(), array() ), 'mid' => $mid, 'time' => $this->milliseconds() ), $outcomeObj);
+                $ticker = $this->parse_prediction_ticker(array( 'levels' => array( array(), array() ), 'mid' => $mid, 'time' => $this->milliseconds() ), $outcomeObj);
                 $tickers[$outcomeHandle] = $ticker;
             }
             return $tickers;
         })();
     }
 
-    public function parse_ticker(array $raw, ?array $market = null): array {
+    public function parse_prediction_ticker(array $raw, ?array $market = null): array {
         /**
          * @ignore
          * parses a $raw l2Book response (or a synthetic $mid dict) into a unified ticker object
@@ -1027,13 +1027,13 @@ class hyperliquid extends Exchange {
                     }
                 }
                 $enriched = $this->extend($balance, array( 'markPx' => $this->safe_string($mids, $tradeCoin) ));
-                $positions[] = $this->parse_position($enriched, $outcomeObj);
+                $positions[] = $this->parse_prediction_position($enriched, $outcomeObj);
             }
             return $positions;
         })();
     }
 
-    public function parse_position(array $position, ?array $market = null): array {
+    public function parse_prediction_position(array $position, ?array $market = null): array {
         /**
          * @ignore
          * parses a spot balance entry for an outcome token into a unified $position object
@@ -1545,7 +1545,7 @@ class hyperliquid extends Exchange {
             }
             $response = Async\await($this->publicPostInfo($this->extend($request, $params)));
             $orderWrapper = $this->safe_dict($response, 'order', $response);
-            $parsed = $this->parse_order($orderWrapper, null);
+            $parsed = $this->parse_prediction_order($orderWrapper, null);
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
                 $outcomeObj = $this->outcome($outcome);
@@ -1558,7 +1558,7 @@ class hyperliquid extends Exchange {
         })();
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_prediction_order(array $order, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw hyperliquid $order object into a unified $order object
@@ -1721,7 +1721,7 @@ class hyperliquid extends Exchange {
                 $outcomeHandle = $this->safe_string($outcomeObj, 'outcome');
             } else {
                 // $fills identify their $outcome only by the raw coin handle (e.g. "#10") — warm the
-                // cache (one market load) so parseTrade can resolve the unified $outcome identity
+                // cache (one market load) so parsePredictionTrade can resolve the unified $outcome identity
                 Async\await($this->load_outcomes());
             }
             list($userAddress, $params) = $this->handle_public_address('fetchMyTrades', $params);
@@ -1746,7 +1746,7 @@ class hyperliquid extends Exchange {
         })();
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_prediction_trade(array $trade, ?array $market = null): array {
         /**
          * @ignore
          * parses a single hyperliquid fill into a unified $trade object
@@ -1887,13 +1887,8 @@ class hyperliquid extends Exchange {
                 $event = $this->parse_event(array( 'parentSymbol' => $key, 'markets' => $groupMarkets ));
                 $events[] = $event;
             }
-            if (!$this->events) {
-                $this->events = array();
-            }
-            for ($i = 0; $i < count($events); $i++) {
-                $ev = $events[$i];
-                $this->events[$ev['event']] = $ev;
-            }
+            // applyEventFetchParams caches via setEvents (keyed by id/slug/handle) before filtering,
+            // so getEvent() resolves these $events by any of the three keys
             return $this->apply_event_fetch_params($events, $params, $queries);
         })();
     }

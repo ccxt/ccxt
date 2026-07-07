@@ -892,7 +892,7 @@ class polymarket extends Exchange {
             //         }
             //     }
             //
-            return $this->parse_ticker(
+            return $this->parse_prediction_ticker(
                 $response,
                 $outcomeObj
             );
@@ -964,7 +964,7 @@ class polymarket extends Exchange {
                     $outcomeObj = $outcomesByTokenId[$tokenId];
                     $mid = $this->safe_string($midpoints, $tokenId);
                     $tickerInput = array( 'midpoint' => array( 'mid' => $mid ), 'book' => $book );
-                    $ticker = $this->parse_ticker($tickerInput, $outcomeObj);
+                    $ticker = $this->parse_prediction_ticker($tickerInput, $outcomeObj);
                     $symbolKey = $this->safe_string($ticker, 'outcome', $tokenId);
                     $result[$symbolKey] = $ticker;
                 }
@@ -974,7 +974,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_prediction_ticker(array $ticker, ?array $market = null): array {
         /**
          * @ignore
          * parses a combined midpoint . order book response into a unified $ticker object
@@ -1271,11 +1271,11 @@ class polymarket extends Exchange {
             //     array( array( "market" => "0x7976b8...92", "value" => 4925662.470476 ) )
             //
             $first = $this->safe_dict($response, 0, array());
-            return $this->parse_open_interest($first, $outcomeObj);
+            return $this->parse_prediction_open_interest($first, $outcomeObj);
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest($interest, ?array $market = null): array {
         //
         //     array( "market" => "0x7976b8...92", "value" => 4925662.470476 )
         //
@@ -1368,7 +1368,7 @@ class polymarket extends Exchange {
                 }
             }
             // the trades are already narrowed to this $outcome by asset id above;
-            // parseTrade resolves the $outcome from each trade's asset id
+            // parsePredictionTrade resolves the $outcome from each trade's asset id
             return $this->parse_prediction_trades($filteredTrades, null, $since, $limit);
         })();
     }
@@ -1435,7 +1435,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_prediction_trade(array $trade, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw data API $trade object into a unified $trade object
@@ -1597,7 +1597,7 @@ class polymarket extends Exchange {
         })();
     }
 
-    public function parse_position(array $position, ?array $market = null): array {
+    public function parse_prediction_position(array $position, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw data API $position object into a unified $position object
@@ -1692,11 +1692,11 @@ class polymarket extends Exchange {
             Async\await($this->load_api_credentials());
             $request = array( 'id' => $id );
             $response = Async\await($this->clobPrivateGetDataOrderId($this->extend($request, $params)));
-            return $this->parse_order($response);
+            return $this->parse_prediction_order($response);
         })();
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_prediction_order(array $order, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw CLOB $order object into a unified $order object
@@ -1805,7 +1805,7 @@ class polymarket extends Exchange {
             $response = Async\await($this->clobPrivatePostOrder($this->safe_dict($built, 'body')));
             // request echo first so the response's real orderID/status/success win on overlap
             $enriched = $this->extend($this->safe_dict($built, 'request'), $response);
-            $order = $this->parse_order($enriched, $this->safe_dict($built, 'outcome'));
+            $order = $this->parse_prediction_order($enriched, $this->safe_dict($built, 'outcome'));
             $order['info'] = $response;   // keep info the raw exchange $response, not the request echo
             return $order;
         })();
@@ -1846,12 +1846,12 @@ class polymarket extends Exchange {
                 for ($i = 0; $i < count($response); $i++) {
                     // request echo first so the response's real orderID/status win on overlap
                     $enriched = $this->extend($requests[$i], $response[$i]);
-                    $parsedItem = $this->parse_order($enriched, $outcomes[$i]);
+                    $parsedItem = $this->parse_prediction_order($enriched, $outcomes[$i]);
                     $parsedItem['info'] = $response[$i];   // keep info the raw exchange $response
                     $result[] = $parsedItem;
                 }
             } else {
-                $result[] = $this->parse_order($response);
+                $result[] = $this->parse_prediction_order($response);
             }
             return $result;
         })();
@@ -1972,7 +1972,7 @@ class polymarket extends Exchange {
             'orderType' => $orderTypeStr,
         );
         // the CLOB create response only echoes array(orderID, status); carry the submitted terms
-        // (keyed fetchOrder response fields parseOrder reads) so createOrder can merge
+        // (keyed fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
         // them and return a fully-populated order instead of null side/price/amount
         $requestEcho = array(
             'side' => $sideStr,
@@ -3100,7 +3100,7 @@ class polymarket extends Exchange {
             $this->orders = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->orders;
-        $parsed = $this->parse_order($event);
+        $parsed = $this->parse_prediction_order($event);
         $stored->append($parsed);
         $client->resolve($stored, 'orders');
         $outcome = $this->safe_string($parsed, 'outcome');
@@ -3115,7 +3115,7 @@ class polymarket extends Exchange {
             $this->myTrades = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->myTrades;
-        $parsed = $this->parse_trade($event);
+        $parsed = $this->parse_prediction_trade($event);
         $stored->append($parsed);
         $client->resolve($stored, 'myTrades');
         $outcome = $this->safe_string($parsed, 'outcome');

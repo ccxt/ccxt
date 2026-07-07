@@ -867,9 +867,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         #     }
         #
         tickerInput = {'market': response, 'book': responses[1]}
-        return self.parse_ticker(tickerInput, outcomeObj)
+        return self.parse_prediction_ticker(tickerInput, outcomeObj)
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> PredictionTicker:
+    def parse_prediction_ticker(self, ticker: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
         parses a raw market object, or a composite market + book dict, into a unified ticker for the specified outcome token
@@ -1047,7 +1047,7 @@ class limitless(PredictionExchange, ImplicitAPI):
                 raw = m['info']
                 outcomesList = self.safe_list(m, 'outcomes', [])
                 for j in range(0, len(outcomesList)):
-                    ticker = self.parse_ticker(raw, outcomesList[j])
+                    ticker = self.parse_prediction_ticker(raw, outcomesList[j])
                     symbolKey = self.safe_string(ticker, 'outcome')
                     if symbolKey is not None:
                         result[symbolKey] = ticker
@@ -1080,7 +1080,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             tickerInput = {'market': detail, 'book': book}
             grouped = outcomesBySlug[slug]
             for j in range(0, len(grouped)):
-                ticker = self.parse_ticker(tickerInput, grouped[j])
+                ticker = self.parse_prediction_ticker(tickerInput, grouped[j])
                 symbolKey = self.safe_string(ticker, 'outcome')
                 if symbolKey is not None:
                     result[symbolKey] = ticker
@@ -1373,9 +1373,9 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        # pass None: parseOrder sets outcome to the market outcome while the outcome
+        # pass None: parsePredictionOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
-        # endpoint already scopes results and parseOrder resolves the outcome via outcomes_by_id
+        # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return self.parse_prediction_orders(response, None, since, limit)
 
     async def fetch_open_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
@@ -1569,7 +1569,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             raise OrderNotFound(self.id + ' fetchOrder() could not find order ' + id)
         return order
 
-    def parse_order(self, order: dict, market: Market = None) -> PredictionOrder:
+    def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
  @ignore
         parses a raw limitless order object into a unified order object
@@ -1964,7 +1964,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         if postOnly:
             request['postOnly'] = postOnly
         response = await self.limitlessPrivatePostOrders(self.extend(request, params))
-        parsedOrder = self.parse_order(response, outcomeObj)
+        parsedOrder = self.parse_prediction_order(response, outcomeObj)
         # the create-order response omits a status field; a freshly accepted order is open
         if parsedOrder['status'] is None:
             parsedOrder['status'] = 'open'
@@ -2105,7 +2105,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         }
         response = await self.limitlessPrivateDeleteOrdersOrderId(self.extend(request, params))
         # the del response carries no order body, so backfill the id and the resulting status
-        order = self.parse_order(response)
+        order = self.parse_prediction_order(response)
         if order['id'] is None:
             order['id'] = id
         if order['status'] is None:
@@ -2304,7 +2304,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         parsedTrades = self.parse_prediction_trades(trades, None)
         return self.filter_by_outcome_since_limit(parsedTrades, outcomeSymbol, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
+    def parse_prediction_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
  @ignore
         parses a raw trade from either the public market events feed or the private portfolio history into a unified trade object
@@ -2551,7 +2551,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         rawMarket = self.safe_dict(entry, 'market')
         slug = self.safe_string(rawMarket, 'slug')
         outcomeObj = self.get_outcome_by_slug_and_label(slug, label)
-        parsed = self.parse_position(position, outcomeObj)
+        parsed = self.parse_prediction_position(position, outcomeObj)
         parsed['contracts'] = self.parse_number(self.apply_scale(contracts))
         latestTrade = self.safe_dict(entry, 'latestTrade')
         key = 'latestYesPrice'
@@ -2561,7 +2561,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         parsed['info'] = entry
         return self.safe_prediction_position(parsed)
 
-    def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
+    def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
         parses a raw limitless portfolio position into a unified position object

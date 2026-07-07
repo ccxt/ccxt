@@ -625,7 +625,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #     }
         #
         raw = self.safe_value(response, 'market', response)
-        return self.parse_ticker(raw, outcomeObj)
+        return self.parse_prediction_ticker(raw, outcomeObj)
 
     async def fetch_status(self, params={}) -> Any:
         """
@@ -665,9 +665,9 @@ class kalshi(PredictionExchange, ImplicitAPI):
         request = {'ticker': ticker}
         response = await self.kalshiPublicGetMarketsTicker(self.extend(request, params))
         raw = self.safe_dict(response, 'market', response)
-        return self.parse_open_interest(raw, outcomeObj)
+        return self.parse_prediction_open_interest(raw, outcomeObj)
 
-    def parse_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"ticker": "...", "open_interest_fp": "60802.01", ...}   # open interest in contracts
         #
@@ -687,7 +687,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         del openInterest['symbol']
         return openInterest
 
-    def parse_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
+    def parse_prediction_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
         parses a raw kalshi market object into a unified ticker object
@@ -871,7 +871,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                     continue
                 grouped = outcomesByTicker[marketTicker]
                 for j in range(0, len(grouped)):
-                    ticker = self.parse_ticker(raw, grouped[j])
+                    ticker = self.parse_prediction_ticker(raw, grouped[j])
                     symbolKey = self.safe_string(ticker, 'outcome')
                     if symbolKey is not None:
                         result[symbolKey] = ticker
@@ -1129,7 +1129,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
                 filteredTrades.append(trade)
         return self.parse_prediction_trades(filteredTrades, outcomeObj, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
+    def parse_prediction_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
  @ignore
         parses a raw kalshi trade object into a unified trade object
@@ -1451,7 +1451,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             'pnl': pnl,
         }
 
-    def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
+    def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
         parses a raw kalshi portfolio position into a unified position object
@@ -1584,13 +1584,13 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
         # outcome is only a labelling hint here — the request needs just the id, and
-        # parseOrder resolves identity cache-only, so don't force a full market scan
+        # parsePredictionOrder resolves identity cache-only, so don't force a full market scan
         if outcome is not None:
             await self.load_outcome(outcome)
         response = await self.kalshiPrivateGetPortfolioOrdersOrderId(self.extend({'order_id': id}, params))
-        return self.parse_order(self.safe_value(response, 'order', response))
+        return self.parse_prediction_order(self.safe_value(response, 'order', response))
 
-    def parse_order(self, order: dict, market: Market = None) -> PredictionOrder:
+    def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
  @ignore
         parses a raw kalshi order object into a unified order object
@@ -1731,7 +1731,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivatePostPortfolioEventsOrders(self.extend(request, params))
         # the V2 create response is minimal(order_id, fill_count, remaining_count), so backfill
         # the known order details and resolve the status from the remaining count
-        order = self.parse_order(response, outcomeObj)
+        order = self.parse_prediction_order(response, outcomeObj)
         order['side'] = side
         order['amount'] = amount
         order['price'] = price
@@ -1786,7 +1786,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # v2 cancel: DELETE /portfolio/events/orders/{order_id}(the /portfolio/orders/{id}
         # and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
-        order = self.parse_order(self.safe_dict(response, 'order', response))
+        order = self.parse_prediction_order(self.safe_dict(response, 'order', response))
         # the del response carries no id/status - backfill the requested id and the outcome
         if order['id'] is None:
             order['id'] = id

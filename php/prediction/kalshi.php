@@ -658,7 +658,7 @@ class kalshi extends Exchange {
             //     }
             //
             $raw = $this->safe_value($response, 'market', $response);
-            return $this->parse_ticker($raw, $outcomeObj);
+            return $this->parse_prediction_ticker($raw, $outcomeObj);
         })();
     }
 
@@ -704,11 +704,11 @@ class kalshi extends Exchange {
             $request = array( 'ticker' => $ticker );
             $response = Async\await($this->kalshiPublicGetMarketsTicker($this->extend($request, $params)));
             $raw = $this->safe_dict($response, 'market', $response);
-            return $this->parse_open_interest($raw, $outcomeObj);
+            return $this->parse_prediction_open_interest($raw, $outcomeObj);
         })();
     }
 
-    public function parse_open_interest($interest, ?array $market = null): array {
+    public function parse_prediction_open_interest($interest, ?array $market = null): array {
         //
         //     array( "ticker" => "...", "open_interest_fp" => "60802.01", ... )   // open $interest in contracts
         //
@@ -729,7 +729,7 @@ class kalshi extends Exchange {
         return $openInterest;
     }
 
-    public function parse_ticker(array $raw, ?array $market = null): array {
+    public function parse_prediction_ticker(array $raw, ?array $market = null): array {
         /**
          * @ignore
          * parses a $raw kalshi $market object into a unified ticker object
@@ -925,7 +925,7 @@ class kalshi extends Exchange {
                     }
                     $grouped = $outcomesByTicker[$marketTicker];
                     for ($j = 0; $j < count($grouped); $j++) {
-                        $ticker = $this->parse_ticker($raw, $grouped[$j]);
+                        $ticker = $this->parse_prediction_ticker($raw, $grouped[$j]);
                         $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
@@ -1213,7 +1213,7 @@ class kalshi extends Exchange {
         })();
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_prediction_trade(array $trade, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw kalshi $trade object into a unified $trade object
@@ -1590,7 +1590,7 @@ class kalshi extends Exchange {
         );
     }
 
-    public function parse_position(array $position, ?array $market = null): array {
+    public function parse_prediction_position(array $position, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw kalshi portfolio $position into a unified $position object
@@ -1741,16 +1741,16 @@ class kalshi extends Exchange {
              * @return {array} an [order structure](https://docs.ccxt.com/#/?$id=order-structure)
              */
             // $outcome is only a labelling hint here — the request needs just the $id, and
-            // parseOrder resolves identity cache-only, so don't force a full market scan
+            // parsePredictionOrder resolves identity cache-only, so don't force a full market scan
             if ($outcome !== null) {
                 Async\await($this->load_outcome($outcome));
             }
             $response = Async\await($this->kalshiPrivateGetPortfolioOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
-            return $this->parse_order($this->safe_value($response, 'order', $response));
+            return $this->parse_prediction_order($this->safe_value($response, 'order', $response));
         })();
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_prediction_order(array $order, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw kalshi $order object into a unified $order object
@@ -1903,7 +1903,7 @@ class kalshi extends Exchange {
             $response = Async\await($this->kalshiPrivatePostPortfolioEventsOrders($this->extend($request, $params)));
             // the V2 create $response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known $order details and resolve the status from the $remaining count
-            $order = $this->parse_order($response, $outcomeObj);
+            $order = $this->parse_prediction_order($response, $outcomeObj);
             $order['side'] = $side;
             $order['amount'] = $amount;
             $order['price'] = $price;
@@ -1969,7 +1969,7 @@ class kalshi extends Exchange {
             // v2 cancel => DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{$id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
             $response = Async\await($this->kalshiPrivateDeletePortfolioEventsOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
-            $order = $this->parse_order($this->safe_dict($response, 'order', $response));
+            $order = $this->parse_prediction_order($this->safe_dict($response, 'order', $response));
             // the delete $response carries no id/status - backfill the requested $id and the $outcome
             if ($order['id'] === null) {
                 $order['id'] = $id;

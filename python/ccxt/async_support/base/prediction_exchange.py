@@ -8,7 +8,7 @@
 
 from typing import Any, List
 from ccxt.async_support.base.exchange import BaseExchange
-from ccxt.base.types import Str, Strings, Int, Num, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
+from ccxt.base.types import Str, Strings, Int, Num, Market, OrderType, OrderSide, PredictionOrderRequest, fetchEventsParams
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NotSupported
@@ -487,7 +487,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        return await super(PredictionExchange, self).fetch_ticker(outcome, params)
+        raise NotSupported(self.id + ' fetchTicker() is not supported yet')
 
     async def fetch_order_book(self, outcome: str, limit: Int = None, params={}):
         """
@@ -497,7 +497,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        return await super(PredictionExchange, self).fetch_order_book(outcome, limit, params)
+        raise NotSupported(self.id + ' fetchOrderBook() is not supported yet')
 
     async def fetch_ohlcv(self, outcome: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}):
         """
@@ -520,7 +520,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        return await super(PredictionExchange, self).fetch_trades(outcome, since, limit, params)
+        raise NotSupported(self.id + ' fetchTrades() is not supported yet')
 
     async def create_order(self, outcome: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
@@ -533,7 +533,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        return await super(PredictionExchange, self).create_order(outcome, type, side, amount, price, params)
+        raise NotSupported(self.id + ' createOrder() is not supported yet')
 
     async def cancel_order(self, id: str, outcome: Str = None, params={}):
         """
@@ -543,7 +543,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        return await super(PredictionExchange, self).cancel_order(id, outcome, params)
+        raise NotSupported(self.id + ' cancelOrder() is not supported yet')
 
     async def watch_ticker(self, outcome: str, params={}):
         """
@@ -552,7 +552,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        return await super(PredictionExchange, self).watch_ticker(outcome, params)
+        raise NotSupported(self.id + ' watchTicker() is not supported yet')
 
     async def watch_order_book(self, outcome: str, limit: Int = None, params={}):
         """
@@ -562,7 +562,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict: a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
         """
-        return await super(PredictionExchange, self).watch_order_book(outcome, limit, params)
+        raise NotSupported(self.id + ' watchOrderBook() is not supported yet')
 
     async def watch_trades(self, outcome: str, since: Int = None, limit: Int = None, params={}):
         """
@@ -573,7 +573,7 @@ class PredictionExchange(BaseExchange):
         :param dict [params]: extra exchange-specific parameters
         :returns dict[]: a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
         """
-        return await super(PredictionExchange, self).watch_trades(outcome, since, limit, params)
+        raise NotSupported(self.id + ' watchTrades() is not supported yet')
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -775,6 +775,21 @@ class PredictionExchange(BaseExchange):
         # omit(not delete) — `del dict['symbol']` raises KeyError in python/php when absent
         return self.omit(orderbook, 'symbol')
 
+    def parse_prediction_ticker(self, ticker: dict, market: Market = None):
+        raise NotSupported(self.id + ' parsePredictionTicker() is not supported yet')
+
+    def parse_prediction_order(self, order: dict, market: Market = None):
+        raise NotSupported(self.id + ' parsePredictionOrder() is not supported yet')
+
+    def parse_prediction_trade(self, trade: dict, market: Market = None):
+        raise NotSupported(self.id + ' parsePredictionTrade() is not supported yet')
+
+    def parse_prediction_position(self, position: dict, market: Market = None):
+        raise NotSupported(self.id + ' parsePredictionPosition() is not supported yet')
+
+    def parse_prediction_open_interest(self, interest: dict, market: Market = None):
+        raise NotSupported(self.id + ' parsePredictionOpenInterest() is not supported yet')
+
     def to_prediction_structure(self, parsed: dict, raw: dict):
         # the prediction identity is the `outcome` handle(never the base `symbol`); attach it
         # and the other prediction fields(raw exchange id, label, parent market/event) that the
@@ -793,7 +808,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_trades(self, trades: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
         """
  @ignore
-        parses a list of raw trades with the exchange's parseTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
+        parses a list of raw trades with the exchange's parsePredictionTrade, sorts them and filters by the outcome handle — the prediction analogue of the base parseTrades
         :param dict[] trades: the raw trades
         :param dict [outcomeObj]: the resolved outcome object the trades belong to
         :param int [since]: timestamp in ms of the earliest trade to return
@@ -808,7 +823,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(trades)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_trade(rows[i], outcomeObj)
+            parsed = self.parse_prediction_trade(rows[i], outcomeObj)
             trade = self.extend(parsed, params)
             results.append(trade)
         results = self.sort_by_2(results, 'timestamp', 'id')
@@ -818,7 +833,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_orders(self, orders: List[Any], outcomeObj: Any = None, since: Int = None, limit: Int = None, params={}):
         """
  @ignore
-        parses a list of raw orders with the exchange's parseOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
+        parses a list of raw orders with the exchange's parsePredictionOrder, sorts them and filters by the outcome handle — the prediction analogue of the base parseOrders
         :param dict[] orders: the raw orders
         :param dict [outcomeObj]: the resolved outcome object the orders belong to
         :param int [since]: timestamp in ms of the earliest order to return
@@ -830,7 +845,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(orders)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_order(rows[i], outcomeObj)
+            parsed = self.parse_prediction_order(rows[i], outcomeObj)
             order = self.extend(parsed, params)
             results.append(order)
         results = self.sort_by(results, 'timestamp')
@@ -840,7 +855,7 @@ class PredictionExchange(BaseExchange):
     def parse_prediction_positions(self, positions: List[Any], params={}):
         """
  @ignore
-        parses a list of raw positions with the exchange's parsePosition — the prediction analogue of the base parsePositions
+        parses a list of raw positions with the exchange's parsePredictionPosition — the prediction analogue of the base parsePositions
         :param dict[] positions: the raw positions
         :param dict [params]: extra fields to merge into every parsed position
         :returns dict[]: a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
@@ -852,7 +867,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(positions)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_position(rows[i])
+            parsed = self.parse_prediction_position(rows[i])
             position = self.extend(parsed, params)
             results.append(position)
         return results

@@ -836,7 +836,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_ticker(
+        return self.parse_prediction_ticker(
             response,
             outcomeObj
         )
@@ -897,13 +897,13 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 outcomeObj = outcomesByTokenId[tokenId]
                 mid = self.safe_string(midpoints, tokenId)
                 tickerInput = {'midpoint': {'mid': mid}, 'book': book}
-                ticker = self.parse_ticker(tickerInput, outcomeObj)
+                ticker = self.parse_prediction_ticker(tickerInput, outcomeObj)
                 symbolKey = self.safe_string(ticker, 'outcome', tokenId)
                 result[symbolKey] = ticker
             startIndex = self.sum(startIndex, chunkSize)
         return result
 
-    def parse_ticker(self, ticker: dict, market: Market = None) -> PredictionTicker:
+    def parse_prediction_ticker(self, ticker: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
         parses a combined midpoint + order book response into a unified ticker object
@@ -1175,9 +1175,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         #     [{"market": "0x7976b8...92", "value": 4925662.470476}]
         #
         first = self.safe_dict(response, 0, {})
-        return self.parse_open_interest(first, outcomeObj)
+        return self.parse_prediction_open_interest(first, outcomeObj)
 
-    def parse_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
+    def parse_prediction_open_interest(self, interest, market: Market = None) -> PredictionOpenInterest:
         #
         #     {"market": "0x7976b8...92", "value": 4925662.470476}
         #
@@ -1262,7 +1262,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             if tradeAsset == tokenId:
                 filteredTrades.append(trade)
         # the trades are already narrowed to self outcome by asset id above
-        # parseTrade resolves the outcome from each trade's asset id
+        # parsePredictionTrade resolves the outcome from each trade's asset id
         return self.parse_prediction_trades(filteredTrades, None, since, limit)
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionTrade]:
@@ -1316,7 +1316,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 result.append(trade)
         return self.filter_by_since_limit(result, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
+    def parse_prediction_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
  @ignore
         parses a raw data API trade object into a unified trade object
@@ -1458,7 +1458,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         positions = await self.fetch_positions([outcome], params)
         return self.safe_dict(positions, 0)
 
-    def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
+    def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
         parses a raw data API position object into a unified position object
@@ -1546,9 +1546,9 @@ class polymarket(PredictionExchange, ImplicitAPI):
         await self.load_api_credentials()
         request = {'id': id}
         response = await self.clobPrivateGetDataOrderId(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_prediction_order(response)
 
-    def parse_order(self, order: dict, market: Market = None) -> PredictionOrder:
+    def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
  @ignore
         parses a raw CLOB order object into a unified order object
@@ -1654,7 +1654,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         response = await self.clobPrivatePostOrder(self.safe_dict(built, 'body'))
         # request echo first so the response's real orderID/status/success win on overlap
         enriched = self.extend(self.safe_dict(built, 'request'), response)
-        order = self.parse_order(enriched, self.safe_dict(built, 'outcome'))
+        order = self.parse_prediction_order(enriched, self.safe_dict(built, 'outcome'))
         order['info'] = response   # keep info the raw exchange response, not the request echo
         return order
 
@@ -1690,11 +1690,11 @@ class polymarket(PredictionExchange, ImplicitAPI):
             for i in range(0, len(response)):
                 # request echo first so the response's real orderID/status win on overlap
                 enriched = self.extend(requests[i], response[i])
-                parsedItem = self.parse_order(enriched, outcomes[i])
+                parsedItem = self.parse_prediction_order(enriched, outcomes[i])
                 parsedItem['info'] = response[i]   # keep info the raw exchange response
                 result.append(parsedItem)
         else:
-            result.append(self.parse_order(response))
+            result.append(self.parse_prediction_order(response))
         return result
 
     def build_clob_order_body(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> dict:
@@ -1806,7 +1806,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'orderType': orderTypeStr,
         }
         # the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        #(keyed fetchOrder response fields parseOrder reads) so createOrder can merge
+        #(keyed fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
         # them and return a fully-populated order instead of None side/price/amount
         requestEcho = {
             'side': sideStr,
@@ -2804,7 +2804,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheByOutcomeById(limit)
         stored = self.orders
-        parsed = self.parse_order(event)
+        parsed = self.parse_prediction_order(event)
         stored.append(parsed)
         client.resolve(stored, 'orders')
         outcome = self.safe_string(parsed, 'outcome')
@@ -2816,7 +2816,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheByOutcomeById(limit)
         stored = self.myTrades
-        parsed = self.parse_trade(event)
+        parsed = self.parse_prediction_trade(event)
         stored.append(parsed)
         client.resolve(stored, 'myTrades')
         outcome = self.safe_string(parsed, 'outcome')

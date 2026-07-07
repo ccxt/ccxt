@@ -599,7 +599,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         #
         # l2Book returns null for coins without an order book; coerce to an empty dict
         tickerData = self.safe_dict({'book': response}, 'book', {})
-        return self.parse_ticker(tickerData, outcomeObj)
+        return self.parse_prediction_ticker(tickerData, outcomeObj)
 
     async def fetch_tickers(self, outcomes: Strings = None, params={}) -> PredictionTickers:
         """
@@ -640,11 +640,11 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             if mid is None:
                 continue
             # Build minimal ticker from mid price
-            ticker = self.parse_ticker({'levels': [[], []], 'mid': mid, 'time': self.milliseconds()}, outcomeObj)
+            ticker = self.parse_prediction_ticker({'levels': [[], []], 'mid': mid, 'time': self.milliseconds()}, outcomeObj)
             tickers[outcomeHandle] = ticker
         return tickers
 
-    def parse_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
+    def parse_prediction_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
         parses a raw l2Book response(or a synthetic mid dict) into a unified ticker object
@@ -941,10 +941,10 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 if outcomeHandle is None or not (outcomeHandle in requestedOutcomeSymbols):
                     continue
             enriched = self.extend(balance, {'markPx': self.safe_string(mids, tradeCoin)})
-            positions.append(self.parse_position(enriched, outcomeObj))
+            positions.append(self.parse_prediction_position(enriched, outcomeObj))
         return positions
 
-    def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
+    def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
         parses a spot balance entry for an outcome token into a unified position object
@@ -1390,7 +1390,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             request['oid'] = id if isCloid else self.parse_to_numeric(id)
         response = await self.publicPostInfo(self.extend(request, params))
         orderWrapper = self.safe_dict(response, 'order', response)
-        parsed = self.parse_order(orderWrapper, None)
+        parsed = self.parse_prediction_order(orderWrapper, None)
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)
@@ -1399,7 +1399,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
                 raise OrderNotFound(self.id + ' fetchOrder() order ' + id + ' is not in outcome ' + expected)
         return parsed
 
-    def parse_order(self, order: dict, market: Market = None) -> PredictionOrder:
+    def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
  @ignore
         parses a raw hyperliquid order object into a unified order object
@@ -1550,7 +1550,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             outcomeHandle = self.safe_string(outcomeObj, 'outcome')
         else:
             # fills identify their outcome only by the raw coin handle(e.g. "#10") — warm the
-            # cache(one market load) so parseTrade can resolve the unified outcome identity
+            # cache(one market load) so parsePredictionTrade can resolve the unified outcome identity
             await self.load_outcomes()
         userAddress: Str
         userAddress, params = self.handle_public_address('fetchMyTrades', params)
@@ -1571,7 +1571,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parsedTrades = self.parse_prediction_trades(fills, None)
         return self.filter_by_outcome_since_limit(parsedTrades, outcomeHandle, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
+    def parse_prediction_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
  @ignore
         parses a single hyperliquid fill into a unified trade object
@@ -1697,11 +1697,8 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
             groupMarkets = groupMap[key]
             event = self.parse_event({'parentSymbol': key, 'markets': groupMarkets})
             events.append(event)
-        if not self.events:
-            self.events = {}
-        for i in range(0, len(events)):
-            ev = events[i]
-            self.events[ev['event']] = ev
+        # applyEventFetchParams caches via setEvents(keyed by id/slug/handle) before filtering,
+        # so getEvent() resolves these events by any of the three keys
         return self.apply_event_fetch_params(events, params, queries)
 
     def parse_event(self, raw: dict) -> Any:

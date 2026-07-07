@@ -376,10 +376,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
-            result.append(self.parse_position(data[i]))
+            result.append(self.parse_prediction_position(data[i]))
         return self.filter_by_array_positions(result, 'outcome', outcomes, False)
 
-    def parse_position(self, position: dict, market: Market = None) -> PredictionPosition:
+    def parse_prediction_position(self, position: dict, market: Market = None) -> PredictionPosition:
         """
  @ignore
         parses a raw myriad portfolio entry into a unified position structure
@@ -588,9 +588,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         response = await self.myriadPublicPostOrders(request)
         wrapper = self.extend(response, {'order': order, 'networkId': networkId, 'timeInForce': timeInForce})
         outcomeObj = self.outcome(outcome)
-        parsed = self.parse_order(wrapper, outcomeObj)
+        parsed = self.parse_prediction_order(wrapper, outcomeObj)
         # the POST /orders response is minimal(hash + status), so backfill the known request values
-        # side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+        # side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
         sideStr = None if (side is None) else side.lower()
         typeStr = 'limit' if (type is None) else type.lower()
         if self.safe_string(parsed, 'side') is None:
@@ -874,7 +874,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order: dict, market: Market = None) -> PredictionOrder:
+    def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         inner = self.safe_dict(order, 'order', {})
         orderHash = self.safe_string_2(order, 'orderHash', 'hash')
         sideInt = self.safe_integer(inner, 'side')
@@ -961,7 +961,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcomes()
             market = self.outcome(outcome)
-        return self.parse_order(wrapper, market)
+        return self.parse_prediction_order(wrapper, market)
 
     async def cancel_all_orders(self, outcome: Str = None, params={}) -> Any:
         """
@@ -1050,7 +1050,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcomes()
             market = self.outcome(outcome)
-        return self.parse_order(response, market)
+        return self.parse_prediction_order(response, market)
 
     async def fetch_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> List[PredictionOrder]:
         """
@@ -1537,7 +1537,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         #         "externalSources": []
         #     }
         #
-        return self.parse_ticker(response, outcomeObj)
+        return self.parse_prediction_ticker(response, outcomeObj)
 
     async def fetch_trading_fee(self, outcome: str, params={}) -> PredictionTradingFee:
         """
@@ -1578,7 +1578,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'tierBased': False,
         }
 
-    def parse_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
+    def parse_prediction_ticker(self, raw: dict, market: Market = None) -> PredictionTicker:
         """
  @ignore
         parses a raw myriad market object into a unified ticker for the specified outcome
@@ -2036,7 +2036,7 @@ class myriad(PredictionExchange, ImplicitAPI):
                 m = self.parse_myriad_market(raw)
                 outcomesList = self.safe_list(m, 'outcomes', [])
                 for j in range(0, len(outcomesList)):
-                    ticker = self.parse_ticker(raw, outcomesList[j])
+                    ticker = self.parse_prediction_ticker(raw, outcomesList[j])
                     symbolKey = self.safe_string(ticker, 'outcome')
                     if symbolKey is not None:
                         result[symbolKey] = ticker
@@ -2074,7 +2074,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             grouped = outcomesByMarket[key]
             for j in range(0, len(grouped)):
                 outcomeObj = grouped[j]
-                ticker = self.parse_ticker(response, outcomeObj)
+                ticker = self.parse_prediction_ticker(response, outcomeObj)
                 symbolKey = self.safe_string(ticker, 'outcome')
                 if symbolKey is not None:
                     result[symbolKey] = ticker
@@ -2141,7 +2141,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             trades.append(row)
         return self.parse_prediction_trades(trades, outcomeObj, since, limit)
 
-    def parse_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
+    def parse_prediction_trade(self, trade: dict, market: Market = None) -> PredictionTrade:
         """
  @ignore
         parses a raw market action feed row into a unified trade object

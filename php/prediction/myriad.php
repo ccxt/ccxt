@@ -401,13 +401,13 @@ class myriad extends Exchange {
             $data = $this->safe_list($response, 'data', array());
             $result = array();
             for ($i = 0; $i < count($data); $i++) {
-                $result[] = $this->parse_position($data[$i]);
+                $result[] = $this->parse_prediction_position($data[$i]);
             }
             return $this->filter_by_array_positions($result, 'outcome', $outcomes, false);
         })();
     }
 
-    public function parse_position(array $position, ?array $market = null): array {
+    public function parse_prediction_position(array $position, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw myriad portfolio entry into a unified $position structure
@@ -641,9 +641,9 @@ class myriad extends Exchange {
             $response = Async\await($this->myriadPublicPostOrders($request));
             $wrapper = $this->extend($response, array( 'order' => $order, 'networkId' => $networkId, 'timeInForce' => $timeInForce ));
             $outcomeObj = $this->outcome($outcome);
-            $parsed = $this->parse_order($wrapper, $outcomeObj);
+            $parsed = $this->parse_prediction_order($wrapper, $outcomeObj);
             // the POST /orders $response is minimal (hash . status), so backfill the known $request values
-            // side/type/price/amount/timeInForce and a creation timestamp - when parseOrder left them empty
+            // side/type/price/amount/timeInForce and a creation timestamp - when parsePredictionOrder left them empty
             $sideStr = ($side === null) ? null : strtolower($side);
             $typeStr = ($type === null) ? 'limit' : strtolower($type);
             if ($this->safe_string($parsed, 'side') === null) {
@@ -968,7 +968,7 @@ class myriad extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_prediction_order(array $order, ?array $market = null): array {
         $inner = $this->safe_dict($order, 'order', array());
         $orderHash = $this->safe_string_2($order, 'orderHash', 'hash');
         $sideInt = $this->safe_integer($inner, 'side');
@@ -1061,7 +1061,7 @@ class myriad extends Exchange {
                 Async\await($this->load_outcomes());
                 $market = $this->outcome($outcome);
             }
-            return $this->parse_order($wrapper, $market);
+            return $this->parse_prediction_order($wrapper, $market);
         })();
     }
 
@@ -1164,7 +1164,7 @@ class myriad extends Exchange {
                 Async\await($this->load_outcomes());
                 $market = $this->outcome($outcome);
             }
-            return $this->parse_order($response, $market);
+            return $this->parse_prediction_order($response, $market);
         })();
     }
 
@@ -1692,7 +1692,7 @@ class myriad extends Exchange {
             //         "externalSources" => array()
             //     }
             //
-            return $this->parse_ticker($response, $outcomeObj);
+            return $this->parse_prediction_ticker($response, $outcomeObj);
         })();
     }
 
@@ -1738,7 +1738,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function parse_ticker(array $raw, ?array $market = null): array {
+    public function parse_prediction_ticker(array $raw, ?array $market = null): array {
         /**
          * @ignore
          * parses a $raw myriad $market object into a unified ticker for the specified outcome
@@ -2229,7 +2229,7 @@ class myriad extends Exchange {
                     $m = $this->parse_myriad_market($raw);
                     $outcomesList = $this->safe_list($m, 'outcomes', array());
                     for ($j = 0; $j < count($outcomesList); $j++) {
-                        $ticker = $this->parse_ticker($raw, $outcomesList[$j]);
+                        $ticker = $this->parse_prediction_ticker($raw, $outcomesList[$j]);
                         $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
@@ -2274,7 +2274,7 @@ class myriad extends Exchange {
                 $grouped = $outcomesByMarket[$key];
                 for ($j = 0; $j < count($grouped); $j++) {
                     $outcomeObj = $grouped[$j];
-                    $ticker = $this->parse_ticker($response, $outcomeObj);
+                    $ticker = $this->parse_prediction_ticker($response, $outcomeObj);
                     $symbolKey = $this->safe_string($ticker, 'outcome');
                     if ($symbolKey !== null) {
                         $result[$symbolKey] = $ticker;
@@ -2353,7 +2353,7 @@ class myriad extends Exchange {
         })();
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_prediction_trade(array $trade, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw $market action feed row into a unified $trade object

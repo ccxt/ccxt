@@ -897,11 +897,11 @@ class limitless extends Exchange {
             //     }
             //
             $tickerInput = array( 'market' => $response, 'book' => $responses[1] );
-            return $this->parse_ticker($tickerInput, $outcomeObj);
+            return $this->parse_prediction_ticker($tickerInput, $outcomeObj);
         })();
     }
 
-    public function parse_ticker(array $ticker, ?array $market = null): array {
+    public function parse_prediction_ticker(array $ticker, ?array $market = null): array {
         /**
          * @ignore
          * parses a $raw $market object, or a composite $market . $book dict, into a unified $ticker for the specified outcome token
@@ -1092,7 +1092,7 @@ class limitless extends Exchange {
                     $raw = $m['info'];
                     $outcomesList = $this->safe_list($m, 'outcomes', array());
                     for ($j = 0; $j < count($outcomesList); $j++) {
-                        $ticker = $this->parse_ticker($raw, $outcomesList[$j]);
+                        $ticker = $this->parse_prediction_ticker($raw, $outcomesList[$j]);
                         $symbolKey = $this->safe_string($ticker, 'outcome');
                         if ($symbolKey !== null) {
                             $result[$symbolKey] = $ticker;
@@ -1132,7 +1132,7 @@ class limitless extends Exchange {
                 $tickerInput = array( 'market' => $detail, 'book' => $book );
                 $grouped = $outcomesBySlug[$slug];
                 for ($j = 0; $j < count($grouped); $j++) {
-                    $ticker = $this->parse_ticker($tickerInput, $grouped[$j]);
+                    $ticker = $this->parse_prediction_ticker($tickerInput, $grouped[$j]);
                     $symbolKey = $this->safe_string($ticker, 'outcome');
                     if ($symbolKey !== null) {
                         $result[$symbolKey] = $ticker;
@@ -1461,9 +1461,9 @@ class limitless extends Exchange {
             //         }
             //     )
             //
-            // pass null => parseOrder sets $outcome to the market $outcome while the $outcome
+            // pass null => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
             // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
-            // endpoint already scopes results and parseOrder resolves the $outcome via outcomes_by_id
+            // endpoint already scopes results and parsePredictionOrder resolves the $outcome via outcomes_by_id
             return $this->parse_prediction_orders($response, null, $since, $limit);
         })();
     }
@@ -1680,7 +1680,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function parse_order(array $order, ?array $market = null): array {
+    public function parse_prediction_order(array $order, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw limitless $order object into a unified $order object
@@ -2102,7 +2102,7 @@ class limitless extends Exchange {
                 $request['postOnly'] = $postOnly;
             }
             $response = Async\await($this->limitlessPrivatePostOrders($this->extend($request, $params)));
-            $parsedOrder = $this->parse_order($response, $outcomeObj);
+            $parsedOrder = $this->parse_prediction_order($response, $outcomeObj);
             // the create-order $response omits a status field; a freshly accepted order is open
             if ($parsedOrder['status'] === null) {
                 $parsedOrder['status'] = 'open';
@@ -2261,7 +2261,7 @@ class limitless extends Exchange {
             );
             $response = Async\await($this->limitlessPrivateDeleteOrdersOrderId($this->extend($request, $params)));
             // the delete $response carries no $order body, so backfill the $id and the resulting status
-            $order = $this->parse_order($response);
+            $order = $this->parse_prediction_order($response);
             if ($order['id'] === null) {
                 $order['id'] = $id;
             }
@@ -2490,7 +2490,7 @@ class limitless extends Exchange {
         })();
     }
 
-    public function parse_trade(array $trade, ?array $market = null): array {
+    public function parse_prediction_trade(array $trade, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw $trade from either the public $market events feed or the private portfolio history into a unified $trade object
@@ -2756,7 +2756,7 @@ class limitless extends Exchange {
         $rawMarket = $this->safe_dict($entry, 'market');
         $slug = $this->safe_string($rawMarket, 'slug');
         $outcomeObj = $this->get_outcome_by_slug_and_label($slug, $label);
-        $parsed = $this->parse_position($position, $outcomeObj);
+        $parsed = $this->parse_prediction_position($position, $outcomeObj);
         $parsed['contracts'] = $this->parse_number($this->apply_scale($contracts));
         $latestTrade = $this->safe_dict($entry, 'latestTrade');
         $key = 'latestYesPrice';
@@ -2768,7 +2768,7 @@ class limitless extends Exchange {
         return $this->safe_prediction_position($parsed);
     }
 
-    public function parse_position(array $position, ?array $market = null): array {
+    public function parse_prediction_position(array $position, ?array $market = null): array {
         /**
          * @ignore
          * parses a raw limitless portfolio $position into a unified $position object

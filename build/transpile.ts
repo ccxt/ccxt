@@ -288,6 +288,8 @@ class Transpiler {
             [ /hmac\s*\(([^,]+)\, ([^,]+)\, \'(sha[0-9]+)\'/g, 'hmac($1, $2, hashlib.$3' ],
             [ /throw new ([\S]+) \((.*)\)/g, 'raise $1($2)'],
             [ /throw ([\S]+)/g, 'raise $1'],
+            // python has no `new`; strip it from any remaining constructor call (e.g. client.reject (new ExchangeError (...)))
+            [ /(?<![.\w])new ([A-Z][A-Za-z0-9_]*) \(/g, '$1 (' ],
             [ /try {/g, 'try:'],
             [ /\}\s+catch \(([\S]+)\) {/g, 'except Exception as $1:'],
             [ /([\s\(])extend(\s)/g, '$1self.extend$2' ],
@@ -1960,6 +1962,28 @@ class Transpiler {
             log.magenta ('Transpiling from', baseExchangeJsFile.yellow)
             const secondPart = parts[1]
             const methods = secondPart.trim ().split (/\n\s*\n/)
+            // fine split: the symbol-based trading methods live in a separate `Exchange extends
+            // BaseExchange` class in the TS source (so the standalone-typed prediction tier does not
+            // inherit them). Python/PHP are dynamically typed with no return-covariance constraint,
+            // so recombine those methods into the transpiled base — prediction still shadows them
+            // with its own outcome-typed versions. (C#/Java keep the two tiers separate.)
+            const exClassMatch = contents.match (/export default class Exchange extends BaseExchange \{([\s\S]*?)\n\}/)
+            if (exClassMatch) {
+                const exMethods = exClassMatch[1].trim ().split (/\n\s*\n/).filter ((m: string) => {
+                    if (m.trim ().length === 0) {
+                        return false
+                    }
+                    // loadOrderBook is hand-written above the transpile marker in the WS async bases
+                    // (it uses WS cache primitives), so it must not be re-transpiled from here.
+                    if (/(^|\n)\s*async loadOrderBook \(/.test (m)) {
+                        return false
+                    }
+                    return true
+                })
+                for (let mi = 0; mi < exMethods.length; mi++) {
+                    methods.push (exMethods[mi])
+                }
+            }
             const {
                 python2,
                 python3,
