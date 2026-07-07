@@ -6,7 +6,7 @@ type Bitteam struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewBitteam(userConfig map[string]interface{}) *Bitteam {
+func NewBitteam(userConfig map[string]any) *Bitteam {
 	p := NewBitteamCore()
 	p.Init(userConfig)
 	return &Bitteam{
@@ -34,7 +34,7 @@ func NewBitteamFromCore(core *BitteamCore) *Bitteam {
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Bitteam) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Bitteam) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -50,7 +50,7 @@ func (this *Bitteam) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @param {object} [params] extra parameters specific to the bitteam api endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Bitteam) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Bitteam) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -77,22 +77,22 @@ func (this *Bitteam) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -121,12 +121,12 @@ func (this *Bitteam) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -157,22 +157,22 @@ func (this *Bitteam) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -201,12 +201,12 @@ func (this *Bitteam) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -236,22 +236,22 @@ func (this *Bitteam) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -281,22 +281,22 @@ func (this *Bitteam) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -326,22 +326,22 @@ func (this *Bitteam) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -373,12 +373,12 @@ func (this *Bitteam) CreateOrder(symbol string, typeVar string, side string, amo
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -407,12 +407,12 @@ func (this *Bitteam) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -440,12 +440,12 @@ func (this *Bitteam) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -473,12 +473,12 @@ func (this *Bitteam) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -506,7 +506,7 @@ func (this *Bitteam) FetchTicker(symbol string, options ...FetchTickerOptions) (
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -536,17 +536,17 @@ func (this *Bitteam) FetchTrades(symbol string, options ...FetchTradesOptions) (
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -576,22 +576,22 @@ func (this *Bitteam) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -601,7 +601,7 @@ func (this *Bitteam) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 	}
 	return NewTradeArray(res), nil
 }
-func (this *Bitteam) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Bitteam) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -628,22 +628,22 @@ func (this *Bitteam) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawal
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -656,7 +656,7 @@ func (this *Bitteam) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawal
 
 // missing typed methods from base
 // nolint
-func (this *Bitteam) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Bitteam) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Bitteam) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -665,7 +665,7 @@ func (this *Bitteam) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 func (this *Bitteam) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Bitteam) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Bitteam) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Bitteam) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -761,7 +761,7 @@ func (this *Bitteam) EditOrderWithClientOrderId(clientOrderId string, symbol str
 func (this *Bitteam) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Bitteam) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Bitteam) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Bitteam) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -773,13 +773,13 @@ func (this *Bitteam) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, er
 func (this *Bitteam) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Bitteam) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Bitteam) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Bitteam) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Bitteam) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Bitteam) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -794,7 +794,7 @@ func (this *Bitteam) FetchConvertTradeHistory(options ...FetchConvertTradeHistor
 func (this *Bitteam) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Bitteam) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Bitteam) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Bitteam) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -809,13 +809,13 @@ func (this *Bitteam) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Bitteam) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDeposits(options...)
 }
-func (this *Bitteam) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Bitteam) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Bitteam) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Bitteam) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Bitteam) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -845,7 +845,7 @@ func (this *Bitteam) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOp
 func (this *Bitteam) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Bitteam) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Bitteam) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Bitteam) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -926,7 +926,7 @@ func (this *Bitteam) FetchOrderStatus(id string, options ...FetchOrderStatusOpti
 func (this *Bitteam) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Bitteam) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Bitteam) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitteam) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -935,7 +935,7 @@ func (this *Bitteam) FetchPosition(symbol string, options ...FetchPositionOption
 func (this *Bitteam) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Bitteam) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Bitteam) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -953,25 +953,25 @@ func (this *Bitteam) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitteam) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitteam) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Bitteam) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Bitteam) FetchTime(params ...interface{}) (int64, error) {
+func (this *Bitteam) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Bitteam) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Bitteam) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Bitteam) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Bitteam) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Bitteam) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Bitteam) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Bitteam) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -989,10 +989,10 @@ func (this *Bitteam) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 func (this *Bitteam) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Bitteam) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Bitteam) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Bitteam) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Bitteam) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Bitteam) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -1073,13 +1073,13 @@ func (this *Bitteam) CreateTriggerOrderWs(symbol string, typeVar string, side st
 func (this *Bitteam) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Bitteam) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Bitteam) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Bitteam) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitteam) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitteam) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1121,46 +1121,46 @@ func (this *Bitteam) FetchTickerWs(symbol string, options ...FetchTickerWsOption
 func (this *Bitteam) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Bitteam) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Bitteam) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitteam) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Bitteam) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Bitteam) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Bitteam) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Bitteam) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Bitteam) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Bitteam) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Bitteam) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Bitteam) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Bitteam) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Bitteam) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Bitteam) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Bitteam) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Bitteam) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Bitteam) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Bitteam) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Bitteam) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

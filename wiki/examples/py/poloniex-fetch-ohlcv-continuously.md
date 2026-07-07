@@ -1,10 +1,11 @@
-- [Poloniex Fetch Ohlcv Continuously](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import asyncio
+from importlib import import_module
+from importlib.util import find_spec
+
+run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import os
 import sys
 from pprint import pprint
@@ -65,8 +66,8 @@ symbols = ['ETH/BTC', 'BTC/USDT']
 timeframe = '5m'
 fetching_time = 15 * 60 * 1000  # stop after 15 minutes (approximately 4 iterations)
 coroutine = fetch_all_ohlcvs_continuously(exchange_id, timeframe, symbols, fetching_time)
-results = asyncio.run(coroutine)
+results = run(coroutine)
 pprint(results)
 # results  # if you run this code in Jupyter then uncomment thisline to see the output result
- 
+
 ```

@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestStringToBase64() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// todo: add single & double quotes in transpilable manner
 	Assert(ccxt.IsEqual(exchange.StringToBase64("hello world 123!@#$%^&*()\"-+)S"), "aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT"))
 }

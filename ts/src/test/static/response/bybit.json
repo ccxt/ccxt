@@ -111,6 +111,37 @@
                 }
             }
         ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {
+                    "retCode": "0",
+                    "retMsg": "OK",
+                    "result": {
+                        "list": []
+                    },
+                    "retExtInfo": {},
+                    "time": "1751858399649"
+                },
+                "parsedResponse": {
+                    "status": "ok",
+                    "updated": null,
+                    "eta": null,
+                    "url": null,
+                    "info": {
+                        "retCode": "0",
+                        "retMsg": "OK",
+                        "result": {
+                            "list": []
+                        },
+                        "retExtInfo": {},
+                        "time": "1751858399649"
+                    }
+                }
+            }
+        ],
         "fetchPositionsHistory": [
             {
                 "description": "fetch positions history",
@@ -823,7 +854,7 @@
                         "precision": 1e-8,
                         "type": "crypto",
                         "name": "BTC",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0.000139,
@@ -846,7 +877,7 @@
                                 },
                                 "id": "BTC",
                                 "network": "BTC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.000139,
@@ -1032,7 +1063,7 @@
                         "precision": 1e-8,
                         "type": "crypto",
                         "name": "ETH",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -1055,7 +1086,7 @@
                                 },
                                 "id": "ARBI",
                                 "network": "ARBONE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00004,
@@ -1071,7 +1102,7 @@
                                     }
                                 }
                             },
-                            "ARBINOVA": {
+                            "ARBNOVA": {
                                 "info": {
                                     "chainType": "Arbitrum Nova",
                                     "confirmation": "100",
@@ -1087,8 +1118,8 @@
                                     "safeConfirmNumber": "120"
                                 },
                                 "id": "ARBINOVA",
-                                "network": "ARBINOVA",
-                                "active": true,
+                                "network": "ARBNOVA",
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0003,
@@ -1121,7 +1152,7 @@
                                 },
                                 "id": "BASE",
                                 "network": "BASE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0003,
@@ -1154,7 +1185,7 @@
                                 },
                                 "id": "BSC",
                                 "network": "BEP20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0002,
@@ -1187,7 +1218,7 @@
                                 },
                                 "id": "ETH",
                                 "network": "ETH",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0003,
@@ -1220,7 +1251,7 @@
                                 },
                                 "id": "LINEA",
                                 "network": "LINEA",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0002,
@@ -1253,7 +1284,7 @@
                                 },
                                 "id": "MANTLE",
                                 "network": "MANTLE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -1286,7 +1317,7 @@
                                 },
                                 "id": "OP",
                                 "network": "OP",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.00015,
@@ -1302,7 +1333,7 @@
                                     }
                                 }
                             },
-                            "ZKSYNC": {
+                            "ZKSYNCLITE": {
                                 "info": {
                                     "chainType": "zkSync Lite",
                                     "confirmation": "",
@@ -1318,8 +1349,8 @@
                                     "safeConfirmNumber": ""
                                 },
                                 "id": "ZKSYNC",
-                                "network": "ZKSYNC",
-                                "active": false,
+                                "network": "ZKSYNCLITE",
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 0.00015,
@@ -1335,7 +1366,7 @@
                                     }
                                 }
                             },
-                            "ZKV2": {
+                            "ZKSYNCERA": {
                                 "info": {
                                     "chainType": "zkSync Era",
                                     "confirmation": "100",
@@ -1351,8 +1382,8 @@
                                     "safeConfirmNumber": "30000"
                                 },
                                 "id": "ZKV2",
-                                "network": "ZKV2",
-                                "active": true,
+                                "network": "ZKSYNCERA",
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.0003,
@@ -1678,7 +1709,7 @@
                         "precision": 0.0001,
                         "type": "crypto",
                         "name": "USDT",
-                        "active": true,
+                        "active": null,
                         "deposit": true,
                         "withdraw": true,
                         "fee": 0,
@@ -1701,7 +1732,7 @@
                                 },
                                 "id": "APTOS",
                                 "network": "APT",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -1734,7 +1765,7 @@
                                 },
                                 "id": "ARBI",
                                 "network": "ARBONE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
@@ -1767,7 +1798,7 @@
                                 },
                                 "id": "BERA",
                                 "network": "BERA",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -1800,7 +1831,7 @@
                                 },
                                 "id": "BSC",
                                 "network": "BEP20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.2,
@@ -1833,7 +1864,7 @@
                                 },
                                 "id": "CAVAX",
                                 "network": "AVAXC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
@@ -1866,7 +1897,7 @@
                                 },
                                 "id": "CELO",
                                 "network": "CELO",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.5,
@@ -1899,7 +1930,7 @@
                                 },
                                 "id": "CORN",
                                 "network": "CORN",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -1932,7 +1963,7 @@
                                 },
                                 "id": "ETH",
                                 "network": "ERC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.8,
@@ -1948,7 +1979,7 @@
                                     }
                                 }
                             },
-                            "HYPEREVM": {
+                            "HYPER": {
                                 "info": {
                                     "chainType": "HyperEVM",
                                     "confirmation": "30",
@@ -1964,8 +1995,8 @@
                                     "safeConfirmNumber": "30"
                                 },
                                 "id": "HYPEREVM",
-                                "network": "HYPEREVM",
-                                "active": true,
+                                "network": "HYPER",
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -1998,7 +2029,7 @@
                                 },
                                 "id": "KAVAEVM",
                                 "network": "KAVAEVM",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.3,
@@ -2031,7 +2062,7 @@
                                 },
                                 "id": "KLAY",
                                 "network": "KLAY",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
@@ -2064,7 +2095,7 @@
                                 },
                                 "id": "MANTLE",
                                 "network": "MANTLE",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -2097,7 +2128,7 @@
                                 },
                                 "id": "MATIC",
                                 "network": "MATIC",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.1,
@@ -2130,7 +2161,7 @@
                                 },
                                 "id": "MONAD",
                                 "network": "MONAD",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -2163,7 +2194,7 @@
                                 },
                                 "id": "OP",
                                 "network": "OP",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -2196,7 +2227,7 @@
                                 },
                                 "id": "PLASMA",
                                 "network": "PLASMA",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0,
@@ -2229,7 +2260,7 @@
                                 },
                                 "id": "SOL",
                                 "network": "SOL",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.5,
@@ -2262,7 +2293,7 @@
                                 },
                                 "id": "TON",
                                 "network": "TON",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 0.15,
@@ -2295,7 +2326,7 @@
                                 },
                                 "id": "TRX",
                                 "network": "TRC20",
-                                "active": true,
+                                "active": null,
                                 "deposit": true,
                                 "withdraw": true,
                                 "fee": 1,
@@ -2311,7 +2342,7 @@
                                     }
                                 }
                             },
-                            "ZKSYNC": {
+                            "ZKSYNCLITE": {
                                 "info": {
                                     "chainType": "zkSync Lite",
                                     "confirmation": "",
@@ -2327,8 +2358,8 @@
                                     "safeConfirmNumber": ""
                                 },
                                 "id": "ZKSYNC",
-                                "network": "ZKSYNC",
-                                "active": false,
+                                "network": "ZKSYNCLITE",
+                                "active": null,
                                 "deposit": false,
                                 "withdraw": false,
                                 "fee": 0.3,
@@ -4393,7 +4424,7 @@
                         "collateral": 0,
                         "marginMode": null,
                         "side": "short",
-                        "percentage": null,
+                        "percentage": 27.93,
                         "stopLossPrice": 0.024012,
                         "takeProfitPrice": null,
                         "hedged": false
@@ -4518,7 +4549,7 @@
                         "collateral": 0,
                         "marginMode": null,
                         "side": "short",
-                        "percentage": null,
+                        "percentage": -11.17,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "hedged": true
@@ -4638,7 +4669,7 @@
                         "collateral": 11.699649,
                         "marginMode": null,
                         "side": "long",
-                        "percentage": null,
+                        "percentage": 60.21,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
                         "hedged": false

@@ -1,5 +1,5 @@
 import Exchange from './abstract/binance.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, Position, ADL, List, NullableDict } from './base/types.js';
 /**
  * @class binance
  * @augments Exchange
@@ -12,7 +12,6 @@ export default class binance extends Exchange {
     createExpiredOptionMarket(symbol: string): MarketInterface;
     market(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
-    costToPrecision(symbol: any, cost: any): string;
     nonce(): number;
     /**
      * @method
@@ -45,6 +44,8 @@ export default class binance extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrenciesCustom(responseCurrencies: any, marginablesById: any): Currencies;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name binance#fetchMarkets
@@ -96,7 +97,7 @@ export default class binance extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
@@ -328,7 +329,7 @@ export default class binance extends Exchange {
      */
     editOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     parseOrderStatus(status: Str): string;
-    parseOrderType(type: Str): string;
+    parseOrderTypeByMarket(type: Str, marketType: Str): string;
     parseOrder(order: Dict, market?: Market): Order;
     /**
      * @method
@@ -695,11 +696,11 @@ export default class binance extends Exchange {
         id: any;
         timestamp: number;
         datetime: string;
-        symbol: any;
+        symbol: string;
         order: string;
         type: any;
         takerOrMaker: any;
-        side: any;
+        side: string;
         amount: number;
         price: number;
         cost: number;
@@ -926,7 +927,7 @@ export default class binance extends Exchange {
      */
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
     parseFundingRate(contract: any, market?: Market): FundingRate;
-    parseAccountPositions(account: any, filterClosed?: boolean): any[];
+    parseAccountPositions(account: any, filterClosed?: boolean): List;
     parseAccountPosition(position: any, market?: Market): {
         info: any;
         id: any;
@@ -943,14 +944,14 @@ export default class binance extends Exchange {
         unrealizedPnl: number;
         contracts: number;
         contractSize: any;
-        marginRatio: any;
-        liquidationPrice: any;
+        marginRatio: number;
+        liquidationPrice: number;
         markPrice: any;
         collateral: number;
-        marginMode: any;
-        side: any;
+        marginMode: string;
+        side: string;
         hedged: boolean;
-        percentage: any;
+        percentage: number;
     };
     parsePositionRisk(position: any, market?: Market): Position;
     loadLeverageBrackets(reload?: boolean, params?: {}): Promise<any>;
@@ -1089,7 +1090,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<any>;
+    setMarginMode(marginMode: string, symbol?: Str, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name binance#setPositionMode
@@ -1153,7 +1154,7 @@ export default class binance extends Exchange {
         timestamp: number;
         datetime: string;
     };
-    parseSettlements(settlements: any, market: any): any[];
+    parseSettlements(settlements: any, market: any): List;
     /**
      * @method
      * @name binance#fetchLedgerEntry
@@ -1189,11 +1190,11 @@ export default class binance extends Exchange {
     parseLedgerEntryType(type: any): string;
     getNetworkCodeByNetworkUrl(currencyCode: string, depositUrl?: Str): Str;
     getBaseDomainFromUrl(url: Str): Str;
-    sign(path: any, api?: string, method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: any): {
         url: any;
         method: string;
         body: any;
-        headers: any;
+        headers: Dict;
     };
     getExceptionsByUrl(url: string, exactOrBroad: string): import("./base/types.js").Dictionary<any>;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;

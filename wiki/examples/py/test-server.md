@@ -1,8 +1,5 @@
-- [Test Server](./examples/py/)
-
-
- ```python
- #!/usr/bin/env python
+```python
+#!/usr/bin/env python
 
 # Python HTTPServer server for response code testing (localhost:8080 by default)
 
@@ -66,5 +63,5 @@ class TestRequestHandler(SimpleHTTPRequestHandler):
 
 if __name__ == '__main__':
     test(TestRequestHandler, HTTPServer)
- 
+
 ```

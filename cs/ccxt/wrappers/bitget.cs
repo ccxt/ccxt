@@ -290,7 +290,7 @@ public partial class bitget
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols.</returns>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}.</returns>
     public async Task<OrderBook> FetchOrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -654,7 +654,7 @@ public partial class bitget
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders, and used as the execution price for contract stop-loss / take-profit orders
     /// </description>
     /// </item>
     /// <item>

@@ -6,7 +6,7 @@ type Cryptomus struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewCryptomus(userConfig map[string]interface{}) *Cryptomus {
+func NewCryptomus(userConfig map[string]any) *Cryptomus {
 	p := NewCryptomusCore()
 	p.Init(userConfig)
 	return &Cryptomus{
@@ -34,7 +34,7 @@ func NewCryptomusFromCore(core *CryptomusCore) *Cryptomus {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Cryptomus) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Cryptomus) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -50,7 +50,7 @@ func (this *Cryptomus) FetchMarkets(params ...interface{}) ([]MarketInterface, e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Cryptomus) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Cryptomus) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -75,12 +75,12 @@ func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, er
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -100,7 +100,7 @@ func (this *Cryptomus) FetchTickers(options ...FetchTickersOptions) (Tickers, er
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -110,12 +110,12 @@ func (this *Cryptomus) FetchOrderBook(symbol string, options ...FetchOrderBookOp
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -145,17 +145,17 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -174,7 +174,7 @@ func (this *Cryptomus) FetchTrades(symbol string, options ...FetchTradesOptions)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Cryptomus) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Cryptomus) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -206,12 +206,12 @@ func (this *Cryptomus) CreateOrder(symbol string, typeVar string, side string, a
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -240,12 +240,12 @@ func (this *Cryptomus) CancelOrder(id string, options ...CancelOrderOptions) (Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -263,22 +263,22 @@ func (this *Cryptomus) FetchCanceledAndClosedOrders(options ...FetchCanceledAndC
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -313,22 +313,22 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -347,7 +347,7 @@ func (this *Cryptomus) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Ord
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Cryptomus) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Cryptomus) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -357,7 +357,7 @@ func (this *Cryptomus) FetchTradingFees(params ...interface{}) (TradingFees, err
 
 // missing typed methods from base
 // nolint
-func (this *Cryptomus) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Cryptomus) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Cryptomus) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -369,7 +369,7 @@ func (this *Cryptomus) CancelOrdersWithClientOrderIds(clientOrderIds []string, o
 func (this *Cryptomus) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Cryptomus) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Cryptomus) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -465,7 +465,7 @@ func (this *Cryptomus) EditOrderWithClientOrderId(clientOrderId string, symbol s
 func (this *Cryptomus) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Cryptomus) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Cryptomus) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Cryptomus) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -477,13 +477,13 @@ func (this *Cryptomus) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, 
 func (this *Cryptomus) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Cryptomus) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Cryptomus) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Cryptomus) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Cryptomus) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Cryptomus) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -498,7 +498,7 @@ func (this *Cryptomus) FetchConvertTradeHistory(options ...FetchConvertTradeHist
 func (this *Cryptomus) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Cryptomus) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Cryptomus) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Cryptomus) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -516,13 +516,13 @@ func (this *Cryptomus) FetchDeposits(options ...FetchDepositsOptions) ([]Transac
 func (this *Cryptomus) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Cryptomus) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Cryptomus) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Cryptomus) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Cryptomus) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Cryptomus) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -552,7 +552,7 @@ func (this *Cryptomus) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCV
 func (this *Cryptomus) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Cryptomus) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Cryptomus) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Cryptomus) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -645,7 +645,7 @@ func (this *Cryptomus) FetchOrderStatus(id string, options ...FetchOrderStatusOp
 func (this *Cryptomus) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cryptomus) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cryptomus) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -654,7 +654,7 @@ func (this *Cryptomus) FetchPosition(symbol string, options ...FetchPositionOpti
 func (this *Cryptomus) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Cryptomus) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Cryptomus) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -672,25 +672,25 @@ func (this *Cryptomus) FetchPositionsRisk(options ...FetchPositionsRiskOptions) 
 func (this *Cryptomus) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Cryptomus) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Cryptomus) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 	return this.exchangeTyped.FetchTicker(symbol, options...)
 }
-func (this *Cryptomus) FetchTime(params ...interface{}) (int64, error) {
+func (this *Cryptomus) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Cryptomus) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Cryptomus) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Cryptomus) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Cryptomus) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Cryptomus) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -708,10 +708,10 @@ func (this *Cryptomus) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]T
 func (this *Cryptomus) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Cryptomus) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Cryptomus) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Cryptomus) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -792,13 +792,13 @@ func (this *Cryptomus) CreateTriggerOrderWs(symbol string, typeVar string, side 
 func (this *Cryptomus) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Cryptomus) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Cryptomus) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Cryptomus) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Cryptomus) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Cryptomus) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -840,46 +840,46 @@ func (this *Cryptomus) FetchTickerWs(symbol string, options ...FetchTickerWsOpti
 func (this *Cryptomus) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Cryptomus) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Cryptomus) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Cryptomus) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Cryptomus) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Cryptomus) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Cryptomus) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Cryptomus) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Cryptomus) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Cryptomus) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Cryptomus) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Cryptomus) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Cryptomus) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Cryptomus) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Cryptomus) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Cryptomus) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Cryptomus) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Cryptomus) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Cryptomus) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Cryptomus) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

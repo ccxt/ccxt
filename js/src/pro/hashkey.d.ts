@@ -24,7 +24,7 @@ export default class hashkey extends hashkeyRest {
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     /**
      * @method
-     * @name hahskey#watchTicker
+     * @name hashkey#watchTicker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
      * @param {string} symbol unified symbol of the market to fetch the ticker for
@@ -56,7 +56,7 @@ export default class hashkey extends hashkeyRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
@@ -87,7 +87,7 @@ export default class hashkey extends hashkeyRest {
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrade(client: Client, message: any, subscription?: {}): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name hashkey#watchPositions

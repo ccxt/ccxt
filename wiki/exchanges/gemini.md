@@ -48,7 +48,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-gemini.fetchCurrencies ([params])
+gemini.fetchCurrencies (params?)
 ```
 
 
@@ -68,7 +68,7 @@ retrieves data on all markets for gemini
 
 
 ```javascript
-gemini.fetchMarkets ([params])
+gemini.fetchMarkets (params?)
 ```
 
 
@@ -78,7 +78,7 @@ gemini.fetchMarkets ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.gemini.com/rest-api/#current-order-book  
 
@@ -90,7 +90,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-gemini.fetchOrderBook (symbol[, limit, params])
+gemini.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -116,7 +116,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-gemini.fetchTicker (symbol[, params])
+gemini.fetchTicker (symbol, params?)
 ```
 
 
@@ -137,7 +137,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-gemini.fetchTickers (symbols[, params])
+gemini.fetchTickers (symbols, params?)
 ```
 
 
@@ -160,7 +160,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-gemini.fetchTrades (symbol[, since, limit, params])
+gemini.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -180,7 +180,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-gemini.fetchTradingFees ([params])
+gemini.fetchTradingFees (params?)
 ```
 
 
@@ -200,7 +200,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-gemini.fetchBalance ([params])
+gemini.fetchBalance (params?)
 ```
 
 
@@ -222,7 +222,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-gemini.fetchOrder (id, symbol[, params])
+gemini.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -245,7 +245,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-gemini.fetchOpenOrders (symbol[, since, limit, params])
+gemini.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -270,7 +270,7 @@ create a trade order
 
 
 ```javascript
-gemini.createOrder (symbol, type, side, amount[, price, params])
+gemini.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -292,7 +292,7 @@ cancels an open order
 
 
 ```javascript
-gemini.cancelOrder (id, symbol[, params])
+gemini.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -315,7 +315,7 @@ fetch all trades made by the user
 
 
 ```javascript
-gemini.fetchMyTrades (symbol[, since, limit, params])
+gemini.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -339,7 +339,7 @@ make a withdrawal
 
 
 ```javascript
-gemini.withdraw (code, amount, address, tag[, params])
+gemini.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -362,7 +362,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-gemini.fetchDepositsWithdrawals ([code, since, limit, params])
+gemini.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -384,7 +384,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-gemini.fetchDepositAddress (code[, params])
+gemini.fetchDepositAddress (code, params?)
 ```
 
 
@@ -406,7 +406,7 @@ fetch a dictionary of addresses for a currency, indexed by network
 
 
 ```javascript
-gemini.fetchDepositAddressesByNetwork (code[, params])
+gemini.fetchDepositAddressesByNetwork (code, params?)
 ```
 
 
@@ -427,7 +427,7 @@ create a currency deposit address
 
 
 ```javascript
-gemini.createDepositAddress (code[, params])
+gemini.createDepositAddress (code, params?)
 ```
 
 
@@ -451,7 +451,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-gemini.fetchOHLCV (symbol, timeframe[, since, limit, params])
+gemini.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -472,7 +472,7 @@ retrieves the open interest of a contract trading pair
 
 
 ```javascript
-gemini.fetchOpenInterest (symbol[, params])
+gemini.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -495,7 +495,7 @@ watch the list of most recent trades for a particular symbol
 
 
 ```javascript
-gemini.watchTrades (symbol[, since, limit, params])
+gemini.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -518,7 +518,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-gemini.watchTradesForSymbols (symbols[, since, limit, params])
+gemini.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -542,7 +542,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-gemini.watchOHLCV (symbol, timeframe[, since, limit, params])
+gemini.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -552,7 +552,7 @@ gemini.watchOHLCV (symbol, timeframe[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.gemini.com/websocket-api/#market-data-version-2  
 
@@ -564,7 +564,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-gemini.watchOrderBook (symbol[, limit, params])
+gemini.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -574,7 +574,7 @@ gemini.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>gemini</code>](#gemini)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.gemini.com/websocket-api/#multi-market-data  
 
@@ -586,7 +586,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-gemini.watchOrderBookForSymbols (symbols[, limit, params])
+gemini.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -607,7 +607,7 @@ watches best bid & ask for symbols
 
 
 ```javascript
-gemini.watchBidsAsks (symbols[, params])
+gemini.watchBidsAsks (symbols, params?)
 ```
 
 
@@ -630,6 +630,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-gemini.fetchOrders (symbol[, since, limit, params])
+gemini.fetchOrders (symbol, since?, limit?, params?)
 ```
 

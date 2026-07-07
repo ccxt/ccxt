@@ -11,7 +11,7 @@ function testBase58ToBinary() {
         'id': 'sampleexchange',
     });
     // todo: can be implemented stringToBinary in future
-    assert('GO_SKIP_START');
+    // @SKIP_START_GO
     // Test 1: Simple base58
     const b58_1 = 'Cn8eVZg'; // hello
     const binary1 = exchange.base58ToBinary(b58_1);
@@ -40,7 +40,7 @@ function testBase58ToBinary() {
     const b58_7 = '4SoiMiEYtTt5tPdi81Fik'; // {"key":"value"}
     const binary7 = exchange.base58ToBinary(b58_7);
     assert(exchange.binaryToBase58(binary7) === b58_7);
-    assert('GO_SKIP_END');
+    // @SKIP_END_GO
     assert(exchange.parseNumber(undefined) === undefined, 'GO skip trick');
 }
 export default testBase58ToBinary;

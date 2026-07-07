@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestNumberToBE() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
-	assert(ccxt.IsEqual(exchange.ParseNumber(nil), nil), "GO skip trick")
-
+	}, map[string]any{}, exchange)
+	//
+	exchange.Describe() // avoid unused var
 }

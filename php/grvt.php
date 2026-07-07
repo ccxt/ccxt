@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\grvt as Exchange;
 
 class grvt extends Exchange {
-
     public function describe(): mixed {
         $rlOthers = 40;
         $rlOrders = 20;
@@ -77,7 +76,7 @@ class grvt extends Exchange {
                 '4w' => 'CI_4_W',
             ),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo' => 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api' => array(
                     'privateEdge' => 'https://edge.grvt.io/',
                     'privateTrading' => 'https://trades.grvt.io/',
@@ -386,7 +385,7 @@ class grvt extends Exchange {
     public function eip_definitions() {
         return array(
             'EIP712_ORDER_TYPE' => array(
-                'Order' => [
+                'Order' => array(
                     array( 'name' => 'subAccountID', 'type' => 'uint64' ),
                     array( 'name' => 'isMarket', 'type' => 'bool' ),
                     array( 'name' => 'timeInForce', 'type' => 'uint8' ),
@@ -395,7 +394,7 @@ class grvt extends Exchange {
                     array( 'name' => 'legs', 'type' => 'OrderLeg[]' ),
                     array( 'name' => 'nonce', 'type' => 'uint32' ),
                     array( 'name' => 'expiration', 'type' => 'int64' ),
-                ],
+                ),
                 'OrderLeg' => array(
                     array( 'name' => 'assetID', 'type' => 'uint256' ),
                     array( 'name' => 'contractSize', 'type' => 'uint64' ),
@@ -404,7 +403,7 @@ class grvt extends Exchange {
                 ),
             ),
             'EIP712_ORDER_WITH_BUILDER_TYPE' => array(
-                'OrderWithBuilderFee' => [
+                'OrderWithBuilderFee' => array(
                     array( 'name' => 'subAccountID', 'type' => 'uint64' ),
                     array( 'name' => 'isMarket', 'type' => 'bool' ),
                     array( 'name' => 'timeInForce', 'type' => 'uint8' ),
@@ -415,7 +414,7 @@ class grvt extends Exchange {
                     array( 'name' => 'builderFee', 'type' => 'uint32' ),
                     array( 'name' => 'nonce', 'type' => 'uint32' ),
                     array( 'name' => 'expiration', 'type' => 'int64' ),
-                ],
+                ),
                 'OrderLeg' => array(
                     array( 'name' => 'assetID', 'type' => 'uint256' ),
                     array( 'name' => 'contractSize', 'type' => 'uint64' ),
@@ -474,7 +473,7 @@ class grvt extends Exchange {
         return $privateKeyDefined;
     }
 
-    public function sign_in($params = array ()) {
+    public function sign_in($params = array()) {
         /**
          * sign in, must be called prior to using other authenticated methods
          *
@@ -483,17 +482,22 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return response from exchange
          */
-        if ($this->uses_private_key()) {
-            $this->sign_in_with_private_key($params);
-            $this->initialize_client($params);
-        } else {
-            $this->sign_in_with_api_key($params);
+        // if ($this->uses_private_key()) {
+        //     $this->sign_in_with_private_key($params);
+        //     $this->initialize_client($params);
+        // } else {
+        //     $this->sign_in_with_api_key($params);
+        // }
+        if ($this->privateKey === null || $this->privateKey === '') {
+            throw new PermissionDenied('Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt');
         }
+        $this->sign_in_with_private_key($params);
+        $this->initialize_client($params);
         $this->load_account_infos();
         return true;
     }
 
-    public function sign_in_with_api_key($params = array ()) {
+    public function sign_in_with_api_key($params = array()) {
         $now = $this->milliseconds();
         // $expires in 24 hours suggested
         $expires = $this->safe_integer($this->options, 'signInExpiration', 0);
@@ -504,7 +508,7 @@ class grvt extends Exchange {
         $request = array(
             'api_key' => $this->apiKey,
         );
-        $response = $this->privateEdgePostAuthApiKeyLogin ($this->extend($request, $params));
+        $response = $this->privateEdgePostAuthApiKeyLogin($this->extend($request, $params));
         //
         //    {
         //        "location" => "",
@@ -515,7 +519,7 @@ class grvt extends Exchange {
         return $response;
     }
 
-    public function sign_in_with_private_key($params = array ()) {
+    public function sign_in_with_private_key($params = array()) {
         $this->check_required_credentials();
         $now = $this->milliseconds();
         // $expires in 24 hours suggested
@@ -530,7 +534,7 @@ class grvt extends Exchange {
             'signature' => $this->default_signature(),
         );
         $request = $this->create_signed_request($request, 'EIP712_WALLETLOGIN_TYPE');
-        $response = $this->privateEdgePostAuthWalletLogin ($this->extend($request, $params));
+        $response = $this->privateEdgePostAuthWalletLogin($this->extend($request, $params));
         //
         //    {
         //        "location" => "",
@@ -541,7 +545,7 @@ class grvt extends Exchange {
         return $response;
     }
 
-    public function initialize_client($params = array ()) {
+    public function initialize_client($params = array()) {
         $builderFee = $this->safe_bool($params, 'builderFee', $this->safe_bool($this->options, 'builderFee', true)); // we shouldn't omit here
         if (!$builderFee) {
             return false; // skip if builder fee is not enabled
@@ -550,7 +554,7 @@ class grvt extends Exchange {
         if ($approvedBuilderFee) {
             return true; // skip if builder fee is already approved
         }
-        $results = array( $this->privateTradingPostFullV1GetAuthorizedBuilders (), $this->load_account_infos() );
+        $results = array( $this->privateTradingPostFullV1GetAuthorizedBuilders(), $this->load_account_infos() );
         //
         // {
         //     "results" => [array(
@@ -585,7 +589,7 @@ class grvt extends Exchange {
                     'signature' => $this->default_signature(),
                 );
                 $request = $this->create_signed_request($request, 'EIP712_BUILDER_APPROVAL_TYPE');
-                $authResponse = $this->privateTradingPostFullV1AuthorizeBuilder ($this->extend($request, $params));
+                $authResponse = $this->privateTradingPostFullV1AuthorizeBuilder($this->extend($request, $params));
                 //
                 // {
                 //     "result" => {
@@ -607,7 +611,7 @@ class grvt extends Exchange {
         return null; // just c#
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets
          *
@@ -616,17 +620,17 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $marketsPromise = $this->publicMarketPostFullV1AllInstruments ($params);
+        $marketsPromise = $this->publicMarketPostFullV1AllInstruments($params);
         //
         //    {
-        //        "result" => array(
+        //        "result" => [
         //            array(
         //                "instrument" => "AAVE_USDT_Perp",
         //                "instrument_hash" => "0x032201",
         //                "base" => "AAVE",
         //                "quote" => "USDT",
         //                "kind" => "PERPETUAL",
-        //                "venues" => [
+        //                "venues" => array(
         //                    "ORDERBOOK",
         //                    "RFQ"
         //                ),
@@ -748,7 +752,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -758,7 +762,7 @@ class grvt extends Exchange {
          * @return {array} an associative dictionary of currencies
          */
         $request = array( '' => '' ); // workaround for php array() empty arr
-        $response = $this->publicMarketPostFullV1Currency ($request);
+        $response = $this->publicMarketPostFullV1Currency($request);
         //
         //    {
         //        "result" => [
@@ -815,7 +819,7 @@ class grvt extends Exchange {
         ));
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -823,14 +827,16 @@ class grvt extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'instrument' => $this->market_id($symbol),
         );
-        $response = $this->publicMarketPostFullV1Ticker ($this->extend($request, $params));
+        $response = $this->publicMarketPostFullV1Ticker($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -922,7 +928,7 @@ class grvt extends Exchange {
         ));
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -934,7 +940,9 @@ class grvt extends Exchange {
          * @param {string} [$params->loc] crypto location, default => us
          * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'instrument' => $this->market_id($symbol),
         );
@@ -944,7 +952,7 @@ class grvt extends Exchange {
         if ($limit <= 500) {
             $request['depth'] = $this->find_nearest_ceiling(array( 10, 50, 100, 500 ), $limit);
         }
-        $response = $this->publicMarketPostFullV1Book ($this->extend($request, $params));
+        $response = $this->publicMarketPostFullV1Book($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -967,7 +975,7 @@ class grvt extends Exchange {
         return $this->parse_order_book($result, $this->safe_symbol($marketId), $timestamp, 'bids', 'asks', 'price', 'size');
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -978,21 +986,23 @@ class grvt extends Exchange {
          * @param {int} [$limit] the maximum amount of items to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'instrument' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->publicMarketPostFullV1TradeHistory ($this->extend($request, $params));
+        $response = $this->publicMarketPostFullV1TradeHistory($this->extend($request, $params));
         //
         //    {
         //        "next" => "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
@@ -1100,7 +1110,7 @@ class grvt extends Exchange {
         ), $market);
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
@@ -1116,7 +1126,9 @@ class grvt extends Exchange {
          * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
          */
         $maxLimit = 1000;
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
@@ -1136,13 +1148,13 @@ class grvt extends Exchange {
         $selectedPriceType = $this->safe_string($params, 'priceType', 'last');
         $request['type'] = $this->safe_string($priceTypeMap, $selectedPriceType);
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->publicMarketPostFullV1Kline ($this->extend($request, $params));
+        $response = $this->publicMarketPostFullV1Kline($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -1191,7 +1203,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches historical funding rate prices
          *
@@ -1199,16 +1211,18 @@ class grvt extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the funding rate history for
          * @param {int} [$since] timestamp in ms of the earliest funding rate to fetch
-         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~ to fetch
+         * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest item
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=funding-rate-history-structure funding rate structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -1219,13 +1233,13 @@ class grvt extends Exchange {
             'instrument' => $market['id'],
         );
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->publicMarketPostFullV1Funding ($this->extend($request, $params));
+        $response = $this->publicMarketPostFullV1Funding($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -1277,20 +1291,20 @@ class grvt extends Exchange {
         return (string) $subAccountId;
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for account info
          *
          * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $this->load_markets_and_sign_in();
         $request = array(
             'sub_account_id' => $this->get_sub_account_id($params),
         );
-        $response = $this->privateTradingPostFullV1AccountSummary ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1AccountSummary($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -1370,7 +1384,7 @@ class grvt extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all deposits made to an account
          *
@@ -1381,17 +1395,17 @@ class grvt extends Exchange {
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest item
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets_and_sign_in();
         $request = array();
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['currency'] = [ $currency['code'] ];
+            $request['currency'] = array( $currency['code'] );
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
@@ -1404,7 +1418,7 @@ class grvt extends Exchange {
             $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         } else {
-            $response = $this->privateTradingPostFullV1DepositHistory ($this->extend($request, $params));
+            $response = $this->privateTradingPostFullV1DepositHistory($this->extend($request, $params));
             //
             // {
             //     "result" => [array(
@@ -1425,18 +1439,18 @@ class grvt extends Exchange {
         }
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all withdrawals made from an account
          *
-         * @see https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+         * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
          *
          * @param {string} [$code] unified $currency $code of the $currency transferred
          * @param {int} [$since] the earliest time in ms to fetch $transfers for (default 24 hours ago)
          * @param {int} [$limit] the maximum number of transfer structures to retrieve (default 50, max 200)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest item
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $this->load_markets_and_sign_in();
         $request = array();
@@ -1445,10 +1459,10 @@ class grvt extends Exchange {
             $request['currency'] = null;
         } else {
             $currency = $this->currency($code);
-            $request['currency'] = [ $currency['code'] ];
+            $request['currency'] = array( $currency['code'] );
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
@@ -1461,7 +1475,7 @@ class grvt extends Exchange {
             $transactions = $this->get_list_from_object_values($filteredResults[0], 'info');
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         } else {
-            $response = $this->privateTradingPostFullV1WithdrawalHistory ($this->extend($request, $params));
+            $response = $this->privateTradingPostFullV1WithdrawalHistory($this->extend($request, $params));
             //
             // {
             //     "result" => [array(
@@ -1492,7 +1506,7 @@ class grvt extends Exchange {
     }
 
     public function internal_fetch_transfers($req, mixed $currency = null, ?int $since = null, ?int $limit = null) {
-        $response = $this->privateTradingPostFullV1TransferHistory ($req);
+        $response = $this->privateTradingPostFullV1TransferHistory($req);
         //
         //    {
         //        "result" => array(
@@ -1601,13 +1615,15 @@ class grvt extends Exchange {
         $networkCode = null;
         $addressFrom = $this->safe_string($transaction, 'from_account_id');
         $addressTo = $this->safe_string($transaction, 'to_account_id');
+        $currencyId = $this->safe_string($transaction, 'currency');
+        $code = $this->safe_currency_code($currencyId, $currency);
         if (is_array($transaction) && array_key_exists('transfer_metadata', $transaction)) {
             $metaData = $this->omit_zero($this->safe_string($transaction, 'transfer_metadata'));
             if ($metaData !== null) {
                 $parsedMeta = $this->parse_json($metaData);
                 $direction = $this->safe_string_lower($parsedMeta, 'direction');
                 $txId = $this->safe_string($parsedMeta, 'provider_tx_id');
-                $networkCode = $this->network_id_to_code($this->safe_string($parsedMeta, 'chainid'));
+                $networkCode = $this->network_id_to_code($this->safe_string($parsedMeta, 'chainid'), $code);
                 if ($direction === 'withdrawal') {
                     $addressTo = $this->safe_string($parsedMeta, 'endpoint');
                 } elseif ($direction === 'deposit') {
@@ -1616,8 +1632,6 @@ class grvt extends Exchange {
             }
         }
         $timestamp = $this->safe_integer_product_2($transaction, 'event_time', 'initiated_time', 0.000001);
-        $currencyId = $this->safe_string($transaction, 'currency');
-        $code = $this->safe_currency_code($currencyId, $currency);
         return array(
             'info' => $transaction,
             'id' => null,
@@ -1641,7 +1655,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch a history of internal $transfers made on an account
          *
@@ -1652,7 +1666,7 @@ class grvt extends Exchange {
          * @param {int} [$limit] the maximum number of $transfers structures to retrieve (default 10, max 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
@@ -1667,13 +1681,13 @@ class grvt extends Exchange {
             return $this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit);
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->privateTradingPostFullV1TransferHistory ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1TransferHistory($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -1728,7 +1742,7 @@ class grvt extends Exchange {
         return array( $matchedResults, $nonMatchedResults );
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): array {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): array {
         /**
          * transfer $currency internally between wallets on the same account
          *
@@ -1739,7 +1753,7 @@ class grvt extends Exchange {
          * @param {string} $fromAccount account to transfer from
          * @param {string} $toAccount account to transfer to
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
         $this->load_markets_and_sign_in();
         $currency = $this->currency($code);
@@ -1769,7 +1783,7 @@ class grvt extends Exchange {
         $request = $this->create_signed_request($request, 'EIP712_TRANSFER_TYPE', $currency);
         $response = null;
         try {
-            $response = $this->privateTradingPostFullV1Transfer ($this->extend($request, $params));
+            $response = $this->privateTradingPostFullV1Transfer($this->extend($request, $params));
         } catch (Exception $error) {
             $msg = $this->exception_message($error);
             $isFromFundingAccount = $fromAccount === 'funding';
@@ -1841,10 +1855,10 @@ class grvt extends Exchange {
 
     public function load_account_infos() {
         if ($this->safe_string($this->options, 'userMainAccountId') !== null) {
-            return;
+            return false;
         }
         $promises = array();
-        $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary ();
+        $promises[] = $this->privateTradingPostFullV1AggregatedAccountSummary();
         //
         //     {
         //         "result" => {
@@ -1871,7 +1885,7 @@ class grvt extends Exchange {
         //
         $accountIsUndefined = $this->safe_string($this->options, 'accountId') === null;
         if ($accountIsUndefined) {
-            $promises[] = $this->privateTradingPostFullV1GetSubAccounts ();
+            $promises[] = $this->privateTradingPostFullV1GetSubAccounts();
         }
         //
         //     {
@@ -1894,9 +1908,10 @@ class grvt extends Exchange {
             $subAccountId = $this->safe_string($subAccountIds, 0);
             $this->options['accountId'] = $subAccountId;
         }
+        return true;
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): array {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): array {
         /**
          * make a withdrawal
          *
@@ -1908,7 +1923,7 @@ class grvt extends Exchange {
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} $params->network the network to withdraw on (mandatory)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         $this->check_address($address);
         $this->load_markets_and_sign_in();
@@ -1922,13 +1937,13 @@ class grvt extends Exchange {
             'signature' => $this->default_signature(),
         );
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
-        $networkId = $this->network_code_to_id($networkCode);
+        $networkId = $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() requires a network parameter');
         }
         $request['signature']['chain_id'] = $networkId;
         $request = $this->create_signed_request($request, 'EIP712_WITHDRAWAL_TYPE', $currency);
-        $response = $this->privateTradingPostFullV1Withdrawal ($this->extend($request, $query));
+        $response = $this->privateTradingPostFullV1Withdrawal($this->extend($request, $query));
         //
         // {
         //     "result" => {
@@ -1940,7 +1955,7 @@ class grvt extends Exchange {
         return $this->parse_transaction($result, $currency);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade order
          *
@@ -1959,7 +1974,7 @@ class grvt extends Exchange {
          * @param {bool} [$params->postOnly] true or false
          * @param {bool} [$params->reduceOnly] Ensures that the executed order does not flip the opened position.
          * @param {string} [$params->clientOrderId] a unique id for the order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $this->load_markets_and_sign_in();
         $market = $this->market($symbol);
@@ -1979,38 +1994,44 @@ class grvt extends Exchange {
         } else {
             throw new InvalidOrder($this->id . ' createOrder() => order $side must be either "buy" or "sell"');
         }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId === null) {
+            $clientOrderId = (string) $this->nonce() . '000' . (string) $this->request_id();
+        }
+        $params = $this->omit($params, array( 'clientOrderId' ));
         $isMarketOrder = ($type === 'market');
+        $subAccountId = $this->get_sub_account_id($params);
+        $isReduceOnly = $this->safe_bool($params, 'reduceOnly', false);
         $orderRequest = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccountId,
             'time_in_force' => null,
             'legs' => array( $orderLeg ),
             'signature' => $this->default_signature(),
             'metadata' => array(
-                'client_order_id' => (string) $this->nonce() . '000' . (string) $this->request_id(),
+                'client_order_id' => $clientOrderId,
             ),
             'is_market' => $isMarketOrder,
             'post_only' => false,
-            'reduce_only' => $this->safe_bool($params, 'reduceOnly', false),
+            'reduce_only' => $isReduceOnly,
             // 'order_id' => null,
             // 'state' => null,
         );
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+        $timeInForce = $this->safe_string_upper($params, 'timeInForce', 'GOOD_TILL_TIME');
         $postOnly = $this->is_post_only($isMarketOrder, null, $params);
         if ($postOnly) {
             $orderRequest['post_only'] = true;
-        } else {
-            if ($timeInForce === null) {
-                $timeInForce = 'GOOD_TILL_TIME';
-            } else {
-                $tifMap = array(
-                    'GTC' => 'GOOD_TILL_TIME',
-                    'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
-                    'IOC' => 'IMMEDIATE_OR_CANCEL',
-                );
-                $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
-            }
-            $orderRequest['time_in_force'] = $timeInForce;
         }
+        if ($timeInForce === null) {
+            $timeInForce = 'GOOD_TILL_TIME';
+        } else {
+            $tifMap = array(
+                'GTC' => 'GOOD_TILL_TIME',
+                'FOK' => 'FILL_OR_KILL', // tbd => why not 'ALL_OR_NONE'
+                'IOC' => 'IMMEDIATE_OR_CANCEL',
+            );
+            $timeInForce = $this->safe_string($tifMap, $timeInForce, $timeInForce);
+        }
+        $orderRequest['time_in_force'] = $timeInForce;
         if (!$isMarketOrder) {
             if ($postOnly) {
                 $timeInForce = 'POST_ONLY';
@@ -2078,7 +2099,7 @@ class grvt extends Exchange {
         $request = array(
             'order' => $signedOrderRequest,
         );
-        $response = $this->privateTradingPostFullV1CreateOrder ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1CreateOrder($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -2201,7 +2222,7 @@ class grvt extends Exchange {
         return $returnValue;
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all trades made by the user
          *
@@ -2213,7 +2234,7 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest item
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $this->load_markets_and_sign_in();
         $paginate = false;
@@ -2233,13 +2254,13 @@ class grvt extends Exchange {
             $request['quote'][] = $market['quoteId'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->privateTradingPostFullV1FillHistory ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1FillHistory($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -2275,7 +2296,7 @@ class grvt extends Exchange {
         return $this->parse_trades($result, null, $since, $limit);
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): array {
+    public function fetch_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch all open positions
          *
@@ -2283,7 +2304,7 @@ class grvt extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
         $this->load_markets_and_sign_in();
         $request = array(
@@ -2303,7 +2324,7 @@ class grvt extends Exchange {
                 $request['quote'][] = $market['quoteId'];
             }
         }
-        $response = $this->privateTradingPostFullV1Positions ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1Positions($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -2391,7 +2412,7 @@ class grvt extends Exchange {
         ));
     }
 
-    public function fetch_leverages(?array $symbols = null, $params = array ()): array {
+    public function fetch_leverages(?array $symbols = null, $params = array()): array {
         /**
          * fetch the set leverage for all contract markets
          *
@@ -2405,7 +2426,7 @@ class grvt extends Exchange {
         $request = array(
             'sub_account_id' => $this->get_sub_account_id($params),
         );
-        $response = $this->privateTradingPostFullV1GetAllInitialLeverage ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params));
         //
         //    {
         //        "results" => [
@@ -2421,7 +2442,7 @@ class grvt extends Exchange {
         return $this->parse_leverages($results, $symbols);
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         /**
          * set the level of $leverage for a $market
          *
@@ -2442,7 +2463,7 @@ class grvt extends Exchange {
             'instrument' => $market['id'],
             'leverage' => $this->number_to_string($leverage),
         );
-        $response = $this->privateTradingPostFullV1SetInitialLeverage ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1SetInitialLeverage($this->extend($request, $params));
         //
         //    {
         //        "success" => true
@@ -2481,7 +2502,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_margin_modes(?array $symbols = null, $params = array ()): array {
+    public function fetch_margin_modes(?array $symbols = null, $params = array()): array {
         /**
          * fetches margin mode of the user
          *
@@ -2495,7 +2516,7 @@ class grvt extends Exchange {
         $request = array(
             'sub_account_id' => $this->get_sub_account_id($params),
         );
-        $response = $this->privateTradingPostFullV1GetAllInitialLeverage ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1GetAllInitialLeverage($this->extend($request, $params));
         //
         //    {
         //        "results" => [
@@ -2531,7 +2552,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch the history of funding payments paid and received on this account
          *
@@ -2543,7 +2564,7 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest item
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
         $this->load_markets_and_sign_in();
         $paginate = false;
@@ -2563,13 +2584,13 @@ class grvt extends Exchange {
             $request['quote'][] = $market['quoteId'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->privateTradingPostFullV1FundingPaymentHistory ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1FundingPaymentHistory($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -2615,7 +2636,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple orders made by the user
          *
@@ -2626,11 +2647,12 @@ class grvt extends Exchange {
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest item
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets_and_sign_in();
+        $subAccountId = $this->get_sub_account_id($params);
         $request = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccountId,
         );
         $market = null;
         if ($symbol !== null) {
@@ -2641,13 +2663,13 @@ class grvt extends Exchange {
             $request['quote'][] = $market['quoteId'];
         }
         if ($limit !== null) {
-            $request['limit'] = min ($limit, 1000);
+            $request['limit'] = min($limit, 1000);
         }
         list($request, $params) = $this->handle_until_option_string('end_time', $request, $params, 1000000);
         if ($since !== null) {
             $request['start_time'] = $this->number_to_string($since * 1000000);
         }
-        $response = $this->privateTradingPostFullV1OrderHistory ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1OrderHistory($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -2714,7 +2736,7 @@ class grvt extends Exchange {
         return $this->parse_orders($result, $market, $since, $limit);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -2724,13 +2746,13 @@ class grvt extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch orders for
          * @param {int} [$limit] the maximum number of order structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets_and_sign_in();
         $request = array(
             'sub_account_id' => $this->get_sub_account_id($params),
         );
-        $response = $this->privateTradingPostFullV1OpenOrders ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1OpenOrders($this->extend($request, $params));
         //
         //    {
         //        "result" => array(
@@ -2795,7 +2817,7 @@ class grvt extends Exchange {
         return $this->parse_orders($result, null, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * fetches information on an order made by the user
          *
@@ -2805,11 +2827,12 @@ class grvt extends Exchange {
          * @param {string} $symbol unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order $id
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets_and_sign_in();
+        $subAccountId = $this->get_sub_account_id($params);
         $request = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccountId,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         if ($clientOrderId !== null) {
@@ -2818,7 +2841,7 @@ class grvt extends Exchange {
         } else {
             $request['order_id'] = $id;
         }
-        $response = $this->privateTradingPostFullV1Order ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1Order($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -2965,7 +2988,7 @@ class grvt extends Exchange {
         $price = null;
         $filled = null;
         $avgPrice = null;
-        $legs = $this->safe_list($order, 'legs');
+        $legs = $this->safe_list($order, 'legs', array());
         $metadata = $this->safe_dict($order, 'metadata', array());
         $stateObj = $this->safe_dict($order, 'state', array());
         $filledAmounts = $this->safe_list($stateObj, 'traded_size', array());
@@ -2993,7 +3016,7 @@ class grvt extends Exchange {
             'lastTradeTimeStamp' => null,
             'lastUpdateTimestamp' => $this->safe_integer_product($stateObj, 'update_time', 0.000001),
             'status' => $this->parse_order_status($this->safe_string($stateObj, 'status')),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'type' => $orderType,
             'timeInForce' => $timeInForce,
             'postOnly' => $isPostOnly,
@@ -3046,7 +3069,7 @@ class grvt extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel all open orders in a $market
          *
@@ -3054,7 +3077,7 @@ class grvt extends Exchange {
          *
          * @param {string} $symbol cancel alls open orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $this->load_markets_and_sign_in();
         $request = array(
@@ -3067,7 +3090,7 @@ class grvt extends Exchange {
             $request['quote'] = array();
             $request['quote'][] = $market['quoteId'];
         }
-        $response = $this->privateTradingPostFullV1CancelAllOrders ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1CancelAllOrders($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -3076,10 +3099,10 @@ class grvt extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_orders(array( $result ), null);
+        return $this->parse_orders(array( $result ));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -3089,11 +3112,12 @@ class grvt extends Exchange {
          * @param {string} [$symbol] unified $symbol of the market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order $id
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $this->load_markets_and_sign_in();
+        $subAccoubntId = $this->get_sub_account_id($params);
         $request = array(
-            'sub_account_id' => $this->get_sub_account_id($params),
+            'sub_account_id' => $subAccoubntId,
         );
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
         if ($clientOrderId !== null) {
@@ -3102,7 +3126,7 @@ class grvt extends Exchange {
         } else {
             $request['order_id'] = $id;
         }
-        $response = $this->privateTradingPostFullV1CancelOrder ($this->extend($request, $params));
+        $response = $this->privateTradingPostFullV1CancelOrder($this->extend($request, $params));
         //
         //    {
         //        "result" => {
@@ -3226,7 +3250,7 @@ class grvt extends Exchange {
         return $requestId;
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, mixed $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . $path;
         $queryString = '';

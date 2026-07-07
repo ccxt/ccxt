@@ -2,12 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var bydfi$1 = require('./abstract/bydfi.js');
-require('../ccxt.js');
-var Precise = require('./base/Precise.js');
-var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
-var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
+var Precise = require('./base/Precise.js');
+var number = require('./base/functions/number.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -20,8 +19,8 @@ class bydfi extends bydfi$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'bydfi',
             'name': 'BYDFi',
-            'countries': ['SG'],
-            'rateLimit': 50,
+            'countries': ['SG'], // Singapore todo check
+            'rateLimit': 50, // 20 requests per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -187,7 +186,7 @@ class bydfi extends bydfi$1["default"] {
                 'ws': true,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/bfffb73d-29bd-465d-b75b-98e210491769',
+                'logo': 'https://github.com/user-attachments/assets/0e9319dc-b5f5-458b-bcfd-b21b50e162ea',
                 'api': {
                     'public': 'https://api.bydfi.com/api',
                     'private': 'https://api.bydfi.com/api',
@@ -200,14 +199,14 @@ class bydfi extends bydfi$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'v1/public/api_limits': 1,
+                        'v1/public/api_limits': 1, // https://developers.bydfi.com/en/public#inquiry-into-api-rate-limit-configuration
                         'v1/fapi/market/exchange_info': 1,
                         'v1/fapi/market/depth': 1,
                         'v1/fapi/market/trades': 1,
                         'v1/fapi/market/klines': 1,
                         'v1/fapi/market/ticker/24hr': 1,
-                        'v1/fapi/market/ticker/price': 1,
-                        'v1/fapi/market/mark_price': 1,
+                        'v1/fapi/market/ticker/price': 1, // https://developers.bydfi.com/en/futures/market#latest-price
+                        'v1/fapi/market/mark_price': 1, // https://developers.bydfi.com/en/futures/market#mark-price
                         'v1/fapi/market/funding_rate': 1,
                         'v1/fapi/market/funding_rate_history': 1,
                         'v1/fapi/market/risk_limit': 1, // https://developers.bydfi.com/en/futures/market#risk-limit
@@ -229,14 +228,14 @@ class bydfi extends bydfi$1["default"] {
                         'v1/fapi/account/balance': 1,
                         'v1/fapi/user_data/assets_margin': 1,
                         'v1/fapi/user_data/position_side/dual': 1,
-                        'v1/agent/teams': 1,
-                        'v1/agent/agent_links': 1,
-                        'v1/agent/regular_overview': 1,
-                        'v1/agent/agent_sub_overview': 1,
-                        'v1/agent/partener_user_deposit': 1,
-                        'v1/agent/partener_users_data': 1,
-                        'v1/agent/affiliate_uids': 1,
-                        'v1/agent/affiliate_commission': 1,
+                        'v1/agent/teams': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-team-information
+                        'v1/agent/agent_links': 1, // https://developers.bydfi.com/en/agent/#query-kol-invitation-code-list
+                        'v1/agent/regular_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-direct-client-data-list
+                        'v1/agent/agent_sub_overview': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-affiliate-list
+                        'v1/agent/partener_user_deposit': 1, // https://developers.bydfi.com/en/agent/#check-the-recharge-amount-of-kol-within-one-year
+                        'v1/agent/partener_users_data': 1, // https://developers.bydfi.com/en/agent/#query-kol-subordinate-deposit-and-trading-data
+                        'v1/agent/affiliate_uids': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-uids
+                        'v1/agent/affiliate_commission': 1, // https://developers.bydfi.com/en/agent/#get-affiliate-commission
                         'v1/agent/internal_withdrawal_status': 1, // https://developers.bydfi.com/en/agent/#get-internal-withdrawal-status
                     },
                     'post': {
@@ -247,7 +246,7 @@ class bydfi extends bydfi$1["default"] {
                         'v1/fapi/trade/batch_edit_order': 1,
                         'v1/fapi/trade/cancel_all_order': 1,
                         'v1/fapi/trade/leverage': 1,
-                        'v1/fapi/trade/batch_leverage_margin': 1,
+                        'v1/fapi/trade/batch_leverage_margin': 1, // https://developers.bydfi.com/en/futures/trade#modify-leverage-and-margin-type-with-one-click
                         'v1/fapi/user_data/margin_type': 1,
                         'v1/fapi/user_data/position_side/dual': 1,
                         'v1/agent/internal_withdrawal': 1, // https://developers.bydfi.com/en/agent/#internal-withdrawal
@@ -269,7 +268,7 @@ class bydfi extends bydfi$1["default"] {
                             },
                             'stopLossPrice': true,
                             'takeProfitPrice': true,
-                            'attachedStopLossTakeProfit': undefined,
+                            'attachedStopLossTakeProfit': undefined, // not supported
                             'timeInForce': {
                                 'IOC': true,
                                 'FOK': true,
@@ -289,7 +288,7 @@ class bydfi extends bydfi$1["default"] {
                         },
                         'fetchMyTrades': {
                             'marginMode': false,
-                            'daysBack': 182,
+                            'daysBack': 182, // 6 months
                             'limit': 500,
                             'untilDays': 7,
                             'symbolRequired': false,
@@ -312,7 +311,7 @@ class bydfi extends bydfi$1["default"] {
                         'fetchCanceledAndClosedOrders': {
                             'marginMode': false,
                             'limit': 500,
-                            'daysBack': 182,
+                            'daysBack': 182, // 6 months
                             'untilDays': 7,
                             'trigger': false,
                             'trailing': false,
@@ -346,22 +345,22 @@ class bydfi extends bydfi$1["default"] {
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
                 'exact': {
-                    '101001': errors.AuthenticationError,
-                    '101103': errors.AuthenticationError,
-                    '102001': errors.BadRequest,
-                    '102002': errors.PermissionDenied,
-                    '401': errors.AuthenticationError,
-                    '500': errors.ExchangeError,
-                    '501': errors.ExchangeError,
-                    '506': errors.ExchangeError,
-                    '510': errors.RateLimitExceeded,
-                    '511': errors.AuthenticationError,
-                    '513': errors.BadRequest,
-                    '514': errors.BadRequest,
-                    '600': errors.BadRequest,
-                    'Position does not exist': errors.BadRequest,
-                    'Requires transaction permissions': errors.PermissionDenied,
-                    'Service error': errors.ExchangeError,
+                    '101001': errors.AuthenticationError, // {"code":101001,"message":"Apikey doesn't exist!"}
+                    '101103': errors.AuthenticationError, // {"code":101103,"message":"Invalid API-key, IP, or permissions for action."}
+                    '102001': errors.BadRequest, // {"code":102001,"message":"Unsupported transfer type"}
+                    '102002': errors.PermissionDenied, // {"code":102002,"message":"The current account does not support transfer of this currency"}
+                    '401': errors.AuthenticationError, // 401 Unauthorized – Invalid API Key
+                    '500': errors.ExchangeError, // 500 Internal Error
+                    '501': errors.ExchangeError, // 501 System Busy
+                    '506': errors.ExchangeError, // 506 Unknown Request Origin
+                    '510': errors.RateLimitExceeded, // 510 Requests Too Frequent
+                    '511': errors.AuthenticationError, // 511 Access to the Interface is Forbidden
+                    '513': errors.BadRequest, // 513 Invalid Request
+                    '514': errors.BadRequest, // 514 Duplicate Request
+                    '600': errors.BadRequest, // 600 Parameter Error
+                    'Position does not exist': errors.BadRequest, // {"code":100036,"message":"Position does not exist"}
+                    'Requires transaction permissions': errors.PermissionDenied, // {"code":101107,"message":"Requires transaction permissions"}
+                    'Service error': errors.ExchangeError, // { msg: 'Service error', code: '-1' }
                     'transfer failed': errors.InsufficientFunds, // {"code":500,"message":"transfer failed","success":false}
                 },
                 'broad': {
@@ -374,9 +373,9 @@ class bydfi extends bydfi$1["default"] {
                     'ERC20': 'ETH', // todo add more networks
                 },
                 'timeInForce': {
-                    'GTC': 'GTC',
-                    'FOK': 'FOK',
-                    'IOC': 'IOC',
+                    'GTC': 'GTC', // Good Till Cancelled
+                    'FOK': 'FOK', // Fill Or Kill
+                    'IOC': 'IOC', // Immediate Or Cancel
                     'PO': 'POST_ONLY', // Post Only
                 },
                 'accountsByType': {
@@ -566,7 +565,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -631,13 +632,15 @@ class bydfi extends bydfi$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1000);
         }
         const response = await this.publicGetV1FapiMarketTrades(this.extend(request, params));
         //
@@ -676,7 +679,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const paginate = this.safeBool(params, 'paginate', false);
         if (paginate) {
             const maxLimit = 500;
@@ -816,7 +821,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const maxLimit = 500; // docs says max 1500, but in practice only 500 works
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
@@ -908,7 +915,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetV1FapiMarketTicker24hr(params);
         //
         //     {
@@ -941,7 +950,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1003,7 +1014,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1075,7 +1088,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1155,7 +1170,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let orderRequest = this.createOrderRequest(symbol, type, side, amount, price, params);
         let wallet = 'W001';
@@ -1321,7 +1338,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const length = orders.length;
         if (length > 5) {
             throw new errors.BadRequest(this.id + ' createOrders() accepts a maximum of 5 orders');
@@ -1365,7 +1384,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = this.createEditOrderRequest(id, symbol, 'limit', side, amount, price, params);
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'editOrder', 'wallet', wallet);
@@ -1385,7 +1406,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const length = orders.length;
         if (length > 5) {
             throw new errors.BadRequest(this.id + ' editOrders() accepts a maximum of 5 orders');
@@ -1448,7 +1471,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'cancelAllOrders', 'wallet', wallet);
@@ -1510,7 +1535,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'wallet', wallet);
@@ -1518,7 +1545,7 @@ class bydfi extends bydfi$1["default"] {
             'symbol': market['id'],
             'wallet': wallet,
         };
-        let response = undefined;
+        let response;
         let trigger = false;
         [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'trigger', trigger);
         if (!trigger) {
@@ -1580,7 +1607,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1595,7 +1624,7 @@ class bydfi extends bydfi$1["default"] {
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'wallet', wallet);
         request['wallet'] = wallet;
-        let response = undefined;
+        let response;
         let trigger = false;
         [trigger, params] = this.handleOptionAndParams(params, 'fetchOpenOrder', 'trigger', trigger);
         if (!trigger) {
@@ -1624,7 +1653,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const paginate = this.safeBool(params, 'paginate', false);
         if (paginate) {
             const maxLimit = 500;
@@ -1892,7 +1923,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'setLeverage', 'wallet', wallet);
@@ -1919,7 +1952,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'fetchLeverage', 'wallet', wallet);
@@ -1965,7 +2000,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let contractType = 'FUTURE';
         [contractType, params] = this.handleOptionAndParams(params, 'fetchPositions', 'contractType', contractType);
         const request = {
@@ -2009,7 +2046,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
         [contractType, params] = this.handleOptionAndParams(params, 'fetchPositions', 'contractType', contractType);
@@ -2148,7 +2187,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionHistory(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
         [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
@@ -2182,7 +2223,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let contractType = 'FUTURE';
         [contractType, params] = this.handleOptionAndParams(params, 'fetchPositionsHistory', 'contractType', contractType);
         const request = {
@@ -2251,7 +2294,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
     async fetchMarginMode(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
         [contractType, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'contractType', contractType);
@@ -2306,7 +2351,9 @@ class bydfi extends bydfi$1["default"] {
         if (marginMode !== 'isolated' && marginMode !== 'cross') {
             throw new errors.BadRequest(this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let contractType = 'FUTURE';
         [contractType, params] = this.handleOptionAndParams(params, 'fetchMarginMode', 'contractType', contractType);
@@ -2337,7 +2384,9 @@ class bydfi extends bydfi$1["default"] {
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' setPositionMode() does not support a symbol argument. The position mode is set identically for all markets with same settle currency');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const positionType = hedged ? 'HEDGE' : 'ONEWAY';
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'setPositionMode', 'wallet', wallet);
@@ -2373,7 +2422,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} an object detailing whether the market is in hedged or one-way mode
      */
     async fetchPositionMode(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let wallet = 'W001';
         [wallet, params] = this.handleOptionAndParams(params, 'fetchPositionMode', 'wallet', wallet);
         let contractType = 'FUTURE';
@@ -2429,13 +2480,15 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         let wallet = undefined;
         [wallet, params] = this.handleOptionAndParams(params, 'fetchBalance', 'wallet');
         const request = {};
-        let response = undefined;
+        let response;
         if (wallet === undefined) {
             const options = this.safeDict(this.options, 'accountsByType', {});
             const parsedAccountType = this.safeStringUpper(options, type, type);
@@ -2524,7 +2577,9 @@ class bydfi extends bydfi$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -2573,7 +2628,9 @@ class bydfi extends bydfi$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchTransfers() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
         if (paginate) {
@@ -2704,7 +2761,9 @@ class bydfi extends bydfi$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const paginate = this.safeBool(params, 'paginate', false);
         if (paginate) {
@@ -2748,7 +2807,7 @@ class bydfi extends bydfi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let response = undefined;
+        let response;
         if (type === 'deposit') {
             //
             //     {
@@ -2820,7 +2879,7 @@ class bydfi extends bydfi$1["default"] {
             'txid': this.safeString(transaction, 'txId'),
             'type': undefined,
             'currency': code,
-            'network': this.networkIdToCode(this.safeString(transaction, 'network')),
+            'network': this.networkIdToCode(this.safeString(transaction, 'network'), code),
             'amount': this.safeNumber(transaction, 'amount'),
             'status': this.parseTransactionStatus(rawStatus),
             'timestamp': timestamp,
@@ -2861,7 +2920,7 @@ class bydfi extends bydfi$1["default"] {
             const timestamp = this.milliseconds().toString();
             if (method === 'GET') {
                 const payload = this.apiKey + timestamp + query;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'X-API-KEY': this.apiKey,
                     'X-API-TIMESTAMP': timestamp,
@@ -2871,7 +2930,7 @@ class bydfi extends bydfi$1["default"] {
             else {
                 body = this.json(sortedParams);
                 const payload = this.apiKey + timestamp + body;
-                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256.sha256, 'hex');
+                const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha2_js.sha256, 'hex');
                 headers = {
                     'Content-Type': 'application/json',
                     'X-API-KEY': this.apiKey,

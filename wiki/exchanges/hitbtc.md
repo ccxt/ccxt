@@ -63,7 +63,7 @@ retrieves data on all markets for hitbtc
 
 
 ```javascript
-hitbtc.fetchMarkets ([params])
+hitbtc.fetchMarkets (params?)
 ```
 
 
@@ -83,7 +83,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-hitbtc.fetchCurrencies ([params])
+hitbtc.fetchCurrencies (params?)
 ```
 
 
@@ -104,7 +104,7 @@ create a currency deposit address
 
 
 ```javascript
-hitbtc.createDepositAddress (code[, params])
+hitbtc.createDepositAddress (code, params?)
 ```
 
 
@@ -125,7 +125,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-hitbtc.fetchDepositAddress (code[, params])
+hitbtc.fetchDepositAddress (code, params?)
 ```
 
 
@@ -150,7 +150,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-hitbtc.fetchBalance ([params])
+hitbtc.fetchBalance (params?)
 ```
 
 
@@ -171,7 +171,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-hitbtc.fetchTicker (symbol[, params])
+hitbtc.fetchTicker (symbol, params?)
 ```
 
 
@@ -192,7 +192,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-hitbtc.fetchTickers (symbols[, params])
+hitbtc.fetchTickers (symbols, params?)
 ```
 
 
@@ -215,7 +215,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-hitbtc.fetchTrades (symbol[, since, limit, params])
+hitbtc.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -245,7 +245,7 @@ fetch all trades made by the user
 
 
 ```javascript
-hitbtc.fetchMyTrades (symbol[, since, limit, params])
+hitbtc.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -268,7 +268,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-hitbtc.fetchDepositsWithdrawals ([code, since, limit, params])
+hitbtc.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -291,7 +291,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-hitbtc.fetchDeposits (code[, since, limit, params])
+hitbtc.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -314,7 +314,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-hitbtc.fetchWithdrawals (code[, since, limit, params])
+hitbtc.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -336,7 +336,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hitbtc.fetchOrderBooks ([symbols, limit, params])
+hitbtc.fetchOrderBooks (symbols?, limit?, params?)
 ```
 
 
@@ -346,7 +346,7 @@ hitbtc.fetchOrderBooks ([symbols, limit, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>hitbtc</code>](#hitbtc)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://api.hitbtc.com/#order-books  
 
@@ -358,7 +358,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-hitbtc.fetchOrderBook (symbol[, limit, params])
+hitbtc.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -383,7 +383,7 @@ fetch the trading fees for a market
 
 
 ```javascript
-hitbtc.fetchTradingFee (symbol[, params])
+hitbtc.fetchTradingFee (symbol, params?)
 ```
 
 
@@ -407,7 +407,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-hitbtc.fetchTradingFees ([params])
+hitbtc.fetchTradingFees (params?)
 ```
 
 
@@ -439,7 +439,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-hitbtc.fetchOHLCV (symbol, timeframe[, since, limit, params])
+hitbtc.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -469,7 +469,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-hitbtc.fetchClosedOrders (symbol[, since, limit, params])
+hitbtc.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -498,7 +498,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-hitbtc.fetchOrder (id, symbol[, params])
+hitbtc.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -529,7 +529,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-hitbtc.fetchOrderTrades (id, symbol[, since, limit, params])
+hitbtc.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -559,7 +559,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-hitbtc.fetchOpenOrders (symbol[, since, limit, params])
+hitbtc.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -588,7 +588,7 @@ fetch an open order by it's id
 
 
 ```javascript
-hitbtc.fetchOpenOrder (id, symbol[, params])
+hitbtc.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -616,7 +616,7 @@ cancel all open orders
 
 
 ```javascript
-hitbtc.cancelAllOrders (symbol[, params])
+hitbtc.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -645,7 +645,7 @@ cancels an open order
 
 
 ```javascript
-hitbtc.cancelOrder (id, symbol[, params])
+hitbtc.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -680,7 +680,7 @@ create a trade order
 
 
 ```javascript
-hitbtc.createOrder (symbol, type, side, amount[, price, params])
+hitbtc.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -705,7 +705,7 @@ fetches margin mode of the user
 
 
 ```javascript
-hitbtc.fetchMarginModes (symbols[, params])
+hitbtc.fetchMarginModes (symbols, params?)
 ```
 
 
@@ -729,7 +729,7 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-hitbtc.transfer (code, amount, fromAccount, toAccount[, params])
+hitbtc.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 
 
@@ -753,7 +753,7 @@ make a withdrawal
 
 
 ```javascript
-hitbtc.withdraw (code, amount, address, tag[, params])
+hitbtc.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -774,7 +774,7 @@ fetches funding rates for multiple markets
 
 
 ```javascript
-hitbtc.fetchFundingRates (symbols[, params])
+hitbtc.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -799,7 +799,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-hitbtc.fetchFundingRateHistory (symbol[, since, limit, params])
+hitbtc.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -826,7 +826,7 @@ fetch all open positions
 
 
 ```javascript
-hitbtc.fetchPositions (symbols[, params])
+hitbtc.fetchPositions (symbols, params?)
 ```
 
 
@@ -853,7 +853,7 @@ fetch data on a single open contract trade position
 
 
 ```javascript
-hitbtc.fetchPosition (symbol[, params])
+hitbtc.fetchPosition (symbol, params?)
 ```
 
 
@@ -874,7 +874,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-hitbtc.fetchOpenInterests ([symbols, params])
+hitbtc.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -895,7 +895,7 @@ Retrieves the open interest of a derivative trading pair
 
 
 ```javascript
-hitbtc.fetchOpenInterest (symbol[, params])
+hitbtc.fetchOpenInterest (symbol, params?)
 ```
 
 
@@ -916,7 +916,7 @@ fetch the current funding rate
 
 
 ```javascript
-hitbtc.fetchFundingRate (symbol[, params])
+hitbtc.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -944,7 +944,7 @@ remove margin from a position
 
 
 ```javascript
-hitbtc.reduceMargin (symbol, amount[, params])
+hitbtc.reduceMargin (symbol, amount, params?)
 ```
 
 
@@ -972,7 +972,7 @@ add margin
 
 
 ```javascript
-hitbtc.addMargin (symbol, amount[, params])
+hitbtc.addMargin (symbol, amount, params?)
 ```
 
 
@@ -999,7 +999,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-hitbtc.fetchLeverage (symbol[, params])
+hitbtc.fetchLeverage (symbol, params?)
 ```
 
 
@@ -1021,7 +1021,7 @@ set the level of leverage for a market
 
 
 ```javascript
-hitbtc.setLeverage (leverage, symbol[, params])
+hitbtc.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -1042,7 +1042,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-hitbtc.fetchDepositWithdrawFees (codes[, params])
+hitbtc.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -1066,6 +1066,6 @@ closes open positions for a market
 
 
 ```javascript
-hitbtc.closePosition (symbol, side[, params])
+hitbtc.closePosition (symbol, side, params?)
 ```
 

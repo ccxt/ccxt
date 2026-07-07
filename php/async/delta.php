@@ -12,11 +12,10 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class delta extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'delta',
@@ -92,7 +91,7 @@ class delta extends Exchange {
                 'reduceMargin' => true,
                 'setLeverage' => true,
                 'setMargin' => false,
-                'setMarginMode' => false,
+                'setMarginMode' => true,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
@@ -165,6 +164,7 @@ class delta extends Exchange {
                         'users/trading_preferences',
                         'sub_accounts',
                         'profile',
+                        'rate_limits/quota',
                         'heartbeat',
                         'deposits/address',
                     ),
@@ -188,6 +188,7 @@ class delta extends Exchange {
                         'positions/auto_topup',
                         'users/update_mmp',
                         'users/reset_mmp',
+                        'users/margin_mode',
                     ),
                     'delete' => array(
                         'orders',
@@ -368,6 +369,7 @@ class delta extends Exchange {
         $strike = $this->safe_string($optionParts, 2);
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
+        $optionTypeUnified = ($optionType === 'C') ? 'call' : 'put';
         return array(
             'id' => $optionType . '-' . $base . '-' . $strike . '-' . $expiry,
             'symbol' => $base . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
@@ -390,7 +392,7 @@ class delta extends Exchange {
             'contractSize' => $this->parse_number('1'),
             'expiry' => $timestamp,
             'expiryDatetime' => $datetime,
-            'optionType' => ($optionType === 'C') ? 'call' : 'put',
+            'optionType' => $optionTypeUnified,
             'strike' => $this->parse_number($strike),
             'precision' => array(
                 'amount' => null,
@@ -423,28 +425,28 @@ class delta extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetSettings ($params));
+            $response = Async\await($this->publicGetSettings($params));
             // full $response sample under `fetchStatus`
             $result = $this->safe_dict($response, 'result', array());
             return $this->safe_integer_product($result, 'server_time', 0.001);
-        }) ();
+        })();
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            $response = Async\await($this->publicGetSettings ($params));
+            $response = Async\await($this->publicGetSettings($params));
             //
             //     {
             //         "result" => array(
@@ -509,10 +511,10 @@ class delta extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -522,7 +524,7 @@ class delta extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of $currencies
              */
-            $response = Async\await($this->publicGetAssets ($params));
+            $response = Async\await($this->publicGetAssets($params));
             //
             //    {
             //        "result" => array(
@@ -572,66 +574,65 @@ class delta extends Exchange {
             //     }
             //
             $currencies = $this->safe_list($response, 'result', array());
-            $result = array();
-            for ($i = 0; $i < count($currencies); $i++) {
-                $currency = $currencies[$i];
-                $id = $this->safe_string($currency, 'symbol');
-                $numericId = $this->safe_integer($currency, 'id');
-                $code = $this->safe_currency_code($id);
-                $chains = $this->safe_list($currency, 'networks', array());
-                $networks = array();
-                for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'network');
-                    $networkCode = $this->network_id_to_code($networkId);
-                    $networks[$networkCode] = array(
-                        'id' => $networkId,
-                        'network' => $networkCode,
-                        'name' => $this->safe_string($chain, 'name'),
-                        'info' => $chain,
-                        'active' => $this->safe_string($chain, 'status') === 'enabled',
-                        'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
-                        'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
-                        'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
-                        'limits' => array(
-                            'deposit' => array(
-                                'min' => $this->safe_number($chain, 'min_deposit_amount'),
-                                'max' => null,
-                            ),
-                            'withdraw' => array(
-                                'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
-                                'max' => null,
-                            ),
-                        ),
-                    );
-                }
-                $result[$code] = $this->safe_currency_structure(array(
-                    'id' => $id,
-                    'numericId' => $numericId,
-                    'code' => $code,
-                    'name' => $this->safe_string($currency, 'name'),
-                    'info' => $currency, // the original payload
-                    'active' => null,
-                    'deposit' => $this->safe_string($currency, 'deposit_status') === 'enabled',
-                    'withdraw' => $this->safe_string($currency, 'withdrawal_status') === 'enabled',
-                    'fee' => $this->safe_number($currency, 'base_withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
-                    'limits' => array(
-                        'amount' => array( 'min' => null, 'max' => null ),
-                        'withdraw' => array(
-                            'min' => $this->safe_number($currency, 'min_withdrawal_amount'),
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'type' => 'crypto',
-                ));
-            }
-            return $result;
-        }) ();
+            return $this->parse_currencies($currencies);
+        })();
     }
 
-    public function load_markets($reload = false, $params = array ()) {
+    public function parse_currency(array $rawCurrency): array {
+        $id = $this->safe_string($rawCurrency, 'symbol');
+        $numericId = $this->safe_integer($rawCurrency, 'id');
+        $code = $this->safe_currency_code($id);
+        $chains = $this->safe_list($rawCurrency, 'networks', array());
+        $networks = array();
+        for ($j = 0; $j < count($chains); $j++) {
+            $chain = $chains[$j];
+            $networkId = $this->safe_string($chain, 'network');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'name' => $this->safe_string($chain, 'name'),
+                'info' => $chain,
+                'active' => $this->safe_string($chain, 'status') === 'enabled',
+                'deposit' => $this->safe_string($chain, 'deposit_status') === 'enabled',
+                'withdraw' => $this->safe_string($chain, 'withdrawal_status') === 'enabled',
+                'fee' => $this->safe_number($chain, 'base_withdrawal_fee'),
+                'limits' => array(
+                    'deposit' => array(
+                        'min' => $this->safe_number($chain, 'min_deposit_amount'),
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => $this->safe_number($chain, 'min_withdrawal_amount'),
+                        'max' => null,
+                    ),
+                ),
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'numericId' => $numericId,
+            'code' => $code,
+            'name' => $this->safe_string($rawCurrency, 'name'),
+            'info' => $rawCurrency, // the original payload
+            'active' => null,
+            'deposit' => $this->safe_string($rawCurrency, 'deposit_status') === 'enabled',
+            'withdraw' => $this->safe_string($rawCurrency, 'withdrawal_status') === 'enabled',
+            'fee' => $this->safe_number($rawCurrency, 'base_withdrawal_fee'),
+            'precision' => $this->parse_number($this->parse_precision($this->safe_string($rawCurrency, 'precision'))),
+            'limits' => array(
+                'amount' => array( 'min' => null, 'max' => null ),
+                'withdraw' => array(
+                    'min' => $this->safe_number($rawCurrency, 'min_withdrawal_amount'),
+                    'max' => null,
+                ),
+            ),
+            'networks' => $networks,
+            'type' => 'crypto',
+        ));
+    }
+
+    public function load_markets($reload = false, $params = array()) {
         return Async\async(function () use ($reload, $params) {
             $markets = Async\await(parent::load_markets($reload, $params));
             $currenciesByNumericId = $this->safe_dict($this->options, 'currenciesByNumericId');
@@ -643,7 +644,7 @@ class delta extends Exchange {
                 $this->options['marketsByNumericId'] = $this->index_by_stringified_numeric_id($this->markets);
             }
             return $markets;
-        }) ();
+        })();
     }
 
     public function index_by_stringified_numeric_id($input) {
@@ -664,7 +665,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for delta
@@ -674,11 +675,11 @@ class delta extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetProducts ($params));
+            $response = Async\await($this->publicGetProducts($params));
             //
             //     {
             //         "meta":array( "after":null, "before":null, "limit":100, "total_count":81 ),
-            //         "result":[
+            //         "result":array(
             //             // the below $response represents item from perpetual $market
             //             array(
             //                 "annualized_funding":"5.475000000000000000",
@@ -849,7 +850,7 @@ class delta extends Exchange {
             //                 "contract_value" => "1",
             //                 "short_description" => "SOL-USDT $spot $market"
             //             ),
-            //         ],
+            //         ),
             //         "success":true
             //     }
             //
@@ -931,7 +932,7 @@ class delta extends Exchange {
                     'settleId' => $settleId,
                     'type' => $type,
                     'spot' => $spot,
-                    'margin' => $spot ? null : false,
+                    'margin' => false,
                     'swap' => $swap,
                     'future' => $future,
                     'option' => $option,
@@ -973,7 +974,7 @@ class delta extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1123,7 +1124,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1139,7 +1140,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
             //
             // spot
             //
@@ -1266,10 +1267,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_ticker($result, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
@@ -1282,7 +1283,7 @@ class delta extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicGetTickers ($params));
+            $response = Async\await($this->publicGetTickers($params));
             //
             // spot
             //
@@ -1421,10 +1422,10 @@ class delta extends Exchange {
                 $result[$symbol] = $ticker;
             }
             return $this->filter_by_array_tickers($result, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1434,7 +1435,7 @@ class delta extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1444,7 +1445,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetL2orderbookSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetL2orderbookSymbol($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1465,7 +1466,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order_book($result, $market['symbol'], null, 'buy', 'sell', 'price', 'size');
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1568,7 +1569,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -1586,7 +1587,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTradesSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTradesSymbol($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1604,7 +1605,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1628,7 +1629,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
@@ -1673,7 +1674,7 @@ class delta extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             $params = $this->omit($params, array( 'price', 'until' ));
-            $response = Async\await($this->publicGetHistoryCandles ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetHistoryCandles($this->extend($request, $params)));
             //
             //     {
             //         "success":true,
@@ -1686,7 +1687,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -1706,7 +1707,7 @@ class delta extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1717,7 +1718,7 @@ class delta extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetWalletBalances ($params));
+            $response = Async\await($this->privateGetWalletBalances($params));
             //
             //     {
             //         "result":array(
@@ -1740,10 +1741,10 @@ class delta extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
@@ -1759,7 +1760,7 @@ class delta extends Exchange {
             $request = array(
                 'product_id' => $market['numericId'],
             );
-            $response = Async\await($this->privateGetPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetPositions($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -1772,10 +1773,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_position($result, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -1787,7 +1788,7 @@ class delta extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->privateGetPositionsMargined ($params));
+            $response = Async\await($this->privateGetPositionsMargined($params));
             //
             //     {
             //         "success" => true,
@@ -1811,7 +1812,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_positions($result, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_position(array $position, ?array $market = null) {
@@ -2013,7 +2014,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -2056,7 +2057,7 @@ class delta extends Exchange {
                 $request['reduce_only'] = $reduceOnly;
                 $params = $this->omit($params, 'reduceOnly');
             }
-            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrders($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -2095,10 +2096,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade order
@@ -2128,7 +2129,7 @@ class delta extends Exchange {
             if ($price !== null) {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePutOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePutOrders($this->extend($request, $params)));
             //
             //     {
             //         "success" => true,
@@ -2148,10 +2149,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -2172,7 +2173,7 @@ class delta extends Exchange {
                 'id' => intval($id),
                 'product_id' => $market['numericId'],
             );
-            $response = Async\await($this->privateDeleteOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privateDeleteOrders($this->extend($request, $params)));
             //
             //     {
             //         "result":array(
@@ -2211,10 +2212,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result');
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders in a $market
@@ -2235,7 +2236,7 @@ class delta extends Exchange {
                 // 'cancel_limit_orders' => 'true',
                 // 'cancel_stop_orders' => 'true',
             );
-            $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
+            $response = $this->privateDeleteOrdersAll($this->extend($request, $params));
             //
             //     {
             //         "result":array(),
@@ -2247,10 +2248,10 @@ class delta extends Exchange {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): PromiseInterface {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -2275,10 +2276,10 @@ class delta extends Exchange {
             $response = null;
             if ($clientOrderId !== null) {
                 $request['client_oid'] = $clientOrderId;
-                $response = Async\await($this->privateGetOrdersClientOrderIdClientOid ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetOrdersClientOrderIdClientOid($this->extend($request, $params)));
             } else {
                 $request['order_id'] = $id;
-                $response = Async\await($this->privateGetOrdersOrderId ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetOrdersOrderId($this->extend($request, $params)));
             }
             //
             //     {
@@ -2306,10 +2307,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2323,10 +2324,10 @@ class delta extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_with_method('privateGetOrders', $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2340,10 +2341,10 @@ class delta extends Exchange {
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             return Async\await($this->fetch_orders_with_method('privateGetOrdersHistory', $symbol, $since, $limit, $params));
-        }) ();
+        })();
     }
 
-    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_orders_with_method($method, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($method, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
             $request = array(
@@ -2369,9 +2370,9 @@ class delta extends Exchange {
             }
             $response = null;
             if ($method === 'privateGetOrders') {
-                $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetOrders($this->extend($request, $params)));
             } elseif ($method === 'privateGetOrdersHistory') {
-                $response = Async\await($this->privateGetOrdersHistory ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetOrdersHistory($this->extend($request, $params)));
             }
             //
             //     {
@@ -2398,10 +2399,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -2435,7 +2436,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetFills ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetFills($this->extend($request, $params)));
             //
             //     {
             //         "meta":array(
@@ -2483,10 +2484,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch the history of changes, actions done by the user or operations that altered the balance of the user
@@ -2515,7 +2516,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->privateGetWalletTransactions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWalletTransactions($this->extend($request, $params)));
             //
             //     {
             //         "meta":array("after":null,"before":null,"limit":10,"total_count":1),
@@ -2539,7 +2540,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_ledger($result, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ledger_entry_type($type) {
@@ -2615,7 +2616,7 @@ class delta extends Exchange {
         ), $currency);
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit address for a $currency associated with this account
@@ -2634,7 +2635,7 @@ class delta extends Exchange {
                 $request['network'] = $this->network_code_to_id($networkCode, $code);
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->privateGetDepositsAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetDepositsAddress($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -2654,7 +2655,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_deposit_address($result, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null): array {
@@ -2675,17 +2676,18 @@ class delta extends Exchange {
         $address = $this->safe_string($depositAddress, 'address');
         $marketId = $this->safe_string($depositAddress, 'asset_symbol');
         $networkId = $this->safe_string($depositAddress, 'network');
+        $code = $this->safe_currency_code($marketId, $currency);
         $this->check_address($address);
         return array(
             'info' => $depositAddress,
-            'currency' => $this->safe_currency_code($marketId, $currency),
-            'network' => $this->network_id_to_code($networkId),
+            'currency' => $code,
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $address,
             'tag' => $this->safe_string($depositAddress, 'memo'),
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -2704,7 +2706,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2752,10 +2754,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_funding_rate($result, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rates(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch the funding rate for multiple markets
@@ -2771,7 +2773,7 @@ class delta extends Exchange {
             $request = array(
                 'contract_types' => 'perpetual_futures',
             );
-            $response = Async\await($this->publicGetTickers ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickers($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2821,7 +2823,7 @@ class delta extends Exchange {
             //
             $rates = $this->safe_list($response, 'result', array());
             return $this->parse_funding_rates($rates, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -2893,7 +2895,7 @@ class delta extends Exchange {
         );
     }
 
-    public function add_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function add_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * add margin
@@ -2906,10 +2908,10 @@ class delta extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'add', $params));
-        }) ();
+        })();
     }
 
-    public function reduce_margin(string $symbol, float $amount, $params = array ()): PromiseInterface {
+    public function reduce_margin(string $symbol, float $amount, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $params) {
             /**
              * remove margin from a position
@@ -2922,10 +2924,10 @@ class delta extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
              */
             return Async\await($this->modify_margin_helper($symbol, $amount, 'reduce', $params));
-        }) ();
+        })();
     }
 
-    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): PromiseInterface {
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $amount, $type, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -2937,7 +2939,7 @@ class delta extends Exchange {
                 'product_id' => $market['numericId'],
                 'delta_margin' => $amount,
             );
-            $response = Async\await($this->privatePostPositionsChangeMargin ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostPositionsChangeMargin($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -2963,7 +2965,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_margin_modification($result, $market);
-        }) ();
+        })();
     }
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
@@ -3003,7 +3005,7 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_open_interest(string $symbol, $params = array ()) {
+    public function fetch_open_interest(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieves the open interest of a derivative $market
@@ -3022,7 +3024,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3077,7 +3079,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_open_interest($result, $market);
-        }) ();
+        })();
     }
 
     public function parse_open_interest($interest, ?array $market = null) {
@@ -3144,7 +3146,7 @@ class delta extends Exchange {
         ), $market);
     }
 
-    public function fetch_leverage(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_leverage(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the set leverage for a $market
@@ -3160,7 +3162,7 @@ class delta extends Exchange {
             $request = array(
                 'product_id' => $market['numericId'],
             );
-            $response = Async\await($this->privateGetProductsProductIdOrdersLeverage ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetProductsProductIdOrdersLeverage($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3176,7 +3178,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_leverage($result, $market);
-        }) ();
+        })();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
@@ -3191,7 +3193,7 @@ class delta extends Exchange {
         );
     }
 
-    public function set_leverage(int $leverage, ?string $symbol = null, $params = array ()) {
+    public function set_leverage(int $leverage, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($leverage, $symbol, $params) {
             /**
              * set the level of $leverage for a $market
@@ -3223,11 +3225,11 @@ class delta extends Exchange {
             //         "success" => true
             //     }
             //
-            return Async\await($this->privatePostProductsProductIdOrdersLeverage ($this->extend($request, $params)));
-        }) ();
+            return Async\await($this->privatePostProductsProductIdOrdersLeverage($this->extend($request, $params)));
+        })();
     }
 
-    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches historical settlement records
@@ -3251,7 +3253,7 @@ class delta extends Exchange {
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = Async\await($this->publicGetProducts ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetProducts($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3313,8 +3315,8 @@ class delta extends Exchange {
             $result = $this->safe_list($response, 'result', array());
             $settlements = $this->parse_settlements($result, $market);
             $sorted = $this->sort_by($settlements, 'timestamp');
-            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
-        }) ();
+            return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
+        })();
     }
 
     public function parse_settlement($settlement, $market) {
@@ -3390,7 +3392,7 @@ class delta extends Exchange {
         return $result;
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
@@ -3406,7 +3408,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3461,7 +3463,7 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_greeks($result, $market);
-        }) ();
+        })();
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {
@@ -3536,13 +3538,13 @@ class delta extends Exchange {
             'bidPrice' => $this->safe_number($quotes, 'best_bid'),
             'askPrice' => $this->safe_number($quotes, 'best_ask'),
             'markPrice' => $this->safe_number($greeks, 'mark_price'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($greeks, 'last_price'),
             'underlyingPrice' => $this->safe_number($greeks, 'spot_price'),
             'info' => $greeks,
         );
     }
 
-    public function close_all_positions($params = array ()): PromiseInterface {
+    public function close_all_positions($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * closes all open positions for a market type
@@ -3559,16 +3561,16 @@ class delta extends Exchange {
                 'close_all_isolated' => true,
                 // 'user_id' => 12345,
             );
-            $response = Async\await($this->privatePostPositionsCloseAll ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostPositionsCloseAll($this->extend($request, $params)));
             //
             // array("result":array(),"success":true)
             //
             $position = $this->parse_position($this->safe_dict($response, 'result', array()));
             return array( $position );
-        }) ();
+        })();
     }
 
-    public function fetch_margin_mode(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_margin_mode(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches the margin mode of a trading pair
@@ -3584,7 +3586,7 @@ class delta extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetProfile ($params));
+            $response = Async\await($this->privateGetProfile($params));
             //
             //     {
             //         "result" => {
@@ -3650,10 +3652,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_margin_mode($result, $market);
-        }) ();
+        })();
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $symbol = null;
         if ($market !== null) {
             $symbol = $market['symbol'];
@@ -3665,7 +3667,30 @@ class delta extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+    public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array()) {
+        return Async\async(function () use ($marginMode, $symbol, $params) {
+            /**
+             * set margin mode to 'isolated' or 'portfolio'
+             *
+             * @see https://docs.delta.exchange/#change-margin-mode
+             *
+             * @param {string} $marginMode 'isolated' or 'portfolio'
+             * @param {string} [$symbol] not used by delta.setMarginMode
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} $params->subaccount_user_id the user id of the subaccount
+             * @return {array} response from the exchange
+             */
+            $this->check_required_argument('setMarginMode', $marginMode, 'marginMode', array( 'isolated', 'portfolio' ));
+            $subaccountUserId = $this->safe_string($params, 'subaccount_user_id');
+            $this->check_required_argument('setMarginMode', $subaccountUserId, 'params["subaccount_user_id"]');
+            $request = array(
+                'margin_mode' => $marginMode,
+            );
+            return Async\await($this->privatePutUsersMarginMode($this->extend($request, $params)));
+        })();
+    }
+
+    public function fetch_option(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches option data that is commonly found in an option chain
@@ -3681,7 +3706,7 @@ class delta extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetTickersSymbol ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTickersSymbol($this->extend($request, $params)));
             //
             //     {
             //         "result" => array(
@@ -3736,10 +3761,10 @@ class delta extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_option($result, null, $market);
-        }) ();
+        })();
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "close" => 6793.0,
@@ -3795,7 +3820,7 @@ class delta extends Exchange {
         $timestamp = $this->safe_integer_product($chain, 'timestamp', 0.001);
         return array(
             'info' => $chain,
-            'currency' => null,
+            'currency' => $this->safe_string($chain, 'currency'),
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3805,16 +3830,16 @@ class delta extends Exchange {
             'askPrice' => $this->safe_number($quotes, 'best_ask'),
             'midPrice' => $this->safe_number($quotes, 'impact_mid_price'),
             'markPrice' => $this->safe_number($chain, 'mark_price'),
-            'lastPrice' => null,
+            'lastPrice' => $this->safe_number($chain, 'last_price'),
             'underlyingPrice' => $this->safe_number($chain, 'spot_price'),
-            'change' => null,
-            'percentage' => null,
+            'change' => $this->safe_number($chain, 'change'),
+            'percentage' => $this->safe_number($chain, 'percentage'),
             'baseVolume' => $this->safe_number($chain, 'volume'),
-            'quoteVolume' => null,
+            'quoteVolume' => $this->safe_number($chain, 'quote_volume'),
         );
     }
 
-    public function fetch_positions_adl_rank(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions_adl_rank(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the auto deleveraging rank and risk percentage for a list of $symbols
@@ -3827,7 +3852,7 @@ class delta extends Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, true, true);
-            $response = Async\await($this->privateGetPositionsMargined ($params));
+            $response = Async\await($this->privateGetPositionsMargined($params));
             //
             //     {
             //         "result":
@@ -3876,7 +3901,7 @@ class delta extends Exchange {
             //                                 "service_id" => 1,
             //                                 "underlying_asset" => "BTC"
             //                             ),
-            //                             "constituent_exchanges" => [
+            //                             "constituent_exchanges" => array(
             //                                 array(
             //                                     "exchange" => "binance",
             //                                     "health_interval" => 3000,
@@ -3994,13 +4019,13 @@ class delta extends Exchange {
             //                     "updated_at" => "2026-01-14T11:24:35.801586Z",
             //                     "user_id" => 30084879
             //                 }
-            //             ],
+            //             ),
             //         "success" => true
             //     }
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_adl_ranks($result, $symbols);
-        }) ();
+        })();
     }
 
     public function parse_adl_rank(array $info, ?array $market = null): array {
@@ -4183,7 +4208,7 @@ class delta extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = array(), mixed $body = null) {
         $requestPath = '/' . $this->version . '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $requestPath;
         $query = $this->omit($params, $this->extract_params($path));

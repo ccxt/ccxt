@@ -38,6 +38,7 @@
 * [fetchLiquidations](#fetchliquidations)
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
 * [fetchSettlementHistory](#fetchsettlementhistory)
+* [closePosition](#closeposition)
 * [watchTicker](#watchticker)
 * [watchTickers](#watchtickers)
 * [watchLiquidations](#watchliquidations)
@@ -68,7 +69,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-bitmex.fetchCurrencies ([params])
+bitmex.fetchCurrencies (params?)
 ```
 
 
@@ -88,7 +89,7 @@ retrieves data on all markets for bitmex
 
 
 ```javascript
-bitmex.fetchMarkets ([params])
+bitmex.fetchMarkets (params?)
 ```
 
 
@@ -108,7 +109,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bitmex.fetchBalance ([params])
+bitmex.fetchBalance (params?)
 ```
 
 
@@ -118,7 +119,7 @@ bitmex.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/api/explorer/#!/OrderBook/OrderBook_getL2  
 
@@ -130,7 +131,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmex.fetchOrderBook (symbol[, limit, params])
+bitmex.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -152,7 +153,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bitmex.fetchOrder (id, symbol[, params])
+bitmex.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -177,7 +178,7 @@ fetches information on multiple orders made by the user
 
 
 ```javascript
-bitmex.fetchOrders (symbol[, since, limit, params])
+bitmex.fetchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -200,7 +201,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bitmex.fetchOpenOrders (symbol[, since, limit, params])
+bitmex.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -223,7 +224,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-bitmex.fetchClosedOrders (symbol[, since, limit, params])
+bitmex.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -247,7 +248,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bitmex.fetchMyTrades (symbol[, since, limit, params])
+bitmex.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -270,7 +271,7 @@ fetch the history of changes, actions done by the user or operations that altere
 
 
 ```javascript
-bitmex.fetchLedger ([code, since, limit, params])
+bitmex.fetchLedger (code?, since?, limit?, params?)
 ```
 
 
@@ -293,7 +294,7 @@ fetch history of deposits and withdrawals
 
 
 ```javascript
-bitmex.fetchDepositsWithdrawals ([code, since, limit, params])
+bitmex.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -314,7 +315,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmex.fetchTicker (symbol[, params])
+bitmex.fetchTicker (symbol, params?)
 ```
 
 
@@ -335,7 +336,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bitmex.fetchTickers (symbols[, params])
+bitmex.fetchTickers (symbols, params?)
 ```
 
 
@@ -360,7 +361,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmex.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bitmex.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -384,7 +385,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitmex.fetchTrades (symbol[, since, limit, params])
+bitmex.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -412,7 +413,7 @@ create a trade order
 
 
 ```javascript
-bitmex.createOrder (symbol, type, side, amount[, price, params])
+bitmex.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -434,7 +435,7 @@ cancels an open order
 
 
 ```javascript
-bitmex.cancelOrder (id, symbol[, params])
+bitmex.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -456,7 +457,7 @@ cancel multiple orders
 
 
 ```javascript
-bitmex.cancelOrders (ids, symbol[, params])
+bitmex.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -477,7 +478,7 @@ cancel all open orders
 
 
 ```javascript
-bitmex.cancelAllOrders (symbol[, params])
+bitmex.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -498,7 +499,7 @@ dead man's switch, cancel all orders after the given timeout
 
 
 ```javascript
-bitmex.cancelAllOrdersAfter (timeout[, params])
+bitmex.cancelAllOrdersAfter (timeout, params?)
 ```
 
 
@@ -519,7 +520,7 @@ fetch the set leverage for all contract markets
 
 
 ```javascript
-bitmex.fetchLeverages ([symbols, params])
+bitmex.fetchLeverages (symbols?, params?)
 ```
 
 
@@ -540,7 +541,7 @@ fetch all open positions
 
 
 ```javascript
-bitmex.fetchPositions (symbols[, params])
+bitmex.fetchPositions (symbols, params?)
 ```
 
 
@@ -564,7 +565,7 @@ make a withdrawal
 
 
 ```javascript
-bitmex.withdraw (code, amount, address, tag[, params])
+bitmex.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -585,7 +586,7 @@ fetch the funding rate for multiple markets
 
 
 ```javascript
-bitmex.fetchFundingRates (symbols[, params])
+bitmex.fetchFundingRates (symbols, params?)
 ```
 
 
@@ -613,7 +614,7 @@ Fetches the history of funding rates
 
 
 ```javascript
-bitmex.fetchFundingRateHistory (symbol[, since, limit, params])
+bitmex.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -635,7 +636,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bitmex.setLeverage (leverage, symbol[, params])
+bitmex.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -657,7 +658,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bitmex.setMarginMode (marginMode, symbol[, params])
+bitmex.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -679,7 +680,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-bitmex.fetchDepositAddress (code[, params])
+bitmex.fetchDepositAddress (code, params?)
 ```
 
 
@@ -700,7 +701,7 @@ fetch deposit and withdraw fees
 
 
 ```javascript
-bitmex.fetchDepositWithdrawFees (codes[, params])
+bitmex.fetchDepositWithdrawFees (codes, params?)
 ```
 
 
@@ -721,7 +722,7 @@ Retrieves the open interest for a list of symbols
 
 
 ```javascript
-bitmex.fetchOpenInterests ([symbols, params])
+bitmex.fetchOpenInterests (symbols?, params?)
 ```
 
 
@@ -746,7 +747,7 @@ retrieves the public liquidations of a trading pair
 
 
 ```javascript
-bitmex.fetchLiquidations (symbol[, since, limit, params])
+bitmex.fetchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -767,7 +768,7 @@ fetches the auto deleveraging rank and risk percentage for a list of symbols
 
 
 ```javascript
-bitmex.fetchPositionsADLRank ([symbols, params])
+bitmex.fetchPositionsADLRank (symbols?, params?)
 ```
 
 
@@ -795,7 +796,33 @@ fetches historical settlement records
 
 
 ```javascript
-bitmex.fetchSettlementHistory (symbol[, since, limit, params])
+bitmex.fetchSettlementHistory (symbol, since?, limit?, params?)
+```
+
+
+<a name="closePosition" id="closeposition"></a>
+
+### closePosition{docsify-ignore}
+closes open positions for a market
+
+**Kind**: instance method of [<code>bitmex</code>](#bitmex)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**
+
+- https://docs.bitmex.com/api-explorer/order-new
+- https://docs.bitmex.com/api-explorer/order-close-position
+
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | Unified CCXT market symbol |
+| side | <code>string</code> | Yes | the buy or sell side of the closing order, if the position is long set the side to sell, reduceOnly is implied |
+| params | <code>object</code> | No | extra parameters specific to the bingx api endpoint |
+
+
+```javascript
+bitmex.closePosition (symbol, side, params?)
 ```
 
 
@@ -816,7 +843,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmex.watchTicker (symbol[, params])
+bitmex.watchTicker (symbol, params?)
 ```
 
 
@@ -837,7 +864,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bitmex.watchTickers (symbols[, params])
+bitmex.watchTickers (symbols, params?)
 ```
 
 
@@ -860,7 +887,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-bitmex.watchLiquidations (symbol[, since, limit, params])
+bitmex.watchLiquidations (symbol, since?, limit?, params?)
 ```
 
 
@@ -883,7 +910,7 @@ watch the public liquidations of a trading pair
 
 
 ```javascript
-bitmex.watchLiquidationsForSymbols (symbols[, since, limit, params])
+bitmex.watchLiquidationsForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -903,7 +930,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bitmex.watchBalance ([params])
+bitmex.watchBalance (params?)
 ```
 
 
@@ -926,7 +953,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bitmex.watchTrades (symbol[, since, limit, params])
+bitmex.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -949,7 +976,7 @@ watch all open positions
 
 
 ```javascript
-bitmex.watchPositions (symbols[, since, limit, params])
+bitmex.watchPositions (symbols, since?, limit?, params)
 ```
 
 
@@ -972,7 +999,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bitmex.watchOrders (symbol[, since, limit, params])
+bitmex.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -995,7 +1022,7 @@ watches information on multiple trades made by the user
 
 
 ```javascript
-bitmex.watchMyTrades (symbol[, since, limit, params])
+bitmex.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -1005,7 +1032,7 @@ bitmex.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 
@@ -1017,7 +1044,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmex.watchOrderBook (symbol[, limit, params])
+bitmex.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1027,7 +1054,7 @@ bitmex.watchOrderBook (symbol[, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bitmex</code>](#bitmex)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://www.bitmex.com/app/wsAPI#OrderBookL2  
 
@@ -1039,7 +1066,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bitmex.watchOrderBookForSymbols (symbols[, limit, params])
+bitmex.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1062,7 +1089,7 @@ get the list of most recent trades for a list of symbols
 
 
 ```javascript
-bitmex.watchTradesForSymbols (symbols[, since, limit, params])
+bitmex.watchTradesForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1086,6 +1113,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bitmex.watchOHLCV (symbol, timeframe[, since, limit, params])
+bitmex.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 

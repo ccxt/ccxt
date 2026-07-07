@@ -6,7 +6,7 @@ type Cex struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewCex(userConfig map[string]interface{}) *Cex {
+func NewCex(userConfig map[string]any) *Cex {
 	p := NewCexCore()
 	p.Init(userConfig)
 	return &Cex{
@@ -34,7 +34,7 @@ func NewCexFromCore(core *CexCore) *Cex {
  * @param {dict} [params] extra parameters specific to the exchange API endpoint
  * @returns {dict} an associative dictionary of currencies
  */
-func (this *Cex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Cex) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -50,7 +50,7 @@ func (this *Cex) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Cex) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Cex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -62,10 +62,11 @@ func (this *Cex) FetchMarkets(params ...interface{}) ([]MarketInterface, error) 
  * @method
  * @name cex#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
+ * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Cex) FetchTime(params ...interface{}) (int64, error) {
+func (this *Cex) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -90,7 +91,7 @@ func (this *Cex) FetchTicker(symbol string, options ...FetchTickerOptions) (Tick
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -118,12 +119,12 @@ func (this *Cex) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -154,17 +155,17 @@ func (this *Cex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -183,7 +184,7 @@ func (this *Cex) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Tr
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Cex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -193,12 +194,12 @@ func (this *Cex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions)
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -230,22 +231,22 @@ func (this *Cex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -264,14 +265,14 @@ func (this *Cex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Cex) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Cex) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
 	}
 	return NewTradingFees(res), nil
 }
-func (this *Cex) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Cex) FetchAccounts(params ...any) ([]Account, error) {
 	res := <-this.Core.FetchAccounts(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -289,7 +290,7 @@ func (this *Cex) FetchAccounts(params ...interface{}) ([]Account, error) {
  * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Cex) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Cex) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -304,22 +305,22 @@ func (this *Cex) FetchOrdersByStatus(status string, options ...FetchOrdersByStat
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -349,22 +350,22 @@ func (this *Cex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -394,22 +395,22 @@ func (this *Cex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -438,12 +439,12 @@ func (this *Cex) FetchOpenOrder(id string, options ...FetchOpenOrderOptions) (Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -472,12 +473,12 @@ func (this *Cex) FetchClosedOrder(id string, options ...FetchClosedOrderOptions)
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -511,12 +512,12 @@ func (this *Cex) CreateOrder(symbol string, typeVar string, side string, amount 
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -545,12 +546,12 @@ func (this *Cex) CancelOrder(id string, options ...CancelOrderOptions) (Order, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -578,12 +579,12 @@ func (this *Cex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -614,22 +615,22 @@ func (this *Cex) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -659,22 +660,22 @@ func (this *Cex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOpt
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -705,7 +706,7 @@ func (this *Cex) Transfer(code string, amount float64, fromAccount string, toAcc
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -723,7 +724,7 @@ func (this *Cex) TransferBetweenMainAndSubAccount(code string, amount float64, f
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -741,7 +742,7 @@ func (this *Cex) TransferBetweenSubAccounts(code string, amount float64, fromAcc
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -770,7 +771,7 @@ func (this *Cex) FetchDepositAddress(code string, options ...FetchDepositAddress
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -783,7 +784,7 @@ func (this *Cex) FetchDepositAddress(code string, options ...FetchDepositAddress
 
 // missing typed methods from base
 // nolint
-func (this *Cex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Cex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Cex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -792,7 +793,7 @@ func (this *Cex) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]O
 func (this *Cex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Cex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Cex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Cex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -897,13 +898,13 @@ func (this *Cex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error)
 func (this *Cex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Cex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Cex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Cex) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Cex) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Cex) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -918,7 +919,7 @@ func (this *Cex) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOpt
 func (this *Cex) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Cex) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Cex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Cex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -930,13 +931,13 @@ func (this *Cex) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 func (this *Cex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDeposits(options...)
 }
-func (this *Cex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Cex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Cex) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Cex) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Cex) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -966,7 +967,7 @@ func (this *Cex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOption
 func (this *Cex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Cex) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Cex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Cex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1053,7 +1054,7 @@ func (this *Cex) FetchOrderStatus(id string, options ...FetchOrderStatusOptions)
 func (this *Cex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Cex) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Cex) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Cex) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1062,7 +1063,7 @@ func (this *Cex) FetchPosition(symbol string, options ...FetchPositionOptions) (
 func (this *Cex) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Cex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Cex) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -1080,19 +1081,19 @@ func (this *Cex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Pos
 func (this *Cex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Cex) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Cex) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Cex) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Cex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Cex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Cex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Cex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1110,10 +1111,10 @@ func (this *Cex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transac
 func (this *Cex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Cex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Cex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Cex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Cex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Cex) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
@@ -1191,13 +1192,13 @@ func (this *Cex) CreateTriggerOrderWs(symbol string, typeVar string, side string
 func (this *Cex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Cex) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Cex) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Cex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Cex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Cex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1239,46 +1240,46 @@ func (this *Cex) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) (
 func (this *Cex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Cex) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Cex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Cex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Cex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Cex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Cex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Cex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Cex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Cex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Cex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Cex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Cex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Cex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Cex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Cex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Cex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Cex) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Cex) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Cex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Cex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Cex) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Cex) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Cex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Cex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Cex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Cex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Cex) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Cex) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Cex) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

@@ -196,14 +196,14 @@ public partial class Exchange
 
     public string binaryToBase16(object buff2)
     {
-        var buff = (byte[])buff2;
+        var buff = buff2 is string ? Encoding.UTF8.GetBytes((string)buff2) : (byte[])buff2;
         return binaryToHex(buff);
     }
 
     public string binaryToBase58(object buff2)
     {
         var buff = (byte[])buff2;
-        return binaryToHex(buff);
+        return Base58.Encode(buff);
     }
 
     public static string Base64ToBase64Url(string base64, bool stripPadding = true)
@@ -230,13 +230,21 @@ public partial class Exchange
         return Convert.ToBase64String(buff);
     }
 
-
-
     public byte[] stringToBinary(string buff) => StringToBinary(buff);
 
     public static byte[] StringToBinary(string buff)
     {
         return Encoding.UTF8.GetBytes(buff);
+    }
+
+    public string binaryToString(object buff)
+    {
+        return BinaryToString(buff);
+    }
+
+    public static string BinaryToString(object buff)
+    {
+        return Encoding.UTF8.GetString(buff as byte[]);
     }
 
     public string encode(object data)

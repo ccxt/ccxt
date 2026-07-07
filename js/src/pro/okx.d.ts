@@ -1,5 +1,5 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation, Bool } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Liquidation, Bool, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class okx extends okxRest {
     describe(): any;
@@ -152,7 +152,7 @@ export default class okx extends okxRest {
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name okx#watchLiquidationsForSymbols
@@ -179,8 +179,8 @@ export default class okx extends okxRest {
      */
     watchMyLiquidationsForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleMyLiquidation(client: Client, message: any): void;
-    parseWsMyLiquidation(liquidation: any, market?: any): Liquidation;
-    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
+    parseWsMyLiquidation(liquidation: any, market?: Market): Liquidation;
+    parseWsLiquidation(liquidation: any, market?: Market): Liquidation;
     /**
      * @method
      * @name okx#watchOHLCV
@@ -233,7 +233,7 @@ export default class okx extends okxRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -245,7 +245,7 @@ export default class okx extends okxRest {
      * @param {int} [limit] 1,5, 400, 50 (l2-tbt, vip4+) or 40000 (vip5+) the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -257,7 +257,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     /**
@@ -269,7 +269,7 @@ export default class okx extends okxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.limit] the maximum amount of order book entries to return
      * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
@@ -309,10 +309,10 @@ export default class okx extends okxRest {
      * @name okx#watchPositions
      * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-positions-channel
      * @description watch all open positions
-     * @param {string[]|undefined} symbols list of unified market symbols
-     * @param since
-     * @param limit
-     * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string[]} [symbols] list of unified market symbols
+     * @param {int} [since] timestamp in ms of the earliest position to fetch
+     * @param {int} [limit] the maximum number of positions to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;

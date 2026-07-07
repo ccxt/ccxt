@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\binanceusdm as binance;
 
 class binanceusdm extends binance {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
@@ -35,6 +34,7 @@ class binanceusdm extends binance {
                 'fetchMarkets' => array(
                     'types' => array( 'linear' ),
                 ),
+                'defaultType' => 'swap',
                 'defaultSubType' => 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
                 // tier amount, maintenance margin, initial margin,
@@ -54,13 +54,13 @@ class binanceusdm extends binance {
         ));
     }
 
-    public function transfer_in(string $code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array()) {
         // transfer from spot wallet to usdm futures wallet
-        return $this->futuresTransfer ($code, $amount, 1, $params);
+        return $this->futuresTransfer($code, $amount, 1, $params);
     }
 
-    public function transfer_out(string $code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array()) {
         // transfer from usdm futures wallet to spot wallet
-        return $this->futuresTransfer ($code, $amount, 2, $params);
+        return $this->futuresTransfer($code, $amount, 2, $params);
     }
 }

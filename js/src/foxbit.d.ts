@@ -1,5 +1,5 @@
 import Exchange from './abstract/foxbit.js';
-import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, int, NullableDict } from './base/types.js';
 /**
  * @class foxbit
  * @augments Exchange
@@ -7,6 +7,7 @@ import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market,
 export default class foxbit extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
+    parseCurrency(rawCurrency: Dict): Currency;
     /**
      * @method
      * @name foxbit#fetchMarkets
@@ -53,7 +54,7 @@ export default class foxbit extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, the maximum is 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -342,11 +343,11 @@ export default class foxbit extends Exchange {
             currency: string;
         };
     };
-    sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {
+    sign(path: any, api?: any, method?: string, params?: {}, headers?: NullableDict, body?: Str): {
         url: string;
         method: string;
-        body: any;
-        headers: any;
+        body: string;
+        headers: Dict;
     };
     handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
 }

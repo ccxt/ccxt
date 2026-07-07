@@ -6,7 +6,7 @@ type Toobit struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewToobit(userConfig map[string]interface{}) *Toobit {
+func NewToobit(userConfig map[string]any) *Toobit {
 	p := NewToobitCore()
 	p.Init(userConfig)
 	return &Toobit{
@@ -34,12 +34,12 @@ func NewToobitFromCore(core *ToobitCore) *Toobit {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Toobit) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Toobit) FetchStatus(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -50,7 +50,7 @@ func (this *Toobit) FetchStatus(params ...interface{}) (map[string]interface{}, 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Toobit) FetchTime(params ...interface{}) (int64, error) {
+func (this *Toobit) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -65,7 +65,7 @@ func (this *Toobit) FetchTime(params ...interface{}) (int64, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Toobit) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Toobit) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -82,7 +82,7 @@ func (this *Toobit) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Toobit) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Toobit) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -99,7 +99,7 @@ func (this *Toobit) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Toobit) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -109,12 +109,12 @@ func (this *Toobit) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -145,17 +145,17 @@ func (this *Toobit) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -187,22 +187,22 @@ func (this *Toobit) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -231,12 +231,12 @@ func (this *Toobit) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -265,12 +265,12 @@ func (this *Toobit) FetchLastPrices(options ...FetchLastPricesOptions) (LastPric
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -299,12 +299,12 @@ func (this *Toobit) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, err
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -332,12 +332,12 @@ func (this *Toobit) FetchFundingRates(options ...FetchFundingRatesOptions) (Fund
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -369,22 +369,22 @@ func (this *Toobit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -404,7 +404,7 @@ func (this *Toobit) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
  * @param {object} [params] extra parameters specific to the exchange API endpointinvalid
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Toobit) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Toobit) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -434,12 +434,12 @@ func (this *Toobit) CreateOrder(symbol string, typeVar string, side string, amou
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -469,12 +469,12 @@ func (this *Toobit) CancelOrder(id string, options ...CancelOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -503,12 +503,12 @@ func (this *Toobit) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -538,12 +538,12 @@ func (this *Toobit) CancelOrders(ids []string, options ...CancelOrdersOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -573,12 +573,12 @@ func (this *Toobit) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -609,22 +609,22 @@ func (this *Toobit) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -654,22 +654,22 @@ func (this *Toobit) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -699,22 +699,22 @@ func (this *Toobit) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -746,22 +746,22 @@ func (this *Toobit) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -792,7 +792,7 @@ func (this *Toobit) Transfer(code string, amount float64, fromAccount string, to
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -824,22 +824,22 @@ func (this *Toobit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -858,7 +858,7 @@ func (this *Toobit) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Toobit) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Toobit) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -885,22 +885,22 @@ func (this *Toobit) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -930,22 +930,22 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -955,7 +955,18 @@ func (this *Toobit) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 	}
 	return NewTransactionArray(res), nil
 }
-func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar interface{}, code interface{}, since interface{}, limit interface{}, params interface{}) ([]Transaction, error) {
+func (this *Toobit) FetchDepositsOrWithdrawalsHelper(typeVar any, code any, since any, limit any, options ...FetchDepositsOrWithdrawalsHelperOptions) ([]Transaction, error) {
+
+	opts := FetchDepositsOrWithdrawalsHelperOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params any = nil
+	if opts.Params != nil {
+		params = *opts.Params
+	}
 	res := <-this.Core.FetchDepositsOrWithdrawalsHelper(typeVar, code, since, limit, params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -980,7 +991,7 @@ func (this *Toobit) FetchDepositAddress(code string, options ...FetchDepositAddr
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1011,12 +1022,12 @@ func (this *Toobit) Withdraw(code string, amount float64, address string, option
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1037,7 +1048,7 @@ func (this *Toobit) Withdraw(code string, amount float64, address string, option
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Toobit) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Toobit) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 
 	opts := SetMarginModeOptionsStruct{}
 
@@ -1045,20 +1056,20 @@ func (this *Toobit) SetMarginMode(marginMode string, options ...SetMarginModeOpt
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1071,7 +1082,7 @@ func (this *Toobit) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Toobit) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Toobit) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1079,20 +1090,20 @@ func (this *Toobit) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1112,7 +1123,7 @@ func (this *Toobit) FetchLeverage(symbol string, options ...FetchLeverageOptions
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1140,12 +1151,12 @@ func (this *Toobit) FetchPositions(options ...FetchPositionsOptions) ([]Position
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1158,13 +1169,13 @@ func (this *Toobit) FetchPositions(options ...FetchPositionsOptions) ([]Position
 
 // missing typed methods from base
 // nolint
-func (this *Toobit) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Toobit) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Toobit) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Toobit) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Toobit) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Toobit) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -1260,7 +1271,7 @@ func (this *Toobit) EditOrderWithClientOrderId(clientOrderId string, symbol stri
 func (this *Toobit) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Toobit) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Toobit) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Toobit) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1269,13 +1280,13 @@ func (this *Toobit) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, 
 func (this *Toobit) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Toobit) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Toobit) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Toobit) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Toobit) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Toobit) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1290,7 +1301,7 @@ func (this *Toobit) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 func (this *Toobit) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Toobit) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Toobit) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Toobit) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -1302,13 +1313,13 @@ func (this *Toobit) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Toobit) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Toobit) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Toobit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Toobit) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Toobit) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Toobit) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -1332,7 +1343,7 @@ func (this *Toobit) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOpt
 func (this *Toobit) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Toobit) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Toobit) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Toobit) FetchLedgerEntry(id string, options ...FetchLedgerEntryOptions) (LedgerEntry, error) {
@@ -1404,7 +1415,7 @@ func (this *Toobit) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Toobit) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Toobit) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Toobit) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Toobit) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1413,7 +1424,7 @@ func (this *Toobit) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Toobit) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Toobit) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Toobit) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1434,13 +1445,13 @@ func (this *Toobit) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 func (this *Toobit) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Toobit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Toobit) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Toobit) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Toobit) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1455,7 +1466,7 @@ func (this *Toobit) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 func (this *Toobit) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Toobit) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Toobit) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Toobit) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -1530,13 +1541,13 @@ func (this *Toobit) CreateTriggerOrderWs(symbol string, typeVar string, side str
 func (this *Toobit) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Toobit) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Toobit) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Toobit) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Toobit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Toobit) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1578,46 +1589,46 @@ func (this *Toobit) FetchTickerWs(symbol string, options ...FetchTickerWsOptions
 func (this *Toobit) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Toobit) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Toobit) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Toobit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Toobit) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Toobit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Toobit) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Toobit) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Toobit) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Toobit) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Toobit) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Toobit) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Toobit) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Toobit) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Toobit) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Toobit) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Toobit) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Toobit) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Toobit) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Toobit) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Toobit) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Toobit) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Toobit) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Toobit) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Toobit) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Toobit) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Toobit) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Toobit) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Toobit) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Toobit) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

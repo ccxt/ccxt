@@ -16,12 +16,6 @@
  *
  *  @_section api/abi/abi-coder:ABI Encoding
  */
-var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
-    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
-    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
-    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
-};
-var _AbiCoder_instances, _AbiCoder_getCoder;
 // See: https://github.com/ethereum/wiki/wiki/Ethereum-Contract-ABI
 import { assertArgumentCount, assertArgument } from "./utils/index.js";
 import { Reader, Writer } from "./coders/abstract-coder.js";
@@ -56,8 +50,40 @@ let defaultMaxInflation = 1024;
  *  values into binary data and decoding binary data into JavaScript values.
  */
 export class AbiCoder {
-    constructor() {
-        _AbiCoder_instances.add(this);
+    #getCoder(param) {
+        if (param.isArray()) {
+            return new ArrayCoder(this.#getCoder(param.arrayChildren), param.arrayLength, param.name);
+        }
+        if (param.isTuple()) {
+            return new TupleCoder(param.components.map((c) => this.#getCoder(c)), param.name);
+        }
+        switch (param.baseType) {
+            case "address":
+                return new AddressCoder(param.name);
+            case "bool":
+                return new BooleanCoder(param.name);
+            case "string":
+                return new StringCoder(param.name);
+            case "bytes":
+                return new BytesCoder(param.name);
+            case "":
+                return new NullCoder(param.name);
+        }
+        // u?int[0-9]*
+        let match = param.type.match(paramTypeNumber);
+        if (match) {
+            let size = parseInt(match[2] || "256");
+            assertArgument(size !== 0 && size <= 256 && (size % 8) === 0, "invalid " + match[1] + " bit length", "param", param);
+            return new NumberCoder(size / 8, (match[1] === "int"), param.name);
+        }
+        // bytes[0-9]+
+        match = param.type.match(paramTypeBytes);
+        if (match) {
+            let size = parseInt(match[1]);
+            assertArgument(size !== 0 && size <= 32, "invalid bytes length", "param", param);
+            return new FixedBytesCoder(size, param.name);
+        }
+        assertArgument(false, "invalid type", "type", param.type);
     }
     /**
      *  Get the default values for the given %%types%%.
@@ -66,7 +92,7 @@ export class AbiCoder {
      *  is by default ``false``.
      */
     getDefaultValue(types) {
-        const coders = types.map((type) => __classPrivateFieldGet(this, _AbiCoder_instances, "m", _AbiCoder_getCoder).call(this, ParamType.from(type)));
+        const coders = types.map((type) => this.#getCoder(ParamType.from(type)));
         const coder = new TupleCoder(coders, "_");
         return coder.defaultValue();
     }
@@ -77,7 +103,7 @@ export class AbiCoder {
      */
     encode(types, values) {
         assertArgumentCount(values.length, types.length, "types/values length mismatch");
-        const coders = types.map((type) => __classPrivateFieldGet(this, _AbiCoder_instances, "m", _AbiCoder_getCoder).call(this, ParamType.from(type)));
+        const coders = types.map((type) => this.#getCoder(ParamType.from(type)));
         const coder = (new TupleCoder(coders, "_"));
         const writer = new Writer();
         coder.encode(writer, values);
@@ -91,7 +117,7 @@ export class AbiCoder {
      *  padded event data emitted from ``external`` functions.
      */
     decode(types, data, loose) {
-        const coders = types.map((type) => __classPrivateFieldGet(this, _AbiCoder_instances, "m", _AbiCoder_getCoder).call(this, ParamType.from(type)));
+        const coders = types.map((type) => this.#getCoder(ParamType.from(type)));
         const coder = new TupleCoder(coders, "_");
         return coder.decode(new Reader(data, loose, defaultMaxInflation));
     }
@@ -111,38 +137,3 @@ export class AbiCoder {
         return defaultCoder;
     }
 }
-_AbiCoder_instances = new WeakSet(), _AbiCoder_getCoder = function _AbiCoder_getCoder(param) {
-    if (param.isArray()) {
-        return new ArrayCoder(__classPrivateFieldGet(this, _AbiCoder_instances, "m", _AbiCoder_getCoder).call(this, param.arrayChildren), param.arrayLength, param.name);
-    }
-    if (param.isTuple()) {
-        return new TupleCoder(param.components.map((c) => __classPrivateFieldGet(this, _AbiCoder_instances, "m", _AbiCoder_getCoder).call(this, c)), param.name);
-    }
-    switch (param.baseType) {
-        case "address":
-            return new AddressCoder(param.name);
-        case "bool":
-            return new BooleanCoder(param.name);
-        case "string":
-            return new StringCoder(param.name);
-        case "bytes":
-            return new BytesCoder(param.name);
-        case "":
-            return new NullCoder(param.name);
-    }
-    // u?int[0-9]*
-    let match = param.type.match(paramTypeNumber);
-    if (match) {
-        let size = parseInt(match[2] || "256");
-        assertArgument(size !== 0 && size <= 256 && (size % 8) === 0, "invalid " + match[1] + " bit length", "param", param);
-        return new NumberCoder(size / 8, (match[1] === "int"), param.name);
-    }
-    // bytes[0-9]+
-    match = param.type.match(paramTypeBytes);
-    if (match) {
-        let size = parseInt(match[1]);
-        assertArgument(size !== 0 && size <= 32, "invalid bytes length", "param", param);
-        return new FixedBytesCoder(size, param.name);
-    }
-    assertArgument(false, "invalid type", "type", param.type);
-};

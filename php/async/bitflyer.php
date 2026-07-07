@@ -11,11 +11,10 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\OrderNotFound;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class bitflyer extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitflyer',
@@ -255,7 +254,7 @@ class bitflyer extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, 'spot');
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all $markets for bitflyer
@@ -265,7 +264,7 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $jp_markets = Async\await($this->publicGetGetmarkets ($params));
+            $jp_markets = Async\await($this->publicGetGetmarkets($params));
             //
             //     array(
             //         // $spot
@@ -282,14 +281,14 @@ class bitflyer extends Exchange {
             //         ),
             //     );
             //
-            $us_markets = Async\await($this->publicGetGetmarketsUsa ($params));
+            $us_markets = Async\await($this->publicGetGetmarketsUsa($params));
             //
             //     array(
             //         array( "product_code" => "BTC_USD", "market_type" => "Spot" ),
             //         array( "product_code" => "BTC_JPY", "market_type" => "Spot" ),
             //     );
             //
-            $eu_markets = Async\await($this->publicGetGetmarketsEu ($params));
+            $eu_markets = Async\await($this->publicGetGetmarketsEu($params));
             //
             //     array(
             //         array( "product_code" => "BTC_EUR", "market_type" => "Spot" ),
@@ -409,7 +408,7 @@ class bitflyer extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -426,7 +425,7 @@ class bitflyer extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -436,8 +435,10 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetGetbalance ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetGetbalance($params));
             //
             //     array(
             //         array(
@@ -458,10 +459,10 @@ class bitflyer extends Exchange {
             //     )
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -471,16 +472,18 @@ class bitflyer extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
             );
-            $orderbook = Async\await($this->publicGetGetboard ($this->extend($request, $params)));
+            $orderbook = Async\await($this->publicGetGetboard($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'bids', 'asks', 'price', 'size');
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -511,7 +514,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -522,14 +525,16 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetticker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetticker($this->extend($request, $params)));
             return $this->parse_ticker($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -597,7 +602,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -610,7 +615,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -618,7 +625,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->publicGetGetexecutions ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetexecutions($this->extend($request, $params)));
             //
             //    array(
             //     array(
@@ -633,10 +640,10 @@ class bitflyer extends Exchange {
             //    )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -647,12 +654,14 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$fee-structure $fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
             );
-            $response = Async\await($this->privateGetGettradingcommission ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGettradingcommission($this->extend($request, $params)));
             //
             //   {
             //       commission_rate => '0.0020'
@@ -667,10 +676,10 @@ class bitflyer extends Exchange {
                 'percentage' => null,
                 'tierBased' => null,
             );
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -685,7 +694,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'product_code' => $this->market_id($symbol),
                 'child_order_type' => strtoupper($type),
@@ -693,17 +704,17 @@ class bitflyer extends Exchange {
                 'price' => $price,
                 'size' => $amount,
             );
-            $result = Async\await($this->privatePostSendchildorder ($this->extend($request, $params)));
+            $result = Async\await($this->privatePostSendchildorder($this->extend($request, $params)));
             // array( "status" => - 200, "error_message" => "Insufficient funds", "data" => null )
             $id = $this->safe_string($result, 'child_order_acceptance_id');
             return $this->safe_order(array(
                 'id' => $id,
                 'info' => $result,
             ));
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -718,19 +729,21 @@ class bitflyer extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'product_code' => $this->market_id($symbol),
                 'child_order_acceptance_id' => $id,
             );
-            $response = Async\await($this->privatePostCancelchildorder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelchildorder($this->extend($request, $params)));
             //
             //    200 OK.
             //
             return $this->safe_order(array(
                 'info' => $response,
             ));
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -790,7 +803,7 @@ class bitflyer extends Exchange {
         ), $market);
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple $orders made by the user
@@ -806,22 +819,24 @@ class bitflyer extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
                 'count' => $limit,
             );
-            $response = Async\await($this->privateGetGetchildorders ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetchildorders($this->extend($request, $params)));
             $orders = $this->parse_orders($response, $market, $since, $limit);
             if ($symbol !== null) {
                 $orders = $this->filter_by($orders, 'symbol', $symbol);
             }
             return $orders;
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -838,10 +853,10 @@ class bitflyer extends Exchange {
                 'child_order_state' => 'ACTIVE',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = 100, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -858,10 +873,10 @@ class bitflyer extends Exchange {
                 'child_order_state' => 'COMPLETED',
             );
             return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -882,10 +897,10 @@ class bitflyer extends Exchange {
                 return $ordersById[$id];
             }
             throw new OrderNotFound($this->id . ' No order found with $id ' . $id);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all trades made by the user
@@ -901,7 +916,9 @@ class bitflyer extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
@@ -909,7 +926,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetexecutions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetexecutions($this->extend($request, $params)));
             //
             //    array(
             //     array(
@@ -925,10 +942,10 @@ class bitflyer extends Exchange {
             //    )
             //
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -942,11 +959,13 @@ class bitflyer extends Exchange {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' fetchPositions() requires a `$symbols` argument, exactly one symbol in an array');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'product_code' => $this->market_ids($symbols),
             );
-            $response = Async\await($this->privateGetGetpositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetpositions($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -966,10 +985,10 @@ class bitflyer extends Exchange {
             //
             // todo unify parsePosition/parsePositions
             return $response;
-        }) ();
+        })();
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -984,7 +1003,9 @@ class bitflyer extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($code !== 'JPY' && $code !== 'USD' && $code !== 'EUR') {
                 throw new ExchangeError($this->id . ' allows withdrawing JPY, USD, EUR only, ' . $code . ' is not supported');
             }
@@ -994,17 +1015,17 @@ class bitflyer extends Exchange {
                 'amount' => $amount,
                 // 'bank_account_id' => 1234,
             );
-            $response = Async\await($this->privatePostWithdraw ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostWithdraw($this->extend($request, $params)));
             //
             //     {
             //         "message_id" => "69476620-5056-4003-bcbe-42658a2b041b"
             //     }
             //
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -1017,7 +1038,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -1026,7 +1049,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 100
             }
-            $response = Async\await($this->privateGetGetcoinins ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetcoinins($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1042,10 +1065,10 @@ class bitflyer extends Exchange {
             //     )
             //
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -1058,7 +1081,9 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -1067,7 +1092,7 @@ class bitflyer extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 100
             }
-            $response = Async\await($this->privateGetGetcoinouts ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetcoinouts($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -1085,7 +1110,7 @@ class bitflyer extends Exchange {
             //     )
             //
             return $this->parse_transactions($response, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_deposit_status($status) {
@@ -1185,7 +1210,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -1196,12 +1221,14 @@ class bitflyer extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'product_code' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetfundingrate ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetfundingrate($this->extend($request, $params)));
             //
             //    {
             //        "current_funding_rate" => -0.003750000000
@@ -1209,7 +1236,7 @@ class bitflyer extends Exchange {
             //    }
             //
             return $this->parse_funding_rate($response, $market);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -1243,7 +1270,7 @@ class bitflyer extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . $this->version . '/';
         if ($api === 'private') {
             $request .= 'me/';
@@ -1259,7 +1286,8 @@ class bitflyer extends Exchange {
         if ($api === 'private') {
             $this->check_required_credentials();
             $nonce = (string) $this->nonce();
-            $auth = implode('', array($nonce, $method, $request));
+            $content = array( $nonce, $method, $request );
+            $auth = implode('', $content);
             if ($params) {
                 if ($method !== 'GET') {
                     $body = $this->json($params);

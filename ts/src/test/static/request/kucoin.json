@@ -13,6 +13,50 @@
         "uta": false
     },
     "methods": {
+        "fetchPremiumIndexOHLCV": [
+            {
+                "description": "fetchPremiumIndexOHLCV",
+                "method": "fetchPremiumIndexOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=ETHUSDTM-premium-index&interval=1min&endAt=1782827354&tradeType=FUTURES",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=ETHUSDTM-index-price&interval=1min&endAt=1782827309&tradeType=FUTURES",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.kucoin.com/api/ua/v1/market/kline?symbol=ETHUSDTM-mark-price&interval=1min&endAt=1782827278&tradeType=FUTURES",
+                "input": [
+                    "ETH/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchCrossBorrowRate": [
+            {
+                "description": "fetch cross borrow rate",
+                "method": "fetchCrossBorrowRate",
+                "url": "https://api.kucoin.com/api/ua/v1/account/interest-limits?currency=ETH",
+                "input": [
+                    "ETH"
+                ],
+                "output": null
+            }
+        ],
         "fetchPositionHistory": [
             {
                 "description": "fetch position history",
@@ -263,9 +307,9 @@
         ],
         "fetchPositions": [
             {
-                "description": "fetch positions with uta",
+                "description": "uta positions",
                 "method": "fetchPositions",
-                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/position/open-list?limit=200",
                 "input": [
                     null,
                     {
@@ -316,6 +360,20 @@
             }
         ],
         "fetchFundingHistory": [
+            {
+                "description": "fetch funding history with uta",
+                "method": "fetchFundingHistory",
+                "url": "https://api.kucoin.com/api/ua/v1/position/funding-history?symbol=DOGEUSDTM&startAt=1775030400000&pageSize=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    1775030400000,
+                    1,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": null
+            },
             {
                 "description": "fetch funding history for a linear swap symbol with a limit argument",
                 "method": "fetchFundingHistory",
@@ -423,6 +481,22 @@
             }
         ],
         "createOrder": [
+            {
+                "description": "uta order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/ua/v1/unified/order/place",
+                "input": [
+                    "LTC/USDT",
+                    "market",
+                    "buy",
+                    0.1,
+                    null,
+                    {
+                        "uta": true
+                    }
+                ],
+                "output": "{\"tradeType\":\"SPOT\",\"clientOid\":\"210fd5f5-cccb-4772-9e2a-7f565832ac45\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderType\":\"MARKET\",\"sizeUnit\":\"BASECCY\",\"size\":\"0.1\"}"
+            },
             {
                 "description": "create unified stop loss order",
                 "method": "createOrder",
@@ -1513,8 +1587,7 @@
                 "url": "https://api.kucoin.com/api/ua/v1/unified/account/balance",
                 "input": [
                     {
-                        "uta": true,
-                        "type": "uta"
+                        "uta": true
                     }
                 ],
                 "output": null
@@ -1525,7 +1598,8 @@
                 "url": "https://api.kucoin.com/api/ua/v1/account/balance?accountType=SPOT",
                 "input": [
                     {
-                        "uta": true
+                        "uta": true,
+                        "type": "spot"
                     }
                 ],
                 "output": null

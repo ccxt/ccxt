@@ -40,7 +40,7 @@ retrieves data on all markets for bithumb
 
 
 ```javascript
-bithumb.fetchMarkets ([params])
+bithumb.fetchMarkets (params?)
 ```
 
 
@@ -60,7 +60,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bithumb.fetchBalance ([params])
+bithumb.fetchBalance (params?)
 ```
 
 
@@ -70,7 +70,7 @@ bithumb.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bithumb</code>](#bithumb)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C  
 
@@ -82,7 +82,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bithumb.fetchOrderBook (symbol[, limit, params])
+bithumb.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -103,7 +103,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bithumb.fetchTickers (symbols[, params])
+bithumb.fetchTickers (symbols, params?)
 ```
 
 
@@ -124,7 +124,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bithumb.fetchTicker (symbol[, params])
+bithumb.fetchTicker (symbol, params?)
 ```
 
 
@@ -148,7 +148,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bithumb.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bithumb.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -171,7 +171,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bithumb.fetchTrades (symbol[, since, limit, params])
+bithumb.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -201,7 +201,7 @@ create a trade order
 
 
 ```javascript
-bithumb.createOrder (symbol, type, side, amount[, price, params])
+bithumb.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -223,7 +223,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-bithumb.fetchOrder (id, symbol[, params])
+bithumb.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -246,7 +246,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bithumb.fetchOpenOrders (symbol[, since, limit, params])
+bithumb.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -268,7 +268,7 @@ cancels an open order
 
 
 ```javascript
-bithumb.cancelOrder (id, symbol[, params])
+bithumb.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -292,7 +292,7 @@ make a withdrawal
 
 
 ```javascript
-bithumb.withdraw (code, amount, address, tag[, params])
+bithumb.withdraw (code, amount, address, tag, params?)
 ```
 
 
@@ -314,7 +314,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bithumb.watchTicker (symbol[, params])
+bithumb.watchTicker (symbol, params?)
 ```
 
 
@@ -335,7 +335,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bithumb.watchTickers (symbols[, params])
+bithumb.watchTickers (symbols, params?)
 ```
 
 
@@ -357,7 +357,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bithumb.watchOrderBook (symbol[, limit, params])
+bithumb.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -380,7 +380,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bithumb.watchTrades (symbol[, since, limit, params])
+bithumb.watchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -400,7 +400,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bithumb.watchBalance ([params])
+bithumb.watchBalance (params?)
 ```
 
 
@@ -424,6 +424,6 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bithumb.watchOrders (symbol[, since, limit, params])
+bithumb.watchOrders (symbol, since?, limit?, params?)
 ```
 

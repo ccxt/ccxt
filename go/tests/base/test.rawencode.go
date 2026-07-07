@@ -8,18 +8,18 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestRawencode() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// todo: add sort
 	// todo: add nulls
-	var dict2 map[string]interface{} = map[string]interface{}{
+	var dict2 map[string]any = map[string]any{
 		"a": 1,
 		"b": "+&",
 	}
 	// as key-order not preserved, expect mixed orde
-	var expected2a interface{} = "a=1&b=+&"
-	var expected2b interface{} = "b=+&&a=1"
-	var result2 interface{} = exchange.Rawencode(dict2)
+	var expected2a any = "a=1&b=+&"
+	var expected2b any = "b=+&&a=1"
+	var result2 any = exchange.Rawencode(dict2)
 	assert(ccxt.IsTrue(ccxt.IsEqual(result2, expected2a)) || ccxt.IsTrue(ccxt.IsEqual(result2, expected2b)), ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("rawencode: expected ", expected2a), " or "), expected2b), " but got "), result2))
 }

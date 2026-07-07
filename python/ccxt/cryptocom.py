@@ -497,6 +497,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
+                    '213': InvalidOrder,  # {"id" : 1778510838168, "method" : "private/create-order", "code" : 213, "message" : "Invalid quantity format"}
                     '219': InvalidOrder,
                     '306': InsufficientFunds,  # {"id" : 1753xxx, "method" : "private/amend-order", "code" : 306, "message" : "INSUFFICIENT_AVAILABLE_BALANCE", "result" : {"client_oid" : "1753xxx", "order_id" : "6530xxx"}}
                     '314': InvalidOrder,  # {"id" : 1700xxx, "method" : "private/create-order", "code" : 314, "message" : "EXCEEDS_MAX_ORDER_SIZE", "result" : {"client_oid" : "1700xxx", "order_id" : "6530xxx"}}
@@ -577,7 +578,8 @@ class cryptocom(Exchange, ImplicitAPI):
         try:
             response = self.v1PrivatePostPrivateGetCurrencyNetworks(params)
         except Exception as e:
-            if isinstance(e, ExchangeError):
+            erString = self.exception_message(e)
+            if erString.find('SYS_ERROR') >= 0:
                 # sub-accounts can't access self endpoint
                 # {"code":"10001","msg":"SYS_ERROR"}
                 return {}
@@ -628,55 +630,53 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         resultData = self.safe_dict(response, 'result', {})
         currencyMap = self.safe_dict(resultData, 'currency_map', {})
-        keys = list(currencyMap.keys())
-        result: dict = {}
-        for i in range(0, len(keys)):
-            key = keys[i]
-            currency = currencyMap[key]
-            id = key
-            code = self.safe_currency_code(id)
-            networks: dict = {}
-            chains = self.safe_list(currency, 'network_list', [])
-            for j in range(0, len(chains)):
-                chain = chains[j]
-                networkId = self.safe_string(chain, 'network_id')
-                network = self.network_id_to_code(networkId)
-                networks[network] = {
-                    'info': chain,
-                    'id': networkId,
-                    'network': network,
-                    'active': None,
-                    'deposit': self.safe_bool(chain, 'deposit_enabled', False),
-                    'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
-                    'fee': self.safe_number(chain, 'withdrawal_fee'),
-                    'precision': None,
-                    'limits': {
-                        'withdraw': {
-                            'min': self.safe_number(chain, 'min_withdrawal_amount'),
-                            'max': None,
-                        },
-                    },
-                }
-            result[code] = self.safe_currency_structure({
-                'info': currency,
-                'id': id,
-                'code': code,
-                'name': self.safe_string(currency, 'full_name'),
+        enhancedArray = self.add_key_in_array_items(currencyMap, '_coin_id')
+        return self.parse_currencies(enhancedArray)
+
+    def parse_currency(self, currency: dict) -> Currency:
+        id = self.safe_string(currency, '_coin_id')
+        code = self.safe_currency_code(id)
+        networks = {}
+        chains = self.safe_list(currency, 'network_list', [])
+        for j in range(0, len(chains)):
+            chain = chains[j]
+            networkId = self.safe_string(chain, 'network_id')
+            network = self.network_id_to_code(networkId, code)
+            networks[network] = {
+                'info': chain,
+                'id': networkId,
+                'network': network,
                 'active': None,
-                'deposit': None,
-                'withdraw': None,
-                'fee': None,
+                'deposit': self.safe_bool(chain, 'deposit_enabled', False),
+                'withdraw': self.safe_bool(chain, 'withdraw_enabled', False),
+                'fee': self.safe_number(chain, 'withdrawal_fee'),
                 'precision': None,
                 'limits': {
-                    'amount': {
-                        'min': None,
+                    'withdraw': {
+                        'min': self.safe_number(chain, 'min_withdrawal_amount'),
                         'max': None,
                     },
                 },
-                'type': 'crypto',  # only crypto now
-                'networks': networks,
-            })
-        return result
+            }
+        return self.safe_currency_structure({
+            'info': currency,
+            'id': id,
+            'code': code,
+            'name': self.safe_string(currency, 'full_name'),
+            'active': None,
+            'deposit': None,
+            'withdraw': None,
+            'fee': None,
+            'precision': None,
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'type': 'crypto',  # only crypto now
+            'networks': networks,
+        })
 
     def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -795,7 +795,7 @@ class cryptocom(Exchange, ImplicitAPI):
             strike = self.safe_string(market, 'strike')
             marginBuyEnabled = self.safe_bool(market, 'margin_buy_enabled')
             marginSellEnabled = self.safe_bool(market, 'margin_sell_enabled')
-            expiryString = self.omit_zero(self.safe_string(market, 'expiry_timestamp_ms'))
+            expiryString = self.omit_zero((self.safe_string(market, 'expiry_timestamp_ms')))
             expiry = int(expiryString) if (expiryString is not None) else None
             symbol = base + '/' + quote
             type = None
@@ -816,6 +816,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 symbolOptionType = 'C' if (optionType == 'call') else 'P'
                 symbol = symbol + ':' + quote + '-' + self.yymmdd(expiry) + '-' + strike + '-' + symbolOptionType
                 contract = True
+            isLinear = True if (contract) else None
+            isInverse = False if (contract) else None
             result.append({
                 'id': self.safe_string(market, 'symbol'),
                 'symbol': symbol,
@@ -833,8 +835,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'option': option,
                 'active': self.safe_bool(market, 'tradable'),
                 'contract': contract,
-                'linear': True if (contract) else None,
-                'inverse': False if (contract) else None,
+                'linear': isLinear,
+                'inverse': isInverse,
                 'contractSize': self.safe_number(market, 'contract_size'),
                 'expiry': expiry,
                 'expiryDatetime': self.iso8601(expiry),
@@ -878,9 +880,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbols is not None:
             symbol = None
             if isinstance(symbols, list):
@@ -931,7 +934,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbol = self.symbol(symbol)
         tickers = self.fetch_tickers([symbol], params)
         return self.safe_value(tickers, symbol)
@@ -950,13 +954,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchOrders', symbol, since, limit, params)
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1026,13 +1031,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchTrades', symbol, since, limit, params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
         }
         if since is not None:
@@ -1083,13 +1089,14 @@ class cryptocom(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 300)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1144,11 +1151,12 @@ class cryptocom(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the number of order book entries to return, max 50
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
         }
         if limit:
@@ -1182,7 +1190,7 @@ class cryptocom(Exchange, ImplicitAPI):
         responseResult = self.safe_dict(response, 'result', {})
         data = self.safe_list(responseResult, 'data', [])
         positionBalances = self.safe_value(data[0], 'position_balances', [])
-        result: dict = {'info': response}
+        result = {'info': response}
         for i in range(0, len(positionBalances)):
             balance = positionBalances[i]
             currencyId = self.safe_string(balance, 'instrument_name')
@@ -1202,7 +1210,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v1PrivatePostPrivateUserBalance(params)
         #
         #     {
@@ -1260,11 +1269,12 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.v1PrivatePostPrivateGetOrderDetail(self.extend(request, params))
@@ -1307,7 +1317,7 @@ class cryptocom(Exchange, ImplicitAPI):
     def create_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
             'side': side.upper(),
             'quantity': self.amount_to_precision(symbol, amount),
@@ -1405,7 +1415,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param float [params.takeProfitPrice]: price to trigger a take-profit trigger order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         response = self.v1PrivatePostPrivateCreateOrder(request)
@@ -1434,7 +1445,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -1447,7 +1459,7 @@ class cryptocom(Exchange, ImplicitAPI):
             orderRequest = self.create_advanced_order_request(marketId, type, side, amount, price, orderParams)
             ordersRequests.append(orderRequest)
         contigency = self.safe_string(params, 'contingency_type', 'LIST')
-        request: dict = {
+        request = {
             'contingency_type': contigency,  # or OCO
             'order_list': ordersRequests,
         }
@@ -1507,7 +1519,7 @@ class cryptocom(Exchange, ImplicitAPI):
         # and market-buy orders need to send notional instead of quantity
         market = self.market(symbol)
         uppercaseType = type.upper()
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
             'side': side.upper(),
         }
@@ -1612,14 +1624,15 @@ class cryptocom(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: the original client order id of the order to edit, required if id is not provided
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = self.edit_order_request(id, symbol, amount, price, params)
         response = self.v1PrivatePostPrivateAmendOrder(request)
         result = self.safe_dict(response, 'result', {})
         return self.parse_order(result)
 
     def edit_order_request(self, id: str, symbol: str, amount: float, price: Num = None, params={}):
-        request: dict = {}
+        request = {}
         if id is not None:
             request['order_id'] = id
         else:
@@ -1645,9 +1658,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict} Returns exchange raw message{@link https://docs.ccxt.com/?id=order-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1665,11 +1679,12 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
         }
         response = self.v1PrivatePostPrivateCancelOrder(self.extend(request, params))
@@ -1701,17 +1716,18 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         orderRequests = []
         for i in range(0, len(ids)):
             id = ids[i]
-            order: dict = {
+            order = {
                 'instrument_name': market['id'],
                 'order_id': str(id),
             }
             orderRequests.append(order)
-        request: dict = {
+        request = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         }
@@ -1729,19 +1745,20 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         orderRequests = []
         for i in range(0, len(orders)):
             order = orders[i]
             id = self.safe_string(order, 'id')
             symbol = self.safe_string(order, 'symbol')
             market = self.market(symbol)
-            orderItem: dict = {
+            orderItem = {
                 'instrument_name': market['id'],
                 'order_id': str(id),
             }
             orderRequests.append(orderItem)
-        request: dict = {
+        request = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         }
@@ -1761,9 +1778,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
-        request: dict = {}
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
             request['instrument_name'] = market['id']
@@ -1823,12 +1841,13 @@ class cryptocom(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
             return self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params, 100)
-        request: dict = {}
+        request = {}
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1901,9 +1920,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.safe_currency(code)  # for instance, USDC is not inferred from markets but it's still available
-        request: dict = {
+        request = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1912,7 +1932,7 @@ class cryptocom(Exchange, ImplicitAPI):
             request['address_tag'] = tag
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is not None:
             request['network_id'] = networkId
         response = self.v1PrivatePostPrivateCreateWithdrawal(self.extend(request, params))
@@ -1945,9 +1965,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.safe_currency(code)
-        request: dict = {
+        request = {
             'currency': currency['id'],
         }
         response = self.v1PrivatePostPrivateGetDepositAddress(self.extend(request, params))
@@ -1975,7 +1996,7 @@ class cryptocom(Exchange, ImplicitAPI):
         addressesLength = len(addresses)
         if addressesLength == 0:
             raise ExchangeError(self.id + ' fetchDepositAddressesByNetwork() generating address...')
-        result: dict = {}
+        result = {}
         for i in range(0, addressesLength):
             value = self.safe_dict(addresses, i)
             addressString = self.safe_string(value, 'address')
@@ -2009,9 +2030,8 @@ class cryptocom(Exchange, ImplicitAPI):
         depositAddresses = self.fetch_deposit_addresses_by_network(code, params)
         if network in depositAddresses:
             return depositAddresses[network]
-        else:
-            keys = list(depositAddresses.keys())
-            return depositAddresses[keys[0]]
+        keys = list(depositAddresses.keys())
+        return depositAddresses[keys[0]]
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -2026,9 +2046,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.safe_currency(code)
             request['currency'] = currency['id']
@@ -2081,9 +2102,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
-        request: dict = {}
+        request = {}
         if code is not None:
             currency = self.safe_currency(code)
             request['currency'] = currency['id']
@@ -2266,7 +2288,7 @@ class cryptocom(Exchange, ImplicitAPI):
         ]
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
@@ -2276,7 +2298,7 @@ class cryptocom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_time_in_force(self, timeInForce: Str):
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
@@ -2378,7 +2400,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }, market)
 
     def parse_deposit_status(self, status):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -2387,7 +2409,7 @@ class cryptocom(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_withdrawal_status(self, status):
-        statuses: dict = {
+        statuses = {
             '0': 'pending',
             '1': 'pending',
             '2': 'failed',
@@ -2483,7 +2505,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'fee': fee,
         }
 
-    def custom_handle_margin_mode_and_params(self, methodName, params={}):
+    def custom_handle_margin_mode_and_params(self, methodName, params={}) -> list:
         """
  @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2522,7 +2544,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         networkList = self.safe_list(fee, 'network_list', [])
         networkListLength = len(networkList)
-        result: dict = {
+        result = {
             'info': fee,
             'withdraw': {
                 'fee': None,
@@ -2559,7 +2581,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v1PrivatePostPrivateGetCurrencyNetworks(params)
         data = self.safe_value(response, 'result')
         currencyMap = self.safe_list(data, 'currency_map')
@@ -2578,8 +2601,9 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
-        request: dict = {}
+        if self.markets is None:
+            self.load_markets()
+        request = {}
         currency = None
         if code is not None:
             currency = self.safe_currency(code)
@@ -2679,7 +2703,7 @@ class cryptocom(Exchange, ImplicitAPI):
         }, currency)
 
     def parse_ledger_entry_type(self, type):
-        ledgerType: dict = {
+        ledgerType = {
             'TRADING': 'trade',
             'TRADE_FEE': 'fee',
             'WITHDRAW_FEE': 'fee',
@@ -2713,7 +2737,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v1PrivatePostPrivateGetAccounts(params)
         #
         #     {
@@ -2798,7 +2823,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param int [params.type]: 'future', 'option'
         :returns dict[]: a list of `settlement history objects <https://docs.ccxt.com/?id=settlement-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2807,7 +2833,7 @@ class cryptocom(Exchange, ImplicitAPI):
         self.check_required_argument('fetchSettlementHistory', type, 'type', ['future', 'option', 'WARRANT', 'FUTURE'])
         if type == 'option':
             type = 'WARRANT'
-        request: dict = {
+        request = {
             'instrument_type': type.upper(),
         }
         response = self.v1PublicGetPublicGetExpiredSettlementPrice(self.extend(request, params))
@@ -2879,11 +2905,12 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
             'valuation_type': 'estimated_funding_rate',
             'count': 1,
@@ -2958,7 +2985,8 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -2966,7 +2994,7 @@ class cryptocom(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
             'valuation_type': 'funding_hist',
         }
@@ -3022,9 +3050,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
         }
         response = self.v1PrivatePostPrivateGetPositions(self.extend(request, params))
@@ -3064,9 +3093,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {}
+        request = {}
         market = None
         if symbols is not None:
             symbol = None
@@ -3173,10 +3203,10 @@ class cryptocom(Exchange, ImplicitAPI):
         if isinstance(object, list):
             paramsKeys = object
         else:
-            sorted = self.keysort(object)
-            paramsKeys = list(sorted.keys())
-        for i in range(0, len(paramsKeys)):
-            key = paramsKeys[i]
+            objectKeys = list(object.keys())
+            paramsKeys = self.sort(objectKeys)
+        for i in range(0, len((paramsKeys))):
+            key = (paramsKeys)[i]
             returnString += key
             value = object[key]
             if value == 'None':
@@ -3203,9 +3233,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param number [params.price]: for limit orders only
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
             'type': 'MARKET',
         }
@@ -3240,9 +3271,10 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument_name': market['id'],
         }
         response = self.v1PrivatePostPrivateGetInstrumentFeeRate(self.extend(request, params))
@@ -3273,7 +3305,8 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.v1PrivatePostPrivateGetFeeRate(params)
         #
         #   {
@@ -3304,10 +3337,10 @@ class cryptocom(Exchange, ImplicitAPI):
         #         "effective_deriv_taker_rate_bps": "3"
         #  }
         #
-        result: dict = {}
+        result = {}
         result['info'] = response
-        for i in range(0, len(self.symbols)):
-            symbol = self.symbols[i]
+        for i in range(0, len((self.symbols))):
+            symbol = (self.symbols)[i]
             market = self.market(symbol)
             isSwap = market['swap']
             takerFeeKey = 'effective_deriv_taker_rate_bps' if isSwap else 'effective_spot_taker_rate_bps'
@@ -3342,7 +3375,7 @@ class cryptocom(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         type = self.safe_string(api, 0)
         access = self.safe_string(api, 1)
         url = self.urls['api'][type] + '/' + path

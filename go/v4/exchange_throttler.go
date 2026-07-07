@@ -15,13 +15,13 @@ type TimestampedCost struct {
 type Throttler struct {
 	Queue      Queue
 	Running    bool
-	Config     map[string]interface{}
+	Config     map[string]any
 	Timestamps []TimestampedCost
 	Mutex      sync.Mutex
 }
 
-func NewThrottler(config map[string]interface{}) *Throttler {
-	defaultConfig := map[string]interface{}{
+func NewThrottler(config map[string]any) *Throttler {
+	defaultConfig := map[string]any{
 		"refillRate": 1.0,   // leaky bucket refill rate in tokens per second
 		"delay":      0.001, // leaky bucket seconds before checking the queue after waiting
 		"capacity":   1.0,   // leaky bucket
@@ -45,7 +45,7 @@ func NewThrottler(config map[string]interface{}) *Throttler {
 	}
 }
 
-func (t *Throttler) Throttle(cost2 interface{}) <-chan bool {
+func (t *Throttler) Throttle(cost2 any) <-chan bool {
 	if cost2 == nil {
 		t.Mutex.Lock()
 		cost2 = t.Config["cost"]

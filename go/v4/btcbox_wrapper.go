@@ -6,7 +6,7 @@ type Btcbox struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewBtcbox(userConfig map[string]interface{}) *Btcbox {
+func NewBtcbox(userConfig map[string]any) *Btcbox {
 	p := NewBtcboxCore()
 	p.Init(userConfig)
 	return &Btcbox{
@@ -33,7 +33,7 @@ func NewBtcboxFromCore(core *BtcboxCore) *Btcbox {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Btcbox) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Btcbox) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -49,7 +49,7 @@ func (this *Btcbox) FetchMarkets(params ...interface{}) ([]MarketInterface, erro
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Btcbox) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Btcbox) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -65,7 +65,7 @@ func (this *Btcbox) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Btcbox) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -75,12 +75,12 @@ func (this *Btcbox) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -108,7 +108,7 @@ func (this *Btcbox) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -135,12 +135,12 @@ func (this *Btcbox) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -170,17 +170,17 @@ func (this *Btcbox) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -212,12 +212,12 @@ func (this *Btcbox) CreateOrder(symbol string, typeVar string, side string, amou
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -246,12 +246,12 @@ func (this *Btcbox) CancelOrder(id string, options ...CancelOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -280,12 +280,12 @@ func (this *Btcbox) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -295,7 +295,7 @@ func (this *Btcbox) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 	}
 	return NewOrder(res), nil
 }
-func (this *Btcbox) FetchOrdersByType(typeVar interface{}, options ...FetchOrdersByTypeOptions) ([]Order, error) {
+func (this *Btcbox) FetchOrdersByType(typeVar any, options ...FetchOrdersByTypeOptions) ([]Order, error) {
 
 	opts := FetchOrdersByTypeOptionsStruct{}
 
@@ -303,22 +303,22 @@ func (this *Btcbox) FetchOrdersByType(typeVar interface{}, options ...FetchOrder
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -348,22 +348,22 @@ func (this *Btcbox) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -393,22 +393,22 @@ func (this *Btcbox) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -421,7 +421,7 @@ func (this *Btcbox) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 
 // missing typed methods from base
 // nolint
-func (this *Btcbox) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Btcbox) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Btcbox) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -433,7 +433,7 @@ func (this *Btcbox) CancelOrdersWithClientOrderIds(clientOrderIds []string, opti
 func (this *Btcbox) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelAllOrders(options...)
 }
-func (this *Btcbox) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Btcbox) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Btcbox) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -529,7 +529,7 @@ func (this *Btcbox) EditOrderWithClientOrderId(clientOrderId string, symbol stri
 func (this *Btcbox) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Btcbox) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Btcbox) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Btcbox) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -541,7 +541,7 @@ func (this *Btcbox) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, err
 func (this *Btcbox) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Btcbox) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Btcbox) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -550,7 +550,7 @@ func (this *Btcbox) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClos
 func (this *Btcbox) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Btcbox) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Btcbox) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Btcbox) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -565,10 +565,10 @@ func (this *Btcbox) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 func (this *Btcbox) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Btcbox) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Btcbox) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
-func (this *Btcbox) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Btcbox) FetchCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchCurrencies(params...)
 }
 func (this *Btcbox) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -586,13 +586,13 @@ func (this *Btcbox) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 func (this *Btcbox) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Btcbox) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Btcbox) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Btcbox) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Btcbox) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Btcbox) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
@@ -622,7 +622,7 @@ func (this *Btcbox) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOpt
 func (this *Btcbox) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Btcbox) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Btcbox) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Btcbox) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -709,7 +709,7 @@ func (this *Btcbox) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Btcbox) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Btcbox) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Btcbox) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Btcbox) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -718,7 +718,7 @@ func (this *Btcbox) FetchPosition(symbol string, options ...FetchPositionOptions
 func (this *Btcbox) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Btcbox) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Btcbox) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
@@ -736,25 +736,25 @@ func (this *Btcbox) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Btcbox) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Btcbox) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Btcbox) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Btcbox) FetchTime(params ...interface{}) (int64, error) {
+func (this *Btcbox) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Btcbox) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Btcbox) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Btcbox) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Btcbox) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Btcbox) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Btcbox) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Btcbox) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -772,10 +772,10 @@ func (this *Btcbox) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 func (this *Btcbox) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Btcbox) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Btcbox) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Btcbox) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Btcbox) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Btcbox) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
@@ -856,13 +856,13 @@ func (this *Btcbox) CreateTriggerOrderWs(symbol string, typeVar string, side str
 func (this *Btcbox) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Btcbox) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Btcbox) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Btcbox) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Btcbox) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Btcbox) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -904,46 +904,46 @@ func (this *Btcbox) FetchTickerWs(symbol string, options ...FetchTickerWsOptions
 func (this *Btcbox) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Btcbox) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Btcbox) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Btcbox) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Btcbox) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Btcbox) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Btcbox) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Btcbox) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Btcbox) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Btcbox) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Btcbox) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Btcbox) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Btcbox) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Btcbox) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Btcbox) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Btcbox) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Btcbox) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Btcbox) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Btcbox) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Btcbox) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

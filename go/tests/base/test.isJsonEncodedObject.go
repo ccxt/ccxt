@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestIsJsonEncodedObject() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	Assert(exchange.IsJsonEncodedObject("{\"key\":\"value\"}"))
 	Assert(exchange.IsJsonEncodedObject("{}"))
 	Assert(exchange.IsJsonEncodedObject("[]"))

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -82,7 +82,6 @@ class bitget(ccxt.async_support.bitget):
                 'watchTrades': {
                     'ignoreDuplicates': True,
                 },
-                'uta': False,
             },
             'streaming': {
                 'ping': self.ping,
@@ -109,7 +108,7 @@ class bitget(ccxt.async_support.bitget):
             },
         })
 
-    def get_inst_type(self, methodName, market, uta: bool = False, params={}):
+    def get_inst_type(self, methodName, market, uta: bool = False, params={}) -> list:
         instType = None
         if market is None:
             instType, params = self.handleProductTypeAndParams(None, params)
@@ -120,7 +119,7 @@ class bitget(ccxt.async_support.bitget):
         instypeAux = None
         instypeAux, params = self.handle_option_and_params(params, methodName, 'instType', instType)
         instType = instypeAux
-        if uta:
+        if uta and (instType is not None):
             instType = instType.lower()
         return [instType, params]
 
@@ -137,15 +136,16 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'ticker:' + symbol
         instType = None
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchTicker', 'uta', False)
         instType, params = self.get_inst_type('watchTicker', market, uta, params)
-        args: dict = {
+        args = {
             'instType': instType,
         }
         topicOrChannel = 'topic' if uta else 'channel'
@@ -165,7 +165,8 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns any: status of the unwatch request
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         return await self.un_watch_channel(symbol, 'ticker', 'ticker', 'watchTicker', params)
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
@@ -181,11 +182,14 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
+        if symbols is None:
+            symbols = []
         market = self.market(symbols[0])
         instType = None
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', False)
         instType, params = self.get_inst_type('watchTickers', market, uta, params)
         topics = []
@@ -193,7 +197,7 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketInner = self.market(symbol)
-            args: dict = {
+            args = {
                 'instType': instType,
             }
             topicOrChannel = 'topic' if uta else 'channel'
@@ -204,7 +208,7 @@ class bitget(ccxt.async_support.bitget):
             messageHashes.append('ticker:' + symbol)
         tickers = await self.watch_public_multiple(uta, messageHashes, topics, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[tickers['symbol']] = tickers
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -268,11 +272,12 @@ class bitget(ccxt.async_support.bitget):
         self.handle_bid_ask(client, message)
         ticker = self.parse_ws_ticker(message)
         symbol = ticker['symbol']
-        self.tickers[symbol] = ticker
+        if symbol is not None:
+            self.tickers[symbol] = ticker
         messageHash = 'ticker:' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_ticker(self, message, market=None):
+    def parse_ws_ticker(self, message, market: Market = None):
         #
         # spot
         #
@@ -415,11 +420,14 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
+        if symbols is None:
+            symbols = []
         market = self.market(symbols[0])
         instType = None
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchTickers', 'uta', False)
         instType, params = self.get_inst_type('watchBidsAsks', market, uta, params)
         topics = []
@@ -427,7 +435,7 @@ class bitget(ccxt.async_support.bitget):
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             marketInner = self.market(symbol)
-            args: dict = {
+            args = {
                 'instType': instType,
             }
             topicOrChannel = 'topic' if uta else 'channel'
@@ -438,7 +446,7 @@ class bitget(ccxt.async_support.bitget):
             messageHashes.append('bidask:' + symbol)
         tickers = await self.watch_public_multiple(uta, messageHashes, topics, params)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[tickers['symbol']] = tickers
             return result
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -446,11 +454,12 @@ class bitget(ccxt.async_support.bitget):
     def handle_bid_ask(self, client: Client, message):
         ticker = self.parse_ws_bid_ask(message)
         symbol = ticker['symbol']
-        self.bidsasks[symbol] = ticker
+        if symbol is not None:
+            self.bidsasks[symbol] = ticker
         messageHash = 'bidask:' + symbol
         client.resolve(ticker, messageHash)
 
-    def parse_ws_bid_ask(self, message, market=None):
+    def parse_ws_bid_ask(self, message, market: Market = None):
         arg = self.safe_value(message, 'arg', {})
         data = self.safe_value(message, 'data', [])
         ticker = self.safe_value(data, 0, {})
@@ -488,17 +497,18 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         timeframes = self.safe_value(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
         messageHash = None
         instType = None
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchOHLCV', 'uta', False)
         instType, params = self.get_inst_type('watchOHLCV', market, uta, params)
-        args: dict = {
+        args = {
             'instType': instType,
         }
         if uta:
@@ -528,21 +538,20 @@ class bitget(ccxt.async_support.bitget):
         :param str [timeframe]: the period for the ratio, default is 1 minute
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         timeframes = self.safe_dict(self.options, 'timeframes')
         interval = self.safe_string(timeframes, timeframe)
         channel = None
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
+        market = self.market(symbol)
         instType = None
         messageHash = None
         values = self.handle_option_and_params(params, 'watchOHLCV', 'uta', False)
-        uta: Bool = values[0]
+        uta = values[0]
         instType, params = self.get_inst_type('watchOHLCV', market, uta, params)
-        args: dict = {
+        args = {
             'instType': instType,
         }
         if uta:
@@ -625,7 +634,7 @@ class bitget(ccxt.async_support.bitget):
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        channel = self.safe_string_2(arg, 'channel', 'topic')
+        channel = self.safe_string_2(arg, 'channel', 'topic', '')
         interval = self.safe_string(arg, 'interval')
         isUta = None
         if interval is None:
@@ -635,6 +644,8 @@ class bitget(ccxt.async_support.bitget):
             isUta = True
         timeframes = self.safe_value(self.options, 'timeframes')
         timeframe = self.find_timeframe(interval, timeframes)
+        if timeframe is None:
+            return
         stored = self.safe_value(self.ohlcvs[symbol], timeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -651,7 +662,7 @@ class bitget(ccxt.async_support.bitget):
             messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_ohlcv(self, ohlcv, market=None) -> list:
+    def parse_ws_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
         #     [
         #         "1701871620000",  # timestamp
@@ -676,7 +687,9 @@ class bitget(ccxt.async_support.bitget):
         #         "turnover": "4616746.46654"
         #     }
         #
-        volumeIndex = 6 if (market['inverse']) else 5
+        volumeIndex = 5
+        if (market is not None) and market['inverse']:
+            volumeIndex = 6
         return [
             self.safe_integer_2(ohlcv, 'start', 0),
             self.safe_number_2(ohlcv, 'open', 1),
@@ -698,7 +711,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -714,9 +727,10 @@ class bitget(ccxt.async_support.bitget):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.limit]: orderbook limit, default is None
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         channel = 'books'
         limit = self.safe_integer(params, 'limit')
         if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
@@ -725,14 +739,15 @@ class bitget(ccxt.async_support.bitget):
         return await self.un_watch_channel(symbol, channel, 'orderbook', 'watchOrderBook', params)
 
     async def un_watch_channel(self, symbol: str, channel: str, messageHashTopic: str, methodName: str, params={}) -> Any:
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol']
         instType = None
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, methodName, 'uta', False)
         instType, params = self.get_inst_type(methodName, market, uta, params)
-        args: dict = {
+        args = {
             'instType': instType,
         }
         if uta:
@@ -758,9 +773,10 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         channel = 'books'
         incrementalFeed = True
@@ -769,14 +785,14 @@ class bitget(ccxt.async_support.bitget):
             incrementalFeed = False
         topics = []
         messageHashes = []
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'uta', False)
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
             instType = None
             instType, params = self.get_inst_type('watchOrderBookForSymbols', market, uta, params)
-            args: dict = {
+            args = {
                 'instType': instType,
             }
             topicOrChannel = 'topic' if uta else 'channel'
@@ -841,7 +857,7 @@ class bitget(ccxt.async_support.bitget):
         # }
         #
         arg = self.safe_value(message, 'arg')
-        channel = self.safe_string_2(arg, 'channel', 'topic')
+        channel = self.safe_string_2(arg, 'channel', 'topic', '')
         instType = self.safe_string_lower(arg, 'instType')
         marketType = 'spot' if (instType == 'spot') else 'contract'
         marketId = self.safe_string_2(arg, 'instId', 'symbol')
@@ -868,7 +884,10 @@ class bitget(ccxt.async_support.bitget):
             storedOrderBook['datetime'] = self.iso8601(timestamp)
             checksum = self.handle_option('watchOrderBook', 'checksum', True)
             isSnapshot = self.safe_string(message, 'action') == 'snapshot'  # snapshot does not have a checksum
-            if not isSnapshot and checksum:
+            # UTA order books do not provide a crc32 checksum(they rely on seq/pseq for integrity),
+            # so only validate the checksum when the exchange actually sends one
+            responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
+            if not isSnapshot and checksum and (responseChecksum is not None):
                 storedAsks = storedOrderBook['asks']
                 storedBids = storedOrderBook['bids']
                 asksLength = len(storedAsks)
@@ -883,12 +902,7 @@ class bitget(ccxt.async_support.bitget):
                         payloadArray.append(storedAsks[i][2][1])
                 payload = ':'.join(payloadArray)
                 calculatedChecksum = self.crc32(payload, True)
-                responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
                 if calculatedChecksum != responseChecksum:
-                    # if messageHash in client.subscriptions:
-                    #     # del client.subscriptions[messageHash]
-                    #     # del self.orderbooks[symbol]
-                    # }
                     self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
                     return
         else:
@@ -913,7 +927,7 @@ class bitget(ccxt.async_support.bitget):
         client.reject(error, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 0, 1)
+        bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         # we store the string representations in the orderbook for checksum calculation
         # self simplifies the code for generating checksums do not need to do any complex number transformations
         bidAsk.append(delta)
@@ -958,9 +972,10 @@ class bitget(ccxt.async_support.bitget):
         symbolsLength = len(symbols)
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'uta', False)
         topics = []
         messageHashes = []
@@ -969,7 +984,7 @@ class bitget(ccxt.async_support.bitget):
             market = self.market(symbol)
             instType = None
             instType, params = self.get_inst_type('watchTradesForSymbols', market, uta, params)
-            args: dict = {
+            args = {
                 'instType': instType,
             }
             topicOrChannel = 'topic' if uta else 'channel'
@@ -1006,7 +1021,7 @@ class bitget(ccxt.async_support.bitget):
         :returns any: status of the unwatch request
         """
         values = self.handle_option_and_params(params, 'watchTrades', 'uta', False)
-        uta: Bool = values[0]
+        uta = values[0]
         channelTopic = 'publicTrade' if uta else 'trade'
         return await self.un_watch_channel(symbol, channelTopic, 'trade', 'watchTrades', params)
 
@@ -1067,7 +1082,7 @@ class bitget(ccxt.async_support.bitget):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "ts": "1701910980366",
@@ -1214,21 +1229,22 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = ''
         subscriptionHash = 'positions'
         instType = 'USDT-FUTURES'
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchPositions', 'uta', False)
         symbols = self.market_symbols(symbols)
-        if not self.is_empty(symbols):
+        if (symbols is not None) and not self.is_empty(symbols):
             market = self.get_market_from_symbols(symbols)
             instType, params = self.get_inst_type('watchPositions', market, uta, params)
         if uta:
             instType = 'UTA'
         messageHash = instType + ':positions' + messageHash
-        args: dict = {
+        args = {
             'instType': instType,
         }
         topicOrChannel = 'topic' if uta else 'channel'
@@ -1348,7 +1364,7 @@ class bitget(ccxt.async_support.bitget):
                 client.resolve(positions, messageHash)
         client.resolve(newPositions, instType + ':positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "posId": "926036334386778112",
@@ -1466,7 +1482,8 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         marketId = None
         isTrigger = None
@@ -1478,7 +1495,7 @@ class bitget(ccxt.async_support.bitget):
             symbol = market['symbol']
             marketId = market['id']
             messageHash = messageHash + ':' + symbol
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchOrders', 'uta', False)
         productType = self.safe_string(params, 'productType')
         type = None
@@ -1519,7 +1536,7 @@ class bitget(ccxt.async_support.bitget):
             instType = 'UTA'
             channel = 'order'
         subscriptionHash = subscriptionHash + ':' + instType
-        args: dict = {
+        args = {
             'instType': instType,
         }
         topicOrChannel = 'topic' if uta else 'channel'
@@ -1616,7 +1633,7 @@ class bitget(ccxt.async_support.bitget):
         #     }
         #
         arg = self.safe_dict(message, 'arg', {})
-        channel = self.safe_string_2(arg, 'channel', 'topic')
+        channel = self.safe_string_2(arg, 'channel', 'topic', '')
         instType = self.safe_string_lower(arg, 'instType')
         argInstId = self.safe_string(arg, 'instId')
         marketType = None
@@ -1639,7 +1656,7 @@ class bitget(ccxt.async_support.bitget):
         isTrigger = (channel == 'orders-algo') or (channel == 'ordersAlgo')
         stored = self.triggerOrders if isTrigger else self.orders
         messageHash = 'triggerOrder' if isTrigger else 'order'
-        marketSymbols: dict = {}
+        marketSymbols = {}
         for i in range(0, len(data)):
             order = data[i]
             marketId = self.safe_string_2(order, 'instId', 'symbol', argInstId)
@@ -1647,7 +1664,8 @@ class bitget(ccxt.async_support.bitget):
             parsed = self.parse_ws_order(order, market)
             stored.append(parsed)
             symbol = parsed['symbol']
-            marketSymbols[symbol] = True
+            if symbol is not None:
+                marketSymbols[symbol] = True
         keys = list(marketSymbols.keys())
         for i in range(0, len(keys)):
             symbol = keys[i]
@@ -1665,7 +1683,7 @@ class bitget(ccxt.async_support.bitget):
         if isUSDCFutures:
             client.resolve(stored, 'order:usdcfutures')
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         # spot
         #
@@ -1850,7 +1868,8 @@ class bitget(ccxt.async_support.bitget):
         elif isSpot and isTriggerOrder:
             # for spot trigger order, limit price is self
             price = self.safe_number(order, 'executePrice')
-        avgPrice = self.omit_zero(self.safe_string_lower_n(order, ['priceAvg', 'fillPrice', 'avgPrice']))
+        avgPriceString = self.safe_string_lower_n(order, ['priceAvg', 'fillPrice', 'avgPrice'])
+        avgPrice = None if (avgPriceString is None) else self.omit_zero(avgPriceString)
         side = self.safe_string(order, 'side')
         type = self.safe_string(order, 'orderType')
         accBaseVolume = self.omit_zero(self.safe_string_2(order, 'accBaseVolume', 'cumExecQty'))
@@ -1914,7 +1933,7 @@ class bitget(ccxt.async_support.bitget):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             'new': 'open',
             'live': 'open',
             'partially_filled': 'open',
@@ -1938,7 +1957,8 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         messageHash = 'myTrades'
         if symbol is not None:
@@ -1948,7 +1968,7 @@ class bitget(ccxt.async_support.bitget):
         type = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         instType = None
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchMyTrades', 'uta', False)
         if market is None and type == 'spot':
             instType = 'SPOT'
@@ -1957,7 +1977,7 @@ class bitget(ccxt.async_support.bitget):
         if uta:
             instType = 'UTA'
         subscriptionHash = 'fill:' + instType
-        args: dict = {
+        args = {
             'instType': instType,
         }
         topicOrChannel = 'topic' if uta else 'channel'
@@ -2114,7 +2134,7 @@ class bitget(ccxt.async_support.bitget):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        uta: Bool = None
+        uta = None
         uta, params = self.handle_option_and_params(params, 'watchBalance', 'uta', False)
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
@@ -2136,7 +2156,7 @@ class bitget(ccxt.async_support.bitget):
         instType, params = self.handle_option_and_params(params, 'watchBalance', 'instType', instType)
         if uta:
             instType = 'UTA'
-        args: dict = {
+        args = {
             'instType': instType,
         }
         topicOrChannel = 'topic' if uta else 'channel'
@@ -2145,7 +2165,8 @@ class bitget(ccxt.async_support.bitget):
             args['coin'] = 'default'
         else:
             params = self.extend(params, {'uta': True})
-        messageHash = 'balance:' + instType.lower()
+        instTypeLower = '' if (instType is None) else instType.lower()
+        messageHash = 'balance:' + instTypeLower
         return await self.watch_private(uta, messageHash, messageHash, args, params)
 
     def handle_balance(self, client: Client, message):
@@ -2284,7 +2305,7 @@ class bitget(ccxt.async_support.bitget):
                     url = self.urls['api']['demo']['utaPublic']
                 else:
                     url = self.urls['api']['demo']['public']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [args],
         }
@@ -2301,7 +2322,7 @@ class bitget(ccxt.async_support.bitget):
                     url = self.urls['api']['demo']['utaPublic']
                 else:
                     url = self.urls['api']['demo']['public']
-        request: dict = {
+        request = {
             'op': 'unsubscribe',
             'args': [args],
         }
@@ -2316,7 +2337,7 @@ class bitget(ccxt.async_support.bitget):
             instType = self.safe_string(argsArrayFirst, 'instType')
             if (instType != 'SCOIN-FUTURES') and (instType != 'SUSDT-FUTURES') and (instType != 'SUSDC-FUTURES'):
                 url = self.urls['api']['demo']['utaPublic'] if uta else self.urls['api']['demo']['public']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': argsArray,
         }
@@ -2325,7 +2346,7 @@ class bitget(ccxt.async_support.bitget):
 
     async def authenticate(self, params={}):
         self.check_required_credentials()
-        url = self.safe_string(params, 'url')
+        url = self.safe_string(params, 'url', '')
         client = self.client(url)
         messageHash = 'authenticated'
         future = client.reusableFuture(messageHash)
@@ -2335,7 +2356,7 @@ class bitget(ccxt.async_support.bitget):
             auth = timestamp + 'GET' + '/user/verify'
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
             operation = 'login'
-            request: dict = {
+            request = {
                 'op': operation,
                 'args': [
                     {
@@ -2361,7 +2382,7 @@ class bitget(ccxt.async_support.bitget):
                 else:
                     url = self.urls['api']['demo']['private']
         await self.authenticate({'url': url})
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [args],
         }
@@ -2501,7 +2522,7 @@ class bitget(ccxt.async_support.bitget):
         if event == 'unsubscribe':
             self.handle_un_subscription_status(client, message)
             return
-        methods: dict = {
+        methods = {
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
             'publicTrade': self.handle_trades,
@@ -2549,10 +2570,14 @@ class bitget(ccxt.async_support.bitget):
         #
         #    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         #
+        # UTA
+        #
+        #    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
+        #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
         type = 'spot' if (instType == 'spot') else 'contract'
-        instId = self.safe_string(arg, 'instId')
+        instId = self.safe_string_2(arg, 'instId', 'symbol')
         market = self.safe_market(instId, None, None, type)
         symbol = market['symbol']
         messageHash = 'unsubscribe:orderbook:' + market['symbol']
@@ -2626,7 +2651,7 @@ class bitget(ccxt.async_support.bitget):
         instType = self.safe_string_lower(arg, 'instType')
         type = 'spot' if (instType == 'spot') else 'contract'
         instId = self.safe_string_2(arg, 'instId', 'symbol')
-        channel = self.safe_string_2(arg, 'channel', 'topic')
+        channel = self.safe_string_2(arg, 'channel', 'topic', '')
         interval = self.safe_string(arg, 'interval')
         isUta = None
         if interval is None:
@@ -2647,7 +2672,7 @@ class bitget(ccxt.async_support.bitget):
             messageHash = 'unsubscribe:candles:' + timeframe + ':' + symbol
             subMessageHash = 'candles:' + timeframe + ':' + symbol
         if symbol in self.ohlcvs:
-            if timeframe in self.ohlcvs[symbol]:
+            if (timeframe is not None) and (timeframe in self.ohlcvs[symbol]):
                 del self.ohlcvs[symbol][timeframe]
         self.clean_unsubscription(client, subMessageHash, messageHash)
 
@@ -2676,7 +2701,7 @@ class bitget(ccxt.async_support.bitget):
             argsList = [self.safe_dict(message, 'arg', {})]
         for i in range(0, len(argsList)):
             arg = argsList[i]
-            channel = self.safe_string_2(arg, 'channel', 'topic')
+            channel = self.safe_string_2(arg, 'channel', 'topic', '')
             if channel.find('books') >= 0:
                 # for now only unWatchOrderBook is supporteod
                 self.handle_order_book_un_subscription(client, message)

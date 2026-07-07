@@ -61,13 +61,14 @@ class coinone(ccxt.async_support.coinone):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'request_type': 'SUBSCRIBE',
             'channel': 'ORDERBOOK',
             'topic': {
@@ -128,7 +129,7 @@ class coinone(ccxt.async_support.coinone):
         client.resolve(orderbook, messageHash)
 
     def handle_delta(self, bookside, delta):
-        bidAsk = self.parse_bid_ask(delta, 'price', 'qty')
+        bidAsk = self.parse_order_book_bid_ask(delta, 'price', 'qty')
         bookside.storeArray(bidAsk)
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -141,11 +142,12 @@ class coinone(ccxt.async_support.coinone):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TICKER',
             'topic': {
@@ -261,11 +263,12 @@ class coinone(ccxt.async_support.coinone):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'request_type': 'SUBSCRIBE',
             'channel': 'TRADE',
             'topic': {
@@ -370,7 +373,7 @@ class coinone(ccxt.async_support.coinone):
             return
         if type == 'DATA':
             topic = self.safe_string(message, 'channel', '')
-            methods: dict = {
+            methods = {
                 'ORDERBOOK': self.handle_order_book,
                 'TICKER': self.handle_ticker,
                 'TRADE': self.handle_trades,

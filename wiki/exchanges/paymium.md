@@ -32,7 +32,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-paymium.fetchBalance ([params])
+paymium.fetchBalance (params?)
 ```
 
 
@@ -42,7 +42,7 @@ paymium.fetchBalance ([params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>paymium</code>](#paymium)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://paymium.github.io/api-documentation/#tag/Public-data/operation/get-market-depth  
 
@@ -54,7 +54,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-paymium.fetchOrderBook (symbol[, limit, params])
+paymium.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -75,7 +75,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-paymium.fetchTicker (symbol[, params])
+paymium.fetchTicker (symbol, params?)
 ```
 
 
@@ -98,7 +98,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-paymium.fetchTrades (symbol[, since, limit, params])
+paymium.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -119,7 +119,7 @@ create a currency deposit address
 
 
 ```javascript
-paymium.createDepositAddress (code[, params])
+paymium.createDepositAddress (code, params?)
 ```
 
 
@@ -140,7 +140,7 @@ fetch the deposit address for a currency associated with this account
 
 
 ```javascript
-paymium.fetchDepositAddress (code[, params])
+paymium.fetchDepositAddress (code, params?)
 ```
 
 
@@ -161,7 +161,7 @@ fetch deposit addresses for multiple currencies and chain types
 
 
 ```javascript
-paymium.fetchDepositAddresses (codes[, params])
+paymium.fetchDepositAddresses (codes, params?)
 ```
 
 
@@ -186,7 +186,7 @@ create a trade order
 
 
 ```javascript
-paymium.createOrder (symbol, type, side, amount[, price, params])
+paymium.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -208,7 +208,7 @@ cancels an open order
 
 
 ```javascript
-paymium.cancelOrder (id, symbol[, params])
+paymium.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -232,6 +232,6 @@ transfer currency internally between wallets on the same account
 
 
 ```javascript
-paymium.transfer (code, amount, fromAccount, toAccount[, params])
+paymium.transfer (code, amount, fromAccount, toAccount, params?)
 ```
 

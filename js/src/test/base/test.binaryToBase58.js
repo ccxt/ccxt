@@ -14,7 +14,7 @@ function testBinaryToBase58() {
         'id': 'sampleexchange',
     });
     assert(exchange.parseNumber(undefined) === undefined, 'GO skip trick');
-    assert('GO_SKIP_START');
+    // @SKIP_START_GO
     // Test 1: Simple string
     const binary1 = helperStrToBinary5(exchange, 'hello');
     assert(exchange.binaryToBase58(binary1) === 'Cn8eVZg');
@@ -36,6 +36,6 @@ function testBinaryToBase58() {
     // Test 7: JSON-like binary
     const binary7 = helperStrToBinary5(exchange, '{"key":"value"}');
     assert(exchange.binaryToBase58(binary7) === '4SoiMiEYtTt5tPdi81Fik');
-    assert('GO_SKIP_END');
+    // @SKIP_END_GO
 }
 export default testBinaryToBase58;

@@ -11,11 +11,10 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class indodax extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'indodax',
@@ -226,7 +225,6 @@ class indodax extends Exchange {
                     // 'MAINNET' => 'mainnet',  // TODO => does mainnet just mean the default?
                     // 'OEP4' => 'oep4',
                     // 'OP' => 'op',
-                    // 'SPL' => 'spl',
                     // 'TRC10' => 'trc10',
                     // 'ZRC2' => 'zrc2'
                     // 'ETH' => 'eth'
@@ -312,7 +310,7 @@ class indodax extends Exchange {
         return $this->milliseconds() - $this->options['timeDifference'];
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -322,7 +320,7 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetApiServerTime ($params));
+            $response = Async\await($this->publicGetApiServerTime($params));
             //
             //     {
             //         "timezone" => "UTC",
@@ -330,10 +328,10 @@ class indodax extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'server_time');
-        }) ();
+        })();
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for indodax
@@ -343,7 +341,7 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $response = Async\await($this->publicGetApiPairs ($params));
+            $response = Async\await($this->publicGetApiPairs($params));
             //
             //     array(
             //         {
@@ -433,7 +431,7 @@ class indodax extends Exchange {
                 );
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($response): array {
@@ -458,7 +456,7 @@ class indodax extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -468,8 +466,10 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privatePostGetInfo ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privatePostGetInfo($params));
             //
             //     {
             //         "success":1,
@@ -501,10 +501,10 @@ class indodax extends Exchange {
             //     }
             //
             return $this->parse_balance($response);
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -514,16 +514,18 @@ class indodax extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $orderbook = Async\await($this->publicGetApiDepthPair ($this->extend($request, $params)));
+            $orderbook = Async\await($this->publicGetApiDepthPair($this->extend($request, $params)));
             return $this->parse_order_book($orderbook, $market['symbol'], null, 'buy', 'sell');
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -541,8 +543,8 @@ class indodax extends Exchange {
         //
         $symbol = $this->safe_symbol(null, $market);
         $timestamp = $this->safe_timestamp($ticker, 'server_time');
-        $baseVolume = 'vol_' . strtolower($market['baseId']);
-        $quoteVolume = 'vol_' . strtolower($market['quoteId']);
+        $baseVolume = 'vol_' . $this->safe_string_lower($market, 'baseId');
+        $quoteVolume = 'vol_' . $this->safe_string_lower($market, 'quoteId');
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -568,7 +570,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -579,12 +581,14 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetApiTickerPair ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiTickerPair($this->extend($request, $params)));
             //
             //     {
             //         "ticker" => {
@@ -601,10 +605,10 @@ class indodax extends Exchange {
             //
             $ticker = $this->safe_dict($response, 'ticker', array());
             return $this->parse_ticker($ticker, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -615,7 +619,9 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             //
             // {
             //     "tickers" => {
@@ -632,7 +638,7 @@ class indodax extends Exchange {
             //     }
             // }
             //
-            $response = Async\await($this->publicGetApiTickerAll ($params));
+            $response = Async\await($this->publicGetApiTickerAll($params));
             $tickers = $this->safe_dict($response, 'tickers', array());
             $keys = is_array($tickers) ? array_keys($tickers) : array();
             $parsedTickers = array();
@@ -645,7 +651,7 @@ class indodax extends Exchange {
                 $parsedTickers[$marketId] = $parsed;
             }
             return $this->filter_by_array($parsedTickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -667,7 +673,7 @@ class indodax extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
@@ -680,14 +686,16 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->publicGetApiTradesPair ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetApiTradesPair($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -711,7 +719,7 @@ class indodax extends Exchange {
         );
     }
 
-    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -723,7 +731,9 @@ class indodax extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $selectedTimeframe = $this->safe_string($this->timeframes, $timeframe, $timeframe);
             $now = $this->seconds();
@@ -743,7 +753,7 @@ class indodax extends Exchange {
                 $duration = $this->parse_timeframe($timeframe);
                 $request['from'] = $now - $limit * $duration - 1;
             }
-            $response = Async\await($this->publicGetTradingviewHistoryV2 ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTradingviewHistoryV2($this->extend($request, $params)));
             //
             //     array(
             //         {
@@ -757,7 +767,7 @@ class indodax extends Exchange {
             //     )
             //
             return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -867,7 +877,7 @@ class indodax extends Exchange {
         ));
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an $order made by the user
@@ -882,21 +892,23 @@ class indodax extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
                 'order_id' => $id,
             );
-            $response = Async\await($this->privatePostGetOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostGetOrder($this->extend($request, $params)));
             $orders = $response['return'];
             $order = $this->parse_order($this->extend(array( 'id' => $id ), $orders['order']), $market);
             $order['info'] = $response;
             return $order;
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -909,14 +921,16 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $request['pair'] = $market['id'];
             }
-            $response = Async\await($this->privatePostOpenOrders ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOpenOrders($this->extend($request, $params)));
             $rawOrders = $response['return']['orders'];
             // array( success => 1, return => array( orders => null )) if no orders
             if (!$rawOrders) {
@@ -937,10 +951,10 @@ class indodax extends Exchange {
                 $exchangeOrders = $this->array_concat($exchangeOrders, $parsedOrders);
             }
             return $exchangeOrders;
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed $orders made by the user
@@ -956,19 +970,21 @@ class indodax extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrderHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrderHistory($this->extend($request, $params)));
             $orders = $this->parse_orders($response['return']['orders'], $market);
             $orders = $this->filter_by($orders, 'status', 'closed');
             return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
@@ -983,7 +999,9 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'pair' => $market['id'],
@@ -1028,17 +1046,17 @@ class indodax extends Exchange {
             if ($quantityIsRequired) {
                 $request[$market['baseId']] = $this->amount_to_precision($symbol, $amount);
             }
-            $result = Async\await($this->privatePostTrade ($this->extend($request, $params)));
+            $result = Async\await($this->privatePostTrade($this->extend($request, $params)));
             $data = $this->safe_value($result, 'return', array());
             $id = $this->safe_string($data, 'order_id');
             return $this->safe_order(array(
                 'info' => $result,
                 'id' => $id,
             ), $market);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -1057,14 +1075,16 @@ class indodax extends Exchange {
             if ($side === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires an extra "side" param');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'order_id' => $id,
                 'pair' => $market['id'],
                 'type' => $side,
             );
-            $response = Async\await($this->privatePostCancelOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostCancelOrder($this->extend($request, $params)));
             //
             //    {
             //        "success" => 1,
@@ -1086,10 +1106,10 @@ class indodax extends Exchange {
             //
             $data = $this->safe_dict($response, 'return');
             return $this->parse_order($data);
-        }) ();
+        })();
     }
 
-    public function fetch_transaction_fee(string $code, $params = array ()) {
+    public function fetch_transaction_fee(string $code, $params = array()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the fee for a transaction
@@ -1100,12 +1120,14 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privatePostWithdrawFee ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostWithdrawFee($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1123,10 +1145,10 @@ class indodax extends Exchange {
                 'rate' => $this->safe_number($data, 'withdraw_fee'),
                 'currency' => $this->safe_currency_code($currencyId, $currency),
             );
-        }) ();
+        })();
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch history of $deposits and withdrawals
@@ -1139,14 +1161,16 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             if ($since !== null) {
-                $startTime = $this->iso8601(mb_substr($since), 0, 10 - 0);
+                $startTime = $this->yyyymmdd($since);
                 $request['start'] = $startTime;
-                $request['end'] = $this->iso8601($this->milliseconds(mb_substr()), 0, 10 - 0);
+                $request['end'] = $this->yyyymmdd($this->milliseconds());
             }
-            $response = Async\await($this->privatePostTransHistory ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostTransHistory($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1227,10 +1251,10 @@ class indodax extends Exchange {
                 $transactions = $this->array_concat($withdraws, $deposits);
             }
             return $this->parse_transactions($transactions, $currency, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1246,7 +1270,9 @@ class indodax extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             // Custom string you need to provide to identify each withdrawal.
             // Will be passed to callback URL (assigned via website to the API key)
@@ -1264,7 +1290,7 @@ class indodax extends Exchange {
             if ($tag) {
                 $request['withdraw_memo'] = $tag;
             }
-            $response = Async\await($this->privatePostWithdrawCoin ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostWithdrawCoin($this->extend($request, $params)));
             //
             //     {
             //         "success" => 1,
@@ -1281,7 +1307,7 @@ class indodax extends Exchange {
             //     }
             //
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
@@ -1369,7 +1395,7 @@ class indodax extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_deposit_addresses(?array $codes = null, $params = array ()): PromiseInterface {
+    public function fetch_deposit_addresses(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit $addresses for multiple currencies and chain types
@@ -1380,8 +1406,10 @@ class indodax extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=$address-structure $address structures~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privatePostGetInfo ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privatePostGetInfo($params));
             //
             //    {
             //        success => '1',
@@ -1437,26 +1465,27 @@ class indodax extends Exchange {
                             $network = array();
                             $networkIds = explode(',', $networkId);
                             for ($j = 0; $j < count($networkIds); $j++) {
-                                $network[] = strtoupper($this->network_id_to_code($networkIds[$j]));
+                                $network[] = strtoupper($this->network_id_to_code($networkIds[$j], $code));
                             }
                         } else {
-                            $network = strtoupper($this->network_id_to_code($networkId));
+                            $network = strtoupper($this->network_id_to_code($networkId, $code));
                         }
                     }
+                    $finalNetwork = $network; // java req
                     $result[$code] = array(
                         'info' => array(),
                         'currency' => $code,
-                        'network' => $network,
+                        'network' => $finalNetwork,
                         'address' => $address,
                         'tag' => null,
                     );
                 }
             }
             return $result;
-        }) ();
+        })();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $url = $this->urls['api'][$api];
         if ($api === 'public') {
             $query = $this->omit($params, $this->extract_params($path));

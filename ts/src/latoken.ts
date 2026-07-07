@@ -1,11 +1,11 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/latoken.js';
 import { ExchangeError, AuthenticationError, InvalidNonce, BadRequest, ExchangeNotAvailable, PermissionDenied, AccountSuspended, RateLimitExceeded, InsufficientFunds, BadSymbol, InvalidOrder, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, TradingFeeInterface, Currencies, Dict, NullableDict, List, FeeInterface, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -408,7 +408,7 @@ export default class latoken extends Exchange {
         }
         const currencies = this.safeDict (this.options, 'cachedCurrencies', {});
         const currenciesById = this.indexBy (currencies, 'id');
-        const result = [];
+        const result: List = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'id');
@@ -520,39 +520,38 @@ export default class latoken extends Exchange {
         //         },
         //     ]
         //
-        const result: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const currency = response[i];
-            const id = this.safeString (currency, 'id');
-            const tag = this.safeString (currency, 'tag');
-            const code = this.safeCurrencyCode (tag);
-            const currencyType = this.safeString (currency, 'type');
-            const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
-            result[code] = this.safeCurrencyStructure ({
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': this.safeString (currency, 'name'),
-                'type': isCrypto ? 'crypto' : 'other',
-                'active': this.safeString (currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': this.safeNumber (currency, 'fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
-                'limits': {
-                    'amount': {
-                        'min': this.safeNumber (currency, 'minTransferAmount'),
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
+        return this.parseCurrencies (response);
+    }
+
+    parseCurrency (currency: Dict): Currency {
+        const id = this.safeString (currency, 'id');
+        const tag = this.safeString (currency, 'tag');
+        const code = this.safeCurrencyCode (tag);
+        const currencyType = this.safeString (currency, 'type');
+        const isCrypto = (currencyType === 'CURRENCY_TYPE_CRYPTO' || currencyType === 'CURRENCY_TYPE_IEO');
+        return this.safeCurrencyStructure ({
+            'id': id,
+            'code': code,
+            'info': currency,
+            'name': this.safeString (currency, 'name'),
+            'type': isCrypto ? 'crypto' : 'other',
+            'active': this.safeString (currency, 'status') === 'CURRENCY_STATUS_ACTIVE',
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': this.safeNumber (currency, 'fee'),
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'decimals'))),
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (currency, 'minTransferAmount'),
+                    'max': undefined,
                 },
-                'networks': {},
-            });
-        }
-        return result;
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': {},
+        });
     }
 
     /**
@@ -564,7 +563,9 @@ export default class latoken extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetAuthAccount (params);
         //
         //     [
@@ -593,7 +594,7 @@ export default class latoken extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        let maxTimestamp = undefined;
+        let maxTimestamp: Int = undefined;
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const types = this.safeValue (this.options, 'types', {});
@@ -630,10 +631,12 @@ export default class latoken extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currency': market['baseId'],
@@ -720,7 +723,9 @@ export default class latoken extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'base': market['baseId'],
@@ -760,7 +765,9 @@ export default class latoken extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.publicGetTicker (params);
         //
         //    [
@@ -849,7 +856,7 @@ export default class latoken extends Exchange {
         const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'order');
         const feeCost = this.safeString (trade, 'fee');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
@@ -885,7 +892,9 @@ export default class latoken extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currency': market['baseId'],
@@ -932,7 +941,9 @@ export default class latoken extends Exchange {
     }
 
     async fetchPublicTradingFee (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currency': market['baseId'],
@@ -958,7 +969,9 @@ export default class latoken extends Exchange {
     }
 
     async fetchPrivateTradingFee (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'currency': market['baseId'],
@@ -996,18 +1009,20 @@ export default class latoken extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response: List;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
@@ -1113,7 +1128,7 @@ export default class latoken extends Exchange {
         const quoteId = this.safeString (order, 'quoteCurrency');
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
-        let symbol = undefined;
+        let symbol: Str = undefined;
         if ((base !== undefined) && (quote !== undefined)) {
             symbol = base + '/' + quote;
             if (symbol in this.markets) {
@@ -1121,7 +1136,7 @@ export default class latoken extends Exchange {
             }
         }
         const orderSide = this.safeString (order, 'side');
-        let side = undefined;
+        let side: Str = undefined;
         if (orderSide !== undefined) {
             const parts = orderSide.split ('_');
             const partsLength = parts.length;
@@ -1185,8 +1200,10 @@ export default class latoken extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
-        let response = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let response: Dict;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, 'stop');
         // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1241,20 +1258,22 @@ export default class latoken extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
             // 'from': this.milliseconds (),
             // 'limit': limit, // default '100'
         };
-        let market = undefined;
+        let market: Market = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100
         }
-        let response = undefined;
+        let response: Dict;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
@@ -1309,13 +1328,15 @@ export default class latoken extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        let response = undefined;
+        let response: Dict;
         if (isTrigger) {
             response = await this.privateGetAuthStopOrderGetOrderId (this.extend (request, params));
         } else {
@@ -1364,7 +1385,9 @@ export default class latoken extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
         const request: Dict = {
@@ -1384,7 +1407,7 @@ export default class latoken extends Exchange {
         }
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
-        let response = undefined;
+        let response: Dict;
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             response = await this.privatePostAuthStopOrderPlace (this.extend (request, params));
@@ -1419,13 +1442,15 @@ export default class latoken extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        let response = undefined;
+        let response: Dict;
         if (isTrigger) {
             response = await this.privatePostAuthStopOrderCancel (this.extend (request, params));
         } else {
@@ -1455,15 +1480,17 @@ export default class latoken extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'currency': market['baseId'],
             // 'quote': market['quoteId'],
         };
-        let market = undefined;
+        let market: Market = undefined;
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'stop', 'trigger' ]);
-        let response = undefined;
+        let response: Dict;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['currency'] = market['baseId'];
@@ -1506,7 +1533,9 @@ export default class latoken extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchTransactions (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             // 'page': '1',
             // 'size': 100,
@@ -1538,7 +1567,7 @@ export default class latoken extends Exchange {
         //         "pageSize":10
         //     }
         //
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -1575,7 +1604,7 @@ export default class latoken extends Exchange {
         const addressTo = this.safeString (transaction, 'recipientAddress');
         const txid = this.safeString (transaction, 'transactionHash');
         const tagTo = this.safeString (transaction, 'memo');
-        const fee = {
+        const fee: FeeInterface = {
             'currency': undefined,
             'cost': undefined,
             'rate': undefined,
@@ -1642,7 +1671,9 @@ export default class latoken extends Exchange {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const response = await this.privateGetAuthTransfer (params);
         //
@@ -1695,14 +1726,16 @@ export default class latoken extends Exchange {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'currency': currency['id'],
             'recipient': toAccount,
             'value': this.currencyToPrecision (code, amount),
         };
-        let response = undefined;
+        let response: Dict;
         if (toAccount.indexOf ('@') >= 0) {
             response = await this.privatePostAuthTransferEmail (this.extend (request, params));
         } else if (toAccount.length === 36) {
@@ -1785,7 +1818,7 @@ export default class latoken extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    sign (path, api = 'public', method = 'GET', params = undefined, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
         const request = '/' + this.version + '/' + this.implodeParams (path, params);
         let requestString = request;
         const query = this.omit (params, this.extractParams (path));
@@ -1809,7 +1842,7 @@ export default class latoken extends Exchange {
                 body = this.json (query);
             }
         }
-        const url = this.urls['api']['rest'] + requestString;
+        const url = (this.urls['api'] as Dict)['rest'] + requestString;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

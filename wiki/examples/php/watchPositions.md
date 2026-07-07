@@ -1,8 +1,5 @@
-- [Watchpositions](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $exchange = new \ccxt\pro\binanceusdm(array(
@@ -28,13 +24,13 @@ function example() {
             'secret' => 'YOUR_API_SECRET',
         ));
         while (true) {
-            $trades = Async\await($exchange->watch_positions());
+            $trades = \React\Async\await($exchange->watch_positions());
             var_dump($trades);
         }
     }) ();
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

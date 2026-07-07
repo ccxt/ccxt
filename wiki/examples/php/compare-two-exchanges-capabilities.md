@@ -1,8 +1,5 @@
-- [Compare Two Exchanges Capabilities](./examples/php/)
-
-
- ```php
- <?php
+```php
+<?php
 namespace ccxt;
 include_once (__DIR__.'/../../ccxt.php');
 // ----------------------------------------------------------------------------
@@ -20,7 +17,6 @@ use React\Async;
 use React\Promise;
 
 
-// AUTO-TRANSPILE //
 function example() {
     return Async\async(function () {
         $prefix = '-';
@@ -56,6 +52,6 @@ function example() {
 }
 
 
-Async\await(example());
- 
+\React\Async\await(example());
+
 ```

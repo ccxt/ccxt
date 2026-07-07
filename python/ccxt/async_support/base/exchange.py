@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.46'
+__version__ = '4.5.64'
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +38,15 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
+
+# -----------------------------------------------------------------------------
+
+try:
+    # patches aiohttp to use zlib-ng for gzip/deflate (~2x faster decompression)
+    import aiohttp_fast_zlib
+    aiohttp_fast_zlib.enable()
+except ImportError:
+    pass
 
 # -----------------------------------------------------------------------------
 
@@ -88,8 +97,8 @@ class Exchange(BaseExchange):
         self.markets_loading = None
         self.reloading_markets = False
 
-    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex):
-        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex)
+    async def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
+        return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)
 
     def get_event_loop(self):
         return self.asyncio_loop
@@ -136,8 +145,10 @@ class Exchange(BaseExchange):
             self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
             self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
-    async def close(self):
-        await self.ws_close()
+    async def close(self, clean_instance_data=False):
+        # ##### language-specific cleanup of WS & REST resources #####
+        # [WS]
+        await self.close_ws_clients()
         if self.session is not None:
             if self.own_session:
                 await self.session.close()
@@ -145,6 +156,11 @@ class Exchange(BaseExchange):
         await self.close_connector()
         await self.close_proxy_sessions()
         await self.sleep(self.timeout_on_exit)
+        if clean_instance_data:
+            self.clean_ws_data()
+        # [REST]
+        if clean_instance_data:
+            self.clean_rest_data()
 
     async def close_connector(self):
         if self.tcp_connector is not None:
@@ -486,8 +502,13 @@ class Exchange(BaseExchange):
                     missing_subscriptions.append(subscribe_hash)
                     client.subscriptions[subscribe_hash] = subscription or True
 
+        selected_session = self.session
+        # http/s proxy is being set in other places
+        httpProxy, httpsProxy, socksProxy = self.check_ws_proxy_settings()
+        if (socksProxy):
+            selected_session = self.get_socks_proxy_session(socksProxy)
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(selected_session, backoff_delay))
 
         def after(fut):
             # todo: decouple signing from subscriptions
@@ -571,7 +592,7 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    async def ws_close(self):
+    async def close_ws_clients(self):
         if self.clients:
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
@@ -763,7 +784,7 @@ class Exchange(BaseExchange):
     async def fetch_margin_modes(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchMarginModes() is not supported yet')
 
-    async def fetch_rest_order_book_safe(self, symbol, limit=None, params={}):
+    async def fetch_rest_order_book_safe(self, symbol, limit: Int = None, params={}):
         fetchSnapshotMaxRetries = self.handle_option('watchOrderBook', 'maxRetries', 3)
         for i in range(0, fetchSnapshotMaxRetries):
             try:
@@ -1002,15 +1023,26 @@ class Exchange(BaseExchange):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
         retryDelay = None
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
-        self.lastRestRequestTimestamp = self.milliseconds()
-        request = self.sign(path, api, method, params, headers, body)
-        self.last_request_headers = request['headers']
-        self.last_request_body = request['body']
-        self.last_request_url = request['url']
+        fetchData = None
+        fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
+            if fetchDataCacheEnabled:
+                fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
-                return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                self.set_last_rest_request_timestamp()
+                request = self.sign(path, api, method, params, headers, body)
+                if fetchDataCacheEnabled:
+                    fetchData['request'] = request
+                self.set_last_request(request)
+                response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                if fetchDataCacheEnabled:
+                    fetchData['response']['body'] = response
+                    self.add_fetch_cache(fetchData)
+                return response
             except Exception as e:
+                if fetchDataCacheEnabled:
+                    fetchData['error'] = e
+                    self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
@@ -1466,7 +1498,7 @@ class Exchange(BaseExchange):
         """
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrder() requires a triggerPrice argument')
-        params['triggerPrice'] = triggerPrice
+        params = self.extend(params, {'triggerPrice': triggerPrice})
         if self.has['createTriggerOrder']:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTriggerOrder() is not supported yet')
@@ -1485,7 +1517,7 @@ class Exchange(BaseExchange):
         """
         if triggerPrice is None:
             raise ArgumentsRequired(self.id + ' createTriggerOrderWs() requires a triggerPrice argument')
-        params['triggerPrice'] = triggerPrice
+        params = self.extend(params, {'triggerPrice': triggerPrice})
         if self.has['createTriggerOrderWs']:
             return await self.create_order_ws(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTriggerOrderWs() is not supported yet')
@@ -1504,7 +1536,7 @@ class Exchange(BaseExchange):
         """
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrder() requires a stopLossPrice argument')
-        params['stopLossPrice'] = stopLossPrice
+        params = self.extend(params, {'stopLossPrice': stopLossPrice})
         if self.has['createStopLossOrder']:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createStopLossOrder() is not supported yet')
@@ -1523,7 +1555,7 @@ class Exchange(BaseExchange):
         """
         if stopLossPrice is None:
             raise ArgumentsRequired(self.id + ' createStopLossOrderWs() requires a stopLossPrice argument')
-        params['stopLossPrice'] = stopLossPrice
+        params = self.extend(params, {'stopLossPrice': stopLossPrice})
         if self.has['createStopLossOrderWs']:
             return await self.create_order_ws(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createStopLossOrderWs() is not supported yet')
@@ -1542,7 +1574,7 @@ class Exchange(BaseExchange):
         """
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrder() requires a takeProfitPrice argument')
-        params['takeProfitPrice'] = takeProfitPrice
+        params = self.extend(params, {'takeProfitPrice': takeProfitPrice})
         if self.has['createTakeProfitOrder']:
             return await self.create_order(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTakeProfitOrder() is not supported yet')
@@ -1561,7 +1593,7 @@ class Exchange(BaseExchange):
         """
         if takeProfitPrice is None:
             raise ArgumentsRequired(self.id + ' createTakeProfitOrderWs() requires a takeProfitPrice argument')
-        params['takeProfitPrice'] = takeProfitPrice
+        params = self.extend(params, {'takeProfitPrice': takeProfitPrice})
         if self.has['createTakeProfitOrderWs']:
             return await self.create_order_ws(symbol, type, side, amount, price, params)
         raise NotSupported(self.id + ' createTakeProfitOrderWs() is not supported yet')
@@ -1822,7 +1854,7 @@ class Exchange(BaseExchange):
                 return self.safe_dict(addressStructures, network)
             else:
                 keys = list(addressStructures.keys())
-                key = self.safe_string(keys, 0)
+                key = keys[0]
                 return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
@@ -2010,7 +2042,7 @@ class Exchange(BaseExchange):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV']:
-            request: dict = {
+            request = {
                 'price': 'mark',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -2028,7 +2060,7 @@ class Exchange(BaseExchange):
  @returns {} A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV']:
-            request: dict = {
+            request = {
                 'price': 'index',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -2046,7 +2078,7 @@ class Exchange(BaseExchange):
         :returns float[][]: A list of candles ordered, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV']:
-            request: dict = {
+            request = {
                 'price': 'premiumIndex',
             }
             return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
@@ -2124,7 +2156,7 @@ class Exchange(BaseExchange):
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
-                    paginationTimestamp = self.safe_integer(last, 'timestamp') + 1
+                    paginationTimestamp = self.safe_integer(last, 'timestamp', 0) + 1
                     if (until is not None) and (paginationTimestamp >= until):
                         break
             except Exception as e:
@@ -2156,7 +2188,7 @@ class Exchange(BaseExchange):
                     raise e
         return []
 
-    async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_deterministic(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, timeframe: Str = None, params={}, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxEntriesPerRequest, params = self.handle_max_entries_per_request_and_params(method, maxEntriesPerRequest, params)
@@ -2189,7 +2221,7 @@ class Exchange(BaseExchange):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(uniqueResults, since, limit, key)
 
-    async def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since=None, limit=None, params={}, cursorReceived=None, cursorSent=None, cursorIncrement=None, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_cursor(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, cursorReceived: Str = None, cursorSent: Str = None, cursorIncrement: Int = None, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -2233,7 +2265,7 @@ class Exchange(BaseExchange):
                     index = responseLength - j - 1
                     entry = self.safe_dict(response, index)
                     info = self.safe_dict(entry, 'info')
-                    cursor = self.safe_value(info, cursorReceived)
+                    cursor = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
                     if cursor is not None:
                         cursorValue = cursor
                         break
@@ -2251,7 +2283,7 @@ class Exchange(BaseExchange):
         key = 0 if (method == 'fetchOHLCV') else 'timestamp'
         return self.filter_by_since_limit(sorted, since, limit, key)
 
-    async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since=None, limit=None, params={}, pageKey=None, maxEntriesPerRequest=None):
+    async def fetch_paginated_call_incremental(self, method: str, symbol: Str = None, since: Int = None, limit: Int = None, params={}, pageKey: Str = None, maxEntriesPerRequest: Int = None):
         maxCalls = None
         maxCalls, params = self.handle_option_and_params(params, method, 'paginationCalls', 10)
         maxRetries = None
@@ -2396,7 +2428,7 @@ class Exchange(BaseExchange):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>` indexed by market symbols
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         raise NotSupported(self.id + ' fetchOrdersByStatusWs() is not supported yet')
 
@@ -2408,3 +2440,6 @@ class Exchange(BaseExchange):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         raise NotSupported(self.id + ' unWatchBidsAsks() is not supported yet')
+
+    async def is_uta_enabled(self, params={}):
+        return False  # stub

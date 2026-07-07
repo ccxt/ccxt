@@ -8,9 +8,9 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestCapitalize() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// Test 1: Basic lowercase string
 	Assert(ccxt.IsEqual(exchange.Capitalize("hello"), "Hello"))
 	// Test 2: Preserve rest of string (camelCase)

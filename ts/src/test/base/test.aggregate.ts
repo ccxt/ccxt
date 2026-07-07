@@ -10,7 +10,7 @@ function testAggregate () {
     });
 
     assert (exchange.milliseconds () > 0, 'go transpiler workaround');
-    assert ('GO_SKIP_START');
+    // @SKIP_START_GO
     const bids = [
         [ 789.1, 111.05 ],
         [ 789.100, 111.05 ],
@@ -79,7 +79,8 @@ function testAggregate () {
     // Test 10: Mixed zero and non-zero for same price
     const result10 = exchange.aggregate ([ [ 100.2, 1.04 ], [ 100.2, 0 ], [ 100.2, 2.04 ] ]);
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testAggregate', result10, [ [ 100.2, 3.08 ] ]);
-    assert ('GO_SKIP_END');
+    // @SKIP_END_GO
+    exchange.uuid (); // placeholder for astt
 }
 
 export default testAggregate;

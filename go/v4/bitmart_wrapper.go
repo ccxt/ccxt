@@ -6,7 +6,7 @@ type Bitmart struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewBitmart(userConfig map[string]interface{}) *Bitmart {
+func NewBitmart(userConfig map[string]any) *Bitmart {
 	p := NewBitmartCore()
 	p.Init(userConfig)
 	return &Bitmart{
@@ -34,7 +34,7 @@ func NewBitmartFromCore(core *BitmartCore) *Bitmart {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Bitmart) FetchTime(params ...interface{}) (int64, error) {
+func (this *Bitmart) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -50,21 +50,21 @@ func (this *Bitmart) FetchTime(params ...interface{}) (int64, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
-func (this *Bitmart) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Bitmart) FetchStatus(params ...any) (map[string]any, error) {
 	res := <-this.Core.FetchStatus(params...)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
-func (this *Bitmart) FetchSpotMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Bitmart) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Bitmart) FetchContractMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Bitmart) FetchContractMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchContractMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -81,7 +81,7 @@ func (this *Bitmart) FetchContractMarkets(params ...interface{}) ([]MarketInterf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Bitmart) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Bitmart) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -97,7 +97,7 @@ func (this *Bitmart) FetchMarkets(params ...interface{}) ([]MarketInterface, err
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Bitmart) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Bitmart) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -115,7 +115,7 @@ func (this *Bitmart) FetchCurrencies(params ...interface{}) (Currencies, error) 
  * @param {string} [params.network] the network code of the currency
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 
 	opts := FetchTransactionFeeOptionsStruct{}
 
@@ -123,15 +123,15 @@ func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchTransactionFee(code, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -144,7 +144,7 @@ func (this *Bitmart) FetchTransactionFee(code string, options ...FetchTransactio
  * @param {string} [params.network] the network code of the currency
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 
 	opts := FetchDepositWithdrawFeeOptionsStruct{}
 
@@ -152,15 +152,15 @@ func (this *Bitmart) FetchDepositWithdrawFee(code string, options ...FetchDeposi
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositWithdrawFee(code, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return (res).(map[string]interface{}), nil
+	return (res).(map[string]any), nil
 }
 
 /**
@@ -181,7 +181,7 @@ func (this *Bitmart) FetchTicker(symbol string, options ...FetchTickerOptions) (
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -210,12 +210,12 @@ func (this *Bitmart) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -235,7 +235,7 @@ func (this *Bitmart) FetchTickers(options ...FetchTickersOptions) (Tickers, erro
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Bitmart) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -245,12 +245,12 @@ func (this *Bitmart) FetchOrderBook(symbol string, options ...FetchOrderBookOpti
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -280,17 +280,17 @@ func (this *Bitmart) FetchTrades(symbol string, options ...FetchTradesOptions) (
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -324,22 +324,22 @@ func (this *Bitmart) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -373,22 +373,22 @@ func (this *Bitmart) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -420,22 +420,22 @@ func (this *Bitmart) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -457,7 +457,7 @@ func (this *Bitmart) FetchOrderTrades(id string, options ...FetchOrderTradesOpti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Bitmart) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Bitmart) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -482,7 +482,7 @@ func (this *Bitmart) FetchTradingFee(symbol string, options ...FetchTradingFeeOp
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -511,7 +511,7 @@ func (this *Bitmart) CreateMarketBuyOrderWithCost(symbol string, cost float64, o
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -564,12 +564,12 @@ func (this *Bitmart) CreateOrder(symbol string, typeVar string, side string, amo
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -598,7 +598,7 @@ func (this *Bitmart) CreateOrders(orders []OrderRequest, options ...CreateOrders
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -636,12 +636,12 @@ func (this *Bitmart) CancelOrder(id string, options ...CancelOrderOptions) (Orde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -671,12 +671,12 @@ func (this *Bitmart) CancelOrders(ids []string, options ...CancelOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -709,12 +709,12 @@ func (this *Bitmart) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -724,7 +724,7 @@ func (this *Bitmart) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order
 	}
 	return NewOrderArray(res), nil
 }
-func (this *Bitmart) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Bitmart) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -732,22 +732,22 @@ func (this *Bitmart) FetchOrdersByStatus(status interface{}, options ...FetchOrd
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -789,22 +789,22 @@ func (this *Bitmart) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -841,22 +841,22 @@ func (this *Bitmart) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]O
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -885,22 +885,22 @@ func (this *Bitmart) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -938,12 +938,12 @@ func (this *Bitmart) FetchOrder(id string, options ...FetchOrderOptions) (Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -971,7 +971,7 @@ func (this *Bitmart) FetchDepositAddress(code string, options ...FetchDepositAdd
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1003,12 +1003,12 @@ func (this *Bitmart) Withdraw(code string, amount float64, address string, optio
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1018,7 +1018,7 @@ func (this *Bitmart) Withdraw(code string, amount float64, address string, optio
 	}
 	return NewTransaction(res), nil
 }
-func (this *Bitmart) FetchTransactionsByType(typeVar interface{}, options ...FetchTransactionsByTypeOptions) ([]Transaction, error) {
+func (this *Bitmart) FetchTransactionsByType(typeVar any, options ...FetchTransactionsByTypeOptions) ([]Transaction, error) {
 
 	opts := FetchTransactionsByTypeOptionsStruct{}
 
@@ -1026,22 +1026,22 @@ func (this *Bitmart) FetchTransactionsByType(typeVar interface{}, options ...Fet
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1070,12 +1070,12 @@ func (this *Bitmart) FetchDeposit(id string, options ...FetchDepositOptions) (Tr
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1105,22 +1105,22 @@ func (this *Bitmart) FetchDeposits(options ...FetchDepositsOptions) ([]Transacti
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1149,12 +1149,12 @@ func (this *Bitmart) FetchWithdrawal(id string, options ...FetchWithdrawalOption
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1184,22 +1184,22 @@ func (this *Bitmart) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tra
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1227,7 +1227,7 @@ func (this *Bitmart) FetchIsolatedBorrowRate(symbol string, options ...FetchIsol
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1246,7 +1246,7 @@ func (this *Bitmart) FetchIsolatedBorrowRate(symbol string, options ...FetchIsol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a list of [isolated borrow rate structures]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
  */
-func (this *Bitmart) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Bitmart) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	res := <-this.Core.FetchIsolatedBorrowRates(params...)
 	if IsError(res) {
 		return IsolatedBorrowRates{}, CreateReturnError(res)
@@ -1275,7 +1275,7 @@ func (this *Bitmart) Transfer(code string, amount float64, fromAccount string, t
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1307,22 +1307,22 @@ func (this *Bitmart) FetchTransfers(options ...FetchTransfersOptions) ([]Transfe
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1353,27 +1353,27 @@ func (this *Bitmart) FetchBorrowInterest(options ...FetchBorrowInterestOptions) 
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1401,7 +1401,7 @@ func (this *Bitmart) FetchOpenInterest(symbol string, options ...FetchOpenIntere
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1423,7 +1423,7 @@ func (this *Bitmart) FetchOpenInterest(symbol string, options ...FetchOpenIntere
  * @param {string} [params.marginMode] 'isolated' or 'cross'
  * @returns {object} response from the exchange
  */
-func (this *Bitmart) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Bitmart) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1431,20 +1431,20 @@ func (this *Bitmart) SetLeverage(leverage int64, options ...SetLeverageOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1464,7 +1464,7 @@ func (this *Bitmart) FetchFundingRate(symbol string, options ...FetchFundingRate
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1494,22 +1494,22 @@ func (this *Bitmart) FetchFundingRateHistory(options ...FetchFundingRateHistoryO
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1537,7 +1537,7 @@ func (this *Bitmart) FetchPosition(symbol string, options ...FetchPositionOption
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1566,12 +1566,12 @@ func (this *Bitmart) FetchPositions(options ...FetchPositionsOptions) ([]Positio
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1602,22 +1602,22 @@ func (this *Bitmart) FetchMyLiquidations(options ...FetchMyLiquidationsOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1661,17 +1661,17 @@ func (this *Bitmart) EditOrder(id string, symbol string, typeVar string, side st
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1702,22 +1702,22 @@ func (this *Bitmart) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, 
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1748,22 +1748,22 @@ func (this *Bitmart) FetchFundingHistory(options ...FetchFundingHistoryOptions) 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1773,7 +1773,7 @@ func (this *Bitmart) FetchFundingHistory(options ...FetchFundingHistoryOptions) 
 	}
 	return NewFundingHistoryArray(res), nil
 }
-func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdrawAddressesOptions) ([]map[string]interface{}, error) {
+func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdrawAddressesOptions) ([]map[string]any, error) {
 
 	opts := FetchWithdrawAddressesOptionsStruct{}
 
@@ -1781,17 +1781,17 @@ func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdra
 		opt(&opts)
 	}
 
-	var note interface{} = nil
+	var note any = nil
 	if opts.Note != nil {
 		note = *opts.Note
 	}
 
-	var networkCode interface{} = nil
+	var networkCode any = nil
 	if opts.NetworkCode != nil {
 		networkCode = *opts.NetworkCode
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1799,7 +1799,7 @@ func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdra
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
 
 /**
@@ -1812,7 +1812,7 @@ func (this *Bitmart) FetchWithdrawAddresses(code string, options ...FetchWithdra
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Bitmart) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Bitmart) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 
 	opts := SetPositionModeOptionsStruct{}
 
@@ -1820,20 +1820,20 @@ func (this *Bitmart) SetPositionMode(hedged bool, options ...SetPositionModeOpti
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetPositionMode(hedged, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1845,7 +1845,7 @@ func (this *Bitmart) SetPositionMode(hedged bool, options ...SetPositionModeOpti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an object detailing whether the market is in hedged or one-way mode
  */
-func (this *Bitmart) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 
 	opts := FetchPositionModeOptionsStruct{}
 
@@ -1853,31 +1853,31 @@ func (this *Bitmart) FetchPositionMode(options ...FetchPositionModeOptions) (map
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchPositionMode(symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 // missing typed methods from base
 // nolint
-func (this *Bitmart) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Bitmart) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Bitmart) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Bitmart) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Bitmart) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Bitmart) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -1964,7 +1964,7 @@ func (this *Bitmart) EditOrderWithClientOrderId(clientOrderId string, symbol str
 func (this *Bitmart) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Bitmart) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Bitmart) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Bitmart) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1973,13 +1973,13 @@ func (this *Bitmart) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks,
 func (this *Bitmart) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchBidsAsks(options...)
 }
-func (this *Bitmart) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Bitmart) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Bitmart) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Bitmart) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Bitmart) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1994,7 +1994,7 @@ func (this *Bitmart) FetchConvertTradeHistory(options ...FetchConvertTradeHistor
 func (this *Bitmart) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Bitmart) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Bitmart) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Bitmart) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -2006,10 +2006,10 @@ func (this *Bitmart) FetchDepositAddressesByNetwork(code string, options ...Fetc
 func (this *Bitmart) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Bitmart) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Bitmart) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Bitmart) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Bitmart) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
@@ -2096,7 +2096,7 @@ func (this *Bitmart) FetchOrders(options ...FetchOrdersOptions) ([]Order, error)
 func (this *Bitmart) FetchOrderStatus(id string, options ...FetchOrderStatusOptions) (string, error) {
 	return this.exchangeTyped.FetchOrderStatus(id, options...)
 }
-func (this *Bitmart) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Bitmart) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Bitmart) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
@@ -2114,13 +2114,13 @@ func (this *Bitmart) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([
 func (this *Bitmart) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Bitmart) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Bitmart) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Bitmart) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Bitmart) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Bitmart) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -2132,7 +2132,7 @@ func (this *Bitmart) FetchTransfer(id string, options ...FetchTransferOptions) (
 func (this *Bitmart) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Bitmart) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Bitmart) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
 func (this *Bitmart) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -2207,13 +2207,13 @@ func (this *Bitmart) CreateTriggerOrderWs(symbol string, typeVar string, side st
 func (this *Bitmart) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Bitmart) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Bitmart) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Bitmart) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Bitmart) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Bitmart) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2255,46 +2255,46 @@ func (this *Bitmart) FetchTickerWs(symbol string, options ...FetchTickerWsOption
 func (this *Bitmart) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Bitmart) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Bitmart) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Bitmart) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Bitmart) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Bitmart) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Bitmart) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Bitmart) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Bitmart) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Bitmart) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Bitmart) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Bitmart) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Bitmart) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Bitmart) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Bitmart) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Bitmart) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Bitmart) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Bitmart) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Bitmart) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

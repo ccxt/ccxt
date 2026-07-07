@@ -42,12 +42,14 @@ public partial class testMainClass : BaseTest
                     numInactiveCurrencies = add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                object code = exchange.safeString(currency, "code", null);
+                object code = exchange.safeString(currency, "code");
                 object withdraw = exchange.safeBool(currency, "withdraw");
                 object deposit = exchange.safeBool(currency, "deposit");
-                if (isTrue(exchange.inArray(code, requiredActiveCurrencies)))
+                object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
+                object skipUsdtForMica = isTrue(isMicaCompliant) && isTrue(isEqual(code, "USDT"));
+                if (isTrue(isTrue(isTrue(exchange.inArray(code, requiredActiveCurrencies)) && !isTrue(skipMajorCurrencyCheck)) && !isTrue(skipUsdtForMica)))
                 {
-                    assert(isTrue(skipMajorCurrencyCheck) || isTrue((isTrue(withdraw) && isTrue(deposit))), add(add("Major currency ", code), " should have withdraw and deposit flags enabled"));
+                    assert(isTrue(withdraw) && isTrue(deposit), add(add(add("Major currency ", code), " should have withdraw and deposit flags enabled ::: "), exchange.json(currency)));
                 }
             }
             // check at least X% of currencies are active

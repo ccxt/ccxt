@@ -8,10 +8,10 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestInArray() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "regirock",
-	}, map[string]interface{}{}, exchange)
-	var array interface{} = []interface{}{1, 2, 3}
+	}, map[string]any{}, exchange)
+	var array any = []any{1, 2, 3}
 	Assert(ccxt.IsEqual(exchange.InArray(1, array), true))
 	Assert(ccxt.IsEqual(exchange.InArray(2, array), true))
 	Assert(ccxt.IsEqual(exchange.InArray(3, array), true))

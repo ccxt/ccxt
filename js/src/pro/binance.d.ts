@@ -1,5 +1,5 @@
 import binanceRest from '../binance.js';
-import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
+import type { Balances, Dict, Int, Liquidation, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class binance extends binanceRest {
     describe(): any;
@@ -178,7 +178,7 @@ export default class binance extends binanceRest {
     isSpotUrl(client: Client): boolean;
     stream(type: Str, subscriptionHash: Str, numSubscriptions?: number): string;
     getWsUrl(type: any, category: any): any;
-    getFutureWsCategory(channel: any): "public" | "market";
+    getFutureWsCategory(channel: any): "market" | "public";
     getPrivateWsUrl(type: any, listenKey: any): string;
     /**
      * @method
@@ -249,7 +249,7 @@ export default class binance extends binanceRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -267,7 +267,7 @@ export default class binance extends binanceRest {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.rpi] *future only* set to true to use the RPI endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -282,7 +282,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string[]} symbols unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
     /**
@@ -297,7 +297,7 @@ export default class binance extends binanceRest {
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Diff-Book-Depth-Streams
      * @param {string} symbol unified array of symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     /**
@@ -309,7 +309,7 @@ export default class binance extends binanceRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBookWs(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleFetchOrderBook(client: Client, message: any): void;
@@ -597,7 +597,7 @@ export default class binance extends binanceRest {
     /**
      * @name binance#ensureUserDataStreamWsSubscribeSignature
      * @description watches best bid & ask for symbols
-     * @param marketType {string} only support on 'spot'
+     * @param {string} [marketType] only supports 'spot'
      * @see {@link https://developers.binance.com/docs/binance-spot-api-docs/websocket-api/user-data-stream-requests#subscribe-to-user-data-stream-through-signature-subscription-user_data Binance User Data Stream Documentation}
      * @returns Promise<number> The subscription ID for the user data stream
      */
@@ -672,7 +672,7 @@ export default class binance extends binanceRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     getAccountTypeFromSubscriptions(subscriptions: string[]): string;
-    getMarketType(method: any, market: any, params?: {}): any;
+    getMarketType(method: any, market: any, params?: {}): string;
     /**
      * @method
      * @name binance#createOrderWs

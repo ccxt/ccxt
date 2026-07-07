@@ -69,7 +69,7 @@ retrieves data on all markets for bydfi
 
 
 ```javascript
-bydfi.fetchMarkets ([params])
+bydfi.fetchMarkets (params?)
 ```
 
 
@@ -92,7 +92,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bydfi.fetchOrderBook (symbol[, limit, params])
+bydfi.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -116,7 +116,7 @@ get the list of most recent trades for a particular symbol
 
 
 ```javascript
-bydfi.fetchTrades (symbol[, since, limit, params])
+bydfi.fetchTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -143,7 +143,7 @@ fetch all trades made by the user
 
 
 ```javascript
-bydfi.fetchMyTrades (symbol[, since, limit, params])
+bydfi.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -168,7 +168,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bydfi.fetchOHLCV (symbol, timeframe[, since, limit, params])
+bydfi.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -189,7 +189,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-bydfi.fetchTickers (symbols[, params])
+bydfi.fetchTickers (symbols, params?)
 ```
 
 
@@ -210,7 +210,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bydfi.fetchTicker (symbol[, params])
+bydfi.fetchTicker (symbol, params?)
 ```
 
 
@@ -231,7 +231,7 @@ fetch the current funding rate
 
 
 ```javascript
-bydfi.fetchFundingRate (symbol[, params])
+bydfi.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -255,7 +255,7 @@ fetches historical funding rate prices
 
 
 ```javascript
-bydfi.fetchFundingRateHistory (symbol[, since, limit, params])
+bydfi.fetchFundingRateHistory (symbol, since?, limit?, params?)
 ```
 
 
@@ -292,7 +292,7 @@ create a trade order
 
 
 ```javascript
-bydfi.createOrder (symbol, type, side, amount[, price, params])
+bydfi.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -314,7 +314,7 @@ create a list of trade orders
 
 
 ```javascript
-bydfi.createOrders (orders[, params])
+bydfi.createOrders (orders, params?)
 ```
 
 
@@ -342,7 +342,7 @@ edit a trade order
 
 
 ```javascript
-bydfi.editOrder (id[, symbol, type, side, amount, price, params])
+bydfi.editOrder (id, symbol?, type?, side?, amount?, price?, params?)
 ```
 
 
@@ -364,7 +364,7 @@ edit a list of trade orders
 
 
 ```javascript
-bydfi.editOrders (orders[, params])
+bydfi.editOrders (orders, params?)
 ```
 
 
@@ -386,7 +386,7 @@ cancel all open orders in a market
 
 
 ```javascript
-bydfi.cancelAllOrders (symbol[, params])
+bydfi.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -415,7 +415,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-bydfi.fetchOpenOrders (symbol[, since, limit, params])
+bydfi.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -444,7 +444,7 @@ fetch an open order by the id
 
 
 ```javascript
-bydfi.fetchOpenOrder (id, symbol[, params])
+bydfi.fetchOpenOrder (id, symbol, params?)
 ```
 
 
@@ -471,7 +471,7 @@ fetches information on multiple canceled and closed orders made by the user
 
 
 ```javascript
-bydfi.fetchCanceledAndClosedOrders (symbol[, since, limit, params])
+bydfi.fetchCanceledAndClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -494,7 +494,7 @@ set the level of leverage for a market
 
 
 ```javascript
-bydfi.setLeverage (leverage, symbol[, params])
+bydfi.setLeverage (leverage, symbol, params?)
 ```
 
 
@@ -516,7 +516,7 @@ fetch the set leverage for a market
 
 
 ```javascript
-bydfi.fetchLeverage (symbol[, params])
+bydfi.fetchLeverage (symbol, params?)
 ```
 
 
@@ -539,7 +539,7 @@ fetch all open positions
 
 
 ```javascript
-bydfi.fetchPositions ([symbols, params])
+bydfi.fetchPositions (symbols?, params?)
 ```
 
 
@@ -561,7 +561,7 @@ fetch all open positions for specific symbol
 
 
 ```javascript
-bydfi.fetchPositionsForSymbol (symbol[, params])
+bydfi.fetchPositionsForSymbol (symbol, params?)
 ```
 
 
@@ -587,7 +587,7 @@ fetches historical positions
 
 
 ```javascript
-bydfi.fetchPositionHistory (symbol[, since, limit, params])
+bydfi.fetchPositionHistory (symbol, since?, limit?, params)
 ```
 
 
@@ -613,7 +613,7 @@ fetches historical positions
 
 
 ```javascript
-bydfi.fetchPositionsHistory (symbols[, since, limit, params])
+bydfi.fetchPositionsHistory (symbols, since?, limit?, params)
 ```
 
 
@@ -636,7 +636,7 @@ fetches the margin mode of a trading pair
 
 
 ```javascript
-bydfi.fetchMarginMode (symbol[, params])
+bydfi.fetchMarginMode (symbol, params?)
 ```
 
 
@@ -660,7 +660,7 @@ set margin mode to 'cross' or 'isolated'
 
 
 ```javascript
-bydfi.setMarginMode (marginMode, symbol[, params])
+bydfi.setMarginMode (marginMode, symbol, params?)
 ```
 
 
@@ -685,7 +685,7 @@ set hedged to true or false for a market, hedged for bydfi is set identically fo
 
 
 ```javascript
-bydfi.setPositionMode (hedged[, symbol, params])
+bydfi.setPositionMode (hedged, symbol?, params?)
 ```
 
 
@@ -709,7 +709,7 @@ fetchs the position mode, hedged or one way, hedged for bydfi is set identically
 
 
 ```javascript
-bydfi.fetchPositionMode ([symbol, params])
+bydfi.fetchPositionMode (symbol?, params?)
 ```
 
 
@@ -736,7 +736,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-bydfi.fetchBalance ([params])
+bydfi.fetchBalance (params?)
 ```
 
 
@@ -760,7 +760,7 @@ fetch a history of internal transfers made on an account
 
 
 ```javascript
-bydfi.fetchTransfers (code[, since, limit, params])
+bydfi.fetchTransfers (code, since?, limit?, params?)
 ```
 
 
@@ -783,7 +783,7 @@ fetch all deposits made to an account
 
 
 ```javascript
-bydfi.fetchDeposits (code[, since, limit, params])
+bydfi.fetchDeposits (code, since?, limit?, params?)
 ```
 
 
@@ -806,7 +806,7 @@ fetch all withdrawals made from an account
 
 
 ```javascript
-bydfi.fetchWithdrawals (code[, since, limit, params])
+bydfi.fetchWithdrawals (code, since?, limit?, params?)
 ```
 
 
@@ -827,7 +827,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bydfi.watchTicker (symbol[, params])
+bydfi.watchTicker (symbol, params?)
 ```
 
 
@@ -848,7 +848,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bydfi.unWatchTicker (symbol[, params])
+bydfi.unWatchTicker (symbol, params?)
 ```
 
 
@@ -873,7 +873,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-bydfi.watchTickers (symbols[, params])
+bydfi.watchTickers (symbols, params?)
 ```
 
 
@@ -898,7 +898,7 @@ unWatches a price ticker, a statistical calculation with the information calcula
 
 
 ```javascript
-bydfi.unWatchTickers (symbols[, params])
+bydfi.unWatchTickers (symbols, params?)
 ```
 
 
@@ -922,7 +922,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-bydfi.watchOHLCV (symbol, timeframe[, since, limit, params])
+bydfi.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -944,7 +944,7 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-bydfi.unWatchOHLCV (symbol, timeframe[, params])
+bydfi.unWatchOHLCV (symbol, timeframe, params?)
 ```
 
 
@@ -967,7 +967,7 @@ watches historical candlestick data containing the open, high, low, close price,
 
 
 ```javascript
-bydfi.watchOHLCVForSymbols (symbolsAndTimeframes[, since, limit, params])
+bydfi.watchOHLCVForSymbols (symbolsAndTimeframes, since?, limit?, params?)
 ```
 
 
@@ -988,7 +988,7 @@ unWatches historical candlestick data containing the open, high, low, and close 
 
 
 ```javascript
-bydfi.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
+bydfi.unWatchOHLCVForSymbols (symbolsAndTimeframes, params?)
 ```
 
 
@@ -998,7 +998,7 @@ bydfi.unWatchOHLCVForSymbols (symbolsAndTimeframes[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
@@ -1010,7 +1010,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bydfi.watchOrderBook (symbol[, limit, params])
+bydfi.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -1020,7 +1020,7 @@ bydfi.watchOrderBook (symbol[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
@@ -1031,7 +1031,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-bydfi.unWatchOrderBook (symbol[, params])
+bydfi.unWatchOrderBook (symbol, params?)
 ```
 
 
@@ -1041,7 +1041,7 @@ bydfi.unWatchOrderBook (symbol[, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
@@ -1053,7 +1053,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-bydfi.watchOrderBookForSymbols (symbols[, limit, params])
+bydfi.watchOrderBookForSymbols (symbols, limit?, params?)
 ```
 
 
@@ -1063,7 +1063,7 @@ bydfi.watchOrderBookForSymbols (symbols[, limit, params])
 unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>bydfi</code>](#bydfi)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bydfi.com/en/futures/websocket-market#limited-depth-information  
 
@@ -1075,7 +1075,7 @@ unWatches information on open orders with bid (buy) and ask (sell) prices, volum
 
 
 ```javascript
-bydfi.unWatchOrderBookForSymbols (symbols[, params])
+bydfi.unWatchOrderBookForSymbols (symbols, params?)
 ```
 
 
@@ -1098,7 +1098,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bydfi.watchOrders (symbol[, since, limit, params])
+bydfi.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -1121,7 +1121,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-bydfi.watchOrdersForSymbols (symbols[, since, limit, params])
+bydfi.watchOrdersForSymbols (symbols, since?, limit?, params?)
 ```
 
 
@@ -1144,7 +1144,7 @@ watch all open positions
 
 
 ```javascript
-bydfi.watchPositions ([symbols, since, limit, params])
+bydfi.watchPositions (symbols?, since?, limit?, params)
 ```
 
 
@@ -1164,6 +1164,6 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-bydfi.watchBalance ([params])
+bydfi.watchBalance (params?)
 ```
 

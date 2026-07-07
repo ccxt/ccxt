@@ -1,8 +1,5 @@
-- [Symbols](./examples/py/)
-
-
- ```python
- # -*- coding: utf-8 -*-
+```python
+# -*- coding: utf-8 -*-
 
 import os
 import sys
@@ -93,5 +90,5 @@ except Exception as e:
     dump('[' + type(e).__name__ + ']', str(e))
     dump("Usage: python " + sys.argv[0], green('id'))
     print_supported_exchanges()
- 
+
 ```

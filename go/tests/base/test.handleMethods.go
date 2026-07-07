@@ -8,19 +8,19 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func HelperTestHandleMarketTypeAndParams() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"defaultType": "valueFromOptions",
-			"fetchX": map[string]interface{}{
+			"fetchX": map[string]any{
 				"defaultType": "valueFromMethodOptions",
 			},
 		},
-	}, map[string]interface{}{}, exchange)
-	var initialParams map[string]interface{} = map[string]interface{}{
+	}, map[string]any{}, exchange)
+	var initialParams map[string]any = map[string]any{
 		"defaultType": "valueFromParam",
 	}
-	var market interface{} = exchange.SafeMarket("TEST1/TEST2")
+	var market any = exchange.SafeMarket("TEST1/TEST2")
 	ccxt.AddElementToObject(market, "type", "spot")
 	//
 	// ########### test different variations ###########
@@ -36,28 +36,28 @@ func HelperTestHandleMarketTypeAndParams() {
 	//
 	// case #2, should prevail: market.type
 	//
-	marketType2params2Variable := exchange.HandleMarketTypeAndParams("fetchX", market, map[string]interface{}{}, "valueDefault")
+	marketType2params2Variable := exchange.HandleMarketTypeAndParams("fetchX", market, map[string]any{}, "valueDefault")
 	marketType2 := ccxt.GetValue(marketType2params2Variable, 0)
 	params2 := ccxt.GetValue(marketType2params2Variable, 1)
 	Assert(ccxt.IsEqual(marketType2, "spot"))
 	//
 	// case #3, should prevail: valueDefault
 	//
-	marketType3params3Variable := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]interface{}{}, "valueDefault")
+	marketType3params3Variable := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{}, "valueDefault")
 	marketType3 := ccxt.GetValue(marketType3params3Variable, 0)
 	params3 := ccxt.GetValue(marketType3params3Variable, 1)
 	Assert(ccxt.IsEqual(marketType3, "valueDefault"))
 	//
 	// case #4, should prevail: method options
 	//
-	marketType4params4Variable := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]interface{}{})
+	marketType4params4Variable := exchange.HandleMarketTypeAndParams("fetchX", nil, map[string]any{})
 	marketType4 := ccxt.GetValue(marketType4params4Variable, 0)
 	params4 := ccxt.GetValue(marketType4params4Variable, 1)
 	Assert(ccxt.IsEqual(marketType4, "valueFromMethodOptions"))
 	//
 	// case #5, should prevail: options
 	//
-	marketType5params5Variable := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]interface{}{}, nil)
+	marketType5params5Variable := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
 	marketType5 := ccxt.GetValue(marketType5params5Variable, 0)
 	params5 := ccxt.GetValue(marketType5params5Variable, 1)
 	Assert(ccxt.IsEqual(marketType5, "valueFromOptions"))
@@ -65,7 +65,7 @@ func HelperTestHandleMarketTypeAndParams() {
 	// case #6, should prevail: spot (because hardcoded in base)
 	//
 	ccxt.AddElementToObject(exchange.Options, "defaultType", nil)
-	marketType6params6Variable := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]interface{}{}, nil)
+	marketType6params6Variable := exchange.HandleMarketTypeAndParams("fetchY", nil, map[string]any{}, nil)
 	marketType6 := ccxt.GetValue(marketType6params6Variable, 0)
 	params6 := ccxt.GetValue(marketType6params6Variable, 1)
 	Assert(ccxt.IsEqual(marketType6, "spot"))
@@ -75,20 +75,20 @@ func HelperTestHandleMarketTypeAndParams() {
 func HelperTestHandleNetworkRequest() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-		"options": map[string]interface{}{
-			"networks": map[string]interface{}{
+		"options": map[string]any{
+			"networks": map[string]any{
 				"XYZ": "Xyz",
 			},
 		},
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	exchange.Currencies = exchange.CreateSafeDictionary() // todo: initialize in C# base files
-	var currencyCode interface{} = "ETH"                  // todo: in future with complex cases
+	var currencyCode any = "ETH"                          // todo: in future with complex cases
 	// no-case
-	request1params1Variable := exchange.HandleRequestNetwork(map[string]interface{}{
+	request1params1Variable := exchange.HandleRequestNetwork(map[string]any{
 		"network": "XYZ",
-	}, map[string]interface{}{}, "chain_id", currencyCode, false)
+	}, map[string]any{}, "chain_id", currencyCode, false)
 	request1 := ccxt.GetValue(request1params1Variable, 0)
 	params1 := ccxt.GetValue(request1params1Variable, 1)
 	Assert(!ccxt.IsTrue((ccxt.InOp(params1, "network"))))

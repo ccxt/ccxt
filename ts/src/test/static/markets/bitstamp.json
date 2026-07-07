@@ -30,7 +30,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -61,8 +61,8 @@
             "base_currency": "BTC",
             "base_decimals": 8,
             "counter_currency": "USD",
-            "counter_decimals": 0,
-            "minimum_order_value": "10",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -197,7 +197,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -228,8 +228,8 @@
             "base_currency": "BTC",
             "base_decimals": 8,
             "counter_currency": "EUR",
-            "counter_decimals": 0,
-            "minimum_order_value": "10",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -698,7 +698,7 @@
         "optionType": null,
         "precision": {
             "amount": 1e-8,
-            "price": 1
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -729,8 +729,8 @@
             "base_currency": "BTC",
             "base_decimals": 8,
             "counter_currency": "USDT",
-            "counter_decimals": 0,
-            "minimum_order_value": "10",
+            "counter_decimals": 2,
+            "minimum_order_value": "10.00",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -1208,7 +1208,7 @@
             },
             "amount": {
                 "min": 0.00001,
-                "max": 10
+                "max": 20
             },
             "price": {
                 "min": null,
@@ -1216,7 +1216,7 @@
             },
             "cost": {
                 "min": 10,
-                "max": 500000
+                "max": 1000000
             }
         },
         "marginModes": {
@@ -1232,9 +1232,9 @@
             "counter_currency": "USD",
             "counter_decimals": 0,
             "minimum_order_value": "10",
-            "maximum_order_value": "500000.00000000",
+            "maximum_order_value": "1000000.00000000",
             "minimum_order_amount": "0.00001000",
-            "maximum_order_amount": "10.00000000",
+            "maximum_order_amount": "20.00000000",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -1382,7 +1382,7 @@
             },
             "amount": {
                 "min": 0.001,
-                "max": 1000
+                "max": 500
             },
             "price": {
                 "min": null,
@@ -1390,7 +1390,7 @@
             },
             "cost": {
                 "min": 10,
-                "max": 500000
+                "max": 750000
             }
         },
         "marginModes": {
@@ -1406,9 +1406,9 @@
             "counter_currency": "USD",
             "counter_decimals": 1,
             "minimum_order_value": "10.0",
-            "maximum_order_value": "500000.00000000",
+            "maximum_order_value": "750000.00000000",
             "minimum_order_amount": "0.00100000",
-            "maximum_order_amount": "1000.00000000",
+            "maximum_order_amount": "500.00000000",
             "trading": "Enabled",
             "instant_order_counter_decimals": 2,
             "instant_and_market_orders": "Enabled",
@@ -1418,6 +1418,173 @@
             "payoff_type": "Linear",
             "contract_size": "1.00000000",
             "isin": "EZTS6C9N08Q8"
+        },
+        "tierBased": true,
+        "percentage": true,
+        "tiers": {
+            "taker": [
+                [
+                    0,
+                    0.004
+                ],
+                [
+                    10000,
+                    0.003
+                ],
+                [
+                    100000,
+                    0.002
+                ],
+                [
+                    500000,
+                    0.0018
+                ],
+                [
+                    1500000,
+                    0.0016
+                ],
+                [
+                    5000000,
+                    0.0012
+                ],
+                [
+                    20000000,
+                    0.001
+                ],
+                [
+                    50000000,
+                    0.0008
+                ],
+                [
+                    100000000,
+                    0.0006
+                ],
+                [
+                    250000000,
+                    0.0005
+                ],
+                [
+                    1000000000,
+                    0.0003
+                ]
+            ],
+            "maker": [
+                [
+                    0,
+                    0.003
+                ],
+                [
+                    10000,
+                    0.002
+                ],
+                [
+                    100000,
+                    0.001
+                ],
+                [
+                    500000,
+                    0.0008
+                ],
+                [
+                    1500000,
+                    0.0006
+                ],
+                [
+                    5000000,
+                    0.0003
+                ],
+                [
+                    20000000,
+                    0.002
+                ],
+                [
+                    50000000,
+                    0.0001
+                ],
+                [
+                    100000000,
+                    0
+                ],
+                [
+                    250000000,
+                    0
+                ],
+                [
+                    1000000000,
+                    0
+                ]
+            ]
+        }
+    },
+    "LINK/USD": {
+        "id": "linkusd",
+        "lowercaseId": null,
+        "symbol": "LINK/USD",
+        "base": "LINK",
+        "quote": "USD",
+        "settle": null,
+        "baseId": "LINK",
+        "quoteId": "USD",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": null,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": 0.004,
+        "maker": 0.004,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": 10,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "name": "LINK/USD",
+            "market_symbol": "linkusd",
+            "base_currency": "LINK",
+            "base_decimals": 4,
+            "counter_currency": "USD",
+            "counter_decimals": 4,
+            "minimum_order_value": "10.0000",
+            "trading": "Enabled",
+            "instant_order_counter_decimals": 4,
+            "instant_and_market_orders": "Enabled",
+            "description": "Chainlink / U.S. dollar",
+            "market_type": "SPOT"
         },
         "tierBased": true,
         "percentage": true,

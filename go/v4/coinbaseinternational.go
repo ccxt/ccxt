@@ -13,20 +13,20 @@ func NewCoinbaseinternationalCore() *CoinbaseinternationalCore {
 	return p
 }
 
-func (this *CoinbaseinternationalCore) Describe() interface{} {
-	return this.DeepExtend(this.Exchange.Describe(), map[string]interface{}{
+func (this *CoinbaseinternationalCore) Describe() any {
+	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "coinbaseinternational",
 		"name":      "Coinbase International",
-		"countries": []interface{}{"US"},
+		"countries": []any{"US"},
 		"certified": false,
 		"pro":       true,
 		"rateLimit": 100,
 		"version":   "v1",
 		"userAgent": GetValue(this.UserAgents, "chrome"),
-		"headers": map[string]interface{}{
+		"headers": map[string]any{
 			"CB-VERSION": "2018-05-30",
 		},
-		"has": map[string]interface{}{
+		"has": map[string]any{
 			"CORS":                          true,
 			"spot":                          true,
 			"margin":                        true,
@@ -112,53 +112,53 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 			"setPositionMode":               false,
 			"withdraw":                      true,
 		},
-		"urls": map[string]interface{}{
+		"urls": map[string]any{
 			"logo": "https://github.com/ccxt/ccxt/assets/43336371/866ae638-6ab5-4ebf-ab2c-cdcce9545625",
-			"api": map[string]interface{}{
+			"api": map[string]any{
 				"rest": "https://api.international.coinbase.com/api",
 			},
-			"test": map[string]interface{}{
+			"test": map[string]any{
 				"rest": "https://api-n5e1.coinbase.com/api",
 			},
 			"www":      "https://international.coinbase.com",
-			"doc":      []interface{}{"https://docs.cloud.coinbase.com/intx/docs"},
-			"fees":     []interface{}{"https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees"},
+			"doc":      []any{"https://docs.cloud.coinbase.com/intx/docs"},
+			"fees":     []any{"https://help.coinbase.com/en/international-exchange/trading-deposits-withdrawals/international-exchange-fees"},
 			"referral": "",
 		},
-		"requiredCredentials": map[string]interface{}{
+		"requiredCredentials": map[string]any{
 			"apiKey":   true,
 			"secret":   true,
 			"password": true,
 		},
-		"api": map[string]interface{}{
-			"v1": map[string]interface{}{
-				"public": map[string]interface{}{
-					"get": []interface{}{"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"},
+		"api": map[string]any{
+			"v1": map[string]any{
+				"public": map[string]any{
+					"get": []any{"assets", "assets/{assets}", "assets/{asset}/networks", "instruments", "instruments/{instrument}", "instruments/{instrument}/quote", "instruments/{instrument}/funding", "instruments/{instrument}/candles"},
 				},
-				"private": map[string]interface{}{
-					"get":    []interface{}{"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"},
-					"post":   []interface{}{"orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty"},
-					"put":    []interface{}{"orders/{id}", "portfolios/{portfolio}"},
-					"delete": []interface{}{"orders", "orders/{id}"},
+				"private": map[string]any{
+					"get":    []any{"orders", "orders/{id}", "portfolios", "portfolios/{portfolio}", "portfolios/{portfolio}/detail", "portfolios/{portfolio}/summary", "portfolios/{portfolio}/balances", "portfolios/{portfolio}/balances/{asset}", "portfolios/{portfolio}/positions", "portfolios/{portfolio}/positions/{instrument}", "portfolios/fills", "portfolios/{portfolio}/fills", "transfers", "transfers/{transfer_uuid}"},
+					"post":   []any{"orders", "portfolios", "portfolios/margin", "portfolios/transfer", "transfers/withdraw", "transfers/address", "transfers/create-counterparty-id", "transfers/validate-counterparty-id", "transfers/withdraw/counterparty"},
+					"put":    []any{"orders/{id}", "portfolios/{portfolio}"},
+					"delete": []any{"orders", "orders/{id}"},
 				},
 			},
 		},
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
+		"fees": map[string]any{
+			"trading": map[string]any{
 				"taker":      this.ParseNumber("0.004"),
 				"maker":      this.ParseNumber("0.002"),
 				"tierBased":  true,
 				"percentage": true,
-				"tiers": map[string]interface{}{
-					"taker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.004")}, []interface{}{this.ParseNumber("1000000"), this.ParseNumber("0.004")}, []interface{}{this.ParseNumber("5000000"), this.ParseNumber("0.0035")}, []interface{}{this.ParseNumber("10000000"), this.ParseNumber("0.0035")}, []interface{}{this.ParseNumber("50000000"), this.ParseNumber("0.003")}, []interface{}{this.ParseNumber("250000000"), this.ParseNumber("0.0025")}},
-					"maker": []interface{}{[]interface{}{this.ParseNumber("0"), this.ParseNumber("0.002")}, []interface{}{this.ParseNumber("1000000"), this.ParseNumber("0.0016")}, []interface{}{this.ParseNumber("5000000"), this.ParseNumber("0.001")}, []interface{}{this.ParseNumber("10000000"), this.ParseNumber("0.0008")}, []interface{}{this.ParseNumber("50000000"), this.ParseNumber("0.0005")}, []interface{}{this.ParseNumber("250000000"), this.ParseNumber("0")}},
+				"tiers": map[string]any{
+					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.004")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.004")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0035")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0035")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.003")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0.0025")}},
+					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.002")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("50000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("250000000"), this.ParseNumber("0")}},
 				},
 			},
 		},
 		"precisionMode": TICK_SIZE,
-		"exceptions": map[string]interface{}{
-			"exact": map[string]interface{}{},
-			"broad": map[string]interface{}{
+		"exceptions": map[string]any{
+			"exact": map[string]any{},
+			"broad": map[string]any{
 				"DUPLICATE_CLIENT_ORDER_ID":                 DuplicateOrderId,
 				"Order rejected":                            InvalidOrder,
 				"market orders must be IoC":                 InvalidOrder,
@@ -172,7 +172,7 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 				"cbe spot routing instrument not supported": NotSupported,
 			},
 		},
-		"timeframes": map[string]interface{}{
+		"timeframes": map[string]any{
 			"1m":  "ONE_MINUTE",
 			"5m":  "FIVE_MINUTE",
 			"15m": "FIFTEEN_MINUTE",
@@ -182,13 +182,13 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 			"6h":  "SIX_HOUR",
 			"1d":  "ONE_DAY",
 		},
-		"options": map[string]interface{}{
+		"options": map[string]any{
 			"brokerId":  "nfqkvdjp",
 			"portfolio": "",
-			"withdraw": map[string]interface{}{
+			"withdraw": map[string]any{
 				"method": "v1PrivatePostTransfersWithdraw",
 			},
-			"networksById": map[string]interface{}{
+			"networksById": map[string]any{
 				"ethereum":  "ETH",
 				"arbitrum":  "ARBITRUM",
 				"avacchain": "AVAX",
@@ -198,10 +198,10 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 				"bitcoin":   "BTC",
 			},
 		},
-		"features": map[string]interface{}{
-			"default": map[string]interface{}{
+		"features": map[string]any{
+			"default": map[string]any{
 				"sandbox": true,
-				"createOrder": map[string]interface{}{
+				"createOrder": map[string]any{
 					"marginMode":                 false,
 					"triggerPrice":               true,
 					"triggerPriceType":           nil,
@@ -209,7 +209,7 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 					"stopLossPrice":              false,
 					"takeProfitPrice":            false,
 					"attachedStopLossTakeProfit": nil,
-					"timeInForce": map[string]interface{}{
+					"timeInForce": map[string]any{
 						"IOC": true,
 						"FOK": true,
 						"PO":  true,
@@ -225,20 +225,20 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 					"iceberg":                false,
 				},
 				"createOrders": nil,
-				"fetchMyTrades": map[string]interface{}{
+				"fetchMyTrades": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"daysBack":       nil,
 					"untilDays":      10000,
 					"symbolRequired": false,
 				},
-				"fetchOrder": map[string]interface{}{
+				"fetchOrder": map[string]any{
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOpenOrders": map[string]interface{}{
+				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,
 					"limit":          100,
 					"trigger":        false,
@@ -247,61 +247,61 @@ func (this *CoinbaseinternationalCore) Describe() interface{} {
 				},
 				"fetchOrders":       nil,
 				"fetchClosedOrders": nil,
-				"fetchOHLCV": map[string]interface{}{
+				"fetchOHLCV": map[string]any{
 					"limit": 300,
 				},
 			},
-			"spot": map[string]interface{}{
+			"spot": map[string]any{
 				"extends": "default",
 			},
-			"swap": map[string]interface{}{
-				"linear": map[string]interface{}{
+			"swap": map[string]any{
+				"linear": map[string]any{
 					"extends": "default",
 				},
-				"inverse": map[string]interface{}{
+				"inverse": map[string]any{
 					"extends": "default",
 				},
 			},
-			"future": map[string]interface{}{
+			"future": map[string]any{
 				"linear":  nil,
 				"inverse": nil,
 			},
 		},
 	})
 }
-func (this *CoinbaseinternationalCore) HandlePortfolioAndParams(methodName interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) HandlePortfolioAndParams(methodName any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := this.HandleOptionAndParams(params, methodName, "portfolio")
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
 		if IsTrue(IsTrue((!IsEqual(portfolio, nil))) && IsTrue((!IsEqual(portfolio, "")))) {
 
-			ch <- []interface{}{portfolio, params}
+			ch <- []any{portfolio, params}
 			return nil
 		}
-		var defaultPortfolio interface{} = this.SafeString(this.Options, "portfolio")
+		var defaultPortfolio any = this.SafeString(this.Options, "portfolio")
 		if IsTrue(IsTrue((!IsEqual(defaultPortfolio, nil))) && IsTrue((!IsEqual(defaultPortfolio, "")))) {
 
-			ch <- []interface{}{defaultPortfolio, params}
+			ch <- []any{defaultPortfolio, params}
 			return nil
 		}
 
 		accounts := (<-this.FetchAccounts())
 		PanicOnError(accounts)
 		for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
-			var account interface{} = GetValue(accounts, i)
-			var info interface{} = this.SafeDict(account, "info", map[string]interface{}{})
+			var account any = GetValue(accounts, i)
+			var info any = this.SafeDict(account, "info", map[string]any{})
 			if IsTrue(this.SafeBool(info, "is_default")) {
-				var portfolioId interface{} = this.SafeString(info, "portfolio_id")
+				var portfolioId any = this.SafeString(info, "portfolio_id")
 				AddElementToObject(this.Options, "portfolio", portfolioId)
 
-				ch <- []interface{}{portfolioId, params}
+				ch <- []any{portfolioId, params}
 				return nil
 			}
 		}
@@ -310,12 +310,14 @@ func (this *CoinbaseinternationalCore) HandlePortfolioAndParams(methodName inter
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) HandleNetworkIdAndParams(currencyCode interface{}, methodName interface{}, params interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) HandleNetworkIdAndParams(currencyCode any, methodName any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		var networkId interface{} = nil
+		params := GetArg(optionalArgs, 0, map[string]any{})
+		_ = params
+		var networkId any = nil
 		networkIdparamsVariable := this.HandleOptionAndParams(params, methodName, "network_arn_id")
 		networkId = GetValue(networkIdparamsVariable, 0)
 		params = GetValue(networkIdparamsVariable, 1)
@@ -323,21 +325,21 @@ func (this *CoinbaseinternationalCore) HandleNetworkIdAndParams(currencyCode int
 
 			retRes35912 := (<-this.LoadCurrencyNetworks(currencyCode))
 			PanicOnError(retRes35912)
-			var networks interface{} = GetValue(GetValue(this.Currencies, currencyCode), "networks")
-			var network interface{} = this.SafeString2(params, "networkCode", "network")
+			var networks any = GetValue(GetValue(this.Currencies, currencyCode), "networks")
+			var network any = this.SafeString2(params, "networkCode", "network")
 			if IsTrue(IsEqual(network, nil)) {
 				// find default network
 				if IsTrue(this.IsEmpty(networks)) {
 					panic(BadRequest(Add(Add(Add(this.Id, " createDepositAddress network not found for currency "), currencyCode), " please specify networkId in params")))
 				}
-				var defaultNetwork interface{} = this.FindDefaultNetwork(networks)
+				var defaultNetwork any = this.FindDefaultNetwork(networks)
 				networkId = GetValue(defaultNetwork, "id")
 			} else {
 				networkId = this.NetworkCodeToId(network, currencyCode)
 			}
 		}
 
-		ch <- []interface{}{networkId, params}
+		ch <- []any{networkId, params}
 		return nil
 
 	}()
@@ -352,16 +354,18 @@ func (this *CoinbaseinternationalCore) HandleNetworkIdAndParams(currencyCode int
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
  */
-func (this *CoinbaseinternationalCore) FetchAccounts(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchAccounts(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes3858 := (<-this.LoadMarkets())
-		PanicOnError(retRes3858)
+			retRes38612 := (<-this.LoadMarkets())
+			PanicOnError(retRes38612)
+		}
 
 		response := (<-this.V1PrivateGetPortfolios(params))
 		PanicOnError(response)
@@ -389,7 +393,7 @@ func (this *CoinbaseinternationalCore) FetchAccounts(optionalArgs ...interface{}
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseAccount(account interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseAccount(account any) any {
 	//
 	//    {
 	//       "portfolio_id":"1ap32qsc-1-0",
@@ -405,7 +409,7 @@ func (this *CoinbaseinternationalCore) ParseAccount(account interface{}) interfa
 	//       "cross_collateral_enabled":false
 	//    }
 	//
-	return map[string]interface{}{
+	return map[string]any{
 		"id":   this.SafeString2(account, "portfolio_id", "portfolio_uuid"),
 		"type": nil,
 		"code": nil,
@@ -427,9 +431,9 @@ func (this *CoinbaseinternationalCore) ParseAccount(account interface{}) interfa
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  */
-func (this *CoinbaseinternationalCore) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		timeframe := GetArg(optionalArgs, 0, "1m")
@@ -438,24 +442,26 @@ func (this *CoinbaseinternationalCore) FetchOHLCV(symbol interface{}, optionalAr
 		_ = since
 		limit := GetArg(optionalArgs, 2, 100)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes4468 := (<-this.LoadMarkets())
-		PanicOnError(retRes4468)
-		var paginate interface{} = false
+			retRes44912 := (<-this.LoadMarkets())
+			PanicOnError(retRes44912)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes45019 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
-			PanicOnError(retRes45019)
-			ch <- retRes45019
+			retRes45419 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 10000))
+			PanicOnError(retRes45419)
+			ch <- retRes45419
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"instrument":  GetValue(market, "id"),
 			"granularity": this.SafeString(this.Timeframes, timeframe, timeframe),
 		}
@@ -464,7 +470,7 @@ func (this *CoinbaseinternationalCore) FetchOHLCV(symbol interface{}, optionalAr
 		} else {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a since argument")))
 		}
-		var unitl interface{} = this.SafeInteger(params, "until")
+		var unitl any = this.SafeInteger(params, "until")
 		if IsTrue(!IsEqual(unitl, nil)) {
 			params = this.Omit(params, "until")
 			AddElementToObject(request, "end", this.Iso8601(unitl))
@@ -486,7 +492,7 @@ func (this *CoinbaseinternationalCore) FetchOHLCV(symbol interface{}, optionalAr
 		//       ]
 		//   }
 		//
-		var candles interface{} = this.SafeList(response, "aggregations", []interface{}{})
+		var candles any = this.SafeList(response, "aggregations", []any{})
 
 		ch <- this.ParseOHLCVs(candles, market, timeframe, since, limit)
 		return nil
@@ -494,7 +500,7 @@ func (this *CoinbaseinternationalCore) FetchOHLCV(symbol interface{}, optionalAr
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	//   {
 	//     "start": "2024-04-23T00:00:00Z",
@@ -507,7 +513,7 @@ func (this *CoinbaseinternationalCore) ParseOHLCV(ohlcv interface{}, optionalArg
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	return []interface{}{this.Parse8601(this.SafeString2(ohlcv, "start", "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
+	return []any{this.Parse8601(this.SafeString2(ohlcv, "start", "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")}
 }
 
 /**
@@ -522,9 +528,9 @@ func (this *CoinbaseinternationalCore) ParseOHLCV(ohlcv interface{}, optionalArg
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
-func (this *CoinbaseinternationalCore) FetchFundingRateHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -533,35 +539,38 @@ func (this *CoinbaseinternationalCore) FetchFundingRateHistory(optionalArgs ...i
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5238 := (<-this.LoadMarkets())
-		PanicOnError(retRes5238)
-		var paginate interface{} = false
+			retRes52812 := (<-this.LoadMarkets())
+			PanicOnError(retRes52812)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
-		var maxEntriesPerRequest interface{} = nil
+		var maxEntriesPerRequest any = nil
 		maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "maxEntriesPerRequest", 100)
 		maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 		params = GetValue(maxEntriesPerRequestparamsVariable, 1)
-		var pageKey interface{} = "ccxtPageKey"
+		var pageKey any = "ccxtPageKey"
 		if IsTrue(paginate) {
 
-			retRes53019 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes53019)
-			ch <- retRes53019
+			retRes53619 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes53619)
+			ch <- retRes53619
 			return nil
 		}
-		var market interface{} = this.Market(symbol)
-		var page interface{} = Subtract(this.SafeInteger(params, pageKey, 1), 1)
-		var request interface{} = map[string]interface{}{
+		var market any = this.Market(symbol)
+		var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
+		var offSet any = this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest))
+		var request any = map[string]any{
 			"instrument":    GetValue(market, "id"),
-			"result_offset": this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest)),
+			"result_offset": offSet,
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			AddElementToObject(request, "result_limit", limit)
@@ -586,7 +595,7 @@ func (this *CoinbaseinternationalCore) FetchFundingRateHistory(optionalArgs ...i
 		//        ]
 		//    }
 		//
-		var rawRates interface{} = this.SafeList(response, "results", []interface{}{})
+		var rawRates any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseFundingRateHistories(rawRates, market, since, limit)
 		return nil
@@ -594,12 +603,12 @@ func (this *CoinbaseinternationalCore) FetchFundingRateHistory(optionalArgs ...i
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseFundingRateHistory(info interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseFundingRateHistory(info any, optionalArgs ...any) any {
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseFundingRate(info, market)
 }
-func (this *CoinbaseinternationalCore) ParseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseFundingRate(contract any, optionalArgs ...any) any {
 	//
 	//    {
 	//       "instrument_id":"149264167780483072",
@@ -610,8 +619,8 @@ func (this *CoinbaseinternationalCore) ParseFundingRate(contract interface{}, op
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var fundingDatetime interface{} = this.SafeString2(contract, "event_time", "time")
-	return map[string]interface{}{
+	var fundingDatetime any = this.SafeString2(contract, "event_time", "time")
+	return map[string]any{
 		"info":                     contract,
 		"symbol":                   this.SafeSymbol(nil, market),
 		"markPrice":                this.SafeNumber(contract, "mark_price"),
@@ -643,9 +652,9 @@ func (this *CoinbaseinternationalCore) ParseFundingRate(contract interface{}, op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
-func (this *CoinbaseinternationalCore) FetchFundingHistory(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -654,19 +663,21 @@ func (this *CoinbaseinternationalCore) FetchFundingHistory(optionalArgs ...inter
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6108 := (<-this.LoadMarkets())
-		PanicOnError(retRes6108)
-		var request interface{} = map[string]interface{}{
+			retRes61812 := (<-this.LoadMarkets())
+			PanicOnError(retRes61812)
+		}
+		var request any = map[string]any{
 			"type": "FUNDING",
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var portfolios interface{} = nil
+		var portfolios any = nil
 		portfoliosparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "portfolios")
 		portfolios = GetValue(portfoliosparamsVariable, 0)
 		params = GetValue(portfoliosparamsVariable, 1)
@@ -684,7 +695,7 @@ func (this *CoinbaseinternationalCore) FetchFundingHistory(optionalArgs ...inter
 
 		response := (<-this.V1PrivateGetTransfers(this.Extend(request, params)))
 		PanicOnError(response)
-		var fundings interface{} = this.SafeList(response, "results", []interface{}{})
+		var fundings any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseIncomes(fundings, market, since, limit)
 		return nil
@@ -692,7 +703,7 @@ func (this *CoinbaseinternationalCore) FetchFundingHistory(optionalArgs ...inter
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseIncome(income interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseIncome(income any, optionalArgs ...any) any {
 	//
 	// {
 	//     "amount":"0.0008",
@@ -717,13 +728,13 @@ func (this *CoinbaseinternationalCore) ParseIncome(income interface{}, optionalA
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(income, "symbol")
+	var marketId any = this.SafeString(income, "symbol")
 	market = this.SafeMarket(marketId, market, nil, "contract")
-	var datetime interface{} = this.SafeInteger(income, "created_at")
-	var timestamp interface{} = this.Parse8601(datetime)
-	var currencyId interface{} = this.SafeString(income, "asset")
-	var code interface{} = this.SafeCurrencyCode(currencyId)
-	return map[string]interface{}{
+	var datetime any = this.SafeInteger(income, "created_at")
+	var timestamp any = this.Parse8601(datetime)
+	var currencyId any = this.SafeString(income, "asset")
+	var code any = this.SafeCurrencyCode(currencyId)
+	return map[string]any{
 		"info":      income,
 		"symbol":    GetValue(market, "symbol"),
 		"code":      code,
@@ -746,9 +757,9 @@ func (this *CoinbaseinternationalCore) ParseIncome(income interface{}, optionalA
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *CoinbaseinternationalCore) FetchTransfers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchTransfers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -757,19 +768,21 @@ func (this *CoinbaseinternationalCore) FetchTransfers(optionalArgs ...interface{
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6898 := (<-this.LoadMarkets())
-		PanicOnError(retRes6898)
-		var request interface{} = map[string]interface{}{
+			retRes69912 := (<-this.LoadMarkets())
+			PanicOnError(retRes69912)
+		}
+		var request any = map[string]any{
 			"type": "INTERNAL",
 		}
-		var currency interface{} = nil
+		var currency any = nil
 		if IsTrue(!IsEqual(code, nil)) {
 			currency = this.Currency(code)
 		}
-		var portfolios interface{} = nil
+		var portfolios any = nil
 		portfoliosparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "portfolios")
 		portfolios = GetValue(portfoliosparamsVariable, 0)
 		params = GetValue(portfoliosparamsVariable, 1)
@@ -787,7 +800,7 @@ func (this *CoinbaseinternationalCore) FetchTransfers(optionalArgs ...interface{
 
 		response := (<-this.V1PrivateGetTransfers(this.Extend(request, params)))
 		PanicOnError(response)
-		var transfers interface{} = this.SafeList(response, "results", []interface{}{})
+		var transfers any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseTransfers(transfers, currency, since, limit)
 		return nil
@@ -795,7 +808,7 @@ func (this *CoinbaseinternationalCore) FetchTransfers(optionalArgs ...interface{
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseTransfer(transfer interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseTransfer(transfer any, optionalArgs ...any) any {
 	//
 	// {
 	//     "amount":"0.0008",
@@ -820,15 +833,15 @@ func (this *CoinbaseinternationalCore) ParseTransfer(transfer interface{}, optio
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var datetime interface{} = this.SafeInteger(transfer, "created_at")
-	var timestamp interface{} = this.Parse8601(datetime)
-	var currencyId interface{} = this.SafeString(transfer, "asset")
-	var code interface{} = this.SafeCurrencyCode(currencyId)
-	var fromPorfolio interface{} = this.SafeDict(transfer, "from_portfolio", map[string]interface{}{})
-	var fromId interface{} = this.SafeString(fromPorfolio, "id")
-	var toPorfolio interface{} = this.SafeDict(transfer, "to_portfolio", map[string]interface{}{})
-	var toId interface{} = this.SafeString(toPorfolio, "id")
-	return map[string]interface{}{
+	var datetime any = this.SafeInteger(transfer, "created_at")
+	var timestamp any = this.Parse8601(datetime)
+	var currencyId any = this.SafeString(transfer, "asset")
+	var code any = this.SafeCurrencyCode(currencyId)
+	var fromPorfolio any = this.SafeDict(transfer, "from_portfolio", map[string]any{})
+	var fromId any = this.SafeString(fromPorfolio, "id")
+	var toPorfolio any = this.SafeDict(transfer, "to_portfolio", map[string]any{})
+	var toId any = this.SafeString(toPorfolio, "id")
+	return map[string]any{
 		"info":        transfer,
 		"id":          this.SafeString(transfer, "transfer_uuid"),
 		"timestamp":   timestamp,
@@ -840,8 +853,8 @@ func (this *CoinbaseinternationalCore) ParseTransfer(transfer interface{}, optio
 		"status":      this.ParseTransferStatus(this.SafeString(transfer, "status")),
 	}
 }
-func (this *CoinbaseinternationalCore) ParseTransferStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *CoinbaseinternationalCore) ParseTransferStatus(status any) any {
+	var statuses any = map[string]any{
 		"FAILED":    "failed",
 		"PROCESSED": "ok",
 		"NEW":       "pending",
@@ -862,31 +875,33 @@ func (this *CoinbaseinternationalCore) ParseTransferStatus(status interface{}) i
  * @param {string} [params.network] unified network code to identify the blockchain network
  * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
  */
-func (this *CoinbaseinternationalCore) CreateDepositAddress(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) CreateDepositAddress(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7828 := (<-this.LoadMarkets())
-		PanicOnError(retRes7828)
-		var method interface{} = nil
+			retRes79412 := (<-this.LoadMarkets())
+			PanicOnError(retRes79412)
+		}
+		var method any = nil
 		methodparamsVariable := this.HandleOptionAndParams(params, "createDepositAddress", "method", "v1PrivatePostTransfersAddress")
 		method = GetValue(methodparamsVariable, 0)
 		params = GetValue(methodparamsVariable, 1)
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("createDepositAddress", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio": portfolio,
 		}
 		if IsTrue(IsEqual(method, "v1PrivatePostTransfersAddress")) {
-			var currency interface{} = this.Currency(code)
+			var currency any = this.Currency(code)
 			AddElementToObject(request, "asset", GetValue(currency, "id"))
-			var networkId interface{} = nil
+			var networkId any = nil
 			networkIdparamsVariable := (<-this.HandleNetworkIdAndParams(code, "createDepositAddress", params))
 			networkId = GetValue(networkIdparamsVariable, 0)
 			params = GetValue(networkIdparamsVariable, 1)
@@ -908,10 +923,10 @@ func (this *CoinbaseinternationalCore) CreateDepositAddress(code interface{}, op
 		//        "counterparty_id":"CB2ZPUCZBE"
 		//    }
 		//
-		var tag interface{} = this.SafeString(response, "destination_tag")
-		var address interface{} = this.SafeString2(response, "address", "counterparty_id")
+		var tag any = this.SafeString(response, "destination_tag")
+		var address any = this.SafeString2(response, "address", "counterparty_id")
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"currency": code,
 			"tag":      tag,
 			"address":  address,
@@ -923,32 +938,32 @@ func (this *CoinbaseinternationalCore) CreateDepositAddress(code interface{}, op
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) FindDefaultNetwork(networks interface{}) interface{} {
-	var networksArray interface{} = this.ToArray(networks)
+func (this *CoinbaseinternationalCore) FindDefaultNetwork(networks any) any {
+	var networksArray any = this.ToArray(networks)
 	for i := 0; IsLessThan(i, GetArrayLength(networksArray)); i++ {
-		var info interface{} = GetValue(GetValue(networksArray, i), "info")
-		var is_default interface{} = this.SafeBool(info, "is_default", false)
+		var info any = GetValue(GetValue(networksArray, i), "info")
+		var is_default any = this.SafeBool(info, "is_default", false)
 		if IsTrue(IsEqual(is_default, true)) {
 			return GetValue(networksArray, i)
 		}
 	}
 	return GetValue(networksArray, 0)
 }
-func (this *CoinbaseinternationalCore) LoadCurrencyNetworks(code interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) LoadCurrencyNetworks(code any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var currency interface{} = this.Currency(code)
-		var networks interface{} = this.SafeDict(currency, "networks")
+		var currency any = this.Currency(code)
+		var networks any = this.SafeDict(currency, "networks")
 		if IsTrue(!IsEqual(networks, nil)) {
 
 			ch <- false
 			return nil
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"asset": GetValue(currency, "id"),
 		}
 
@@ -980,17 +995,17 @@ func (this *CoinbaseinternationalCore) LoadCurrencyNetworks(code interface{}, op
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseNetworks(networks interface{}, optionalArgs ...interface{}) interface{} {
-	params := GetArg(optionalArgs, 0, map[string]interface{}{})
+func (this *CoinbaseinternationalCore) ParseNetworks(networks any, optionalArgs ...any) any {
+	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var result interface{} = map[string]interface{}{}
+	var result any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(networks)); i++ {
-		var network interface{} = this.Extend(this.ParseNetwork(GetValue(networks, i)), params)
+		var network any = this.Extend(this.ParseNetwork(GetValue(networks, i)), params)
 		AddElementToObject(result, GetValue(network, "network"), network)
 	}
 	return result
 }
-func (this *CoinbaseinternationalCore) ParseNetwork(network interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseNetwork(network any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "asset_id":"1",
@@ -1006,13 +1021,13 @@ func (this *CoinbaseinternationalCore) ParseNetwork(network interface{}, optiona
 	//        "display_name":"Ethereum"
 	//    }
 	//
-	params := GetArg(optionalArgs, 0, map[string]interface{}{})
+	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
-	var currencyId interface{} = this.SafeString(network, "asset_name")
-	var currencyCode interface{} = this.SafeCurrencyCode(currencyId)
-	var networkId interface{} = this.SafeString(network, "network_arn_id")
-	var networkIdForCode interface{} = this.SafeStringN(network, []interface{}{"network_name", "display_name", "network_arn_id"}, "")
-	return this.SafeNetwork(map[string]interface{}{
+	var currencyId any = this.SafeString(network, "asset_name")
+	var currencyCode any = this.SafeCurrencyCode(currencyId)
+	var networkId any = this.SafeString(network, "network_arn_id")
+	var networkIdForCode any = this.SafeStringN(network, []any{"network_name", "display_name", "network_arn_id"}, "")
+	return this.SafeNetwork(map[string]any{
 		"info":      network,
 		"id":        networkId,
 		"name":      this.SafeString(network, "display_name"),
@@ -1022,12 +1037,12 @@ func (this *CoinbaseinternationalCore) ParseNetwork(network interface{}, optiona
 		"withdraw":  nil,
 		"precision": nil,
 		"fee":       nil,
-		"limits": map[string]interface{}{
-			"withdraw": map[string]interface{}{
+		"limits": map[string]any{
+			"withdraw": map[string]any{
 				"min": this.SafeNumber(network, "min_withdrawal_amt"),
 				"max": this.SafeNumber(network, "max_withdrawal_amt"),
 			},
-			"deposit": map[string]interface{}{
+			"deposit": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
@@ -1045,28 +1060,28 @@ func (this *CoinbaseinternationalCore) ParseNetwork(network interface{}, optiona
  * @param {object} [params] parameters specific to the exchange API endpoint
  * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
  */
-func (this *CoinbaseinternationalCore) SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) SetMargin(symbol any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("setMargin", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
 		if IsTrue(!IsEqual(symbol, nil)) {
 			panic(BadRequest(Add(this.Id, " setMargin() only allows setting margin to full portfolio")))
 		}
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio":       portfolio,
 			"margin_override": amount,
 		}
 
-		retRes93815 := (<-this.V1PrivatePostPortfoliosMargin(this.Extend(request, params)))
-		PanicOnError(retRes93815)
-		ch <- retRes93815
+		retRes95115 := (<-this.V1PrivatePostPortfoliosMargin(this.Extend(request, params)))
+		PanicOnError(retRes95115)
+		ch <- retRes95115
 		return nil
 
 	}()
@@ -1075,7 +1090,7 @@ func (this *CoinbaseinternationalCore) SetMargin(symbol interface{}, amount inte
 
 /**
  * @method
- * @name exchange#fetchDepositsWithdrawals
+ * @name coinbaseinternational#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
  * @see https://docs.cloud.coinbase.com/intx/reference/gettransfers
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
@@ -1089,9 +1104,9 @@ func (this *CoinbaseinternationalCore) SetMargin(symbol interface{}, amount inte
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1100,46 +1115,49 @@ func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9588 := (<-this.LoadMarkets())
-		PanicOnError(retRes9588)
-		var paginate interface{} = nil
+			retRes97212 := (<-this.LoadMarkets())
+			PanicOnError(retRes97212)
+		}
+		var paginate any = nil
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
-		var maxEntriesPerRequest interface{} = nil
+		var maxEntriesPerRequest any = nil
 		maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "maxEntriesPerRequest", 100)
 		maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 		params = GetValue(maxEntriesPerRequestparamsVariable, 1)
-		var pageKey interface{} = "ccxtPageKey"
+		var pageKey any = "ccxtPageKey"
 		if IsTrue(paginate) {
 
-			retRes96519 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes96519)
-			ch <- retRes96519
+			retRes98019 := (<-this.FetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes98019)
+			ch <- retRes98019
 			return nil
 		}
-		var page interface{} = Subtract(this.SafeInteger(params, pageKey, 1), 1)
-		var request interface{} = map[string]interface{}{
-			"result_offset": this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest)),
+		var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
+		var offSet any = this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest))
+		var request any = map[string]any{
+			"result_offset": offSet,
 		}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "time_from", this.Iso8601(since))
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
-			var newLimit interface{} = mathMin(limit, 100)
+			var newLimit any = mathMin(limit, 100)
 			AddElementToObject(request, "result_limit", newLimit)
 		}
-		var portfolios interface{} = nil
+		var portfolios any = nil
 		portfoliosparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "portfolios")
 		portfolios = GetValue(portfoliosparamsVariable, 0)
 		params = GetValue(portfoliosparamsVariable, 1)
 		if IsTrue(!IsEqual(portfolios, nil)) {
 			AddElementToObject(request, "portfolios", portfolios)
 		}
-		var until interface{} = nil
+		var until any = nil
 		untilparamsVariable := this.HandleOptionAndParams(params, "fetchDepositsWithdrawals", "until")
 		until = GetValue(untilparamsVariable, 0)
 		params = GetValue(untilparamsVariable, 1)
@@ -1175,7 +1193,7 @@ func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...
 		//        ]
 		//    }
 		//
-		var rawTransactions interface{} = this.SafeList(response, "results", []interface{}{})
+		var rawTransactions any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseTransactions(rawTransactions)
 		return nil
@@ -1193,22 +1211,24 @@ func (this *CoinbaseinternationalCore) FetchDepositsWithdrawals(optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *CoinbaseinternationalCore) FetchPosition(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchPosition(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes10298 := (<-this.LoadMarkets())
-		PanicOnError(retRes10298)
+			retRes104612 := (<-this.LoadMarkets())
+			PanicOnError(retRes104612)
+		}
 		symbol = this.Symbol(symbol)
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchPosition", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio":  portfolio,
 			"instrument": this.MarketId(symbol),
 		}
@@ -1237,7 +1257,7 @@ func (this *CoinbaseinternationalCore) FetchPosition(symbol interface{}, optiona
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParsePosition(position interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParsePosition(position any, optionalArgs ...any) any {
 	//
 	//    {
 	//       "symbol":"BTC-PERP",
@@ -1255,15 +1275,15 @@ func (this *CoinbaseinternationalCore) ParsePosition(position interface{}, optio
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(position, "symbol")
-	var quantity interface{} = this.SafeString(position, "net_size")
+	var marketId any = this.SafeString(position, "symbol")
+	var quantity any = this.SafeString(position, "net_size")
 	market = this.SafeMarket(marketId, market, "-")
-	var side interface{} = "long"
+	var side any = "long"
 	if IsTrue(Precise.StringLe(quantity, "0")) {
 		side = "short"
 		quantity = Precise.StringMul("-1", quantity)
 	}
-	return this.SafePosition(map[string]interface{}{
+	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
 		"symbol":                      GetValue(market, "symbol"),
@@ -1299,23 +1319,25 @@ func (this *CoinbaseinternationalCore) ParsePosition(position interface{}, optio
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
  */
-func (this *CoinbaseinternationalCore) FetchPositions(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchPositions(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11178 := (<-this.LoadMarkets())
-		PanicOnError(retRes11178)
-		var portfolio interface{} = nil
+			retRes113612 := (<-this.LoadMarkets())
+			PanicOnError(retRes113612)
+		}
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchPositions", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio": portfolio,
 		}
 
@@ -1338,7 +1360,7 @@ func (this *CoinbaseinternationalCore) FetchPositions(optionalArgs ...interface{
 		//        }
 		//    ]
 		//
-		var positions interface{} = this.ParsePositions(response)
+		var positions any = this.ParsePositions(response)
 		if IsTrue(this.IsEmpty(symbols)) {
 
 			ch <- positions
@@ -1369,9 +1391,9 @@ func (this *CoinbaseinternationalCore) FetchPositions(optionalArgs ...interface{
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *CoinbaseinternationalCore) FetchWithdrawals(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchWithdrawals(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1380,16 +1402,18 @@ func (this *CoinbaseinternationalCore) FetchWithdrawals(optionalArgs ...interfac
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11668 := (<-this.LoadMarkets())
-		PanicOnError(retRes11668)
+			retRes118712 := (<-this.LoadMarkets())
+			PanicOnError(retRes118712)
+		}
 		AddElementToObject(params, "type", "WITHDRAW")
 
-		retRes116815 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
-		PanicOnError(retRes116815)
-		ch <- retRes116815
+		retRes119015 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
+		PanicOnError(retRes119015)
+		ch <- retRes119015
 		return nil
 
 	}()
@@ -1411,9 +1435,9 @@ func (this *CoinbaseinternationalCore) FetchWithdrawals(optionalArgs ...interfac
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *CoinbaseinternationalCore) FetchDeposits(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchDeposits(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		code := GetArg(optionalArgs, 0, nil)
@@ -1422,23 +1446,25 @@ func (this *CoinbaseinternationalCore) FetchDeposits(optionalArgs ...interface{}
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11878 := (<-this.LoadMarkets())
-		PanicOnError(retRes11878)
+			retRes121012 := (<-this.LoadMarkets())
+			PanicOnError(retRes121012)
+		}
 		AddElementToObject(params, "type", "DEPOSIT")
 
-		retRes118915 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
-		PanicOnError(retRes118915)
-		ch <- retRes118915
+		retRes121315 := (<-this.FetchDepositsWithdrawals(code, since, limit, params))
+		PanicOnError(retRes121315)
+		ch <- retRes121315
 		return nil
 
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseTransactionStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *CoinbaseinternationalCore) ParseTransactionStatus(status any) any {
+	var statuses any = map[string]any{
 		"PROCESSED": "ok",
 		"NEW":       "pending",
 		"STARTED":   "pending",
@@ -1446,7 +1472,7 @@ func (this *CoinbaseinternationalCore) ParseTransactionStatus(status interface{}
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *CoinbaseinternationalCore) ParseTransaction(transaction interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseTransaction(transaction any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "idem":"8e471d77-4208-45a8-9e5b-f3bd8a2c1fc3"
@@ -1454,18 +1480,19 @@ func (this *CoinbaseinternationalCore) ParseTransaction(transaction interface{},
 	// const transactionType = this.safeString (transaction, 'type');
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var datetime interface{} = this.SafeString(transaction, "updated_at")
-	var fromPorfolio interface{} = this.SafeDict(transaction, "from_portfolio", map[string]interface{}{})
-	var addressFrom interface{} = this.SafeStringN(transaction, []interface{}{"from_address", "from_cb_account", this.SafeStringN(fromPorfolio, []interface{}{"id", "uuid", "name"}), "from_counterparty_id"})
-	var toPorfolio interface{} = this.SafeDict(transaction, "from_portfolio", map[string]interface{}{})
-	var addressTo interface{} = this.SafeStringN(transaction, []interface{}{"to_address", "to_cb_account", this.SafeStringN(toPorfolio, []interface{}{"id", "uuid", "name"}), "to_counterparty_id"})
-	return map[string]interface{}{
+	var datetime any = this.SafeString(transaction, "updated_at")
+	var fromPorfolio any = this.SafeDict(transaction, "from_portfolio", map[string]any{})
+	var addressFrom any = this.SafeStringN(transaction, []any{"from_address", "from_cb_account", this.SafeStringN(fromPorfolio, []any{"id", "uuid", "name"}), "from_counterparty_id"})
+	var toPorfolio any = this.SafeDict(transaction, "from_portfolio", map[string]any{})
+	var addressTo any = this.SafeStringN(transaction, []any{"to_address", "to_cb_account", this.SafeStringN(toPorfolio, []any{"id", "uuid", "name"}), "to_counterparty_id"})
+	var code any = this.SafeString(currency, "code")
+	return map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "transfer_uuid"),
 		"txid":        this.SafeString(transaction, "transaction_uuid"),
 		"timestamp":   this.Parse8601(datetime),
 		"datetime":    datetime,
-		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network_name")),
+		"network":     this.NetworkIdToCode(this.SafeString(transaction, "network_name"), code),
 		"address":     nil,
 		"addressTo":   addressTo,
 		"addressFrom": addressFrom,
@@ -1477,13 +1504,13 @@ func (this *CoinbaseinternationalCore) ParseTransaction(transaction interface{},
 		"currency":    this.SafeCurrencyCode(this.SafeString(transaction, "asset"), currency),
 		"status":      this.ParseTransactionStatus(this.SafeString(transaction, "status")),
 		"updated":     this.Parse8601(datetime),
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"cost":     nil,
 			"currency": nil,
 		},
 	}
 }
-func (this *CoinbaseinternationalCore) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseTrade(trade any, optionalArgs ...any) any {
 	//
 	//    {
 	//       "portfolio_id":"1wp37qsc-1-0",
@@ -1518,9 +1545,9 @@ func (this *CoinbaseinternationalCore) ParseTrade(trade interface{}, optionalArg
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(trade, "symbol")
-	var datetime interface{} = this.SafeString(trade, "event_time")
-	return this.SafeTrade(map[string]interface{}{
+	var marketId any = this.SafeString(trade, "symbol")
+	var datetime any = this.SafeString(trade, "event_time")
+	return this.SafeTrade(map[string]any{
 		"info":         trade,
 		"id":           this.SafeString2(trade, "fill_id", "exec_id"),
 		"order":        this.SafeString(trade, "order_id"),
@@ -1533,7 +1560,7 @@ func (this *CoinbaseinternationalCore) ParseTrade(trade interface{}, optionalArg
 		"price":        this.SafeNumber(trade, "fill_price"),
 		"amount":       this.SafeNumber(trade, "fill_qty"),
 		"cost":         nil,
-		"fee": map[string]interface{}{
+		"fee": map[string]any{
 			"cost":     this.SafeNumber(trade, "fee"),
 			"currency": this.SafeCurrencyCode(this.SafeString(trade, "fee_asset")),
 		},
@@ -1548,12 +1575,12 @@ func (this *CoinbaseinternationalCore) ParseTrade(trade interface{}, optionalArg
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *CoinbaseinternationalCore) FetchMarkets(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchMarkets(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		response := (<-this.V1PublicGetInstruments(params))
@@ -1614,7 +1641,7 @@ func (this *CoinbaseinternationalCore) FetchMarkets(optionalArgs ...interface{})
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseMarket(market interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseMarket(market any) any {
 	//
 	//   {
 	//       "instrument_id":"149264164756389888",
@@ -1661,28 +1688,30 @@ func (this *CoinbaseinternationalCore) ParseMarket(market interface{}) interface
 	//       }
 	//    }
 	//
-	var marketId interface{} = this.SafeString(market, "symbol")
-	var baseId interface{} = this.SafeString(market, "base_asset_name")
-	var quoteId interface{} = this.SafeString(market, "quote_asset_name")
-	var typeId interface{} = this.SafeString(market, "type") // 'SPOT', 'PERP'
-	var isSpot interface{} = (IsEqual(typeId, "SPOT"))
-	var fees interface{} = this.Fees
-	var symbol interface{} = Add(Add(baseId, "/"), quoteId)
-	var settleId interface{} = nil
+	var marketId any = this.SafeString(market, "symbol")
+	var baseId any = this.SafeString(market, "base_asset_name")
+	var quoteId any = this.SafeString(market, "quote_asset_name")
+	var typeId any = this.SafeString(market, "type") // 'SPOT', 'PERP'
+	var isSpot any = (IsEqual(typeId, "SPOT"))
+	var fees any = this.Fees
+	var symbol any = Add(Add(baseId, "/"), quoteId)
+	var settleId any = nil
 	if !IsTrue(isSpot) {
 		settleId = quoteId
 		symbol = Add(symbol, Add(":", quoteId))
 	}
-	return map[string]interface{}{
+	var isLinear any = Ternary(IsTrue(isSpot), nil, (IsEqual(settleId, quoteId)))
+	var isInverse any = Ternary(IsTrue(isSpot), nil, (!IsEqual(settleId, quoteId)))
+	return map[string]any{
 		"id":             marketId,
 		"lowercaseId":    ToLower(marketId),
 		"symbol":         symbol,
 		"base":           baseId,
 		"quote":          quoteId,
-		"settle":         Ternary(IsTrue(settleId), settleId, nil),
+		"settle":         settleId,
 		"baseId":         baseId,
 		"quoteId":        quoteId,
-		"settleId":       Ternary(IsTrue(settleId), settleId, nil),
+		"settleId":       settleId,
 		"type":           Ternary(IsTrue(isSpot), "spot", "swap"),
 		"spot":           isSpot,
 		"margin":         false,
@@ -1691,8 +1720,8 @@ func (this *CoinbaseinternationalCore) ParseMarket(market interface{}) interface
 		"option":         false,
 		"active":         IsEqual(this.SafeString(market, "trading_state"), "TRADING"),
 		"contract":       !IsTrue(isSpot),
-		"linear":         Ternary(IsTrue(isSpot), nil, (IsEqual(settleId, quoteId))),
-		"inverse":        Ternary(IsTrue(isSpot), nil, (!IsEqual(settleId, quoteId))),
+		"linear":         isLinear,
+		"inverse":        isInverse,
 		"taker":          GetValue(GetValue(fees, "trading"), "taker"),
 		"maker":          GetValue(GetValue(fees, "trading"), "maker"),
 		"contractSize":   Ternary(IsTrue(isSpot), nil, 1),
@@ -1700,25 +1729,25 @@ func (this *CoinbaseinternationalCore) ParseMarket(market interface{}) interface
 		"expiryDatetime": nil,
 		"strike":         nil,
 		"optionType":     nil,
-		"precision": map[string]interface{}{
+		"precision": map[string]any{
 			"amount": this.SafeNumber(market, "base_increment"),
 			"price":  this.SafeNumber(market, "quote_increment"),
 			"cost":   this.SafeNumber(market, "quote_increment"),
 		},
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
+		"limits": map[string]any{
+			"leverage": map[string]any{
 				"min": nil,
 				"max": this.SafeNumber(market, "base_imf"),
 			},
-			"amount": map[string]interface{}{
+			"amount": map[string]any{
 				"min": nil,
 				"max": Ternary(IsTrue(isSpot), nil, this.SafeNumber(market, "position_limit_qty")),
 			},
-			"price": map[string]interface{}{
+			"price": map[string]any{
 				"min": nil,
 				"max": nil,
 			},
-			"cost": map[string]interface{}{
+			"cost": map[string]any{
 				"min": this.SafeNumber(market, "min_notional_value"),
 				"max": nil,
 			},
@@ -1736,12 +1765,12 @@ func (this *CoinbaseinternationalCore) ParseMarket(market interface{}) interface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *CoinbaseinternationalCore) FetchCurrencies(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchCurrencies(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
 		currencies := (<-this.V1PublicGetAssets(params))
@@ -1751,7 +1780,7 @@ func (this *CoinbaseinternationalCore) FetchCurrencies(optionalArgs ...interface
 		//    [
 		//        {
 		//           "asset_id":"1",
-		//           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f5",
+		//           "asset_uuid":"2b92315d-eab7-5bef-84fa-089a131333f6",
 		//           "asset_name":"USDC",
 		//           "status":"ACTIVE",
 		//           "collateral_weight":1.0,
@@ -1766,7 +1795,7 @@ func (this *CoinbaseinternationalCore) FetchCurrencies(optionalArgs ...interface
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseCurrency(currency interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseCurrency(currency any) any {
 	//
 	//    {
 	//       "asset_id":"1",
@@ -1777,10 +1806,10 @@ func (this *CoinbaseinternationalCore) ParseCurrency(currency interface{}) inter
 	//       "supported_networks_enabled":true
 	//    }
 	//
-	var id interface{} = this.SafeString(currency, "asset_name")
-	var code interface{} = this.SafeCurrencyCode(id)
-	var statusId interface{} = this.SafeString(currency, "status")
-	return this.SafeCurrencyStructure(map[string]interface{}{
+	var id any = this.SafeString(currency, "asset_name")
+	var code any = this.SafeCurrencyCode(id)
+	var statusId any = this.SafeString(currency, "status")
+	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
 		"name":      code,
 		"code":      code,
@@ -1805,28 +1834,30 @@ func (this *CoinbaseinternationalCore) ParseCurrency(currency interface{}) inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *CoinbaseinternationalCore) FetchTickers(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchTickers(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbols := GetArg(optionalArgs, 0, nil)
 		_ = symbols
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15358 := (<-this.LoadMarkets())
-		PanicOnError(retRes15358)
+			retRes156312 := (<-this.LoadMarkets())
+			PanicOnError(retRes156312)
+		}
 		symbols = this.MarketSymbols(symbols)
 
 		instruments := (<-this.V1PublicGetInstruments(params))
 		PanicOnError(instruments)
-		var tickers interface{} = map[string]interface{}{}
+		var tickers any = map[string]any{}
 		for i := 0; IsLessThan(i, GetArrayLength(instruments)); i++ {
-			var instrument interface{} = GetValue(instruments, i)
-			var marketId interface{} = this.SafeString(instrument, "symbol")
-			var symbol interface{} = this.SafeSymbol(marketId)
-			var quote interface{} = this.SafeDict(instrument, "quote", map[string]interface{}{})
+			var instrument any = GetValue(instruments, i)
+			var marketId any = this.SafeString(instrument, "symbol")
+			var symbol any = this.SafeSymbol(marketId)
+			var quote any = this.SafeDict(instrument, "quote", map[string]any{})
 			AddElementToObject(tickers, symbol, this.ParseTicker(quote, this.SafeMarket(marketId)))
 		}
 
@@ -1846,18 +1877,20 @@ func (this *CoinbaseinternationalCore) FetchTickers(optionalArgs ...interface{})
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *CoinbaseinternationalCore) FetchTicker(symbol interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15598 := (<-this.LoadMarkets())
-		PanicOnError(retRes15598)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes158912 := (<-this.LoadMarkets())
+			PanicOnError(retRes158912)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"instrument": this.MarketId(symbol),
 		}
 
@@ -1870,7 +1903,7 @@ func (this *CoinbaseinternationalCore) FetchTicker(symbol interface{}, optionalA
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseTicker(ticker interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "best_bid_price":"2490.8",
@@ -1890,8 +1923,8 @@ func (this *CoinbaseinternationalCore) ParseTicker(ticker interface{}, optionalA
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var datetime interface{} = this.SafeString(ticker, "timestamp")
-	return this.SafeTicker(map[string]interface{}{
+	var datetime any = this.SafeString(ticker, "timestamp")
+	return this.SafeTicker(map[string]any{
 		"info":          ticker,
 		"symbol":        this.SafeSymbol(nil, market),
 		"timestamp":     this.Parse8601(datetime),
@@ -1926,21 +1959,23 @@ func (this *CoinbaseinternationalCore) ParseTicker(ticker interface{}, optionalA
  * @param {boolean} [params.v3] default false, set true to use v3 api endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *CoinbaseinternationalCore) FetchBalance(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchBalance(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16238 := (<-this.LoadMarkets())
-		PanicOnError(retRes16238)
-		var portfolio interface{} = nil
+			retRes165512 := (<-this.LoadMarkets())
+			PanicOnError(retRes165512)
+		}
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchBalance", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio": portfolio,
 		}
 
@@ -1970,7 +2005,7 @@ func (this *CoinbaseinternationalCore) FetchBalance(optionalArgs ...interface{})
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseBalance(response interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseBalance(response any) any {
 	//
 	//    {
 	//       "asset_id":"0-0-1",
@@ -1986,14 +2021,14 @@ func (this *CoinbaseinternationalCore) ParseBalance(response interface{}) interf
 	//       "loan_collateral_requirement":"0.0"
 	//    }
 	//
-	var result interface{} = map[string]interface{}{
+	var result any = map[string]any{
 		"info": response,
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-		var rawBalance interface{} = GetValue(response, i)
-		var currencyId interface{} = this.SafeString(rawBalance, "asset_name")
-		var code interface{} = this.SafeCurrencyCode(currencyId)
-		var account interface{} = this.Account()
+		var rawBalance any = GetValue(response, i)
+		var currencyId any = this.SafeString(rawBalance, "asset_name")
+		var code any = this.SafeCurrencyCode(currencyId)
+		var account any = this.Account()
 		AddElementToObject(account, "total", this.SafeString(rawBalance, "quantity"))
 		AddElementToObject(account, "used", this.SafeString(rawBalance, "hold"))
 		AddElementToObject(result, code, account)
@@ -2013,18 +2048,20 @@ func (this *CoinbaseinternationalCore) ParseBalance(response interface{}) interf
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
  */
-func (this *CoinbaseinternationalCore) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) Transfer(code any, amount any, fromAccount any, toAccount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
-		params := GetArg(optionalArgs, 0, map[string]interface{}{})
+		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16948 := (<-this.LoadMarkets())
-		PanicOnError(retRes16948)
-		var currency interface{} = this.Currency(code)
-		var request interface{} = map[string]interface{}{
+			retRes172812 := (<-this.LoadMarkets())
+			PanicOnError(retRes172812)
+		}
+		var currency any = this.Currency(code)
+		var request any = map[string]any{
 			"asset":   GetValue(currency, "id"),
 			"ammount": amount,
 			"from":    fromAccount,
@@ -2033,9 +2070,9 @@ func (this *CoinbaseinternationalCore) Transfer(code interface{}, amount interfa
 
 		response := (<-this.V1PrivatePostPortfoliosTransfer(this.Extend(request, params)))
 		PanicOnError(response)
-		var success interface{} = this.SafeBool(response, "success")
+		var success any = this.SafeBool(response, "success")
 
-		ch <- map[string]interface{}{
+		ch <- map[string]any{
 			"info":        response,
 			"id":          nil,
 			"timestamp":   nil,
@@ -2072,25 +2109,27 @@ func (this *CoinbaseinternationalCore) Transfer(code interface{}, amount interfa
  * @param {string} [params.stp_mode] Possible values: [NONE, AGGRESSING, BOTH] Specifies the behavior for self match handling. None disables the functionality, new cancels the newest order, and both cancels both orders.
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *CoinbaseinternationalCore) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) CreateOrder(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		price := GetArg(optionalArgs, 0, nil)
 		_ = price
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes17388 := (<-this.LoadMarkets())
-		PanicOnError(retRes17388)
-		var market interface{} = this.Market(symbol)
-		var typeId interface{} = ToUpper(typeVar)
-		var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"triggerPrice", "stopPrice", "stop_price"})
-		var clientOrderIdprefix interface{} = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
-		var clientOrderId interface{} = Add(Add(clientOrderIdprefix, "-"), this.Uuid())
+			retRes177412 := (<-this.LoadMarkets())
+			PanicOnError(retRes177412)
+		}
+		var market any = this.Market(symbol)
+		var typeId any = ToUpper(typeVar)
+		var triggerPrice any = this.SafeNumberN(params, []any{"triggerPrice", "stopPrice", "stop_price"})
+		var clientOrderIdprefix any = this.SafeString(this.Options, "brokerId", "nfqkvdjp")
+		var clientOrderId any = Add(Add(clientOrderIdprefix, "-"), this.Uuid())
 		clientOrderId = Slice(clientOrderId, 0, 17)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"client_order_id": clientOrderId,
 			"side":            ToUpper(side),
 			"instrument":      GetValue(market, "id"),
@@ -2111,15 +2150,15 @@ func (this *CoinbaseinternationalCore) CreateOrder(symbol interface{}, typeVar i
 			}
 			AddElementToObject(request, "price", price)
 		}
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("createOrder", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
 		if IsTrue(!IsEqual(portfolio, nil)) {
 			AddElementToObject(request, "portfolio", portfolio)
 		}
-		var postOnly interface{} = this.SafeBool2(params, "postOnly", "post_only")
-		var tif interface{} = this.SafeString2(params, "tif", "timeInForce")
+		var postOnly any = this.SafeBool2(params, "postOnly", "post_only")
+		var tif any = this.SafeString2(params, "tif", "timeInForce")
 		// market orders must be IOC
 		if IsTrue(IsEqual(typeId, "MARKET")) {
 			if IsTrue(IsTrue(!IsEqual(tif, nil)) && IsTrue(!IsEqual(tif, "IOC"))) {
@@ -2133,7 +2172,7 @@ func (this *CoinbaseinternationalCore) CreateOrder(symbol interface{}, typeVar i
 			AddElementToObject(request, "post_only", postOnly)
 		}
 		AddElementToObject(request, "tif", tif)
-		params = this.Omit(params, []interface{}{"client_order_id", "user", "postOnly", "timeInForce"})
+		params = this.Omit(params, []any{"client_order_id", "user", "postOnly", "timeInForce"})
 
 		response := (<-this.V1PrivatePostOrders(this.Extend(request, params)))
 		PanicOnError(response)
@@ -2167,7 +2206,7 @@ func (this *CoinbaseinternationalCore) CreateOrder(symbol interface{}, typeVar i
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) ParseOrder(order interface{}, optionalArgs ...interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseOrder(order any, optionalArgs ...any) any {
 	//
 	//    {
 	//        "order_id":"1x96skvg-1-0",
@@ -2193,16 +2232,16 @@ func (this *CoinbaseinternationalCore) ParseOrder(order interface{}, optionalArg
 	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
-	var marketId interface{} = this.SafeString(order, "symbol")
-	var feeCost interface{} = this.SafeNumber(order, "fee")
-	var fee interface{} = nil
+	var marketId any = this.SafeString(order, "symbol")
+	var feeCost any = this.SafeNumber(order, "fee")
+	var fee any = nil
 	if IsTrue(!IsEqual(feeCost, nil)) {
-		fee = map[string]interface{}{
+		fee = map[string]any{
 			"cost": feeCost,
 		}
 	}
-	var datetime interface{} = this.SafeString2(order, "submit_time", "event_time")
-	return this.SafeOrder(map[string]interface{}{
+	var datetime any = this.SafeString2(order, "submit_time", "event_time")
+	return this.SafeOrder(map[string]any{
 		"info":               order,
 		"id":                 this.SafeString(order, "order_id"),
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -2226,8 +2265,8 @@ func (this *CoinbaseinternationalCore) ParseOrder(order interface{}, optionalArg
 		"trades":             nil,
 	}, market)
 }
-func (this *CoinbaseinternationalCore) ParseOrderStatus(status interface{}) interface{} {
-	var statuses interface{} = map[string]interface{}{
+func (this *CoinbaseinternationalCore) ParseOrderStatus(status any) any {
+	var statuses any = map[string]any{
 		"NEW":             "open",
 		"PARTIAL_FILLED":  "open",
 		"FILLED":          "closed",
@@ -2241,11 +2280,11 @@ func (this *CoinbaseinternationalCore) ParseOrderStatus(status interface{}) inte
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *CoinbaseinternationalCore) ParseOrderType(typeVar interface{}) interface{} {
+func (this *CoinbaseinternationalCore) ParseOrderType(typeVar any) any {
 	if IsTrue(IsEqual(typeVar, "UNKNOWN_ORDER_TYPE")) {
 		return nil
 	}
-	var types interface{} = map[string]interface{}{
+	var types any = map[string]any{
 		"MARKET":     "market",
 		"LIMIT":      "limit",
 		"STOP":       "limit",
@@ -2264,27 +2303,29 @@ func (this *CoinbaseinternationalCore) ParseOrderType(typeVar interface{}) inter
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *CoinbaseinternationalCore) CancelOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19128 := (<-this.LoadMarkets())
-		PanicOnError(retRes19128)
-		var portfolio interface{} = nil
+			retRes195012 := (<-this.LoadMarkets())
+			PanicOnError(retRes195012)
+		}
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("cancelOrder", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio": portfolio,
 			"id":        id,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
@@ -2330,26 +2371,28 @@ func (this *CoinbaseinternationalCore) CancelOrder(id interface{}, optionalArgs 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *CoinbaseinternationalCore) CancelAllOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) CancelAllOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19598 := (<-this.LoadMarkets())
-		PanicOnError(retRes19598)
-		var portfolio interface{} = nil
+			retRes199912 := (<-this.LoadMarkets())
+			PanicOnError(retRes199912)
+		}
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("cancelAllOrders", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio": portfolio,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(symbol) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "instrument", GetValue(market, "id"))
@@ -2380,25 +2423,27 @@ func (this *CoinbaseinternationalCore) CancelAllOrders(optionalArgs ...interface
  * @param {string} params.clientOrderId client order id
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *CoinbaseinternationalCore) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		amount := GetArg(optionalArgs, 0, nil)
 		_ = amount
 		price := GetArg(optionalArgs, 1, nil)
 		_ = price
-		params := GetArg(optionalArgs, 2, map[string]interface{}{})
+		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes19908 := (<-this.LoadMarkets())
-		PanicOnError(retRes19908)
-		var market interface{} = this.Market(symbol)
-		var request interface{} = map[string]interface{}{
+			retRes203212 := (<-this.LoadMarkets())
+			PanicOnError(retRes203212)
+		}
+		var market any = this.Market(symbol)
+		var request any = map[string]any{
 			"id": id,
 		}
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("editOrder", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
@@ -2411,11 +2456,11 @@ func (this *CoinbaseinternationalCore) EditOrder(id interface{}, symbol interfac
 		if IsTrue(!IsEqual(price, nil)) {
 			AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 		}
-		var triggerPrice interface{} = this.SafeNumberN(params, []interface{}{"stopPrice", "stop_price", "triggerPrice"})
+		var triggerPrice any = this.SafeNumberN(params, []any{"stopPrice", "stop_price", "triggerPrice"})
 		if IsTrue(!IsEqual(triggerPrice, nil)) {
 			AddElementToObject(request, "stop_price", triggerPrice)
 		}
-		var clientOrderId interface{} = this.SafeString2(params, "client_order_id", "clientOrderId")
+		var clientOrderId any = this.SafeString2(params, "client_order_id", "clientOrderId")
 		if IsTrue(IsEqual(clientOrderId, nil)) {
 			panic(BadRequest(Add(this.Id, " editOrder() requires a clientOrderId parameter")))
 		}
@@ -2441,27 +2486,29 @@ func (this *CoinbaseinternationalCore) EditOrder(id interface{}, symbol interfac
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *CoinbaseinternationalCore) FetchOrder(id interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
 		_ = symbol
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20308 := (<-this.LoadMarkets())
-		PanicOnError(retRes20308)
-		var market interface{} = nil
+			retRes207412 := (<-this.LoadMarkets())
+			PanicOnError(retRes207412)
+		}
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var portfolio interface{} = nil
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchOrder", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"id":        id,
 			"portfolio": portfolio,
 		}
@@ -2515,9 +2562,9 @@ func (this *CoinbaseinternationalCore) FetchOrder(id interface{}, optionalArgs .
  * @param {string} [params.event_type] The most recent type of event that happened to the order. Allowed values: NEW, TRADE, REPLACED
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2526,37 +2573,40 @@ func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...interface
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20858 := (<-this.LoadMarkets())
-		PanicOnError(retRes20858)
-		var portfolio interface{} = nil
+			retRes213112 := (<-this.LoadMarkets())
+			PanicOnError(retRes213112)
+		}
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("fetchOpenOrders", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var paginate interface{} = false
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
-		var maxEntriesPerRequest interface{} = nil
+		var maxEntriesPerRequest any = nil
 		maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "maxEntriesPerRequest", 100)
 		maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 		params = GetValue(maxEntriesPerRequestparamsVariable, 1)
-		var pageKey interface{} = "ccxtPageKey"
+		var pageKey any = "ccxtPageKey"
 		if IsTrue(paginate) {
 
-			retRes209419 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes209419)
-			ch <- retRes209419
+			retRes214119 := (<-this.FetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes214119)
+			ch <- retRes214119
 			return nil
 		}
-		var page interface{} = Subtract(this.SafeInteger(params, pageKey, 1), 1)
-		var request interface{} = map[string]interface{}{
+		var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
+		var offSet any = this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest))
+		var request any = map[string]any{
 			"portfolio":     portfolio,
-			"result_offset": this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest)),
+			"result_offset": offSet,
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(symbol) {
 			market = this.Market(symbol)
 			AddElementToObject(request, "instrument", symbol)
@@ -2607,7 +2657,7 @@ func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...interface
 		//        ]
 		//    }
 		//
-		var rawOrders interface{} = this.SafeList(response, "results", []interface{}{})
+		var rawOrders any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseOrders(rawOrders, market, since, limit)
 		return nil
@@ -2629,9 +2679,9 @@ func (this *CoinbaseinternationalCore) FetchOpenOrders(optionalArgs ...interface
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		symbol := GetArg(optionalArgs, 0, nil)
@@ -2640,34 +2690,37 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...interface{}
 		_ = since
 		limit := GetArg(optionalArgs, 2, nil)
 		_ = limit
-		params := GetArg(optionalArgs, 3, map[string]interface{}{})
+		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes21688 := (<-this.LoadMarkets())
-		PanicOnError(retRes21688)
-		var paginate interface{} = false
+			retRes221712 := (<-this.LoadMarkets())
+			PanicOnError(retRes221712)
+		}
+		var paginate any = false
 		paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 		paginate = GetValue(paginateparamsVariable, 0)
 		params = GetValue(paginateparamsVariable, 1)
-		var pageKey interface{} = "ccxtPageKey"
-		var maxEntriesPerRequest interface{} = nil
+		var pageKey any = "ccxtPageKey"
+		var maxEntriesPerRequest any = nil
 		maxEntriesPerRequestparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "maxEntriesPerRequest", 100)
 		maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable, 0)
 		params = GetValue(maxEntriesPerRequestparamsVariable, 1)
 		if IsTrue(paginate) {
 
-			retRes217519 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
-			PanicOnError(retRes217519)
-			ch <- retRes217519
+			retRes222519 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, pageKey, maxEntriesPerRequest))
+			PanicOnError(retRes222519)
+			ch <- retRes222519
 			return nil
 		}
-		var market interface{} = nil
+		var market any = nil
 		if IsTrue(!IsEqual(symbol, nil)) {
 			market = this.Market(symbol)
 		}
-		var page interface{} = Subtract(this.SafeInteger(params, pageKey, 1), 1)
-		var request interface{} = map[string]interface{}{
-			"result_offset": this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest)),
+		var page any = Subtract(this.SafeInteger(params, pageKey, 1), 1)
+		var offSet any = this.SafeInteger2(params, "offset", "result_offset", Multiply(page, maxEntriesPerRequest))
+		var request any = map[string]any{
+			"result_offset": offSet,
 		}
 		if IsTrue(!IsEqual(limit, nil)) {
 			if IsTrue(IsGreaterThan(limit, 100)) {
@@ -2678,9 +2731,9 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...interface{}
 		if IsTrue(!IsEqual(since, nil)) {
 			AddElementToObject(request, "time_from", this.Iso8601(since))
 		}
-		var until interface{} = this.SafeStringN(params, []interface{}{"until"})
+		var until any = this.SafeStringN(params, []any{"until"})
 		if IsTrue(!IsEqual(until, nil)) {
-			params = this.Omit(params, []interface{}{"until"})
+			params = this.Omit(params, []any{"until"})
 			AddElementToObject(request, "ref_datetime", this.Iso8601(until))
 		}
 
@@ -2726,7 +2779,7 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...interface{}
 		//        ]
 		//    }
 		//
-		var trades interface{} = this.SafeList(response, "results", []interface{}{})
+		var trades any = this.SafeList(response, "results", []any{})
 
 		ch <- this.ParseTrades(trades, market, since, limit)
 		return nil
@@ -2751,36 +2804,38 @@ func (this *CoinbaseinternationalCore) FetchMyTrades(optionalArgs ...interface{}
  * @param {string} [params.nonce] a unique integer representing the withdrawal request
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *CoinbaseinternationalCore) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) <-chan interface{} {
-	ch := make(chan interface{})
-	go func() interface{} {
+func (this *CoinbaseinternationalCore) Withdraw(code any, amount any, address any, optionalArgs ...any) <-chan any {
+	ch := make(chan any)
+	go func() any {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		tag := GetArg(optionalArgs, 0, nil)
 		_ = tag
-		params := GetArg(optionalArgs, 1, map[string]interface{}{})
+		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 		tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params)
 		tag = GetValue(tagparamsVariable, 0)
 		params = GetValue(tagparamsVariable, 1)
 		this.CheckAddress(address)
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes22638 := (<-this.LoadMarkets())
-		PanicOnError(retRes22638)
-		var currency interface{} = this.Currency(code)
-		var portfolio interface{} = nil
+			retRes231512 := (<-this.LoadMarkets())
+			PanicOnError(retRes231512)
+		}
+		var currency any = this.Currency(code)
+		var portfolio any = nil
 		portfolioparamsVariable := (<-this.HandlePortfolioAndParams("withdraw", params))
 		portfolio = GetValue(portfolioparamsVariable, 0)
 		params = GetValue(portfolioparamsVariable, 1)
-		var method interface{} = nil
+		var method any = nil
 		methodparamsVariable := this.HandleOptionAndParams(params, "withdraw", "method", "v1PrivatePostTransfersWithdraw")
 		method = GetValue(methodparamsVariable, 0)
 		params = GetValue(methodparamsVariable, 1)
-		var networkId interface{} = nil
+		var networkId any = nil
 		networkIdparamsVariable := (<-this.HandleNetworkIdAndParams(code, "withdraw", params))
 		networkId = GetValue(networkIdparamsVariable, 0)
 		params = GetValue(networkIdparamsVariable, 1)
-		var request interface{} = map[string]interface{}{
+		var request any = map[string]any{
 			"portfolio":      portfolio,
 			"type":           "send",
 			"asset":          GetValue(currency, "id"),
@@ -2805,93 +2860,55 @@ func (this *CoinbaseinternationalCore) Withdraw(code interface{}, amount interfa
 	}()
 	return ch
 }
-func (this *CoinbaseinternationalCore) SafeNetwork(network interface{}) interface{} {
-	var withdrawEnabled interface{} = this.SafeBool(network, "withdraw")
-	var depositEnabled interface{} = this.SafeBool(network, "deposit")
-	var limits interface{} = this.SafeDict(network, "limits")
-	var withdraw interface{} = this.SafeDict(limits, "withdraw")
-	var withdrawMax interface{} = this.SafeNumber(withdraw, "max")
-	var deposit interface{} = this.SafeDict(limits, "deposit")
-	var depositMax interface{} = this.SafeNumber(deposit, "max")
-	if IsTrue(IsTrue(IsEqual(withdrawEnabled, nil)) && IsTrue(!IsEqual(withdrawMax, nil))) {
-		withdrawEnabled = (IsGreaterThan(withdrawMax, 0))
-	}
-	if IsTrue(IsTrue(IsEqual(depositEnabled, nil)) && IsTrue(!IsEqual(depositMax, nil))) {
-		depositEnabled = (IsGreaterThan(depositMax, 0))
-	}
-	var networkId interface{} = this.SafeString(network, "id")
-	var isEnabled interface{} = (IsTrue(withdrawEnabled) && IsTrue(depositEnabled))
-	return map[string]interface{}{
-		"info":      GetValue(network, "info"),
-		"id":        networkId,
-		"name":      this.SafeString(network, "name"),
-		"network":   this.SafeString(network, "network"),
-		"active":    this.SafeBool(network, "active", isEnabled),
-		"deposit":   depositEnabled,
-		"withdraw":  withdrawEnabled,
-		"fee":       this.SafeNumber(network, "fee"),
-		"precision": this.SafeNumber(network, "precision"),
-		"limits": map[string]interface{}{
-			"withdraw": map[string]interface{}{
-				"min": this.SafeNumber(withdraw, "min"),
-				"max": withdrawMax,
-			},
-			"deposit": map[string]interface{}{
-				"min": this.SafeNumber(deposit, "min"),
-				"max": depositMax,
-			},
-		},
-	}
-}
-func (this *CoinbaseinternationalCore) Sign(path interface{}, optionalArgs ...interface{}) interface{} {
-	api := GetArg(optionalArgs, 0, []interface{}{})
+func (this *CoinbaseinternationalCore) Sign(path any, optionalArgs ...any) any {
+	api := GetArg(optionalArgs, 0, []any{})
 	_ = api
 	method := GetArg(optionalArgs, 1, "GET")
 	_ = method
-	params := GetArg(optionalArgs, 2, map[string]interface{}{})
+	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	headers := GetArg(optionalArgs, 3, nil)
 	_ = headers
 	body := GetArg(optionalArgs, 4, nil)
 	_ = body
-	var version interface{} = GetValue(api, 0)
-	var signed interface{} = IsEqual(GetValue(api, 1), "private")
-	var fullPath interface{} = Add(Add(Add("/", version), "/"), this.ImplodeParams(path, params))
-	var query interface{} = this.Omit(params, this.ExtractParams(path))
-	var savedPath interface{} = Add("/api", fullPath)
+	var version any = GetValue(api, 0)
+	var signed any = IsEqual(GetValue(api, 1), "private")
+	var fullPath any = Add(Add(Add("/", version), "/"), this.ImplodeParams(path, params))
+	var query any = this.Omit(params, this.ExtractParams(path))
+	var savedPath any = Add("/api", fullPath)
 	if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue(IsEqual(method, "DELETE"))) {
 		if IsTrue(GetArrayLength(ObjectKeys(query))) {
 			fullPath = Add(fullPath, Add("?", this.UrlencodeWithArrayRepeat(query)))
 		}
 	}
-	var url interface{} = Add(GetValue(GetValue(this.Urls, "api"), "rest"), fullPath)
+	var url any = Add(GetValue(GetValue(this.Urls, "api"), "rest"), fullPath)
 	if IsTrue(signed) {
 		this.CheckRequiredCredentials()
-		var nonce interface{} = ToString(this.Nonce())
-		var payload interface{} = ""
+		var nonce any = ToString(this.Nonce())
+		var payload any = ""
 		if IsTrue(!IsEqual(method, "GET")) {
 			if IsTrue(GetArrayLength(ObjectKeys(query))) {
 				body = this.Json(query)
 				payload = body
 			}
 		}
-		var auth interface{} = Add(Add(Add(nonce, method), savedPath), payload)
-		var signature interface{} = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
-		headers = map[string]interface{}{
+		var auth any = Add(Add(Add(nonce, method), savedPath), payload)
+		var signature any = this.Hmac(this.Encode(auth), this.Base64ToBinary(this.Secret), sha256, "base64")
+		headers = map[string]any{
 			"CB-ACCESS-TIMESTAMP":  nonce,
 			"CB-ACCESS-SIGN":       signature,
 			"CB-ACCESS-PASSPHRASE": this.Password,
 			"CB-ACCESS-KEY":        this.ApiKey,
 		}
 	}
-	return map[string]interface{}{
+	return map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    body,
 		"headers": headers,
 	}
 }
-func (this *CoinbaseinternationalCore) HandleErrors(code interface{}, reason interface{}, url interface{}, method interface{}, headers interface{}, body interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{} {
+func (this *CoinbaseinternationalCore) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {
 	//
 	//    {
 	//        "title":"io.javalin.http.BadRequestResponse: Order rejected (DUPLICATE_CLIENT_ORDER_ID - duplicate client order id detected)",
@@ -2901,8 +2918,8 @@ func (this *CoinbaseinternationalCore) HandleErrors(code interface{}, reason int
 	if IsTrue(IsEqual(response, nil)) {
 		return nil // fallback to default error handler
 	}
-	var feedback interface{} = Add(Add(this.Id, " "), body)
-	var errMsg interface{} = this.SafeString(response, "title")
+	var feedback any = Add(Add(this.Id, " "), body)
+	var errMsg any = this.SafeString(response, "title")
 	if IsTrue(!IsEqual(errMsg, nil)) {
 		this.ThrowExactlyMatchedException(GetValue(this.Exceptions, "exact"), errMsg, feedback)
 		this.ThrowBroadlyMatchedException(GetValue(this.Exceptions, "broad"), errMsg, feedback)
@@ -2911,8 +2928,8 @@ func (this *CoinbaseinternationalCore) HandleErrors(code interface{}, reason int
 	return nil
 }
 
-func (this *CoinbaseinternationalCore) Init(userConfig map[string]interface{}) {
+func (this *CoinbaseinternationalCore) Init(userConfig map[string]any) {
 	this.Exchange = Exchange{}
 	this.Exchange.DerivedExchange = this
-	this.Exchange.InitParent(userConfig, this.Describe().(map[string]interface{}), this)
+	this.Exchange.InitParent(userConfig, this.Describe().(map[string]any), this)
 }

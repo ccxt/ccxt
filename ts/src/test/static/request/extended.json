@@ -1,0 +1,600 @@
+{
+    "exchange": "extended",
+    "outputType": "json",
+    "privateKey": "0x12345",
+    "options": {
+        "account": {
+            "accountId": "234567",
+            "description": "Main account",
+            "accountIndex": "0",
+            "status": "ACTIVE",
+            "l2Key": "0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf",
+            "l2Vault": "123456",
+            "bridgeStarknetAddress": "",
+            "apiKeys": [ "" ],
+            "accountIndexForKeyGeneration": "0"
+        }
+    },
+    "skipKeys": [
+        "nonce",
+        "r",
+        "s",
+        "signature",
+        "id",
+        "expiryEpochMillis"
+    ],
+    "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetchMarkets",
+                "method": "fetchMarkets",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/markets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "fetchTicker",
+                "method": "fetchTicker",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/markets/BTC-USD/stats",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers with symbols",
+                "method": "fetchTickers",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/markets?market=BTC-USD",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook with limit",
+                "method": "fetchOrderBook",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/markets/BTC-USD/orderbook",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1
+                ],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/markets/BTC-USD/trades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV with until",
+                "method": "fetchOHLCV",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/candles/BTC-USD/trades?interval=PT1M&limit=1&endTime=1777517940000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1777517880000,
+                    1,
+                    {
+                        "until": 1777517940000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchMarkOHLCV": [
+            {
+                "description": "fetchMarkOHLCV with until",
+                "method": "fetchMarkOHLCV",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/candles/BTC-USD/mark-prices?interval=PT1M&limit=1&endTime=1777517940000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1777517880000,
+                    1,
+                    {
+                        "until": 1777517940000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchIndexOHLCV": [
+            {
+                "description": "fetchIndexOHLCV with until",
+                "method": "fetchIndexOHLCV",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/candles/BTC-USD/index-prices?interval=PT1M&limit=1&endTime=1777517940000",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1m",
+                    1777517880000,
+                    1,
+                    {
+                        "until": 1777517940000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "fetchFundingRateHistory with since, limit, until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/BTC-USD/funding?startTime=1777503601028&endTime=1777507201028&limit=1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1777503601028,
+                    1,
+                    {
+                        "until": 1777507201028
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOpenInterestHistory": [
+            {
+                "description": "fetchOpenInterestHistory with since, limit, until",
+                "method": "fetchOpenInterestHistory",
+                "url": "https://api.starknet.extended.exchange/api/v1/info/BTC-USD/open-interests?interval=PT1H&startTime=1777417200000&endTime=1777420800000&limit=1",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1h",
+                    1777417200000,
+                    1,
+                    {
+                        "until": 1777420800000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetch order by id",
+                "method": "fetchOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/2051479786538188800",
+                "input": [
+                    "2051479786538188800",
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "fetch order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/external/3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                "input": [
+                    "",
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetch open orders with symbol, type and side",
+                "method": "fetchOpenOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetch orders history with symbol, limit and cursor",
+                "method": "fetchOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/history?market=BTC-USD&limit=2",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    2
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch closed orders without sending limit",
+                "method": "fetchClosedOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/history?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch canceled orders without sending limit",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/orders/history?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetch my trades with symbol and limit",
+                "method": "fetchMyTrades",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/trades?market=BTC-USD&limit=2",
+                "input": [
+                    "BTC/USDC:USDC",
+                    null,
+                    2
+                ]
+            }
+        ],
+        "fetchFundingHistory": [
+            {
+                "description": "fetch funding history with symbol, since and limit",
+                "method": "fetchFundingHistory",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/funding/history?market=BTC-USD&startTime=1778133600000&limit=2",
+                "input": [
+                    "BTC/USDC:USDC",
+                    1778133600000,
+                    2
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetch trading fee with symbol",
+                "method": "fetchTradingFee",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/fees?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetch trading fees",
+                "method": "fetchTradingFees",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/fees",
+                "input": []
+            }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "fetch leverage with symbol",
+                "method": "fetchLeverage",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/leverage?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "set leverage with symbol",
+                "method": "setLeverage",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/leverage",
+                "input": [
+                    10,
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"market\":\"BTC-USD\",\"leverage\":\"10\"}"
+            }
+        ],
+        "fetchTransactions": [
+            {
+                "description": "fetch transactions with limit",
+                "method": "fetchTransactions",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetch deposits with limit",
+                "method": "fetchDeposits",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1&type=DEPOSIT",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetch withdrawals with limit",
+                "method": "fetchWithdrawals",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1&type=WITHDRAWAL",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetch transfers with limit",
+                "method": "fetchTransfers",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1&type=TRANSFER",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "fetch ledger with limit",
+                "method": "fetchLedger",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/assetOperations?limit=1",
+                "input": [
+                    null,
+                    null,
+                    1
+                ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/spot/balances",
+                "input": []
+            }
+        ],
+        "fetchAccount": [
+            {
+                "description": "fetch account",
+                "method": "fetchAccount",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/account/info",
+                "input": []
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/accounts",
+                "input": []
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetch positions with symbol",
+                "method": "fetchPositions",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/positions?market=BTC-USD",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetch position with symbol",
+                "method": "fetchPosition",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/positions?market=BTC-USD",
+                "input": [
+                    "BTC/USDC:USDC"
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetch positions history with symbol",
+                "method": "fetchPositionsHistory",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/positions/history?market=BTC-USD",
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ]
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order by id",
+                "method": "cancelOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/2051479786538188800",
+                "input": [
+                    "2051479786538188800",
+                    "BTC/USDC:USDC"
+                ]
+            },
+            {
+                "description": "cancel order by clientOrderId",
+                "method": "cancelOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order?externalId=3480985089570526249141260266819446928410958787024864860785196119336740291620",
+                "input": [
+                    "",
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderId": "3480985089570526249141260266819446928410958787024864860785196119336740291620"
+                    }
+                ]
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancel orders by ids without sending market",
+                "method": "cancelOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/massCancel",
+                "input": [
+                    [
+                        "2051479786538188800",
+                        "2051479786538188801"
+                    ],
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"orderIds\":[\"2051479786538188800\",\"2051479786538188801\"]}"
+            },
+            {
+                "description": "cancel orders by clientOrderIds without sending market",
+                "method": "cancelOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/massCancel",
+                "input": [
+                    [],
+                    "BTC/USDC:USDC",
+                    {
+                        "clientOrderIds": [
+                            "client-order-1",
+                            "client-order-2"
+                        ]
+                    }
+                ],
+                "output": "{\"externalOrderIds\":[\"client-order-1\",\"client-order-2\"]}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all orders with symbol",
+                "method": "cancelAllOrders",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order/massCancel",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "output": "{\"cancelAll\":true,\"markets\":[\"BTC-USD\"]}"
+            }
+        ],
+        "cancelAllOrdersAfter": [
+            {
+                "description": "cancel all orders after timeout",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/deadmanswitch?countdownTime=5",
+                "input": [
+                    5000
+                ],
+                "output": null
+            },
+            {
+                "description": "close cancel all orders after",
+                "method": "cancelAllOrdersAfter",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/deadmanswitch?countdownTime=0",
+                "input": [
+                    0
+                ],
+                "output": null
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "swap limit buy",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50
+                ],
+                "output": "{\"id\":\"50f1e348-e580-4228-bbc7-d7a970036f7c\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894662,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.0001\",\"builderId\":\"257624\"}"
+            },
+            {
+                "description": "swap limit buy with trigger price",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "triggerPrice": 45,
+                        "triggerDirection": "up"
+                    }
+                ],
+                "output": "{\"id\":\"cef9d41c-66e7-4d5d-b84a-7e82d70c0e6c\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894758,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.0001\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"}}"
+            },
+            {
+                "description": "swap limit buy with stop loss price",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "stopLossPrice": 45
+                    }
+                ],
+                "output": "{\"id\":\"cc7dfcdb-4248-4964-a09c-0537176aa031\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"BUY\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894768,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.0001\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"}}"
+            },
+            {
+                "description": "swap limit buy with take profit price",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    50,
+                    {
+                        "takeProfitPrice": 45
+                    }
+                ],
+                "output": "{\"id\":\"cc7dfcdb-4248-4964-a09c-0537176aa031\",\"market\":\"BTC-USD\",\"type\":\"CONDITIONAL\",\"side\":\"SELL\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1778669894768,\"fee\":\"0.0005\",\"nonce\":\"1778666294\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.0001\",\"builderId\":\"257624\",\"trigger\":{\"triggerPrice\":\"45\",\"direction\":\"UP\"}}"
+            },
+            {
+                "description": "swap limit buy with stop loss and take profit",
+                "method": "createOrder",
+                "url": "https://api.starknet.extended.exchange/api/v1/user/order",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "sell",
+                    0.1,
+                    50,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 70,
+                            "price": 70
+                        },
+                        "takeProfit": {
+                            "triggerPrice": 30,
+                            "price": 30
+                        }
+                    }
+                ],
+                "output": "{\"id\":\"52ac7880-eb33-4a76-8987-9e3621b878d5\",\"market\":\"BTC-USD\",\"type\":\"LIMIT\",\"side\":\"SELL\",\"qty\":\"0.1\",\"price\":\"50\",\"timeInForce\":\"GTT\",\"expiryEpochMillis\":1779365174266,\"fee\":\"0.0005\",\"nonce\":\"1779361574\",\"postOnly\":false,\"reduceOnly\":false,\"selfTradeProtectionLevel\":\"ACCOUNT\",\"builderFee\":\"0.0001\",\"builderId\":\"257624\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"},\"tpSlType\":\"ORDER\",\"stopLoss\":{\"triggerPrice\":\"70\",\"price\":\"70\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"}},\"takeProfit\":{\"triggerPrice\":\"30\",\"price\":\"30\",\"settlement\":{\"signature\":{\"r\":\"\",\"s\":\"\"},\"starkKey\":\"0x2c8d6a606f3b2752584aadc186f7034db784dd59ed60ff1dc50695257fc61cf\",\"collateralPosition\":\"123456\"}}}"
+            }
+        ]
+    }
+}

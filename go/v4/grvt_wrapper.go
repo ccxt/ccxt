@@ -6,7 +6,7 @@ type Grvt struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewGrvt(userConfig map[string]interface{}) *Grvt {
+func NewGrvt(userConfig map[string]any) *Grvt {
 	p := NewGrvtCore()
 	p.Init(userConfig)
 	return &Grvt{
@@ -34,7 +34,7 @@ func NewGrvtFromCore(core *GrvtCore) *Grvt {
  * @param {object} [params] extra parameters specific to the exchange api endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Grvt) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Grvt) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
@@ -50,7 +50,7 @@ func (this *Grvt) FetchMarkets(params ...interface{}) ([]MarketInterface, error)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Grvt) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Grvt) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -65,7 +65,7 @@ func (this *Grvt) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @see https://api-docs.grvt.io/market_data_api/#ticker_1
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
 func (this *Grvt) FetchTicker(symbol string, options ...FetchTickerOptions) (Ticker, error) {
 
@@ -75,7 +75,7 @@ func (this *Grvt) FetchTicker(symbol string, options ...FetchTickerOptions) (Tic
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -105,12 +105,12 @@ func (this *Grvt) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -131,7 +131,7 @@ func (this *Grvt) FetchOrderBook(symbol string, options ...FetchOrderBookOptions
  * @param {int} [limit] the maximum amount of items to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
  */
 func (this *Grvt) FetchTrades(symbol string, options ...FetchTradesOptions) ([]Trade, error) {
 
@@ -141,17 +141,17 @@ func (this *Grvt) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -184,22 +184,22 @@ func (this *Grvt) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -217,11 +217,11 @@ func (this *Grvt) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHL
  * @see https://api-docs.grvt.io/market_data_api/#funding-rate
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
- * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+ * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
 func (this *Grvt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOptions) ([]FundingRateHistory, error) {
 
@@ -231,22 +231,22 @@ func (this *Grvt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -263,9 +263,9 @@ func (this *Grvt) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
  * @description query for account info
  * @see https://api-docs.grvt.io/trading_api/#sub-account-summary
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+ * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Grvt) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Grvt) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -283,7 +283,7 @@ func (this *Grvt) FetchBalance(params ...interface{}) (Balances, error) {
  * @param {int} [limit] the maximum number of deposits structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Grvt) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {
 
@@ -293,22 +293,22 @@ func (this *Grvt) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -318,6 +318,19 @@ func (this *Grvt) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction,
 	}
 	return NewTransactionArray(res), nil
 }
+
+/**
+ * @method
+ * @name grvt#fetchWithdrawals
+ * @description fetch all withdrawals made from an account
+ * @see https://api-docs.grvt.io/trading_api/#withdrawal-history
+ * @param {string} [code] unified currency code of the currency transferred
+ * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+ * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest item
+ * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
+ */
 func (this *Grvt) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transaction, error) {
 
 	opts := FetchWithdrawalsOptionsStruct{}
@@ -326,22 +339,22 @@ func (this *Grvt) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -362,7 +375,7 @@ func (this *Grvt) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Transa
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
- * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Grvt) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEntry, error) {
 
@@ -372,22 +385,22 @@ func (this *Grvt) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -408,7 +421,7 @@ func (this *Grvt) FetchTransfers(options ...FetchTransfersOptions) ([]TransferEn
  * @param {string} fromAccount account to transfer from
  * @param {string} toAccount account to transfer to
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+ * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
 func (this *Grvt) Transfer(code string, amount float64, fromAccount string, toAccount string, options ...TransferOptions) (TransferEntry, error) {
 
@@ -418,7 +431,7 @@ func (this *Grvt) Transfer(code string, amount float64, fromAccount string, toAc
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -440,7 +453,7 @@ func (this *Grvt) Transfer(code string, amount float64, fromAccount string, toAc
  * @param {string} tag
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.network the network to withdraw on (mandatory)
- * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+ * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
 func (this *Grvt) Withdraw(code string, amount float64, address string, options ...WithdrawOptions) (Transaction, error) {
 
@@ -450,12 +463,12 @@ func (this *Grvt) Withdraw(code string, amount float64, address string, options 
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -484,7 +497,7 @@ func (this *Grvt) Withdraw(code string, amount float64, address string, options 
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
- * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
 
@@ -494,12 +507,12 @@ func (this *Grvt) CreateOrder(symbol string, typeVar string, side string, amount
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -521,7 +534,7 @@ func (this *Grvt) CreateOrder(symbol string, typeVar string, side string, amount
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+ * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
 func (this *Grvt) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
 
@@ -531,22 +544,22 @@ func (this *Grvt) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -564,7 +577,7 @@ func (this *Grvt) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error
  * @see https://api-docs.grvt.io/trading_api/#positions-request
  * @param {string[]|undefined} symbols list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+ * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
  */
 func (this *Grvt) FetchPositions(options ...FetchPositionsOptions) ([]Position, error) {
 
@@ -574,12 +587,12 @@ func (this *Grvt) FetchPositions(options ...FetchPositionsOptions) ([]Position, 
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -607,12 +620,12 @@ func (this *Grvt) FetchLeverages(options ...FetchLeveragesOptions) (Leverages, e
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -641,12 +654,12 @@ func (this *Grvt) SetLeverage(leverage int64, options ...SetLeverageOptions) (Le
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -674,12 +687,12 @@ func (this *Grvt) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -701,7 +714,7 @@ func (this *Grvt) FetchMarginModes(options ...FetchMarginModesOptions) (MarginMo
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
- * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+ * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
 func (this *Grvt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]FundingHistory, error) {
 
@@ -711,22 +724,22 @@ func (this *Grvt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -747,7 +760,7 @@ func (this *Grvt) FetchFundingHistory(options ...FetchFundingHistoryOptions) ([]
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest item
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 
@@ -757,22 +770,22 @@ func (this *Grvt) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -792,7 +805,7 @@ func (this *Grvt) FetchOrders(options ...FetchOrdersOptions) ([]Order, error) {
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, error) {
 
@@ -802,22 +815,22 @@ func (this *Grvt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -837,7 +850,7 @@ func (this *Grvt) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order, e
  * @param {string} symbol unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) FetchOrder(id string, options ...FetchOrderOptions) (Order, error) {
 
@@ -847,12 +860,12 @@ func (this *Grvt) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -870,7 +883,7 @@ func (this *Grvt) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @see https://api-docs.grvt.io/trading_api/#cancel-all-orders
  * @param {string} symbol cancel alls open orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, error) {
 
@@ -880,12 +893,12 @@ func (this *Grvt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -905,7 +918,7 @@ func (this *Grvt) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order, e
  * @param {string} [symbol] unified symbol of the market the order was made in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.clientOrderId] client order id
- * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+ * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Grvt) CancelOrder(id string, options ...CancelOrderOptions) (Order, error) {
 
@@ -915,12 +928,12 @@ func (this *Grvt) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -933,7 +946,7 @@ func (this *Grvt) CancelOrder(id string, options ...CancelOrderOptions) (Order, 
 
 // missing typed methods from base
 // nolint
-func (this *Grvt) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Grvt) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Grvt) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]Order, error) {
@@ -942,7 +955,7 @@ func (this *Grvt) CancelOrders(ids []string, options ...CancelOrdersOptions) ([]
 func (this *Grvt) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Grvt) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Grvt) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Grvt) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -1038,7 +1051,7 @@ func (this *Grvt) EditOrderWithClientOrderId(clientOrderId string, symbol string
 func (this *Grvt) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Grvt) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Grvt) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Grvt) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1050,7 +1063,7 @@ func (this *Grvt) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error
 func (this *Grvt) FetchBorrowInterest(options ...FetchBorrowInterestOptions) ([]BorrowInterest, error) {
 	return this.exchangeTyped.FetchBorrowInterest(options...)
 }
-func (this *Grvt) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Grvt) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -1059,7 +1072,7 @@ func (this *Grvt) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosed
 func (this *Grvt) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrders(options...)
 }
-func (this *Grvt) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Grvt) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Grvt) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1074,7 +1087,7 @@ func (this *Grvt) FetchConvertTradeHistory(options ...FetchConvertTradeHistoryOp
 func (this *Grvt) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Grvt) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Grvt) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Grvt) FetchDepositAddress(code string, options ...FetchDepositAddressOptions) (DepositAddress, error) {
@@ -1089,13 +1102,13 @@ func (this *Grvt) FetchDepositAddressesByNetwork(code string, options ...FetchDe
 func (this *Grvt) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Grvt) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFee(code, options...)
 }
-func (this *Grvt) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositWithdrawFees(options...)
 }
-func (this *Grvt) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Grvt) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Grvt) FetchFundingInterval(symbol string, options ...FetchFundingIntervalOptions) (FundingRate, error) {
@@ -1119,7 +1132,7 @@ func (this *Grvt) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptio
 func (this *Grvt) FetchIsolatedBorrowRate(symbol string, options ...FetchIsolatedBorrowRateOptions) (IsolatedBorrowRate, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRate(symbol, options...)
 }
-func (this *Grvt) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Grvt) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Grvt) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1194,7 +1207,7 @@ func (this *Grvt) FetchOrderStatus(id string, options ...FetchOrderStatusOptions
 func (this *Grvt) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Grvt) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Grvt) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
 func (this *Grvt) FetchPosition(symbol string, options ...FetchPositionOptions) (Position, error) {
@@ -1203,7 +1216,7 @@ func (this *Grvt) FetchPosition(symbol string, options ...FetchPositionOptions) 
 func (this *Grvt) FetchPositionHistory(symbol string, options ...FetchPositionHistoryOptions) ([]Position, error) {
 	return this.exchangeTyped.FetchPositionHistory(symbol, options...)
 }
-func (this *Grvt) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Grvt) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -1218,28 +1231,28 @@ func (this *Grvt) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]Po
 func (this *Grvt) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Grvt) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Grvt) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
 func (this *Grvt) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchTickers(options...)
 }
-func (this *Grvt) FetchTime(params ...interface{}) (int64, error) {
+func (this *Grvt) FetchTime(params ...any) (int64, error) {
 	return this.exchangeTyped.FetchTime(params...)
 }
 func (this *Grvt) FetchTradingFee(symbol string, options ...FetchTradingFeeOptions) (TradingFeeInterface, error) {
 	return this.exchangeTyped.FetchTradingFee(symbol, options...)
 }
-func (this *Grvt) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Grvt) FetchTradingFees(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFees(params...)
 }
-func (this *Grvt) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Grvt) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Grvt) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Grvt) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -1251,10 +1264,10 @@ func (this *Grvt) FetchTransfer(id string, options ...FetchTransferOptions) (Tra
 func (this *Grvt) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Grvt) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Grvt) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetMarginMode(marginMode, options...)
 }
-func (this *Grvt) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Grvt) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Grvt) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -1329,13 +1342,13 @@ func (this *Grvt) CreateTriggerOrderWs(symbol string, typeVar string, side strin
 func (this *Grvt) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Grvt) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Grvt) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Grvt) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Grvt) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Grvt) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -1377,46 +1390,46 @@ func (this *Grvt) FetchTickerWs(symbol string, options ...FetchTickerWsOptions) 
 func (this *Grvt) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Grvt) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Grvt) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Grvt) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Grvt) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Grvt) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Grvt) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Grvt) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Grvt) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Grvt) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Grvt) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Grvt) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Grvt) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Grvt) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Grvt) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Grvt) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Grvt) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Grvt) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Grvt) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Grvt) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Grvt) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Grvt) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Grvt) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Grvt) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Grvt) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Grvt) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Grvt) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Grvt) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Grvt) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Grvt) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

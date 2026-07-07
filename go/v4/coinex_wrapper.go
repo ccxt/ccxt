@@ -6,7 +6,7 @@ type Coinex struct {
 	exchangeTyped *ExchangeTyped
 }
 
-func NewCoinex(userConfig map[string]interface{}) *Coinex {
+func NewCoinex(userConfig map[string]any) *Coinex {
 	p := NewCoinexCore()
 	p.Init(userConfig)
 	return &Coinex{
@@ -34,7 +34,7 @@ func NewCoinexFromCore(core *CoinexCore) *Coinex {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
-func (this *Coinex) FetchCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinex) FetchCurrencies(params ...any) (Currencies, error) {
 	res := <-this.Core.FetchCurrencies(params...)
 	if IsError(res) {
 		return Currencies{}, CreateReturnError(res)
@@ -51,26 +51,26 @@ func (this *Coinex) FetchCurrencies(params ...interface{}) (Currencies, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Coinex) FetchMarkets(params ...interface{}) ([]MarketInterface, error) {
+func (this *Coinex) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Coinex) FetchSpotMarkets(params interface{}) ([]MarketInterface, error) {
+func (this *Coinex) FetchSpotMarkets(params any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchSpotMarkets(params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Coinex) FetchContractMarkets(params interface{}) ([]map[string]interface{}, error) {
+func (this *Coinex) FetchContractMarkets(params any) ([]map[string]any, error) {
 	res := <-this.Core.FetchContractMarkets(params)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return res.([]map[string]interface{}), nil
+	return res.([]map[string]any), nil
 }
 
 /**
@@ -91,7 +91,7 @@ func (this *Coinex) FetchTicker(symbol string, options ...FetchTickerOptions) (T
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -120,12 +120,12 @@ func (this *Coinex) FetchTickers(options ...FetchTickersOptions) (Tickers, error
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -144,7 +144,7 @@ func (this *Coinex) FetchTickers(options ...FetchTickersOptions) (Tickers, error
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
-func (this *Coinex) FetchTime(params ...interface{}) (int64, error) {
+func (this *Coinex) FetchTime(params ...any) (int64, error) {
 	res := <-this.Core.FetchTime(params...)
 	if IsError(res) {
 		return -1, CreateReturnError(res)
@@ -161,7 +161,7 @@ func (this *Coinex) FetchTime(params ...interface{}) (int64, error) {
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+ * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Coinex) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
 
@@ -171,12 +171,12 @@ func (this *Coinex) FetchOrderBook(symbol string, options ...FetchOrderBookOptio
 		opt(&opts)
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -207,17 +207,17 @@ func (this *Coinex) FetchTrades(symbol string, options ...FetchTradesOptions) ([
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -246,7 +246,7 @@ func (this *Coinex) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -266,7 +266,7 @@ func (this *Coinex) FetchTradingFee(symbol string, options ...FetchTradingFeeOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
-func (this *Coinex) FetchTradingFees(params ...interface{}) (TradingFees, error) {
+func (this *Coinex) FetchTradingFees(params ...any) (TradingFees, error) {
 	res := <-this.Core.FetchTradingFees(params...)
 	if IsError(res) {
 		return TradingFees{}, CreateReturnError(res)
@@ -295,22 +295,22 @@ func (this *Coinex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 		opt(&opts)
 	}
 
-	var timeframe interface{} = nil
+	var timeframe any = nil
 	if opts.Timeframe != nil {
 		timeframe = *opts.Timeframe
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -320,28 +320,28 @@ func (this *Coinex) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]O
 	}
 	return NewOHLCVArray(res), nil
 }
-func (this *Coinex) FetchMarginBalance(params ...interface{}) (Balances, error) {
+func (this *Coinex) FetchMarginBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchMarginBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
 	}
 	return NewBalances(res), nil
 }
-func (this *Coinex) FetchSpotBalance(params ...interface{}) (Balances, error) {
+func (this *Coinex) FetchSpotBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchSpotBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
 	}
 	return NewBalances(res), nil
 }
-func (this *Coinex) FetchSwapBalance(params ...interface{}) (Balances, error) {
+func (this *Coinex) FetchSwapBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchSwapBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
 	}
 	return NewBalances(res), nil
 }
-func (this *Coinex) FetchFinancialBalance(params ...interface{}) (Balances, error) {
+func (this *Coinex) FetchFinancialBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchFinancialBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -361,7 +361,7 @@ func (this *Coinex) FetchFinancialBalance(params ...interface{}) (Balances, erro
  * @param {string} [params.type] 'margin', 'swap', 'financial', or 'spot'
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
-func (this *Coinex) FetchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinex) FetchBalance(params ...any) (Balances, error) {
 	res := <-this.Core.FetchBalance(params...)
 	if IsError(res) {
 		return Balances{}, CreateReturnError(res)
@@ -388,7 +388,7 @@ func (this *Coinex) CreateMarketBuyOrderWithCost(symbol string, cost float64, op
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -432,12 +432,12 @@ func (this *Coinex) CreateOrder(symbol string, typeVar string, side string, amou
 		opt(&opts)
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -468,7 +468,7 @@ func (this *Coinex) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -501,12 +501,12 @@ func (this *Coinex) CancelOrders(ids []string, options ...CancelOrdersOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -543,17 +543,17 @@ func (this *Coinex) EditOrder(id string, symbol string, typeVar string, side str
 		opt(&opts)
 	}
 
-	var amount interface{} = nil
+	var amount any = nil
 	if opts.Amount != nil {
 		amount = *opts.Amount
 	}
 
-	var price interface{} = nil
+	var price any = nil
 	if opts.Price != nil {
 		price = *opts.Price
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -582,7 +582,7 @@ func (this *Coinex) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -620,12 +620,12 @@ func (this *Coinex) CancelOrder(id string, options ...CancelOrderOptions) (Order
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -655,12 +655,12 @@ func (this *Coinex) CancelAllOrders(options ...CancelAllOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -690,12 +690,12 @@ func (this *Coinex) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -723,7 +723,7 @@ func (this *Coinex) FetchOrder(id string, options ...FetchOrderOptions) (Order, 
  * @param {string} [params.marginMode] 'cross' or 'isolated' for fetching spot margin orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinex) FetchOrdersByStatus(status interface{}, options ...FetchOrdersByStatusOptions) ([]Order, error) {
+func (this *Coinex) FetchOrdersByStatus(status any, options ...FetchOrdersByStatusOptions) ([]Order, error) {
 
 	opts := FetchOrdersByStatusOptionsStruct{}
 
@@ -731,22 +731,22 @@ func (this *Coinex) FetchOrdersByStatus(status interface{}, options ...FetchOrde
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -781,22 +781,22 @@ func (this *Coinex) FetchOpenOrders(options ...FetchOpenOrdersOptions) ([]Order,
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -831,22 +831,22 @@ func (this *Coinex) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Or
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -875,7 +875,7 @@ func (this *Coinex) CreateDepositAddress(code string, options ...CreateDepositAd
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -904,7 +904,7 @@ func (this *Coinex) FetchDepositAddress(code string, options ...FetchDepositAddr
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -937,22 +937,22 @@ func (this *Coinex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, err
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -982,12 +982,12 @@ func (this *Coinex) FetchPositions(options ...FetchPositionsOptions) ([]Position
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1015,7 +1015,7 @@ func (this *Coinex) FetchPosition(symbol string, options ...FetchPositionOptions
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1037,7 +1037,7 @@ func (this *Coinex) FetchPosition(symbol string, options ...FetchPositionOptions
  * @param {int} params.leverage the rate of leverage
  * @returns {object} response from the exchange
  */
-func (this *Coinex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]interface{}, error) {
+func (this *Coinex) SetMarginMode(marginMode string, options ...SetMarginModeOptions) (map[string]any, error) {
 
 	opts := SetMarginModeOptionsStruct{}
 
@@ -1045,20 +1045,20 @@ func (this *Coinex) SetMarginMode(marginMode string, options ...SetMarginModeOpt
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetMarginMode(marginMode, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1072,7 +1072,7 @@ func (this *Coinex) SetMarginMode(marginMode string, options ...SetMarginModeOpt
  * @param {string} [params.marginMode] 'cross' or 'isolated' (default is 'cross')
  * @returns {object} response from the exchange
  */
-func (this *Coinex) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]interface{}, error) {
+func (this *Coinex) SetLeverage(leverage int64, options ...SetLeverageOptions) (map[string]any, error) {
 
 	opts := SetLeverageOptionsStruct{}
 
@@ -1080,20 +1080,20 @@ func (this *Coinex) SetLeverage(leverage int64, options ...SetLeverageOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.SetLeverage(leverage, symbol, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return res.(map[string]interface{}), nil
+	return res.(map[string]any), nil
 }
 
 /**
@@ -1113,12 +1113,12 @@ func (this *Coinex) FetchLeverageTiers(options ...FetchLeverageTiersOptions) (Le
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1148,22 +1148,22 @@ func (this *Coinex) FetchFundingHistory(options ...FetchFundingHistoryOptions) (
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1191,7 +1191,7 @@ func (this *Coinex) FetchFundingRate(symbol string, options ...FetchFundingRateO
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1219,7 +1219,7 @@ func (this *Coinex) FetchFundingInterval(symbol string, options ...FetchFundingI
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1247,12 +1247,12 @@ func (this *Coinex) FetchFundingRates(options ...FetchFundingRatesOptions) (Fund
 		opt(&opts)
 	}
 
-	var symbols interface{} = nil
+	var symbols any = nil
 	if opts.Symbols != nil {
 		symbols = *opts.Symbols
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1284,12 +1284,12 @@ func (this *Coinex) Withdraw(code string, amount float64, address string, option
 		opt(&opts)
 	}
 
-	var tag interface{} = nil
+	var tag any = nil
 	if opts.Tag != nil {
 		tag = *opts.Tag
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1321,22 +1321,22 @@ func (this *Coinex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOp
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1368,7 +1368,7 @@ func (this *Coinex) Transfer(code string, amount float64, fromAccount string, to
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1399,22 +1399,22 @@ func (this *Coinex) FetchTransfers(options ...FetchTransfersOptions) ([]Transfer
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1444,22 +1444,22 @@ func (this *Coinex) FetchWithdrawals(options ...FetchWithdrawalsOptions) ([]Tran
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1489,22 +1489,22 @@ func (this *Coinex) FetchDeposits(options ...FetchDepositsOptions) ([]Transactio
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1533,7 +1533,7 @@ func (this *Coinex) FetchIsolatedBorrowRate(symbol string, options ...FetchIsola
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1564,27 +1564,27 @@ func (this *Coinex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) (
 		opt(&opts)
 	}
 
-	var code interface{} = nil
+	var code any = nil
 	if opts.Code != nil {
 		code = *opts.Code
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1604,7 +1604,7 @@ func (this *Coinex) FetchBorrowInterest(options ...FetchBorrowInterestOptions) (
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Coinex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchDepositWithdrawFee(code string, options ...FetchDepositWithdrawFeeOptions) (map[string]any, error) {
 
 	opts := FetchDepositWithdrawFeeOptionsStruct{}
 
@@ -1612,15 +1612,15 @@ func (this *Coinex) FetchDepositWithdrawFee(code string, options ...FetchDeposit
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositWithdrawFee(code, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return (res).(map[string]interface{}), nil
+	return (res).(map[string]any), nil
 }
 
 /**
@@ -1628,11 +1628,11 @@ func (this *Coinex) FetchDepositWithdrawFee(code string, options ...FetchDeposit
  * @name coinex#fetchDepositWithdrawFees
  * @description fetch the fees for deposits and withdrawals
  * @see https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-all-deposit-withdrawal-config
- * @param codes
+ * @param {string[]} [codes] list of unified currency codes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-func (this *Coinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFeesOptions) (map[string]any, error) {
 
 	opts := FetchDepositWithdrawFeesOptionsStruct{}
 
@@ -1640,20 +1640,20 @@ func (this *Coinex) FetchDepositWithdrawFees(options ...FetchDepositWithdrawFees
 		opt(&opts)
 	}
 
-	var codes interface{} = nil
+	var codes any = nil
 	if opts.Codes != nil {
 		codes = *opts.Codes
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
 	res := <-this.Core.FetchDepositWithdrawFees(codes, params)
 	if IsError(res) {
-		return map[string]interface{}{}, CreateReturnError(res)
+		return map[string]any{}, CreateReturnError(res)
 	}
-	return (res).(map[string]interface{}), nil
+	return (res).(map[string]any), nil
 }
 
 /**
@@ -1674,7 +1674,7 @@ func (this *Coinex) FetchLeverage(symbol string, options ...FetchLeverageOptions
 		opt(&opts)
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1705,17 +1705,17 @@ func (this *Coinex) FetchPositionHistory(symbol string, options ...FetchPosition
 		opt(&opts)
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1748,27 +1748,27 @@ func (this *Coinex) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmen
 		opt(&opts)
 	}
 
-	var symbol interface{} = nil
+	var symbol any = nil
 	if opts.Symbol != nil {
 		symbol = *opts.Symbol
 	}
 
-	var typeVar interface{} = nil
+	var typeVar any = nil
 	if opts.Type != nil {
 		typeVar = *opts.Type
 	}
 
-	var since interface{} = nil
+	var since any = nil
 	if opts.Since != nil {
 		since = *opts.Since
 	}
 
-	var limit interface{} = nil
+	var limit any = nil
 	if opts.Limit != nil {
 		limit = *opts.Limit
 	}
 
-	var params interface{} = nil
+	var params any = nil
 	if opts.Params != nil {
 		params = *opts.Params
 	}
@@ -1781,13 +1781,13 @@ func (this *Coinex) FetchMarginAdjustmentHistory(options ...FetchMarginAdjustmen
 
 // missing typed methods from base
 // nolint
-func (this *Coinex) LoadMarkets(params ...interface{}) (map[string]MarketInterface, error) {
+func (this *Coinex) LoadMarkets(params ...any) (map[string]MarketInterface, error) {
 	return this.exchangeTyped.LoadMarkets(params...)
 }
 func (this *Coinex) CancelOrdersWithClientOrderIds(clientOrderIds []string, options ...CancelOrdersWithClientOrderIdsOptions) ([]Order, error) {
 	return this.exchangeTyped.CancelOrdersWithClientOrderIds(clientOrderIds, options...)
 }
-func (this *Coinex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]interface{}, error) {
+func (this *Coinex) CancelAllOrdersAfter(timeout int64, options ...CancelAllOrdersAfterOptions) (map[string]any, error) {
 	return this.exchangeTyped.CancelAllOrdersAfter(timeout, options...)
 }
 func (this *Coinex) CancelOrderWithClientOrderId(clientOrderId string, options ...CancelOrderWithClientOrderIdOptions) (Order, error) {
@@ -1868,7 +1868,7 @@ func (this *Coinex) EditLimitSellOrder(id string, symbol string, amount float64,
 func (this *Coinex) EditOrderWithClientOrderId(clientOrderId string, symbol string, typeVar string, side string, options ...EditOrderWithClientOrderIdOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWithClientOrderId(clientOrderId, symbol, typeVar, side, options...)
 }
-func (this *Coinex) FetchAccounts(params ...interface{}) ([]Account, error) {
+func (this *Coinex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
 func (this *Coinex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
@@ -1877,13 +1877,13 @@ func (this *Coinex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, 
 func (this *Coinex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 	return this.exchangeTyped.FetchBidsAsks(options...)
 }
-func (this *Coinex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchBorrowRate(code string, amount float64, options ...FetchBorrowRateOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchBorrowRate(code, amount, options...)
 }
 func (this *Coinex) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)
 }
-func (this *Coinex) FetchConvertCurrencies(params ...interface{}) (Currencies, error) {
+func (this *Coinex) FetchConvertCurrencies(params ...any) (Currencies, error) {
 	return this.exchangeTyped.FetchConvertCurrencies(params...)
 }
 func (this *Coinex) FetchConvertQuote(fromCode string, toCode string, options ...FetchConvertQuoteOptions) (Conversion, error) {
@@ -1898,7 +1898,7 @@ func (this *Coinex) FetchConvertTradeHistory(options ...FetchConvertTradeHistory
 func (this *Coinex) FetchCrossBorrowRate(code string, options ...FetchCrossBorrowRateOptions) (CrossBorrowRate, error) {
 	return this.exchangeTyped.FetchCrossBorrowRate(code, options...)
 }
-func (this *Coinex) FetchCrossBorrowRates(params ...interface{}) (CrossBorrowRates, error) {
+func (this *Coinex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) {
 	return this.exchangeTyped.FetchCrossBorrowRates(params...)
 }
 func (this *Coinex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
@@ -1910,7 +1910,7 @@ func (this *Coinex) FetchDepositAddressesByNetwork(code string, options ...Fetch
 func (this *Coinex) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {
 	return this.exchangeTyped.FetchDepositsWithdrawals(options...)
 }
-func (this *Coinex) FetchFreeBalance(params ...interface{}) (Balance, error) {
+func (this *Coinex) FetchFreeBalance(params ...any) (Balance, error) {
 	return this.exchangeTyped.FetchFreeBalance(params...)
 }
 func (this *Coinex) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
@@ -1922,7 +1922,7 @@ func (this *Coinex) FetchGreeks(symbol string, options ...FetchGreeksOptions) (G
 func (this *Coinex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)
 }
-func (this *Coinex) FetchIsolatedBorrowRates(params ...interface{}) (IsolatedBorrowRates, error) {
+func (this *Coinex) FetchIsolatedBorrowRates(params ...any) (IsolatedBorrowRates, error) {
 	return this.exchangeTyped.FetchIsolatedBorrowRates(params...)
 }
 func (this *Coinex) FetchLastPrices(options ...FetchLastPricesOptions) (LastPrices, error) {
@@ -1997,10 +1997,10 @@ func (this *Coinex) FetchOrderStatus(id string, options ...FetchOrderStatusOptio
 func (this *Coinex) FetchOrderTrades(id string, options ...FetchOrderTradesOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchOrderTrades(id, options...)
 }
-func (this *Coinex) FetchPaymentMethods(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinex) FetchPaymentMethods(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchPaymentMethods(params...)
 }
-func (this *Coinex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchPositionMode(options ...FetchPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchPositionMode(options...)
 }
 func (this *Coinex) FetchPositionsForSymbol(symbol string, options ...FetchPositionsForSymbolOptions) ([]Position, error) {
@@ -2015,16 +2015,16 @@ func (this *Coinex) FetchPositionsRisk(options ...FetchPositionsRiskOptions) ([]
 func (this *Coinex) FetchPremiumIndexOHLCV(symbol string, options ...FetchPremiumIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)
 }
-func (this *Coinex) FetchStatus(params ...interface{}) (map[string]interface{}, error) {
+func (this *Coinex) FetchStatus(params ...any) (map[string]any, error) {
 	return this.exchangeTyped.FetchStatus(params...)
 }
-func (this *Coinex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchTradingLimits(options ...FetchTradingLimitsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTradingLimits(options...)
 }
-func (this *Coinex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchTransactionFee(code string, options ...FetchTransactionFeeOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFee(code, options...)
 }
-func (this *Coinex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchTransactionFees(options ...FetchTransactionFeesOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchTransactionFees(options...)
 }
 func (this *Coinex) FetchTransactions(options ...FetchTransactionsOptions) ([]Transaction, error) {
@@ -2036,7 +2036,7 @@ func (this *Coinex) FetchTransfer(id string, options ...FetchTransferOptions) (T
 func (this *Coinex) SetMargin(symbol string, amount float64, options ...SetMarginOptions) (MarginModification, error) {
 	return this.exchangeTyped.SetMargin(symbol, amount, options...)
 }
-func (this *Coinex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]interface{}, error) {
+func (this *Coinex) SetPositionMode(hedged bool, options ...SetPositionModeOptions) (map[string]any, error) {
 	return this.exchangeTyped.SetPositionMode(hedged, options...)
 }
 func (this *Coinex) CancelAllOrdersWs(options ...CancelAllOrdersWsOptions) ([]Order, error) {
@@ -2111,13 +2111,13 @@ func (this *Coinex) CreateTriggerOrderWs(symbol string, typeVar string, side str
 func (this *Coinex) EditOrderWs(id string, symbol string, typeVar string, side string, options ...EditOrderWsOptions) (Order, error) {
 	return this.exchangeTyped.EditOrderWs(id, symbol, typeVar, side, options...)
 }
-func (this *Coinex) FetchBalanceWs(params ...interface{}) (Balances, error) {
+func (this *Coinex) FetchBalanceWs(params ...any) (Balances, error) {
 	return this.exchangeTyped.FetchBalanceWs(params...)
 }
 func (this *Coinex) FetchClosedOrdersWs(options ...FetchClosedOrdersWsOptions) ([]Order, error) {
 	return this.exchangeTyped.FetchClosedOrdersWs(options...)
 }
-func (this *Coinex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchDepositsWs(options ...FetchDepositsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchDepositsWs(options...)
 }
 func (this *Coinex) FetchMyTradesWs(options ...FetchMyTradesWsOptions) ([]Trade, error) {
@@ -2159,46 +2159,46 @@ func (this *Coinex) FetchTickerWs(symbol string, options ...FetchTickerWsOptions
 func (this *Coinex) FetchTradesWs(symbol string, options ...FetchTradesWsOptions) ([]Trade, error) {
 	return this.exchangeTyped.FetchTradesWs(symbol, options...)
 }
-func (this *Coinex) FetchTradingFeesWs(params ...interface{}) (TradingFees, error) {
+func (this *Coinex) FetchTradingFeesWs(params ...any) (TradingFees, error) {
 	return this.exchangeTyped.FetchTradingFeesWs(params...)
 }
-func (this *Coinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]interface{}, error) {
+func (this *Coinex) FetchWithdrawalsWs(options ...FetchWithdrawalsWsOptions) (map[string]any, error) {
 	return this.exchangeTyped.FetchWithdrawalsWs(options...)
 }
-func (this *Coinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (interface{}, error) {
+func (this *Coinex) UnWatchBidsAsks(options ...UnWatchBidsAsksOptions) (any, error) {
 	return this.exchangeTyped.UnWatchBidsAsks(options...)
 }
-func (this *Coinex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (interface{}, error) {
+func (this *Coinex) UnWatchMyTrades(options ...UnWatchMyTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchMyTrades(options...)
 }
-func (this *Coinex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (interface{}, error) {
+func (this *Coinex) UnWatchOHLCV(symbol string, options ...UnWatchOHLCVOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCV(symbol, options...)
 }
-func (this *Coinex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (interface{}, error) {
+func (this *Coinex) UnWatchOHLCVForSymbols(symbolsAndTimeframes [][]string, options ...UnWatchOHLCVForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOHLCVForSymbols(symbolsAndTimeframes, options...)
 }
-func (this *Coinex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (interface{}, error) {
+func (this *Coinex) UnWatchOrderBook(symbol string, options ...UnWatchOrderBookOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBook(symbol, options...)
 }
-func (this *Coinex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (interface{}, error) {
+func (this *Coinex) UnWatchOrderBookForSymbols(symbols []string, options ...UnWatchOrderBookForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrderBookForSymbols(symbols, options...)
 }
-func (this *Coinex) UnWatchOrders(options ...UnWatchOrdersOptions) (interface{}, error) {
+func (this *Coinex) UnWatchOrders(options ...UnWatchOrdersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchOrders(options...)
 }
-func (this *Coinex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (interface{}, error) {
+func (this *Coinex) UnWatchTicker(symbol string, options ...UnWatchTickerOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTicker(symbol, options...)
 }
-func (this *Coinex) UnWatchTickers(options ...UnWatchTickersOptions) (interface{}, error) {
+func (this *Coinex) UnWatchTickers(options ...UnWatchTickersOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTickers(options...)
 }
-func (this *Coinex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (interface{}, error) {
+func (this *Coinex) UnWatchTrades(symbol string, options ...UnWatchTradesOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTrades(symbol, options...)
 }
-func (this *Coinex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (interface{}, error) {
+func (this *Coinex) UnWatchTradesForSymbols(symbols []string, options ...UnWatchTradesForSymbolsOptions) (any, error) {
 	return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)
 }
-func (this *Coinex) WatchBalance(params ...interface{}) (Balances, error) {
+func (this *Coinex) WatchBalance(params ...any) (Balances, error) {
 	return this.exchangeTyped.WatchBalance(params...)
 }
 func (this *Coinex) WatchBidsAsks(options ...WatchBidsAsksOptions) (Tickers, error) {

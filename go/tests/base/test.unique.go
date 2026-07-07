@@ -8,13 +8,13 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 func TestUnique() {
 	exchange := ccxt.NewExchange().(*ccxt.Exchange)
 	exchange.DerivedExchange = exchange
-	exchange.InitParent(map[string]interface{}{
+	exchange.InitParent(map[string]any{
 		"id": "sampleexchange",
-	}, map[string]interface{}{}, exchange)
+	}, map[string]any{}, exchange)
 	// in different langs, the order (sort) is not guaranteed, so we sort the results before comparing them
 	// todo: `unique` is primarily meant for strings atm, add numeric support
-	AssertDeepEqual(exchange, nil, "testUnique", exchange.Unique([]interface{}{}), []interface{}{})
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
-	// testSharedMethods.assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
-	AssertDeepEqual(exchange, nil, "testUnique", exchange.Sort(exchange.Unique([]interface{}{"a", "a", "b", "c", "a", "c"})), []interface{}{"a", "b", "c"})
+	AssertDeepEqual(exchange, nil, "testUnique", exchange.Unique([]any{}), []any{})
+	// assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3 ])), [ 1, 2, 3 ]);
+	// assertDeepEqual (exchange, undefined, 'testUnique',  exchange.sort (exchange.unique ([ 1, 2, 3, 4, 1 ])), [ 1, 2, 3, 4 ]);
+	AssertDeepEqual(exchange, nil, "testUnique", exchange.Sort(exchange.Unique([]any{"a", "a", "b", "c", "a", "c"})), []any{"a", "b", "c"})
 }

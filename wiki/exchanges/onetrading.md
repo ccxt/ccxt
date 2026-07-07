@@ -47,7 +47,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 
 
 ```javascript
-onetrading.fetchTime ([params])
+onetrading.fetchTime (params?)
 ```
 
 
@@ -67,7 +67,7 @@ fetches all available currencies on an exchange
 
 
 ```javascript
-onetrading.fetchCurrencies ([params])
+onetrading.fetchCurrencies (params?)
 ```
 
 
@@ -87,7 +87,7 @@ retrieves data on all markets for onetrading
 
 
 ```javascript
-onetrading.fetchMarkets ([params])
+onetrading.fetchMarkets (params?)
 ```
 
 
@@ -112,7 +112,7 @@ fetch the trading fees for multiple markets
 
 
 ```javascript
-onetrading.fetchTradingFees ([params])
+onetrading.fetchTradingFees (params?)
 ```
 
 
@@ -133,7 +133,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-onetrading.fetchTicker (symbol[, params])
+onetrading.fetchTicker (symbol, params?)
 ```
 
 
@@ -154,7 +154,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 
 
 ```javascript
-onetrading.fetchTickers ([symbols, params])
+onetrading.fetchTickers (symbols?, params?)
 ```
 
 
@@ -164,7 +164,7 @@ onetrading.fetchTickers ([symbols, params])
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://docs.onetrading.com/rest/public/orderbook  
 
@@ -176,7 +176,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-onetrading.fetchOrderBook (symbol[, limit, params])
+onetrading.fetchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -200,7 +200,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-onetrading.fetchOHLCV (symbol, timeframe[, since, limit, params])
+onetrading.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 
 
@@ -220,7 +220,7 @@ query for balance and get the amount of funds available for trading or funds loc
 
 
 ```javascript
-onetrading.fetchBalance ([params])
+onetrading.fetchBalance (params?)
 ```
 
 
@@ -246,7 +246,7 @@ create a trade order
 
 
 ```javascript
-onetrading.createOrder (symbol, type, side, amount[, price, params])
+onetrading.createOrder (symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -272,7 +272,7 @@ cancels an open order
 
 
 ```javascript
-onetrading.cancelOrder (id, symbol[, params])
+onetrading.cancelOrder (id, symbol, params?)
 ```
 
 
@@ -293,7 +293,7 @@ cancel all open orders
 
 
 ```javascript
-onetrading.cancelAllOrders (symbol[, params])
+onetrading.cancelAllOrders (symbol, params?)
 ```
 
 
@@ -315,7 +315,7 @@ cancel multiple orders
 
 
 ```javascript
-onetrading.cancelOrders (ids, symbol[, params])
+onetrading.cancelOrders (ids, symbol, params?)
 ```
 
 
@@ -337,7 +337,7 @@ fetches information on an order made by the user
 
 
 ```javascript
-onetrading.fetchOrder (id, symbol[, params])
+onetrading.fetchOrder (id, symbol, params?)
 ```
 
 
@@ -360,7 +360,7 @@ fetch all unfilled currently open orders
 
 
 ```javascript
-onetrading.fetchOpenOrders (symbol[, since, limit, params])
+onetrading.fetchOpenOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -383,7 +383,7 @@ fetches information on multiple closed orders made by the user
 
 
 ```javascript
-onetrading.fetchClosedOrders (symbol[, since, limit, params])
+onetrading.fetchClosedOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -407,7 +407,7 @@ fetch all the trades made from a single order
 
 
 ```javascript
-onetrading.fetchOrderTrades (id, symbol[, since, limit, params])
+onetrading.fetchOrderTrades (id, symbol, since?, limit?, params?)
 ```
 
 
@@ -430,7 +430,7 @@ fetch all trades made by the user
 
 
 ```javascript
-onetrading.fetchMyTrades (symbol[, since, limit, params])
+onetrading.fetchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -450,7 +450,7 @@ watch balance and get the amount of funds available for trading or funds locked 
 
 
 ```javascript
-onetrading.watchBalance ([params])
+onetrading.watchBalance (params?)
 ```
 
 
@@ -471,7 +471,7 @@ watches a price ticker, a statistical calculation with the information calculate
 
 
 ```javascript
-onetrading.watchTicker (symbol[, params])
+onetrading.watchTicker (symbol, params?)
 ```
 
 
@@ -492,7 +492,7 @@ watches price tickers, a statistical calculation with the information for all ma
 
 
 ```javascript
-onetrading.watchTickers (symbols[, params])
+onetrading.watchTickers (symbols, params?)
 ```
 
 
@@ -515,7 +515,7 @@ get the list of trades associated with the user
 
 
 ```javascript
-onetrading.watchMyTrades (symbol[, since, limit, params])
+onetrading.watchMyTrades (symbol, since?, limit?, params?)
 ```
 
 
@@ -525,7 +525,7 @@ onetrading.watchMyTrades (symbol[, since, limit, params])
 watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance method of [<code>onetrading</code>](#onetrading)  
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure) indexed by market symbols
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
 **See**: https://developers.bitpanda.com/exchange/#market-ticker-channel  
 
@@ -537,7 +537,7 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 
 
 ```javascript
-onetrading.watchOrderBook (symbol[, limit, params])
+onetrading.watchOrderBook (symbol, limit?, params?)
 ```
 
 
@@ -561,7 +561,7 @@ watches information on multiple orders made by the user
 
 
 ```javascript
-onetrading.watchOrders (symbol[, since, limit, params])
+onetrading.watchOrders (symbol, since?, limit?, params?)
 ```
 
 
@@ -585,6 +585,6 @@ watches historical candlestick data containing the open, high, low, and close pr
 
 
 ```javascript
-onetrading.watchOHLCV (symbol, timeframe[, since, limit, params])
+onetrading.watchOHLCV (symbol, timeframe, since?, limit?, params?)
 ```
 

@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
+import { sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/btcmarkets.js';
 import { ArgumentsRequired, ExchangeError, OrderNotFound, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
+import type{ Balances, Currency, Dict, NullableDict, List, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -301,7 +301,9 @@ export default class btcmarkets extends Exchange {
     }
 
     async fetchTransactionsWithMethod (method, code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -309,7 +311,7 @@ export default class btcmarkets extends Exchange {
         if (since !== undefined) {
             request['after'] = since;
         }
-        let currency = undefined;
+        let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
         }
@@ -436,7 +438,7 @@ export default class btcmarkets extends Exchange {
         const cryptoPaymentDetail = this.safeDict (transaction, 'paymentDetail', {});
         const txid = this.safeString (cryptoPaymentDetail, 'txId');
         let address = this.safeString (cryptoPaymentDetail, 'address');
-        let tag = undefined;
+        let tag: Str = undefined;
         if (address !== undefined) {
             const addressParts = address.split ('?dt=');
             const numParts = addressParts.length;
@@ -524,7 +526,7 @@ export default class btcmarkets extends Exchange {
         const minAmount = this.safeNumber (market, 'minOrderAmount');
         const maxAmount = this.safeNumber (market, 'maxOrderAmount');
         const status = this.safeString (market, 'status');
-        let minPrice = undefined;
+        let minPrice: Num = undefined;
         if (quote === 'AUD') {
             minPrice = pricePrecision;
         }
@@ -622,7 +624,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetAccountsMeBalances (params);
         return this.parseBalance (response);
     }
@@ -661,7 +665,9 @@ export default class btcmarkets extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'marketId': market['id'],
@@ -697,10 +703,12 @@ export default class btcmarkets extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'marketId': market['id'],
@@ -789,7 +797,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'marketId': market['id'],
@@ -814,7 +824,9 @@ export default class btcmarkets extends Exchange {
     }
 
     async fetchTicker2 (symbol: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'id': market['id'],
@@ -864,7 +876,7 @@ export default class btcmarkets extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const orderId = this.safeString (trade, 'orderId');
-        let fee = undefined;
+        let fee: NullableDict = undefined;
         const feeCostString = this.safeString (trade, 'fee');
         if (feeCostString !== undefined) {
             fee = {
@@ -902,7 +914,9 @@ export default class btcmarkets extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             // 'since': 59868345231,
@@ -934,7 +948,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'marketId': market['id'],
@@ -1028,8 +1044,10 @@ export default class btcmarkets extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        const numericIds = [];
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const numericIds: List = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = parseInt (ids[i]);
             numericIds.push (parseInt (ids[i]));
@@ -1073,7 +1091,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
@@ -1101,8 +1121,8 @@ export default class btcmarkets extends Exchange {
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
         const market = this.markets[symbol];
-        let currency = undefined;
-        let cost = undefined;
+        let currency: Currency = undefined;
+        let cost: Str = undefined;
         if (market['quote'] === 'AUD') {
             currency = market['quote'];
             const amountString = this.numberToString (amount);
@@ -1212,7 +1232,9 @@ export default class btcmarkets extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
@@ -1232,11 +1254,13 @@ export default class btcmarkets extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'status': 'all',
         };
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];
@@ -1295,9 +1319,11 @@ export default class btcmarkets extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
-        let market = undefined;
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['marketId'] = market['id'];
@@ -1353,7 +1379,9 @@ export default class btcmarkets extends Exchange {
      */
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'assetName': currency['id'],
@@ -1390,7 +1418,7 @@ export default class btcmarkets extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         let request = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.keysort (this.omit (params, this.extractParams (path)));
         if (api === 'private') {

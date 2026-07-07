@@ -2,6 +2,8 @@
 
 import testAggregate from './test.aggregate.js';
 import testDecimalToPrecision from './test.decimalToPrecision.js';
+import testBinaryToBase16 from './test.binaryToBase16.js';
+import testBase16ToBinary from './test.base16ToBinary.js';
 import testBinaryToBase64 from './test.binaryToBase64.js';
 import testBase64ToBinary from './test.base64ToBinary.js';
 import testNumberToBE from './test.numberToBE.js';
@@ -12,6 +14,7 @@ import testCryptography from './test.cryptography.js';
 import testToArray from './test.toArray.js';
 import testExtend from './test.extend.js';
 import testDeepExtend from './test.deepExtend.js';
+import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
@@ -34,6 +37,7 @@ import testStringToBase64 from './test.stringToBase64.js';
 import testUrlencode from './test.urlencode.js';
 import testAfterConstructor from './test.afterConstructor.js';
 import testRawencode from './test.rawencode.js';
+import testFetchHistory from './test.fetchHistory.js';
 import testHandleMethods from './test.handleMethods.js';
 import testRemoveRepeatedElementsFromArray from './test.removeRepeatedElementsFromArray.js';
 import testUrlencodeWithArrayRepeat from './test.urlencodeWithArrayRepeat.js';
@@ -49,8 +53,10 @@ import testTimeframes from './test.timeframes.js';
 import testKeysort from './test.keysort.js';
 import testImplodeParams from './test.implodeParams.js';
 import testUrlencodeNested from './test.urlencodeNested.js';
+import testClone from './test.clone.js';
 import testStringToBase16 from './test.stringToBase16.js';
 import testCapitalize from './test.capitalize.js';
+import testBinaryConcat from './test.binaryConcat.js';
 import testConstants from './test.constants.js';
 import testBase58ToBinary from './test.base58ToBinary.js';
 import testIsJsonEncodedObject from './test.isJsonEncodedObject.js';
@@ -64,9 +70,12 @@ async function baseTestsInit () {
     testExtend ();
     testDeepExtend ();
     testCryptography ();
+    testBinaryToBase16 ();
+    testBase16ToBinary ();
     testBinaryToBase64 ();
     testBase64ToBinary ();
-    testNumberToBE ();    testDatetime ();
+    testDatetime ();
+    testNumberToBE ();
     testDecimalToPrecision ();
     testCapitalize ();
     testNumberToString ();
@@ -84,12 +93,15 @@ async function baseTestsInit () {
     testUrlencode ();
     testOmit ();
     testGroupBy ();
+    testClone ();
     testIndexBy ();
     testInArray ();
     testFilterBy ();
     testHandleMethods ();
+    testNetworkMethods ();
     testRemoveRepeatedElementsFromArray ();
     testIsEmpty ();
+    testBinaryConcat ();
     testUrlencodeWithArrayRepeat ();
     testParsePrecision ();
     testPrecisionFromString ();
@@ -108,9 +120,11 @@ async function baseTestsInit () {
     testUnique ();
     testUrlencodeNested ();
     await testSleep ();
+    await testFetchHistory ();
     testIo ();
     testIsJsonEncodedObject ();
     testEncodeDecode ();
+    return true;
 }
 
 export default baseTestsInit;

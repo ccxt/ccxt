@@ -107,7 +107,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trades = await this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -171,7 +174,7 @@ public partial class blofin : ccxt.blofin
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
@@ -189,12 +192,15 @@ public partial class blofin : ccxt.blofin
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.depth] the type of order book to subscribe to, default is 'depth/increase100', also accepts 'depth5' or 'depth20' or depth50
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object callerMethodName = null;
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
@@ -331,8 +337,8 @@ public partial class blofin : ccxt.blofin
             object ticker = this.parseWsTicker(getValue(data, i));
             object symbol = getValue(ticker, "symbol");
             object messageHash = add(add(channelName, ":"), symbol);
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
-            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
+            ((IDictionary<string,object>)this.tickers)[(string)((string)symbol)] = ticker;
+            callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, ((string)symbol)), messageHash});
         }
     }
 
@@ -353,20 +359,24 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
-        object firstMarket = this.market(getValue(symbols, 0));
+        object symbolsList = (IList<string>)(symbols);
+        object firstMarket = this.market(getValue(symbolsList, 0));
         object channel = "tickers";
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "public"));
+        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
         object messageHashes = new List<object>() {};
         object args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsList)); postFixIncrement(ref i))
         {
-            object market = this.market(getValue(symbols, i));
+            object market = this.market(getValue(symbolsList, i));
             ((IList<object>)messageHashes).Add(add("bidask:", getValue(market, "symbol")));
             ((IList<object>)args).Add(new Dictionary<string, object>() {
                 { "channel", channel },
@@ -392,7 +402,7 @@ public partial class blofin : ccxt.blofin
             object ticker = this.parseWsBidAsk(getValue(data, i));
             object symbol = getValue(ticker, "symbol");
             object messageHash = add("bidask:", symbol);
-            ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
+            ((IDictionary<string,object>)this.bidsasks)[(string)((string)symbol)] = ticker;
             callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         }
     }
@@ -454,7 +464,10 @@ public partial class blofin : ccxt.blofin
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var symboltimeframecandlesVariable = await this.watchMultipleWrapper(true, "candle", "watchOHLCVForSymbols", symbolsAndTimeframes, parameters);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
@@ -488,7 +501,7 @@ public partial class blofin : ccxt.blofin
         object marketId = this.safeString(arg, "instId");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object interval = ((string)channelName).Replace((string)"candle", (string)"");
+        object interval = ((string)((string)channelName)).Replace((string)"candle", (string)"");
         object unifiedTimeframe = this.findTimeframe(interval);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
@@ -520,7 +533,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -535,7 +551,7 @@ public partial class blofin : ccxt.blofin
             { "channel", "account" },
         };
         object request = this.getSubscriptionRequest(new List<object>() {sub});
-        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "private"));
+        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -602,7 +618,10 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object channel = ((bool) isTrue(trigger)) ? "orders-algo" : "orders";
@@ -667,7 +686,10 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         await this.authenticate();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object newPositions = await this.watchMultipleWrapper(false, "positions", "watchPositions", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -722,7 +744,10 @@ public partial class blofin : ccxt.blofin
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
@@ -734,7 +759,7 @@ public partial class blofin : ccxt.blofin
             { "instId", getValue(market, "id") },
         };
         object request = this.getSubscriptionRequest(new List<object>() {requestParams});
-        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "public"));
+        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "public"));
         return await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 
@@ -759,7 +784,7 @@ public partial class blofin : ccxt.blofin
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         object fundingRate = this.parseFundingRate(first);
         object symbol = getValue(fundingRate, "symbol");
-        ((IDictionary<string,object>)this.fundingRates)[(string)symbol] = fundingRate;
+        ((IDictionary<string,object>)this.fundingRates)[(string)((string)symbol)] = fundingRate;
         object messageHash = add("fundingRate:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
@@ -768,7 +793,10 @@ public partial class blofin : ccxt.blofin
     {
         // underlier method for all watch-multiple symbols
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
         callerMethodName = ((IList<object>)callerMethodNameparametersVariable)[0];
         parameters = ((IList<object>)callerMethodNameparametersVariable)[1];
@@ -838,7 +866,7 @@ public partial class blofin : ccxt.blofin
         }
         object request = this.getSubscriptionRequest(rawSubscriptions);
         object privateOrPublic = ((bool) isTrue(isPublic)) ? "public" : "private";
-        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), privateOrPublic));
+        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), privateOrPublic));
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
@@ -899,7 +927,7 @@ public partial class blofin : ccxt.blofin
             object arg = this.safeDict(message, "arg");
             object channelName = this.safeString(arg, "channel");
             method = this.safeValue(methods, channelName);
-            if (isTrue(!isTrue(method) && isTrue(isGreaterThanOrEqual(getIndexOf(channelName, "candle"), 0))))
+            if (isTrue(!isTrue(method) && isTrue(isGreaterThanOrEqual(getIndexOf(((string)channelName), "candle"), 0))))
             {
                 method = getValue(methods, "candle");
             }
@@ -931,7 +959,7 @@ public partial class blofin : ccxt.blofin
 }} },
         };
         object marketType = "swap"; // for now
-        object url = this.implodeHostname(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), marketType), "private"));
+        object url = this.implodeHostname(getValue(getValue(getValue((getValue(this.urls, "api")), "ws"), marketType), "private"));
         await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash);
     }
 }

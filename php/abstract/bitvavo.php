@@ -7,6 +7,30 @@ namespace ccxt\abstract;
 
 
 abstract class bitvavo extends \ccxt\Exchange {
+    public function public_get_market_book($params = array()) {
+        return $this->request('{market}/book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_report_market_book($params = array()) {
+        return $this->request('report/{market}/book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_market_trades($params = array()) {
+        return $this->request('{market}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_report_market_trades($params = array()) {
+        return $this->request('report/{market}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function public_get_ticker_price($params = array()) {
+        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_ticker_book($params = array()) {
+        return $this->request('ticker/book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_market_candles($params = array()) {
+        return $this->request('{market}/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function public_get_ticker_24h($params = array()) {
+        return $this->request('ticker/24h', 'public', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+    }
     public function public_get_time($params = array()) {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -16,41 +40,17 @@ abstract class bitvavo extends \ccxt\Exchange {
     public function public_get_assets($params = array()) {
         return $this->request('assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function public_get_market_book($params = array()) {
-        return $this->request('{market}/book', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function public_get_market_trades($params = array()) {
-        return $this->request('{market}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function public_get_market_candles($params = array()) {
-        return $this->request('{market}/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function public_get_ticker_price($params = array()) {
-        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function public_get_ticker_book($params = array()) {
-        return $this->request('ticker/book', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function public_get_ticker_24h($params = array()) {
-        return $this->request('ticker/24h', 'public', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
-    }
-    public function private_get_account($params = array()) {
-        return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function private_get_order($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function private_get_orders($params = array()) {
-        return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function private_get_ordersopen($params = array()) {
-        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 5, "noMarket" => 100));
     }
     public function private_get_trades($params = array()) {
         return $this->request('trades', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function private_get_balance($params = array()) {
-        return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 5));
+    public function private_get_orders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_deposit($params = array()) {
         return $this->request('deposit', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -60,6 +60,21 @@ abstract class bitvavo extends \ccxt\Exchange {
     }
     public function private_get_withdrawalhistory($params = array()) {
         return $this->request('withdrawalHistory', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_account($params = array()) {
+        return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_balance($params = array()) {
+        return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_stakingbalance($params = array()) {
+        return $this->request('stakingBalance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_account_fees($params = array()) {
+        return $this->request('account/fees', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_account_history($params = array()) {
+        return $this->request('account/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function private_get_subaccounts($params = array()) {
         return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -77,13 +92,19 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('institutional/subaccounts/history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_institutional_subaccounts_orders_open($params = array()) {
-        return $this->request('institutional/subaccounts/orders/open', 'private', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+        return $this->request('institutional/subaccounts/orders/open', 'private', 'GET', $params, null, null, array("cost" => 5, "noMarket" => 100));
     }
     public function private_post_order($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_cancelordersafter($params = array()) {
+        return $this->request('cancelOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function private_post_withdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_crypto_withdrawal($params = array()) {
+        return $this->request('crypto/withdrawal', 'private', 'POST', $params, null, null, array("cost" => 25));
     }
     public function private_post_subaccounts($params = array()) {
         return $this->request('subaccounts', 'private', 'POST', $params, null, null, array("cost" => 5));
@@ -98,13 +119,40 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_orders($params = array()) {
-        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
+    }
+    public function private_delete_atomic_orders($params = array()) {
+        return $this->request('atomic/orders', 'private', 'DELETE', $params, null, null, array("cost" => 100));
     }
     public function private_delete_institutional_subaccounts_order($params = array()) {
         return $this->request('institutional/subaccounts/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function private_delete_institutional_subaccounts_orders($params = array()) {
-        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
+    }
+    public function publicGetMarketBook($params = array()) {
+        return $this->request('{market}/book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetReportMarketBook($params = array()) {
+        return $this->request('report/{market}/book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketTrades($params = array()) {
+        return $this->request('{market}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetReportMarketTrades($params = array()) {
+        return $this->request('report/{market}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function publicGetTickerPrice($params = array()) {
+        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetTickerBook($params = array()) {
+        return $this->request('ticker/book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetMarketCandles($params = array()) {
+        return $this->request('{market}/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function publicGetTicker24h($params = array()) {
+        return $this->request('ticker/24h', 'public', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
     }
     public function publicGetTime($params = array()) {
         return $this->request('time', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -115,41 +163,17 @@ abstract class bitvavo extends \ccxt\Exchange {
     public function publicGetAssets($params = array()) {
         return $this->request('assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function publicGetMarketBook($params = array()) {
-        return $this->request('{market}/book', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicGetMarketTrades($params = array()) {
-        return $this->request('{market}/trades', 'public', 'GET', $params, null, null, array("cost" => 5));
-    }
-    public function publicGetMarketCandles($params = array()) {
-        return $this->request('{market}/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicGetTickerPrice($params = array()) {
-        return $this->request('ticker/price', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicGetTickerBook($params = array()) {
-        return $this->request('ticker/book', 'public', 'GET', $params, null, null, array("cost" => 1));
-    }
-    public function publicGetTicker24h($params = array()) {
-        return $this->request('ticker/24h', 'public', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
-    }
-    public function privateGetAccount($params = array()) {
-        return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
-    }
     public function privateGetOrder($params = array()) {
         return $this->request('order', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
-    public function privateGetOrders($params = array()) {
-        return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 5));
-    }
     public function privateGetOrdersOpen($params = array()) {
-        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+        return $this->request('ordersOpen', 'private', 'GET', $params, null, null, array("cost" => 5, "noMarket" => 100));
     }
     public function privateGetTrades($params = array()) {
         return $this->request('trades', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
-    public function privateGetBalance($params = array()) {
-        return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 5));
+    public function privateGetOrders($params = array()) {
+        return $this->request('orders', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetDeposit($params = array()) {
         return $this->request('deposit', 'private', 'GET', $params, null, null, array("cost" => 1));
@@ -159,6 +183,21 @@ abstract class bitvavo extends \ccxt\Exchange {
     }
     public function privateGetWithdrawalHistory($params = array()) {
         return $this->request('withdrawalHistory', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetAccount($params = array()) {
+        return $this->request('account', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetBalance($params = array()) {
+        return $this->request('balance', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetStakingBalance($params = array()) {
+        return $this->request('stakingBalance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountFees($params = array()) {
+        return $this->request('account/fees', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetAccountHistory($params = array()) {
+        return $this->request('account/history', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privateGetSubaccounts($params = array()) {
         return $this->request('subaccounts', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -176,13 +215,19 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('institutional/subaccounts/history', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetInstitutionalSubaccountsOrdersOpen($params = array()) {
-        return $this->request('institutional/subaccounts/orders/open', 'private', 'GET', $params, null, null, array("cost" => 1, "noMarket" => 25));
+        return $this->request('institutional/subaccounts/orders/open', 'private', 'GET', $params, null, null, array("cost" => 5, "noMarket" => 100));
     }
     public function privatePostOrder($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostCancelOrdersAfter($params = array()) {
+        return $this->request('cancelOrdersAfter', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
     public function privatePostWithdrawal($params = array()) {
         return $this->request('withdrawal', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostCryptoWithdrawal($params = array()) {
+        return $this->request('crypto/withdrawal', 'private', 'POST', $params, null, null, array("cost" => 25));
     }
     public function privatePostSubaccounts($params = array()) {
         return $this->request('subaccounts', 'private', 'POST', $params, null, null, array("cost" => 5));
@@ -197,12 +242,15 @@ abstract class bitvavo extends \ccxt\Exchange {
         return $this->request('order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteOrders($params = array()) {
-        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
+    }
+    public function privateDeleteAtomicOrders($params = array()) {
+        return $this->request('atomic/orders', 'private', 'DELETE', $params, null, null, array("cost" => 100));
     }
     public function privateDeleteInstitutionalSubaccountsOrder($params = array()) {
         return $this->request('institutional/subaccounts/order', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     public function privateDeleteInstitutionalSubaccountsOrders($params = array()) {
-        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+        return $this->request('institutional/subaccounts/orders', 'private', 'DELETE', $params, null, null, array("cost" => 25, "noMarket" => 100));
     }
 }

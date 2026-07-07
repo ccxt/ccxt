@@ -8,11 +8,10 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\async\abstract\kucoinfutures as kucoin;
 use ccxt\BadRequest;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class kucoinfutures extends kucoin {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'kucoinfutures',
@@ -38,12 +37,11 @@ class kucoinfutures extends kucoin {
                 ),
                 'defaultType' => 'swap',
                 'defaultAccountType' => 'contract',
-                'uta' => false,
             ),
         ));
     }
 
-    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches the bid and ask price and volume for multiple markets
@@ -55,10 +53,10 @@ class kucoinfutures extends kucoin {
                 'method' => 'futuresPublicGetAllTickers',
             );
             return Async\await($this->fetch_tickers($symbols, $this->extend($request, $params)));
-        }) ();
+        })();
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -69,7 +67,9 @@ class kucoinfutures extends kucoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $amountToPrecision = $this->currency_to_precision($code, $amount);
             $request = array(
@@ -80,7 +80,7 @@ class kucoinfutures extends kucoin {
             $response = null;
             if ($toAccountString === 'TRADE' || $toAccountString === 'MAIN') {
                 $request['recAccountType'] = $toAccountString;
-                $response = Async\await($this->futuresPrivatePostTransferOut ($this->extend($request, $params)));
+                $response = Async\await($this->futuresPrivatePostTransferOut($this->extend($request, $params)));
                 //
                 //     {
                 //         "code" => "200000",
@@ -107,7 +107,7 @@ class kucoinfutures extends kucoin {
                 //
             } elseif ($toAccount === 'future' || $toAccount === 'swap' || $toAccount === 'contract') {
                 $request['payAccountType'] = $this->parse_transfer_type($fromAccount);
-                $response = Async\await($this->futuresPrivatePostTransferIn ($this->extend($request, $params)));
+                $response = Async\await($this->futuresPrivatePostTransferIn($this->extend($request, $params)));
                 //
                 //    {
                 //        "code" => "200000",
@@ -125,7 +125,7 @@ class kucoinfutures extends kucoin {
                 'fromAccount' => $fromAccount,
                 'toAccount' => $toAccount,
             ));
-        }) ();
+        })();
     }
 
     public function parse_transfer_type($transferType) {

@@ -121,7 +121,7 @@ public partial class xt : ccxt.xt
         object nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
         object firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
-        if (isTrue(isLessThan(nonce, subtract(firstDeltaNonce, 1))))
+        if (isTrue(isTrue(isTrue((!isEqual(nonce, null))) && isTrue((!isEqual(firstDeltaNonce, null)))) && isTrue((isLessThan(nonce, subtract(firstDeltaNonce, 1))))))
         {
             return -1;
         }
@@ -129,7 +129,7 @@ public partial class xt : ccxt.xt
         {
             object delta = getValue(cache, i);
             object deltaNonce = this.safeInteger2(delta, "i", "u");
-            if (isTrue(isGreaterThanOrEqual(deltaNonce, nonce)))
+            if (isTrue(isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((!isEqual(nonce, null)))) && isTrue((isGreaterThanOrEqual(deltaNonce, nonce)))))
             {
                 return i;
             }
@@ -312,7 +312,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object options = this.safeDict(this.options, "watchTicker");
         object defaultMethod = this.safeString(options, "method", "ticker");
@@ -336,7 +339,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object options = this.safeDict(this.options, "unWatchTicker");
         object defaultMethod = this.safeString(options, "method", "ticker");
@@ -361,7 +367,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object options = this.safeDict(this.options, "watchTickers");
         object defaultMethod = this.safeString(options, "method", "tickers");
         object name = this.safeString(parameters, "method", defaultMethod);
@@ -393,7 +402,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object options = this.safeDict(this.options, "unWatchTickers");
         object defaultMethod = this.safeString(options, "method", "tickers");
         object name = this.safeString(parameters, "method", defaultMethod);
@@ -427,7 +439,10 @@ public partial class xt : ccxt.xt
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add(add(add("kline@", getValue(market, "id")), ","), timeframe);
         object ohlcv = await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
@@ -453,7 +468,10 @@ public partial class xt : ccxt.xt
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add(add(add("kline@", getValue(market, "id")), ","), timeframe);
         object messageHash = add("unsubscribe::", name);
@@ -478,7 +496,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add("trade@", getValue(market, "id"));
         object trades = await this.subscribe(name, "public", "watchTrades", market, null, parameters);
@@ -502,7 +523,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = add("trade@", getValue(market, "id"));
         object messageHash = add("unsubscribe::", name);
@@ -526,7 +550,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
@@ -555,7 +582,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object levels = this.safeString(parameters, "levels");
         parameters = this.omit(parameters, "levels");
@@ -583,7 +613,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "order";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -613,7 +646,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "trade";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -640,7 +676,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "balance";
         return await this.subscribe(name, "private", "watchBalance", null, null, parameters);
     }
@@ -659,7 +698,10 @@ public partial class xt : ccxt.xt
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "contract"), "/"), "user");
         var client = this.client(url);
         this.setPositionsCache(client);
@@ -700,14 +742,14 @@ public partial class xt : ccxt.xt
 
     public async virtual Task loadPositionsSnapshot(WebSocketClient client, object messageHash)
     {
-        object positions = await this.fetchPositions(null);
+        object positions = await this.fetchPositions();
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
         for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
-            if (isTrue(isGreaterThan(contracts, 0)))
+            if (isTrue(isTrue((!isEqual(contracts, null))) && isTrue((isGreaterThan(contracts, 0)))))
             {
                 callDynamically(cache, "append", new object[] {position});
             }
@@ -847,7 +889,10 @@ public partial class xt : ccxt.xt
             object isSpot = !isEqual(cv, null);
             object ticker = this.parseTicker(data);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             object eventVar = this.safeString(message, "event");
             object messageHashTail = ((bool) isTrue(isSpot)) ? "spot" : "contract";
             object messageHash = add(add(eventVar, "::"), messageHashTail);
@@ -935,7 +980,10 @@ public partial class xt : ccxt.xt
             object tickerData = getValue(data, i);
             object ticker = this.parseTicker(tickerData);
             object symbol = getValue(ticker, "symbol");
-            ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            if (isTrue(!isEqual(symbol, null)))
+            {
+                ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
+            }
             ((IList<object>)newTickers).Add(ticker);
         }
         object messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
@@ -1001,7 +1049,7 @@ public partial class xt : ccxt.xt
         object marketId = this.safeString(data, "s");
         if (isTrue(!isEqual(marketId, null)))
         {
-            object timeframe = this.safeString(data, "i");
+            object timeframe = this.safeString(data, "i", "");
             object tradeType = ((bool) isTrue((inOp(data, "q")))) ? "spot" : "contract";
             object market = this.safeMarket(marketId, null, null, tradeType);
             object symbol = getValue(market, "symbol");
@@ -1143,10 +1191,14 @@ public partial class xt : ccxt.xt
         object marketId = this.safeString(data, "s");
         if (isTrue(!isEqual(marketId, null)))
         {
-            object eventVar = this.safeString(message, "event");
+            object eventVar = this.safeString(message, "event", "");
             object splitEvent = ((string)eventVar).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-            eventVar = this.safeString(splitEvent, 0);
-            object tradeType = ((bool) isTrue((inOp(data, "fu")))) ? "contract" : "spot";
+            eventVar = this.safeString(splitEvent, 0, "");
+            object tradeType = "spot";
+            if (isTrue(isTrue((!isEqual(data, null))) && isTrue((inOp(data, "fu")))))
+            {
+                tradeType = "contract";
+            }
             object market = this.safeMarket(marketId, null, null, tradeType);
             object symbol = getValue(market, "symbol");
             object obAsks = this.safeList(data, "a");
@@ -1497,7 +1549,12 @@ public partial class xt : ccxt.xt
             this.myTrades = stored;
         }
         object parsedTrade = this.parseTrade(data);
-        object market = this.market(getValue(parsedTrade, "symbol"));
+        object tradeSymbol = getValue(parsedTrade, "symbol");
+        if (isTrue(isEqual(tradeSymbol, null)))
+        {
+            return;
+        }
+        object market = this.market(tradeSymbol);
         callDynamically(stored, "append", new object[] {parsedTrade});
         object tradeType = ((bool) isTrue(getValue(market, "contract"))) ? "contract" : "spot";
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, add("trade::", tradeType)});
@@ -1524,11 +1581,11 @@ public partial class xt : ccxt.xt
                 { "order", this.handleOrder },
                 { "position", this.handlePosition },
             };
-            object method = this.safeValue(methods, topic);
+            object method = ((bool) isTrue((isEqual(topic, null)))) ? null : this.safeValue(methods, topic);
             if (isTrue(isEqual(topic, "trade")))
             {
                 object data = this.safeDict(message, "data");
-                if (isTrue(isTrue((inOp(data, "oi"))) || isTrue((inOp(data, "orderId")))))
+                if (isTrue(isTrue((!isEqual(data, null))) && isTrue((isTrue((inOp(data, "oi"))) || isTrue((inOp(data, "orderId")))))))
                 {
                     method = this.handleMyTrades;
                 } else

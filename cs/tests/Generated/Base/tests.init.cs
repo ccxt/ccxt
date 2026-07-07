@@ -7,7 +7,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
-        async public Task baseTestsInit()
+        async public Task<object> baseTestsInit()
         {
             await testLanguageSpecific();
             testConstants();
@@ -16,16 +16,21 @@ public partial class BaseTest
             testExtend();
             testDeepExtend();
             testCryptography();
+            testBinaryToBase16();
+            testBase16ToBinary();
             testBinaryToBase64();
             testBase64ToBinary();
             testDatetime();
+            testNumberToBE();
             testDecimalToPrecision();
             testCapitalize();
             testNumberToString();
             testPrecise();
             testSafeMethods();
             testSafeTicker();
+            testBase58ToBinary();
             testToArray();
+            testBinaryToBase58();
             testJson();
             testSortBy();
             testSum();
@@ -34,12 +39,15 @@ public partial class BaseTest
             testUrlencode();
             testOmit();
             testGroupBy();
+            testClone();
             testIndexBy();
             testInArray();
             testFilterBy();
             testHandleMethods();
+            testNetworkMethods();
             testRemoveRepeatedElementsFromArray();
             testIsEmpty();
+            testBinaryConcat();
             testUrlencodeWithArrayRepeat();
             testParsePrecision();
             testPrecisionFromString();
@@ -58,8 +66,10 @@ public partial class BaseTest
             testUnique();
             testUrlencodeNested();
             await testSleep();
+            await testFetchHistory();
             testIo();
             testIsJsonEncodedObject();
             testEncodeDecode();
+            return true;
         }
 }

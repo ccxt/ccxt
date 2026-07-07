@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var bitfinex$1 = require('./abstract/bitfinex.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -68,7 +68,7 @@ class bitfinex extends bitfinex$1["default"] {
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': 'emulated',
+                'fetchFundingRate': 'emulated', // emulated in exchange
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchGreeks': false,
@@ -152,19 +152,19 @@ class bitfinex extends bitfinex$1["default"] {
             'api': {
                 'public': {
                     'get': {
-                        'conf/{config}': 2.7,
+                        'conf/{config}': 2.7, // 90 requests a minute, 90/60 = 1.5, 1000 / (250 * 2.66) = 1.503, use 2.7 instead of 2.66 to ensure rateLimitExceeded is not triggered
                         'conf/pub:{action}:{object}': 2.7,
                         'conf/pub:{action}:{object}:{detail}': 2.7,
                         'conf/pub:map:{object}': 2.7,
                         'conf/pub:map:{object}:{detail}': 2.7,
                         'conf/pub:map:currency:{detail}': 2.7,
-                        'conf/pub:map:currency:sym': 2.7,
-                        'conf/pub:map:currency:label': 2.7,
-                        'conf/pub:map:currency:unit': 2.7,
-                        'conf/pub:map:currency:undl': 2.7,
-                        'conf/pub:map:currency:pool': 2.7,
-                        'conf/pub:map:currency:explorer': 2.7,
-                        'conf/pub:map:currency:tx:fee': 2.7,
+                        'conf/pub:map:currency:sym': 2.7, // maps symbols to their API symbols, BAB > BCH
+                        'conf/pub:map:currency:label': 2.7, // verbose friendly names, BNT > Bancor
+                        'conf/pub:map:currency:unit': 2.7, // maps symbols to unit of measure where applicable
+                        'conf/pub:map:currency:undl': 2.7, // maps derivatives symbols to their underlying currency
+                        'conf/pub:map:currency:pool': 2.7, // maps symbols to underlying network/protocol they operate on
+                        'conf/pub:map:currency:explorer': 2.7, // maps symbols to their recognised block explorer URLs
+                        'conf/pub:map:currency:tx:fee': 2.7, // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745
                         'conf/pub:map:tx:method': 2.7,
                         'conf/pub:list:{object}': 2.7,
                         'conf/pub:list:{object}:{detail}': 2.7,
@@ -177,14 +177,14 @@ class bitfinex extends bitfinex$1["default"] {
                         'conf/pub:info:{object}:{detail}': 2.7,
                         'conf/pub:info:pair': 2.7,
                         'conf/pub:info:pair:futures': 2.7,
-                        'conf/pub:info:tx:status': 2.7,
+                        'conf/pub:info:tx:status': 2.7, // [ deposit, withdrawal ] statuses 1 = active, 0 = maintenance
                         'conf/pub:fees': 2.7,
-                        'platform/status': 8,
-                        'tickers': 2.7,
+                        'platform/status': 8, // 30 requests per minute = 0.5 requests per second => ( 1000ms / rateLimit ) / 0.5 = 8
+                        'tickers': 2.7, // 90 requests a minute = 1.5 requests per second => ( 1000 / rateLimit ) / 1.5 = 2.666666666
                         'ticker/{symbol}': 2.7,
                         'tickers/hist': 2.7,
                         'trades/{symbol}/hist': 2.7,
-                        'book/{symbol}/{precision}': 1,
+                        'book/{symbol}/{precision}': 1, // 240 requests a minute
                         'book/{symbol}/P0': 1,
                         'book/{symbol}/P1': 1,
                         'book/{symbol}/P2': 1,
@@ -207,12 +207,12 @@ class bitfinex extends bitfinex$1["default"] {
                         'status/{type}': 2.7,
                         'status/deriv': 2.7,
                         'status/deriv/{symbol}/hist': 2.7,
-                        'liquidations/hist': 80,
+                        'liquidations/hist': 80, // 3 requests a minute = 0.05 requests a second => ( 1000ms / rateLimit ) / 0.05 = 80
                         'rankings/{key}:{timeframe}:{symbol}/{section}': 2.7,
                         'rankings/{key}:{timeframe}:{symbol}/hist': 2.7,
                         'pulse/hist': 2.7,
                         'pulse/profile/{nickname}': 2.7,
-                        'funding/stats/{symbol}/hist': 10,
+                        'funding/stats/{symbol}/hist': 10, // ratelimit not in docs
                         'ext/vasps': 1,
                     },
                     'post': {
@@ -279,13 +279,13 @@ class bitfinex extends bitfinex$1["default"] {
                         'auth/r/permissions': 2.7,
                         'auth/w/token': 2.7,
                         'auth/r/audit/hist': 2.7,
-                        'auth/w/transfer': 2.7,
-                        'auth/w/deposit/address': 24,
-                        'auth/w/deposit/invoice': 24,
-                        'auth/w/withdraw': 24,
+                        'auth/w/transfer': 2.7, // ratelimit not in docs...
+                        'auth/w/deposit/address': 24, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/w/deposit/invoice': 24, // ratelimit not in docs
+                        'auth/w/withdraw': 24, // ratelimit not in docs
                         'auth/r/movements/{currency}/hist': 2.7,
                         'auth/r/movements/hist': 2.7,
-                        'auth/r/alerts': 5.34,
+                        'auth/r/alerts': 5.34, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set': 2.7,
                         'auth/w/alert/price:{symbol}:{price}/del': 2.7,
                         'auth/w/alert/{type}:{symbol}:{price}/del': 2.7,
@@ -294,7 +294,7 @@ class bitfinex extends bitfinex$1["default"] {
                         'auth/r/settings': 2.7,
                         'auth/w/settings/del': 2.7,
                         'auth/r/pulse/hist': 2.7,
-                        'auth/w/pulse/add': 16,
+                        'auth/w/pulse/add': 16, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del': 2.7,
                     },
                 },
@@ -341,7 +341,8 @@ class bitfinex extends bitfinex$1["default"] {
             },
             'precisionMode': number.SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0',
+                'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                'defaultCurrencyPrecision': 8, // default currency precision
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -427,8 +428,8 @@ class bitfinex extends bitfinex$1["default"] {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
-                        'leverage': true,
+                        'trailing': true, // todo: implement
+                        'leverage': true, // todo: implement
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': true,
                         'selfTradePrevention': false,
@@ -441,7 +442,7 @@ class bitfinex extends bitfinex$1["default"] {
                         'marginMode': false,
                         'limit': 2500,
                         'daysBack': undefined,
-                        'untilDays': 100000,
+                        'untilDays': 100000, // todo: implement
                         'symbolRequired': false,
                     },
                     'fetchOrder': {
@@ -489,7 +490,7 @@ class bitfinex extends bitfinex$1["default"] {
             'exceptions': {
                 'exact': {
                     '11010': errors.RateLimitExceeded,
-                    '10001': errors.PermissionDenied,
+                    '10001': errors.PermissionDenied, // api_key: permission invalid (#10001)
                     '10020': errors.BadRequest,
                     '10100': errors.AuthenticationError,
                     '10114': errors.InvalidNonce,
@@ -508,9 +509,9 @@ class bitfinex extends bitfinex$1["default"] {
                 'UST': 'USDT',
                 'EUTF0': 'EURT',
                 'USTF0': 'USDT',
-                'ALG': 'ALGO',
+                'ALG': 'ALGO', // https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
-                'ATO': 'ATOM',
+                'ATO': 'ATOM', // https://github.com/ccxt/ccxt/issues/5118
                 'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
@@ -526,7 +527,7 @@ class bitfinex extends bitfinex$1["default"] {
                 'LUNA': 'LUNC',
                 'LUNA2': 'LUNA',
                 'MNA': 'MANA',
-                'ORS': 'ORS Group',
+                'ORS': 'ORS Group', // conflict with Origin Sport #3230
                 'PAS': 'PASS',
                 'QSH': 'QASH',
                 'QTM': 'QTUM',
@@ -535,7 +536,7 @@ class bitfinex extends bitfinex$1["default"] {
                 'STJ': 'STORJ',
                 'TERRAUST': 'USTC',
                 'TSD': 'TUSD',
-                'YGG': 'YEED',
+                'YGG': 'YEED', // conflict with Yield Guild Games
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'VSY': 'VSYS',
@@ -603,43 +604,37 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair(params);
-        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(params);
-        const marginIdsPromise = this.publicGetConfPubListPairMargin(params);
-        let [spotMarketsInfo, futuresMarketsInfo, marginIds] = await Promise.all([spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]);
-        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, []);
+        const labels = [
+            'pub:info:pair',
+            // sample: 'AAVE:USD' with fields null,null,null,"0.02","5000.0",null,null,null,null,null,null,null
+            'pub:info:pair:futures',
+            // sample: 'AAVEF0:USTF0' with fields null,null,null,"0.02","5000.0",null,null,null,0.01,0.005
+            'pub:list:pair:securities',
+            // sample: "ALT2612:USD","ALT2612:UST","BMN2:BTC","BMN2:USD","TITAN1:GBP","TITAN1:USD","TITAN2:GBP","TITAN2:USD","USTBL:USD","USTBL:UST"
+            'pub:list:pair:margin',
+            // sample: 'ADABTC', 'AVAX:BTC', ... // delimiter inconsistency
+        ];
+        const config = labels.join(',');
+        const request = {
+            'config': config,
+        };
+        const [spotMarketsInfo, futuresMarketsInfo, securitiesMarketsIds, marginIds] = await this.publicGetConfConfig(this.extend(request, params));
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        marginIds = this.safeValue(marginIds, 0, []);
-        //
-        //    [
-        //        "1INCH:USD",
-        //        [
-        //           null,
-        //           null,
-        //           null,
-        //           "2.0",
-        //           "100000.0",
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null,
-        //           null
-        //        ]
-        //    ]
-        //
         const result = [];
         for (let i = 0; i < markets.length; i++) {
-            const pair = markets[i];
-            const id = this.safeStringUpper(pair, 0);
-            const market = this.safeValue(pair, 1, {});
+            const pairObj = markets[i];
+            const id = this.safeStringUpper(pairObj, 0);
+            const market = this.safeValue(pairObj, 1, {});
             let spot = true;
+            let type = undefined;
             if (id.indexOf('F0') >= 0) {
                 spot = false;
+                type = 'swap';
             }
-            const swap = !spot;
+            else {
+                type = 'spot';
+            }
+            const swap = type === 'swap';
             let baseId = undefined;
             let quoteId = undefined;
             if (id.indexOf(':') >= 0) {
@@ -669,10 +664,6 @@ class bitfinex extends bitfinex$1["default"] {
             }
             const minOrderSizeString = this.safeString(market, 3);
             const maxOrderSizeString = this.safeString(market, 4);
-            let margin = false;
-            if (spot && this.inArray(id, marginIds)) {
-                margin = true;
-            }
             result.push({
                 'id': 't' + id,
                 'symbol': symbol,
@@ -682,14 +673,15 @@ class bitfinex extends bitfinex$1["default"] {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': settleId,
-                'type': spot ? 'spot' : 'swap',
+                'type': type,
                 'spot': spot,
-                'margin': margin,
+                'tradfi': this.inArray(id, securitiesMarketsIds),
+                'margin': (spot && this.inArray(id, marginIds)),
                 'swap': swap,
                 'future': false,
                 'option': false,
                 'active': true,
-                'contract': swap,
+                'contract': !spot,
                 'linear': swap ? true : undefined,
                 'inverse': swap ? false : undefined,
                 'contractSize': swap ? this.parseNumber('1') : undefined,
@@ -698,7 +690,7 @@ class bitfinex extends bitfinex$1["default"] {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': parseInt('8'),
+                    'amount': parseInt('8'), // https://github.com/ccxt/ccxt/issues/7310
                     'price': parseInt('5'),
                 },
                 'limits': {
@@ -719,7 +711,7 @@ class bitfinex extends bitfinex$1["default"] {
                         'max': undefined,
                     },
                 },
-                'created': undefined,
+                'created': undefined, // todo: the api needs revision for extra params & endpoints for possibility of returning a timestamp for this
                 'info': market,
             });
         }
@@ -736,15 +728,16 @@ class bitfinex extends bitfinex$1["default"] {
     async fetchCurrencies(params = {}) {
         const labels = [
             'pub:list:currency',
-            'pub:map:currency:sym',
-            'pub:map:currency:label',
-            'pub:map:currency:unit',
-            'pub:map:currency:undl',
-            'pub:map:currency:pool',
-            'pub:map:currency:explorer',
-            'pub:map:currency:tx:fee',
-            'pub:map:tx:method',
+            'pub:map:currency:sym', // maps symbols to their API symbols, BAB > BCH
+            'pub:map:currency:label', // verbose friendly names, BNT > Bancor
+            'pub:map:currency:unit', // maps symbols to unit of measure where applicable
+            'pub:map:currency:undl', // maps derivatives symbols to their underlying currency
+            'pub:map:currency:pool', // maps symbols to underlying network/protocol they operate on
+            'pub:map:currency:explorer', // maps symbols to their recognised block explorer URLs
+            'pub:map:currency:tx:fee', // maps currencies to their withdrawal fees https://github.com/ccxt/ccxt/issues/7745,
+            'pub:map:tx:method', // maps withdrawal/deposit methods to their API symbols
             'pub:info:tx:status', // maps withdrawal/deposit statuses, coins: 1 = enabled, 0 = maintenance
+            'pub:list:currency:margin', // margin enabled currencies
         ];
         const config = labels.join(',');
         const request = {
@@ -844,6 +837,7 @@ class bitfinex extends bitfinex$1["default"] {
             'fees': this.indexBy(this.safeList(response, 7, []), 0),
             'networks': this.safeList(response, 8, []),
             'statuses': this.indexBy(this.safeList(response, 9, []), 0),
+            'marginables': this.safeList(response, 10, []),
         };
         const indexedNetworks = {};
         for (let i = 0; i < indexed['networks'].length; i++) {
@@ -857,73 +851,87 @@ class bitfinex extends bitfinex$1["default"] {
             indexedNetworks[networkName] = networksList;
         }
         const ids = this.safeList(response, 0, []);
-        const result = {};
+        return this.parseCurrenciesCustom(ids, indexed, indexedNetworks);
+    }
+    parseCurrenciesCustom(ids, indexed, indexedNetworks) {
+        const allowedIds = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             if (id.endsWith('F0')) {
                 // we get a lot of F0 currencies, skip those
                 continue;
             }
-            const code = this.safeCurrencyCode(id);
-            const label = this.safeList(indexed['label'], id, []);
-            const name = this.safeString(label, 1);
-            const pool = this.safeList(indexed['pool'], id, []);
-            const rawType = this.safeString(pool, 1);
-            const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
-            const type = isCryptoCoin ? 'crypto' : undefined;
-            const feeValues = this.safeList(indexed['fees'], id, []);
-            const fees = this.safeList(feeValues, 1, []);
-            const fee = this.safeNumber(fees, 1);
-            const undl = this.safeList(indexed['undl'], id, []);
-            const precision = '8'; // default precision, todo: fix "magic constants"
-            const networks = {};
-            const netwokIds = this.safeList(indexedNetworks, id, []);
-            for (let j = 0; j < netwokIds.length; j++) {
-                const networkId = netwokIds[j];
-                const network = this.networkIdToCode(networkId);
-                const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
-                networks[network] = {
-                    'info': networkId,
-                    'id': networkId.toLowerCase(),
-                    'network': networkId,
-                    'active': undefined,
-                    'deposit': this.safeInteger(dwStatuses, 1) === 1,
-                    'withdraw': this.safeInteger(dwStatuses, 2) === 1,
-                    'fee': undefined,
-                    'precision': undefined,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                };
-            }
-            result[code] = this.safeCurrencyStructure({
-                'id': id,
-                'code': code,
-                'info': [id, label, pool, feeValues, undl],
-                'type': type,
-                'name': name,
-                'active': true,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'fee': fee,
-                'precision': parseInt(precision),
+            allowedIds.push(id);
+        }
+        const result = {};
+        const arr = this.toArray(allowedIds);
+        for (let i = 0; i < arr.length; i++) {
+            const parsed = this.parseCurrencyCustom(arr[i], indexed, indexedNetworks);
+            const code = parsed['code'];
+            result[code] = parsed;
+        }
+        return result;
+    }
+    parseCurrencyCustom(id, indexed, indexedNetworks) {
+        const code = this.safeCurrencyCode(id);
+        const label = this.safeList(indexed['label'], id, []);
+        const name = this.safeString(label, 1);
+        const pool = this.safeList(indexed['pool'], id, []);
+        const rawType = this.safeString(pool, 1);
+        const isCryptoCoin = (rawType !== undefined) || (id in indexed['explorer']); // "hacky" solution
+        const type = isCryptoCoin ? 'crypto' : undefined;
+        const feeValues = this.safeList(indexed['fees'], id, []);
+        const fees = this.safeList(feeValues, 1, []);
+        const fee = this.safeNumber(fees, 1);
+        const undl = this.safeList(indexed['undl'], id, []);
+        const precision = this.safeString(this.options, 'defaultCurrencyPrecision', '8');
+        const networks = {};
+        const networkIds = this.safeList(indexedNetworks, id, []);
+        for (let j = 0; j < networkIds.length; j++) {
+            const networkId = networkIds[j];
+            const network = this.networkIdToCode(networkId, code);
+            const dwStatuses = this.safeList(indexed['statuses'], networkId, []);
+            networks[network] = {
+                'info': networkId,
+                'id': networkId.toLowerCase(),
+                'network': networkId,
+                'active': undefined,
+                'deposit': this.safeInteger(dwStatuses, 1) === 1,
+                'withdraw': this.safeInteger(dwStatuses, 2) === 1,
+                'fee': undefined,
+                'precision': undefined,
                 'limits': {
-                    'amount': {
-                        'min': this.parseNumber(this.parsePrecision(precision)),
-                        'max': undefined,
-                    },
                     'withdraw': {
-                        'min': fee,
+                        'min': undefined,
                         'max': undefined,
                     },
                 },
-                'networks': networks,
-            });
+            };
         }
-        return result;
+        return this.safeCurrencyStructure({
+            'id': id,
+            'code': code,
+            'info': [id, label, pool, feeValues, undl],
+            'type': type,
+            'name': name,
+            'active': true,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': fee,
+            'precision': this.parseNumber(precision),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': fee,
+                    'max': undefined,
+                },
+            },
+            'networks': networks,
+            'margin': this.inArray(id, indexed['marginables']),
+        });
     }
     /**
      * @method
@@ -936,7 +944,9 @@ class bitfinex extends bitfinex$1["default"] {
     async fetchBalance(params = {}) {
         // this api call does not return the 'used' amount - use the v1 version instead (which also returns zero balances)
         // there is a difference between this and the v1 api, namely trading wallet is called margin in v2
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const accountsByType = this.safeValue(this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString(params, 'type', 'exchange');
         const accountType = this.safeString(accountsByType, requestedType, requestedType);
@@ -985,7 +995,9 @@ class bitfinex extends bitfinex$1["default"] {
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         // transferring between derivatives wallet and regular wallet is not documented in their API
         // however we support it in CCXT (from just looking at web inspector)
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const accountsByType = this.safeValue(this.options, 'v2AccountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount);
         if (fromId === undefined) {
@@ -1125,10 +1137,12 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return, bitfinex only allows 1, 25, or 100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const precision = this.safeValue(this.options, 'precision', 'R0');
         const market = this.market(symbol);
         const request = {
@@ -1205,19 +1219,18 @@ class bitfinex extends bitfinex$1["default"] {
         //     ]
         //
         const length = ticker.length;
-        const isFetchTicker = (length === 10) || (length === 16);
+        const firstValue = this.safeNumber(ticker, 0);
+        const isFetchTicker = firstValue !== undefined; // if it's Nan, then it's string (symbol)
         let symbol = undefined;
         let minusIndex = 0;
-        let isFundingCurrency = false;
         if (isFetchTicker) {
             minusIndex = 1;
-            isFundingCurrency = (length === 16);
         }
         else {
             const marketId = this.safeString(ticker, 0);
             market = this.safeMarket(marketId, market);
-            isFundingCurrency = (length === 17);
         }
+        const isFundingCurrency = length >= 17;
         symbol = this.safeSymbol(undefined, market);
         let last = undefined;
         let bid = undefined;
@@ -1283,7 +1296,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         if (symbols !== undefined) {
@@ -1345,7 +1360,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1451,7 +1468,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -1504,7 +1523,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = 100, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
         if (paginate) {
@@ -1594,7 +1615,7 @@ class bitfinex extends bitfinex$1["default"] {
         const orderTypes = {
             'EXCHANGE IOC': 'IOC',
             'EXCHANGE FOK': 'FOK',
-            'IOC': 'IOC',
+            'IOC': 'IOC', // Margin
             'FOK': 'FOK', // Margin
         };
         return this.safeString(orderTypes, orderType, 'GTC');
@@ -1782,7 +1803,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.privatePostAuthWOrderSubmit(request);
@@ -1854,7 +1877,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1915,7 +1940,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'all': 1,
         };
@@ -1938,9 +1965,11 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const cid = this.safeValue2(params, 'cid', 'clientOrderId'); // client order id
-        let request = undefined;
+        let request;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1977,7 +2006,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = this.parseToNumeric (ids[i]);
@@ -2105,10 +2136,12 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrders(this.extend(request, params));
         }
@@ -2177,7 +2210,9 @@ class bitfinex extends bitfinex$1["default"] {
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         // returns the most recent closed or canceled orders up to circa two weeks ago
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'paginate');
         if (paginate) {
@@ -2192,7 +2227,7 @@ class bitfinex extends bitfinex$1["default"] {
         }
         [request, params] = this.handleUntilOption('end', request, params);
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrdersHist(this.extend(request, params));
         }
@@ -2261,7 +2296,9 @@ class bitfinex extends bitfinex$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const orderId = parseInt(id);
         const request = {
@@ -2289,7 +2326,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
             'end': this.milliseconds(),
@@ -2300,7 +2339,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // default 25, max 1000
         }
-        let response = undefined;
+        let response;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['symbol'] = market['id'];
@@ -2325,7 +2364,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'op_renew': 1,
         };
@@ -2341,7 +2382,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString(params, 'network', code);
@@ -2493,14 +2536,14 @@ class bitfinex extends bitfinex$1["default"] {
             tag = this.safeString(data, 3);
             type = 'withdrawal';
             const networkId = this.safeString(data, 2);
-            network = this.networkIdToCode(networkId.toUpperCase()); // withdraw returns in lowercase
+            network = this.networkIdToCode(networkId.toUpperCase(), code); // withdraw returns in lowercase
         }
         else if (transactionLength === 22) {
             id = this.safeString(transaction, 0);
             const currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             const networkId = this.safeString(transaction, 2);
-            network = this.networkIdToCode(networkId);
+            network = this.networkIdToCode(networkId, code);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));
@@ -2533,10 +2576,10 @@ class bitfinex extends bitfinex$1["default"] {
             'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'address': addressTo,
+            'address': addressTo, // this is actually the tag for XRP transfers (the address is missing)
             'addressFrom': undefined,
             'addressTo': addressTo,
-            'tag': tag,
+            'tag': tag, // refix it properly for the tag from description
             'tagFrom': undefined,
             'tagTo': tag,
             'updated': updated,
@@ -2558,7 +2601,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostAuthRSummary(params);
         //
         //      Response Spec:
@@ -2676,7 +2721,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (since !== undefined) {
@@ -2685,7 +2732,7 @@ class bitfinex extends bitfinex$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit; // max 1000
         }
-        let response = undefined;
+        let response;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
@@ -2738,7 +2785,9 @@ class bitfinex extends bitfinex$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         // if not provided explicitly we will try to match using the currency name
         const network = this.safeString(params, 'network', code);
@@ -2821,7 +2870,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.privatePostAuthRPositions(params);
         //
@@ -2909,7 +2960,7 @@ class bitfinex extends bitfinex$1["default"] {
             'id': this.safeString(positionList, 11),
             'symbol': this.safeSymbol(marketId, market),
             'notional': this.parseNumber(amount),
-            'marginMode': 'isolated',
+            'marginMode': 'isolated', // derivatives use isolated, margin uses cross, https://support.bitfinex.com/hc/en-us/articles/360035475374-Derivatives-Trading-on-Bitfinex
             'liquidationPrice': this.safeNumber(positionList, 8),
             'entryPrice': this.safeNumber(positionList, 3),
             'unrealizedPnl': this.safeNumber(positionList, 6),
@@ -2957,7 +3008,7 @@ class bitfinex extends bitfinex$1["default"] {
             const nonce = this.nonce().toString();
             body = this.json(query);
             const auth = '/api/' + request + nonce + body;
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha384);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha384);
             headers = {
                 'bfx-nonce': nonce,
                 'bfx-apikey': this.apiKey,
@@ -3085,7 +3136,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -3100,7 +3153,7 @@ class bitfinex extends bitfinex$1["default"] {
             request['limit'] = limit;
         }
         [request, params] = this.handleUntilOption('end', request, params);
-        let response = undefined;
+        let response;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
@@ -3144,7 +3197,9 @@ class bitfinex extends bitfinex$1["default"] {
         if (symbols === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRates() requires a symbols argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const marketIds = this.marketIds(symbols);
         const request = {
             'keys': marketIds.join(','),
@@ -3199,7 +3254,9 @@ class bitfinex extends bitfinex$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -3373,7 +3430,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object[]} a list of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let marketIds = ['ALL'];
         if (symbols !== undefined) {
@@ -3425,7 +3484,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterest(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'keys': market['id'],
@@ -3479,7 +3540,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterestHistory(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate');
         if (paginate) {
@@ -3614,7 +3677,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLiquidations', 'paginate');
         if (paginate) {
@@ -3704,7 +3769,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     async setMargin(symbol, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new errors.NotSupported(this.id + ' setMargin() only support swap markets');
@@ -3738,7 +3805,7 @@ class bitfinex extends bitfinex$1["default"] {
         const marginStatus = (marginStatusRaw === 1) ? 'ok' : 'failed';
         return {
             'info': data,
-            'symbol': market['symbol'],
+            'symbol': this.safeString(market, 'symbol'),
             'type': undefined,
             'marginMode': 'isolated',
             'amount': undefined,
@@ -3761,12 +3828,14 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': [this.parseToNumeric(id)],
         };
         let market = undefined;
-        let response = undefined;
+        let response;
         if (symbol === undefined) {
             response = await this.privatePostAuthROrders(this.extend(request, params));
         }
@@ -3839,7 +3908,9 @@ class bitfinex extends bitfinex$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': this.parseToNumeric(id),

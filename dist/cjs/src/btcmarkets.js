@@ -2,11 +2,11 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var sha2_js = require('@noble/hashes/sha2.js');
 var btcmarkets$1 = require('./abstract/btcmarkets.js');
 var errors = require('./base/errors.js');
 var number = require('./base/functions/number.js');
 var Precise = require('./base/Precise.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -19,8 +19,8 @@ class btcmarkets extends btcmarkets$1["default"] {
         return this.deepExtend(super.describe(), {
             'id': 'btcmarkets',
             'name': 'BTC Markets',
-            'countries': ['AU'],
-            'rateLimit': 1000,
+            'countries': ['AU'], // Australia
+            'rateLimit': 1000, // market data cached for 1 second (trades cached for 2 seconds)
             'version': 'v3',
             'has': {
                 'CORS': undefined,
@@ -195,7 +195,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': true, // todo: check
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -211,7 +211,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
                         'marketBuyByCost': false,
-                        'selfTradePrevention': true,
+                        'selfTradePrevention': true, // todo: check
                         'trailing': false,
                         'iceberg': false,
                     },
@@ -299,7 +299,9 @@ class btcmarkets extends btcmarkets$1["default"] {
         });
     }
     async fetchTransactionsWithMethod(method, code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -609,7 +611,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountsMeBalances(params);
         return this.parseBalance(response);
     }
@@ -626,10 +630,10 @@ class btcmarkets extends btcmarkets$1["default"] {
         //
         return [
             this.parse8601(this.safeString(ohlcv, 0)),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 2),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
+            this.safeNumber(ohlcv, 1), // open
+            this.safeNumber(ohlcv, 2), // high
+            this.safeNumber(ohlcv, 3), // low
+            this.safeNumber(ohlcv, 4), // close
             this.safeNumber(ohlcv, 5), // volume
         ];
     }
@@ -646,7 +650,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -681,10 +687,12 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -771,7 +779,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -795,7 +805,9 @@ class btcmarkets extends btcmarkets$1["default"] {
         return this.parseTicker(response, market);
     }
     async fetchTicker2(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': market['id'],
@@ -882,7 +894,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             // 'since': 59868345231,
@@ -913,7 +927,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'marketId': market['id'],
@@ -1011,7 +1027,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const numericIds = [];
         for (let i = 0; i < ids.length; i++) {
             // numericIds[i] = parseInt (ids[i]);
@@ -1055,7 +1073,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1192,7 +1212,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'id': id,
         };
@@ -1211,7 +1233,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'status': 'all',
         };
@@ -1271,7 +1295,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1328,7 +1354,9 @@ class btcmarkets extends btcmarkets$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'assetName': currency['id'],
@@ -1380,7 +1408,7 @@ class btcmarkets extends btcmarkets$1["default"] {
                 body = this.json(query);
                 auth += body;
             }
-            const signature = this.hmac(this.encode(auth), secret, sha512.sha512, 'base64');
+            const signature = this.hmac(this.encode(auth), secret, sha2_js.sha512, 'base64');
             headers = {
                 'Accept': 'application/json',
                 'Accept-Charset': 'UTF-8',

@@ -450,7 +450,7 @@ public partial class bitteam : Exchange
     {
         object id = this.safeString(market, "name");
         object numericId = this.safeInteger(market, "id");
-        object parts = ((string)id).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
+        object parts = ((string)((string)id)).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object baseId = this.safeString(parts, 0);
         object quoteId = this.safeString(parts, 1);
         object bs = this.safeCurrencyCode(baseId);
@@ -645,80 +645,57 @@ public partial class bitteam : Exchange
         //     }
         //
         statusesResponse = this.indexBy(statusesResponse, "unified_cryptoasset_id");
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        ((IDictionary<string,object>)this.options)["_temp_currencies_statuses"] = statusesResponse;
+        object result = this.parseCurrencies(currencies);
+        ((IDictionary<string,object>)this.options).Remove((string)"_temp_currencies_statuses");
+        return result;
+    }
+
+    public override object parseCurrency(object currency)
+    {
+        object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new Dictionary<string, object>() {});
+        object id = this.safeString(currency, "symbol");
+        object numericId = this.safeInteger(currency, "id");
+        object code = this.safeCurrencyCode(id);
+        object active = this.safeBool(currency, "active", false);
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
+        object txLimits = this.safeValue(currency, "txLimits", new Dictionary<string, object>() {});
+        object minWithdraw = this.safeString(txLimits, "minWithdraw");
+        object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
+        object minDeposit = this.safeString(txLimits, "minDeposit");
+        object fee = null;
+        object withdrawCommissionFixed = ((object)this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {}));
+        object feesByNetworkId = new Dictionary<string, object>() {};
+        object blockChain = this.safeString(currency, "blockChain");
+        // if only one blockChain
+        if (isTrue(isTrue((!isEqual(blockChain, null))) && isTrue((!isEqual(blockChain, "")))))
         {
-            object currency = getValue(currencies, i);
-            object id = this.safeString(currency, "symbol");
-            object numericId = this.safeInteger(currency, "id");
-            object code = this.safeCurrencyCode(id);
-            object active = this.safeBool(currency, "active", false);
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
-            object txLimits = this.safeValue(currency, "txLimits", new Dictionary<string, object>() {});
-            object minWithdraw = this.safeString(txLimits, "minWithdraw");
-            object maxWithdraw = this.safeString(txLimits, "maxWithdraw");
-            object minDeposit = this.safeString(txLimits, "minDeposit");
-            object fee = null;
-            object withdrawCommissionFixed = ((object)this.safeValue(txLimits, "withdrawCommissionFixed", new Dictionary<string, object>() {}));
-            object feesByNetworkId = new Dictionary<string, object>() {};
-            object blockChain = this.safeString(currency, "blockChain");
-            // if only one blockChain
-            if (isTrue(isTrue((!isEqual(blockChain, null))) && isTrue((!isEqual(blockChain, "")))))
-            {
-                fee = this.parseNumber(withdrawCommissionFixed);
-                ((IDictionary<string,object>)feesByNetworkId)[(string)blockChain] = fee;
-            } else
-            {
-                feesByNetworkId = withdrawCommissionFixed;
-            }
-            object statuses = this.safeValue(statusesResponse, numericId, new Dictionary<string, object>() {});
-            object deposit = this.safeValue(statuses, "depositStatus");
-            object withdraw = this.safeValue(statuses, "withdrawStatus");
-            object networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
-            object networks = new Dictionary<string, object>() {};
-            object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
-            object typeRaw = this.safeString(currency, "type");
-            for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
-            {
-                object networkId = getValue(networkIds, j);
-                object networkCode = this.networkIdToCode(networkId, code);
-                object networkFee = this.safeNumber(feesByNetworkId, networkId);
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "deposit", deposit },
-                    { "withdraw", withdraw },
-                    { "active", active },
-                    { "fee", networkFee },
-                    { "precision", networkPrecision },
-                    { "limits", new Dictionary<string, object>() {
-                        { "amount", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minWithdraw) },
-                            { "max", this.parseNumber(maxWithdraw) },
-                        } },
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", this.parseNumber(minDeposit) },
-                            { "max", null },
-                        } },
-                    } },
-                    { "info", currency },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "numericId", numericId },
-                { "code", code },
-                { "name", code },
-                { "info", currency },
-                { "active", active },
+            fee = this.parseNumber(withdrawCommissionFixed);
+            ((IDictionary<string,object>)feesByNetworkId)[(string)blockChain] = fee;
+        } else
+        {
+            feesByNetworkId = withdrawCommissionFixed;
+        }
+        object statuses = this.safeValue(statusesResponse, numericId, new Dictionary<string, object>() {});
+        object deposit = this.safeValue(statuses, "depositStatus");
+        object withdraw = this.safeValue(statuses, "withdrawStatus");
+        object networkIds = new List<object>(((IDictionary<string,object>)feesByNetworkId).Keys);
+        object networks = new Dictionary<string, object>() {};
+        object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
+        object typeRaw = this.safeString(currency, "type");
+        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+        {
+            object networkId = getValue(networkIds, j);
+            object networkCode = this.networkIdToCode(networkId, code);
+            object networkFee = this.safeNumber(feesByNetworkId, networkId);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "network", networkCode },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
-                { "fee", fee },
-                { "precision", precision },
+                { "active", active },
+                { "fee", networkFee },
+                { "precision", networkPrecision },
                 { "limits", new Dictionary<string, object>() {
                     { "amount", new Dictionary<string, object>() {
                         { "min", null },
@@ -733,11 +710,37 @@ public partial class bitteam : Exchange
                         { "max", null },
                     } },
                 } },
-                { "type", typeRaw },
-                { "networks", networks },
+                { "info", currency },
             };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "numericId", numericId },
+            { "code", code },
+            { "name", code },
+            { "info", currency },
+            { "active", active },
+            { "deposit", deposit },
+            { "withdraw", withdraw },
+            { "fee", fee },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.parseNumber(minWithdraw) },
+                    { "max", this.parseNumber(maxWithdraw) },
+                } },
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", this.parseNumber(minDeposit) },
+                    { "max", null },
+                } },
+            } },
+            { "type", typeRaw },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -755,7 +758,10 @@ public partial class bitteam : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object resolution = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
@@ -823,7 +829,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -876,7 +885,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = this.safeString(parameters, "type", "all");
         object request = new Dictionary<string, object>() {
             { "type", type },
@@ -992,7 +1004,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -1039,7 +1054,7 @@ public partial class bitteam : Exchange
         //         }
         //     }
         //
-        object result = this.safeDict(response, "result");
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         return this.parseOrder(result, market);
     }
 
@@ -1057,7 +1072,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "type", "active" },
         };
@@ -1078,7 +1096,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "type", "closed" },
         };
@@ -1099,7 +1120,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "type", "cancelled" },
         };
@@ -1122,10 +1146,13 @@ public partial class bitteam : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
-            { "pairId", ((object)getValue(market, "numericId")).ToString() },
+            { "pairId", this.safeString(market, "numericId") },
             { "type", type },
             { "side", side },
             { "amount", this.amountToPrecision(symbol, amount) },
@@ -1181,7 +1208,10 @@ public partial class bitteam : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
@@ -1210,13 +1240,16 @@ public partial class bitteam : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
-            ((IDictionary<string,object>)request)["pairId"] = ((object)getValue(market, "numericId")).ToString();
+            ((IDictionary<string,object>)request)["pairId"] = this.safeString(market, "numericId");
         } else
         {
             ((IDictionary<string,object>)request)["pairId"] = "0"; // '0' for all markets
@@ -1393,7 +1426,7 @@ public partial class bitteam : Exchange
             { "executing", "open" },
             { "created", "open" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public virtual object parseOrderType(object status)
@@ -1429,7 +1462,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTradeApiCmcSummary();
         //
         //     [
@@ -1488,7 +1524,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "name", getValue(market, "id") },
@@ -1827,7 +1866,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -1871,7 +1913,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2146,7 +2191,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetTradeApiCcxtBalance(parameters);
         return this.parseBalance(response);
     }
@@ -2234,7 +2282,10 @@ public partial class bitteam : Exchange
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -2415,7 +2466,7 @@ public partial class bitteam : Exchange
             { "txid", txid },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "addressFrom", addressFrom },
             { "address", null },
             { "addressTo", addressTo },
@@ -2448,7 +2499,7 @@ public partial class bitteam : Exchange
             { "approving", "pending" },
             { "success", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

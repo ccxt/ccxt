@@ -60,7 +60,9 @@ export default class bittrade extends bittradeRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -110,7 +112,7 @@ export default class bittrade extends bittradeRest {
         ticker['timestamp'] = timestamp;
         ticker['datetime'] = this.iso8601 (timestamp);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        this.tickers[(symbol as string)] = ticker;
         client.resolve (ticker, ch);
         return message;
     }
@@ -126,7 +128,9 @@ export default class bittrade extends bittradeRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -206,7 +210,9 @@ export default class bittrade extends bittradeRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
@@ -258,11 +264,11 @@ export default class bittrade extends bittradeRest {
         const interval = this.safeString (parts, 3);
         const timeframe = this.findTimeframe (interval);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], (timeframe as string));
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][(timeframe as string)] = stored;
         }
         const tick = this.safeValue (message, 'tick');
         const parsed = this.parseOHLCV (tick, market);
@@ -277,13 +283,15 @@ export default class bittrade extends bittradeRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         if ((limit !== undefined) && (limit !== 150)) {
             throw new ExchangeError (this.id + ' watchOrderBook accepts limit = 150 only');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         symbol = market['symbol'];
         // only supports a limit of 150 at this time
@@ -334,9 +342,9 @@ export default class bittrade extends bittradeRest {
         const symbol = this.safeString (subscription, 'symbol');
         const messageHash = this.safeString (subscription, 'messageHash');
         const timestamp = this.safeInteger (message, 'ts');
-        const orderbook = this.orderbooks[symbol];
+        const orderbook = this.orderbooks[(symbol as string)];
         const data = this.safeValue (message, 'data');
-        const snapshot = this.parseOrderBook (data, symbol);
+        const snapshot = this.parseOrderBook (data, (symbol as string));
         snapshot['nonce'] = this.safeInteger (data, 'seqNum');
         snapshot['timestamp'] = timestamp;
         snapshot['datetime'] = this.iso8601 (timestamp);
@@ -346,7 +354,7 @@ export default class bittrade extends bittradeRest {
         for (let i = 0; i < messages.length; i++) {
             this.handleOrderBookMessage (client, messages[i], orderbook);
         }
-        this.orderbooks[symbol] = orderbook;
+        this.orderbooks[(symbol as string)] = orderbook;
         client.resolve (orderbook, messageHash);
     }
 
@@ -377,7 +385,7 @@ export default class bittrade extends bittradeRest {
             const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
             return orderbook.limit ();
         } catch (e) {
-            delete client.subscriptions[messageHash];
+            delete client.subscriptions[(messageHash as string)];
             client.reject (e, messageHash);
         }
         return undefined;
@@ -473,9 +481,9 @@ export default class bittrade extends bittradeRest {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
-            delete this.orderbooks[symbol];
+            delete this.orderbooks[(symbol as string)];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[(symbol as string)] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
@@ -491,7 +499,7 @@ export default class bittrade extends bittradeRest {
         //
         const id = this.safeString (message, 'id');
         const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-        const subscription = this.safeValue (subscriptionsById, id);
+        const subscription = this.safeValue (subscriptionsById, (id as string));
         if (subscription !== undefined) {
             const method = this.safeValue (subscription, 'method');
             if (method !== undefined) {
@@ -499,7 +507,7 @@ export default class bittrade extends bittradeRest {
             }
             // clean up
             if (id in client.subscriptions) {
-                delete client.subscriptions[id];
+                delete client.subscriptions[(id as string)];
             }
         }
         return message;
@@ -552,7 +560,7 @@ export default class bittrade extends bittradeRest {
                 'kline': this.handleOHLCV,
                 // ...
             };
-            const method = this.safeValue (methods, methodName);
+            const method = this.safeValue (methods, (methodName as string));
             if (method !== undefined) {
                 method.call (this, client, message);
             }
@@ -584,7 +592,7 @@ export default class bittrade extends bittradeRest {
         if (status === 'error') {
             const id = this.safeString (message, 'id');
             const subscriptionsById = this.indexBy (client.subscriptions, 'id');
-            const subscription = this.safeValue (subscriptionsById, id);
+            const subscription = this.safeValue (subscriptionsById, (id as string));
             if (subscription !== undefined) {
                 const errorCode = this.safeString (message, 'err-code');
                 try {
@@ -594,13 +602,13 @@ export default class bittrade extends bittradeRest {
                     client.reject (e, messageHash);
                     client.reject (e, id);
                     if (id in client.subscriptions) {
-                        delete client.subscriptions[id];
+                        delete client.subscriptions[(id as string)];
                     }
                 }
             }
             return false;
         }
-        return message;
+        return true;
     }
 
     handleMessage (client: Client, message) {

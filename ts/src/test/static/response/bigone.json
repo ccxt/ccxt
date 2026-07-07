@@ -2,6 +2,519 @@
     "exchange": "bigone",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "code": "0",
+                    "data": [
+                        {
+                            "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                            "symbol": "USDT",
+                            "name": "TetherUS",
+                            "scale": "12",
+                            "is_fiat": false,
+                            "is_transfer_enabled": true,
+                            "transfer_scale": "12",
+                            "binding_gateways": [
+                                {
+                                    "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Ethereum",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "4.68",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Tron",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "3",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Solana",
+                                    "min_withdrawal_amount": "10",
+                                    "withdrawal_fee": "3",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "1",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "BinanceSmartChain",
+                                    "min_withdrawal_amount": "10",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "1",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "8",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "42872c37-435f-459a-8136-7dc041c3effe",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "AvaxChain",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "64d2fb11-e6f2-4321-81a7-21c879a78325",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Polygon",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "fd72b5e0-0716-4031-bed3-7e811f478ece",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Optimism",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "d5f1fae4-030d-4ba8-90fc-cb8f7cc0ee04",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Aptos",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "uuid": "17082d1c-0195-4fb6-8779-2cdbcb9eeb3c",
+                            "symbol": "USDT",
+                            "name": "TetherUS",
+                            "scale": "12",
+                            "is_fiat": false,
+                            "is_transfer_enabled": true,
+                            "transfer_scale": "12",
+                            "binding_gateways": [
+                                {
+                                    "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Ethereum",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "4.68",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Tron",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "3",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Solana",
+                                    "min_withdrawal_amount": "10",
+                                    "withdrawal_fee": "3",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "1",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "BinanceSmartChain",
+                                    "min_withdrawal_amount": "10",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "1",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "8",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "42872c37-435f-459a-8136-7dc041c3effe",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "AvaxChain",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "64d2fb11-e6f2-4321-81a7-21c879a78325",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Polygon",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "fd72b5e0-0716-4031-bed3-7e811f478ece",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Optimism",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                },
+                                {
+                                    "guid": "d5f1fae4-030d-4ba8-90fc-cb8f7cc0ee04",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Aptos",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            ]
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 0.000001,
+                        "type": "crypto",
+                        "name": "TetherUS",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 1,
+                        "fees": {},
+                        "networks": {
+                            "ERC20": {
+                                "id": "Ethereum",
+                                "network": "ERC20",
+                                "margin": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 4.68,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "07efc37f-d1ec-4bc9-8339-a745256ea2ba",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Ethereum",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "4.68",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            },
+                            "TRC20": {
+                                "id": "Tron",
+                                "network": "TRC20",
+                                "margin": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 3,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "b80a4d13-cac7-4319-842d-b33c3bfab8ec",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Tron",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "3",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            },
+                            "SOL": {
+                                "id": "Solana",
+                                "network": "SOL",
+                                "margin": null,
+                                "deposit": true,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 3,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "1",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "10",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "cf682a4d-3de8-4f28-a5d4-55807da847a2",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "Solana",
+                                    "min_withdrawal_amount": "10",
+                                    "withdrawal_fee": "3",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "1",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            },
+                            "BEP20": {
+                                "id": "BinanceSmartChain",
+                                "network": "BEP20",
+                                "margin": null,
+                                "deposit": true,
+                                "withdraw": true,
+                                "active": null,
+                                "fee": 1,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "1",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "10",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "4e387a9a-a480-40a3-b4ae-ed1773c2db5a",
+                                    "is_deposit_enabled": true,
+                                    "gateway_name": "BinanceSmartChain",
+                                    "min_withdrawal_amount": "10",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": true,
+                                    "min_deposit_amount": "1",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "8",
+                                    "scale": "12"
+                                }
+                            },
+                            "AVAXX": {
+                                "id": "AvaxChain",
+                                "network": "AVAXX",
+                                "margin": null,
+                                "deposit": false,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "42872c37-435f-459a-8136-7dc041c3effe",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "AvaxChain",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            },
+                            "MATIC": {
+                                "id": "Polygon",
+                                "network": "MATIC",
+                                "margin": null,
+                                "deposit": false,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "64d2fb11-e6f2-4321-81a7-21c879a78325",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Polygon",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            },
+                            "OPTIMISM": {
+                                "id": "Optimism",
+                                "network": "OPTIMISM",
+                                "margin": null,
+                                "deposit": false,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "fd72b5e0-0716-4031-bed3-7e811f478ece",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Optimism",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            },
+                            "APT": {
+                                "id": "Aptos",
+                                "network": "APT",
+                                "margin": null,
+                                "deposit": false,
+                                "withdraw": false,
+                                "active": null,
+                                "fee": 1,
+                                "precision": 0.000001,
+                                "limits": {
+                                    "deposit": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    },
+                                    "withdraw": {
+                                        "min": "0.000001",
+                                        "max": null
+                                    }
+                                },
+                                "info": {
+                                    "guid": "d5f1fae4-030d-4ba8-90fc-cb8f7cc0ee04",
+                                    "is_deposit_enabled": false,
+                                    "gateway_name": "Aptos",
+                                    "min_withdrawal_amount": "0.000001",
+                                    "withdrawal_fee": "1",
+                                    "is_withdrawal_enabled": false,
+                                    "min_deposit_amount": "0.000001",
+                                    "is_memo_required": false,
+                                    "withdrawal_scale": "6",
+                                    "scale": "12"
+                                }
+                            }
+                        },
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": 0.000001,
+                                "max": null
+                            },
+                            "deposit": {
+                                "min": 0.000001,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTime": [
             {
                 "description": "Fetch time",

@@ -69,9 +69,9 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python and PHP code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip and PHP Composer as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
@@ -82,7 +82,7 @@
 
   ## How to create an order with takeProfit+stopLoss?
   Some exchanges support `createOrder` with the additional "attached" `stopLoss` & `takeProfit` sub-orders - view [StopLoss And TakeProfit Orders Attached To A Position](Manual.md#stoploss-and-takeprofit-orders-attached-to-a-position). 
-  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#Conditional Orders).
+  However, some exchanges might not support that feature and you will need to run separate `createOrder` methods to add conditional order (e.g. ***trigger order | stoploss order | takeprofit order**) to the already open position - view [Conditional orders](Manual.md#conditional-orders).
   You can also check them by looking at `exchange.has['createOrderWithTakeProfitAndStopLoss']`, `exchange.has['createStopLossOrder']` and `exchange.has['createTakeProfitOrder']`, however they are not as precise as `.features` property.
 
   ## What is the difference between `takeProfit/stopLoss` and `takeProfitPrice/stopLossPrice` orders
@@ -268,29 +268,23 @@ $order = $exchange->create_order ($symbol, $type, $side, $amount, $price, $param
 
 ## How to use the Lighter Exchange in CCXT?
 
-
 Lighter is available as part of CCXT and it works similarly to any other CCXT exchange, but it has some particularities that might be confusing for some users but we will explain it in detail below. We just need to set some basic credentials and dependencies.
+
+
+After the latest upgrade CCXT has simplified the authentication process and now using the L1 private key is enough.
 
 ## Credentials requirements
 
 Lighter requires the following :
-- `privateKey`: the API key private key (hex) from Lighter’s API keys page, not the l1 privateKey (https://app.lighter.xyz/apikeys)
-- `apiKeyIndex` (an integer) in `exchange.options`: the index assigned to the API key you generated (typically 0–254) you can get it from the API Keys page as well
-- `accountIndex` (an integer) in `exchange.options`: — the Lighter internal account index (master account or sub-account). Each internal account has its own API key indices. You can checking by opening this link in the browser using your l1 address https://mainnet.zklighter.elliot.ai/api/v1/accountsByL1Address?l1_address=0xYOUR_ADDRESS_here
-
-
-
-![image](https://github.com/user-attachments/assets/f50602be-31eb-497c-a6df-e9b2803defdf)
+- `privateKey`: the L1 private key **mandatory**
+- `accountIndex` (an integer) in `exchange.options`: — **optional** CCXT will fetch it if not available, set it if using a subAccount
+- `apiKeyIndex` (an integer) in `exchange.options`: **optional**  CCXT will use a default value (254)
 
 Example
 
 ```Python
 lighter = ccxt.lighter({
-	'privateKey': 'XXXXXXX',
-	'options': {
-		'apiKeyIndex': 3,
-		'accountIndex': 715085
-	}
+	'privateKey': 'XXXXXXX', # l1 private key
 })
 ```
 
@@ -399,10 +393,58 @@ exchange = ccxt.grvt({
 	'privateKey': 'XXXXXXX', // the l1 private key (hex)
 })
 ```
+Note: Users who signed up via email, their wallet is powered by Privy (GRVT's embedded wallet solution). To export the private key:
 
-CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Your contribution is much appreciated.
+1. Go to https://home.privy.io
+2. Log in with the same email/Google account used to sign up on GRVT
+3. From there, you can export the private key
+
+*(If you need a help, you can visit https://support.privy.io)*
+
+CCXT is also a builder on GRVT meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
 
 ```
 exchange.options['builderFee'] = False
 ```
 
+### How to use the Extended Exchange in CCXT?
+
+Extended works similarly to any other CCXT DEX and only requires the StarkKey private key and the API Key, both can be retrieved using the website.
+
+- Go to this page: https://app.extended.exchange/api-management
+- Click Generate API Key
+- Copy the API Key and Stark Key Private
+
+![ApiKey](https://github-production-user-asset-6210df.s3.amazonaws.com/43336371/604986514-ed87d5e9-5a68-4db6-8463-fcb205293eec.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAVCODYLSA53PQK4ZA%2F20260609%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260609T092018Z&X-Amz-Expires=300&X-Amz-Signature=b14cae7910f5118835e140e4e41477124ce6a8236294c331442108c07f273164&X-Amz-SignedHeaders=host&response-content-type=image%2Fpng)
+
+An example on how to instantiate the extended exchange:
+
+```
+exchange = ccxt.extended({
+  'apiKey: 'AAAA', // apiKey
+	'privateKey': 'XXXXXXX', // the star key private key
+})
+```
+
+CCXT is also a builder on Extended meaning that by default users will pay 1bps (0.01%) extra for using it through CCXT, however this fee is totally optional and can be disabled by providing the option `builderFee: False` in options. Howerer, your contribution is much appreciated.
+
+```
+exchange.options['builderFee'] = False
+```
+
+### How to use the Apex Exchange in CCXT?
+
+An example on how to instantiate the Apex exchange:
+
+```
+exchange = ccxt.apex({
+    'apiKey': 'your api Key',
+    'secret': 'your api secret',
+    'walletAddress': 'your eth address',
+    'options': {
+        'accountId': 'your account id',
+        'passphrase': 'your api passphrase',
+        'seeds': 'your zklink omni seed',
+    },
+})
+```

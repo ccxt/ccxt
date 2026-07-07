@@ -91,6 +91,9 @@ abstract class delta extends \ccxt\async\Exchange {
     public function private_get_profile($params = array()) {
         return $this->request('profile', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_rate_limits_quota($params = array()) {
+        return $this->request('rate_limits/quota', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_heartbeat($params = array()) {
         return $this->request('heartbeat', 'private', 'GET', $params, null, null, array());
     }
@@ -147,6 +150,9 @@ abstract class delta extends \ccxt\async\Exchange {
     }
     public function private_put_users_reset_mmp($params = array()) {
         return $this->request('users/reset_mmp', 'private', 'PUT', $params, null, null, array());
+    }
+    public function private_put_users_margin_mode($params = array()) {
+        return $this->request('users/margin_mode', 'private', 'PUT', $params, null, null, array());
     }
     public function private_delete_orders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array());
@@ -241,6 +247,9 @@ abstract class delta extends \ccxt\async\Exchange {
     public function privateGetProfile($params = array()) {
         return $this->request('profile', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetRateLimitsQuota($params = array()) {
+        return $this->request('rate_limits/quota', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetHeartbeat($params = array()) {
         return $this->request('heartbeat', 'private', 'GET', $params, null, null, array());
     }
@@ -297,6 +306,9 @@ abstract class delta extends \ccxt\async\Exchange {
     }
     public function privatePutUsersResetMmp($params = array()) {
         return $this->request('users/reset_mmp', 'private', 'PUT', $params, null, null, array());
+    }
+    public function privatePutUsersMarginMode($params = array()) {
+        return $this->request('users/margin_mode', 'private', 'PUT', $params, null, null, array());
     }
     public function privateDeleteOrders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array());

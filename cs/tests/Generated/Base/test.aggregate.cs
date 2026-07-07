@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             Assert(isGreaterThan(exchange.milliseconds(), 0), "go transpiler workaround");
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             object bids = new List<object>() {new List<object>() {789.1, 111.05}, new List<object>() {789.1, 111.05}, new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 111.05}};
             object expectedBids = new List<object>() {new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 333.15}};
             AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(bids, 0)), expectedBids);
@@ -51,6 +51,7 @@ public partial class BaseTest
             // Test 10: Mixed zero and non-zero for same price
             object result10 = exchange.aggregate(new List<object>() {new List<object>() {100.2, 1.04}, new List<object>() {100.2, 0}, new List<object>() {100.2, 2.04}});
             AssertDeepEqual(exchange, null, "testAggregate", result10, new List<object>() {new List<object>() {100.2, 3.08}});
-            Assert("GO_SKIP_END");
+            // @SKIP_END_GO
+            exchange.uuid(); // placeholder for astt
         }
 }

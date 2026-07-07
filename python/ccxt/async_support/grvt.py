@@ -94,7 +94,7 @@ class grvt(Exchange, ImplicitAPI):
                 '4w': 'CI_4_W',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/7a2e8108-29f6-45d1-822d-48eb1c8cbbe6',
+                'logo': 'https://github.com/user-attachments/assets/cff0d37c-e594-40cb-88b3-90650ddadc18',
                 'api': {
                     'privateEdge': 'https://edge.grvt.io/',
                     'privateTrading': 'https://trades.grvt.io/',
@@ -496,11 +496,16 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns: response from exchange
         """
-        if self.uses_private_key():
-            await self.sign_in_with_private_key(params)
-            await self.initialize_client(params)
-        else:
-            await self.sign_in_with_api_key(params)
+        # if self.uses_private_key():
+        #     await self.sign_in_with_private_key(params)
+        #     await self.initialize_client(params)
+        # else:
+        #     await self.sign_in_with_api_key(params)
+        # }
+        if self.privateKey is None or self.privateKey == '':
+            raise PermissionDenied('Private key is required for self operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt')
+        await self.sign_in_with_private_key(params)
+        await self.initialize_client(params)
         await self.load_account_infos()
         return True
 
@@ -533,7 +538,7 @@ class grvt(Exchange, ImplicitAPI):
         if expires is not None and expires > now + 10000:
             return {}
         walletAddress = self.eth_get_address_from_private_key(self.privateKey)
-        request: dict = {
+        request = {
             'address': walletAddress,
             'signature': self.default_signature(),
         }
@@ -580,7 +585,7 @@ class grvt(Exchange, ImplicitAPI):
         else:
             try:
                 defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')  # self.eth_get_address_from_private_key(self.secret)  # self.safe_string(self.options, 'userMainAccountId')
-                request: dict = {
+                request = {
                     'main_account_id': defaultFromAccountId,
                     'builder_account_id': self.safe_string(self.options, 'builder'),
                     'max_futures_fee_rate': self.safe_string(self.options, 'builderRate'),
@@ -683,7 +688,7 @@ class grvt(Exchange, ImplicitAPI):
         quote = self.safe_currency_code(quoteId)
         settle = self.safe_currency_code(settleId)
         symbol = base + '/' + quote + ':' + settle
-        type: Str = None
+        type = None
         typeRaw = self.safe_string(market, 'kind')
         if typeRaw == 'PERPETUAL':
             type = 'swap'
@@ -816,9 +821,10 @@ class grvt(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument': self.market_id(symbol),
@@ -925,7 +931,8 @@ class grvt(Exchange, ImplicitAPI):
         :param str [params.loc]: crypto location, default: us
         :returns dict: A dictionary of `order book structures <https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'instrument': self.market_id(symbol),
         }
@@ -966,9 +973,10 @@ class grvt(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of items to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument': market['id'],
@@ -1052,7 +1060,7 @@ class grvt(Exchange, ImplicitAPI):
         timestamp = self.safe_integer_product(trade, 'event_time', 0.000001)
         takerOrMaker = None
         isTakerBuyer = self.safe_bool(trade, 'is_taker_buyer')
-        side: Str = None
+        side = None
         if isTakerBuyer is not None:
             side = 'buy' if isTakerBuyer else 'sell'
             takerOrMaker = 'taker'
@@ -1098,7 +1106,8 @@ class grvt(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         maxLimit = 1000
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
@@ -1176,21 +1185,22 @@ class grvt(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the funding rate history for
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
-        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest item
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'instrument': market['id'],
         }
         if limit is not None:
@@ -1253,7 +1263,7 @@ class grvt(Exchange, ImplicitAPI):
         https://api-docs.grvt.io/trading_api/#sub-account-summary
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         await self.load_markets_and_sign_in()
         request = {
@@ -1319,7 +1329,7 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #
         timestamp = self.safe_integer_product(response, 'event_time', 0.000001)
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1347,10 +1357,10 @@ class grvt(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest item
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {}
+        request = {}
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1390,17 +1400,17 @@ class grvt(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://docs.backpack.exchange/#tag/Capital/operation/get_withdrawals
+        https://api-docs.grvt.io/trading_api/#withdrawal-history
 
         :param str [code]: unified currency code of the currency transferred
         :param int [since]: the earliest time in ms to fetch transfers for(default 24 hours ago)
         :param int [limit]: the maximum number of transfer structures to retrieve(default 50, max 200)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest item
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {}
+        request = {}
         currency = None
         if code is None:
             request['currency'] = None
@@ -1551,25 +1561,25 @@ class grvt(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        direction: Str = None
-        txId: Str = None
-        networkCode: Str = None
+        direction = None
+        txId = None
+        networkCode = None
         addressFrom = self.safe_string(transaction, 'from_account_id')
         addressTo = self.safe_string(transaction, 'to_account_id')
+        currencyId = self.safe_string(transaction, 'currency')
+        code = self.safe_currency_code(currencyId, currency)
         if 'transfer_metadata' in transaction:
             metaData = self.omit_zero(self.safe_string(transaction, 'transfer_metadata'))
             if metaData is not None:
                 parsedMeta = self.parse_json(metaData)
                 direction = self.safe_string_lower(parsedMeta, 'direction')
                 txId = self.safe_string(parsedMeta, 'provider_tx_id')
-                networkCode = self.network_id_to_code(self.safe_string(parsedMeta, 'chainid'))
+                networkCode = self.network_id_to_code(self.safe_string(parsedMeta, 'chainid'), code)
                 if direction == 'withdrawal':
                     addressTo = self.safe_string(parsedMeta, 'endpoint')
                 elif direction == 'deposit':
                     addressFrom = self.safe_string(parsedMeta, 'endpoint')
         timestamp = self.safe_integer_product_2(transaction, 'event_time', 'initiated_time', 0.000001)
-        currencyId = self.safe_string(transaction, 'currency')
-        code = self.safe_currency_code(currencyId, currency)
         return {
             'info': transaction,
             'id': None,
@@ -1603,12 +1613,12 @@ class grvt(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of transfers structures to retrieve(default 10, max 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: whether to paginate the results(default False)
-        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchTransfers() requires a code argument')
         await self.load_markets_and_sign_in()
-        request: dict = {}
+        request = {}
         currency = self.currency(code)
         maxLimit = 1000
         paginate = False
@@ -1681,21 +1691,21 @@ class grvt(Exchange, ImplicitAPI):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transfer structure <https://docs.ccxt.com/#/?id=transfer-structure>`
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
         await self.load_markets_and_sign_in()
         currency = self.currency(code)
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
         if self.in_array(fromAccount, ['trading', 'funding']) and self.in_array(toAccount, ['trading', 'funding']):
-            tradingAccountId: Str = None
+            tradingAccountId = None
             tradingAccountId, params = self.handle_option_and_params(params, 'transfer', 'tradingAccountId')
-            fundingAccountId: Str = None
+            fundingAccountId = None
             fundingAccountId, params = self.handle_option_and_params(params, 'transfer', 'fundingAccountId')
             if tradingAccountId is None or fundingAccountId is None:
                 raise ArgumentsRequired(self.id + ' transfer(): you should set(in the options or params) "tradingAccountId" and "fundingAccountId"(you can use "0" main funding account id)')
             fromAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
             toAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
-        request: dict = {
+        request = {
             'from_account_id': self.safe_string(params, 'from_account_id', defaultFromAccountId),
             'from_sub_account_id': self.safe_string(params, 'from_sub_account_id', fromAccount),
             'to_account_id': self.safe_string(params, 'to_account_id', defaultFromAccountId),
@@ -1707,7 +1717,7 @@ class grvt(Exchange, ImplicitAPI):
             'transfer_metadata': None,
         }
         request = self.create_signed_request(request, 'EIP712_TRANSFER_TYPE', currency)
-        response: dict = None
+        response = None
         try:
             response = await self.privateTradingPostFullV1Transfer(self.extend(request, params))
         except Exception as error:
@@ -1777,7 +1787,7 @@ class grvt(Exchange, ImplicitAPI):
 
     async def load_account_infos(self):
         if self.safe_string(self.options, 'userMainAccountId') is not None:
-            return
+            return False
         promises = []
         promises.append(self.privateTradingPostFullV1AggregatedAccountSummary())
         #
@@ -1825,6 +1835,7 @@ class grvt(Exchange, ImplicitAPI):
                 raise ArgumentsRequired(self.id + ' loadAccountInfos(): multiple sub accounts found, please set the exchange.options["accountId"] to your preferred sub_account_id from self list: ' + self.json(subAccountIds))
             subAccountId = self.safe_string(subAccountIds, 0)
             self.options['accountId'] = subAccountId
+        return True
 
     async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
@@ -1838,13 +1849,13 @@ class grvt(Exchange, ImplicitAPI):
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['network']: the network to withdraw on(mandatory)
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         self.check_address(address)
         await self.load_markets_and_sign_in()
         defaultFromAccountId = self.safe_string(self.options, 'userMainAccountId')
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'to_eth_address': address,
             'from_account_id': defaultFromAccountId,
             'currency': currency['id'],
@@ -1852,7 +1863,7 @@ class grvt(Exchange, ImplicitAPI):
             'signature': self.default_signature(),
         }
         networkCode, query = self.handle_network_code_and_params(params)
-        networkId = self.network_code_to_id(networkCode)
+        networkId = self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() requires a network parameter')
         request['signature']['chain_id'] = networkId
@@ -1887,7 +1898,7 @@ class grvt(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
         :param str [params.clientOrderId]: a unique id for the order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
         market = self.market(symbol)
@@ -1905,36 +1916,41 @@ class grvt(Exchange, ImplicitAPI):
             orderLeg['is_buying_asset'] = True
         else:
             raise InvalidOrder(self.id + ' createOrder(): order side must be either "buy" or "sell"')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is None:
+            clientOrderId = str(self.nonce()) + '000' + str(self.request_id())
+        params = self.omit(params, ['clientOrderId'])
         isMarketOrder = (type == 'market')
+        subAccountId = self.get_sub_account_id(params)
+        isReduceOnly = self.safe_bool(params, 'reduceOnly', False)
         orderRequest = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccountId,
             'time_in_force': None,
             'legs': [orderLeg],
             'signature': self.default_signature(),
             'metadata': {
-                'client_order_id': str(self.nonce()) + '000' + str(self.request_id()),
+                'client_order_id': clientOrderId,
             },
             'is_market': isMarketOrder,
             'post_only': False,
-            'reduce_only': self.safe_bool(params, 'reduceOnly', False),
+            'reduce_only': isReduceOnly,
             # 'order_id': null,
             # 'state': null,
         }
-        timeInForce = self.safe_string_upper(params, 'timeInForce')
+        timeInForce = self.safe_string_upper(params, 'timeInForce', 'GOOD_TILL_TIME')
         postOnly = self.is_post_only(isMarketOrder, None, params)
         if postOnly:
             orderRequest['post_only'] = True
+        if timeInForce is None:
+            timeInForce = 'GOOD_TILL_TIME'
         else:
-            if timeInForce is None:
-                timeInForce = 'GOOD_TILL_TIME'
-            else:
-                tifMap = {
-                    'GTC': 'GOOD_TILL_TIME',
-                    'FOK': 'FILL_OR_KILL',  # tbd: why not 'ALL_OR_NONE'
-                    'IOC': 'IMMEDIATE_OR_CANCEL',
-                }
-                timeInForce = self.safe_string(tifMap, timeInForce, timeInForce)
-            orderRequest['time_in_force'] = timeInForce
+            tifMap = {
+                'GTC': 'GOOD_TILL_TIME',
+                'FOK': 'FILL_OR_KILL',  # tbd: why not 'ALL_OR_NONE'
+                'IOC': 'IMMEDIATE_OR_CANCEL',
+            }
+            timeInForce = self.safe_string(tifMap, timeInForce, timeInForce)
+        orderRequest['time_in_force'] = timeInForce
         if not isMarketOrder:
             if postOnly:
                 timeInForce = 'POST_ONLY'
@@ -1942,13 +1958,13 @@ class grvt(Exchange, ImplicitAPI):
                 timeInForce = 'IMMEDIATE_OR_CANCEL'
         params = self.omit(params, ['reduceOnly', 'postOnly', 'timeInForce'])
         # Trigger & SL & TP
-        triggerPrice: Str = None
-        stopLossPrice: Str = None
-        takeProfitPrice: Str = None
+        triggerPrice = None
+        stopLossPrice = None
+        takeProfitPrice = None
         triggerPrice, stopLossPrice, takeProfitPrice, params = self.handle_trigger_prices_and_params(symbol, params)
         if triggerPrice is not None or stopLossPrice is not None or takeProfitPrice is not None:
             # trigger price
-            selectedPrice: Str = None
+            selectedPrice = None
             if triggerPrice is not None:
                 selectedPrice = triggerPrice
             elif stopLossPrice is not None:
@@ -1956,7 +1972,7 @@ class grvt(Exchange, ImplicitAPI):
             elif takeProfitPrice is not None:
                 selectedPrice = takeProfitPrice
             # trigger type
-            selectedType: Str = None
+            selectedType = None
             isBuy = (side == 'buy')
             if stopLossPrice is not None:
                 selectedType = 'STOP_LOSS' if isBuy else 'TAKE_PROFIT'
@@ -2122,7 +2138,7 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest item
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         await self.load_markets_and_sign_in()
         paginate = False
@@ -2187,7 +2203,7 @@ class grvt(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
         await self.load_markets_and_sign_in()
         request = {
@@ -2301,7 +2317,7 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: a list of `leverage structures <https://docs.ccxt.com/?id=leverage-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {
+        request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
         response = await self.privateTradingPostFullV1GetAllInitialLeverage(self.extend(request, params))
@@ -2334,7 +2350,7 @@ class grvt(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
         await self.load_markets_and_sign_in()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'sub_account_id': self.get_sub_account_id(params),
             'instrument': market['id'],
             'leverage': self.number_to_string(leverage),
@@ -2387,7 +2403,7 @@ class grvt(Exchange, ImplicitAPI):
         :returns dict: a list of `margin mode structures <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
         await self.load_markets_and_sign_in()
-        request: dict = {
+        request = {
             'sub_account_id': self.get_sub_account_id(params),
         }
         response = await self.privateTradingPostFullV1GetAllInitialLeverage(self.extend(request, params))
@@ -2436,7 +2452,7 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest item
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
         await self.load_markets_and_sign_in()
         paginate = False
@@ -2513,11 +2529,12 @@ class grvt(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest item
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
+        subAccountId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccountId,
         }
         market = None
         if symbol is not None:
@@ -2607,7 +2624,7 @@ class grvt(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
         request = {
@@ -2687,11 +2704,12 @@ class grvt(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
+        subAccountId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccountId,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
@@ -2844,7 +2862,7 @@ class grvt(Exchange, ImplicitAPI):
         price = None
         filled = None
         avgPrice = None
-        legs = self.safe_list(order, 'legs')
+        legs = self.safe_list(order, 'legs', [])
         metadata = self.safe_dict(order, 'metadata', {})
         stateObj = self.safe_dict(order, 'state', {})
         filledAmounts = self.safe_list(stateObj, 'traded_size', [])
@@ -2871,7 +2889,7 @@ class grvt(Exchange, ImplicitAPI):
             'lastTradeTimeStamp': None,
             'lastUpdateTimestamp': self.safe_integer_product(stateObj, 'update_time', 0.000001),
             'status': self.parse_order_status(self.safe_string(stateObj, 'status')),
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'type': orderType,
             'timeInForce': timeInForce,
             'postOnly': isPostOnly,
@@ -2890,7 +2908,7 @@ class grvt(Exchange, ImplicitAPI):
         }, market)
 
     def parse_time_in_force(self, type: Str) -> Str:
-        types: dict = {
+        types = {
             'GOOD_TILL_TIME': 'GTC',  # yeah, not GTD
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
@@ -2901,7 +2919,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.safe_string_upper(types, type, type)
 
     def time_in_force_to_int(self, timeInForce: Str) -> Int:
-        timeInForces: dict = {
+        timeInForces = {
             'GOOD_TILL_TIME': 1,
             'ALL_OR_NONE': 2,
             'IMMEDIATE_OR_CANCEL': 3,
@@ -2911,7 +2929,7 @@ class grvt(Exchange, ImplicitAPI):
         return self.safe_integer(timeInForces, timeInForce, 0)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'PENDING': 'pending',
             'OPEN': 'open',
             'FILLED': 'closed',
@@ -2928,7 +2946,7 @@ class grvt(Exchange, ImplicitAPI):
 
         :param str symbol: cancel alls open orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
         request = {
@@ -2949,7 +2967,7 @@ class grvt(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_orders([result], None)
+        return self.parse_orders([result])
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -2961,11 +2979,12 @@ class grvt(Exchange, ImplicitAPI):
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.load_markets_and_sign_in()
+        subAccoubntId = self.get_sub_account_id(params)
         request = {
-            'sub_account_id': self.get_sub_account_id(params),
+            'sub_account_id': subAccoubntId,
         }
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_order_id')
         if clientOrderId is not None:
@@ -3086,7 +3105,7 @@ class grvt(Exchange, ImplicitAPI):
         self.options['requestId'] = requestId
         return requestId
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api'][api] + path
         queryString = ''

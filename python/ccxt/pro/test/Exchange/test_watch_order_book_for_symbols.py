@@ -20,7 +20,8 @@ async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbol
     method = 'watchOrderBookForSymbols'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    returned_symbols = []
+    while now < ends or len(returned_symbols) < len(symbols):
         response = None
         success = True
         try:
@@ -32,10 +33,13 @@ async def test_watch_order_book_for_symbols(exchange, skipped_properties, symbol
             now = exchange.milliseconds()
             # continue;
             success = False
-        if success:
+        if (success) and (response is not None):
             # [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-            assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response)
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response)
             now = exchange.milliseconds()
             test_shared_methods.assert_in_array(exchange, skipped_properties, method, response, 'symbol', symbols)
             test_order_book(exchange, skipped_properties, method, response, None)
+            symbol = response['symbol']
+            if (symbol is not None) and not exchange.in_array(symbol, returned_symbols):
+                returned_symbols.append(symbol)
     return True

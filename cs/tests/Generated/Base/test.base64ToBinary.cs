@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            Assert("GO_SKIP_START");
+            // @SKIP_START_GO
             // Test 1: Simple base64
             object b64_1 = "aGVsbG8="; // hello
             object binary1 = exchange.base64ToBinary(b64_1);
@@ -53,7 +53,7 @@ public partial class BaseTest
             object b64_10 = "aGVsbG8rd29ybGQvdGVzdA=="; // hello+world/test
             object binary10 = exchange.base64ToBinary(b64_10);
             Assert(isEqual(exchange.binaryToBase64(binary10), b64_10));
-            Assert("GO_SKIP_END");
+            // @SKIP_END_GO
             Assert(isEqual(exchange.safeString(null, "key"), null), "GO_WORKAROUND");
         }
 }
