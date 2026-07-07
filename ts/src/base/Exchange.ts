@@ -4429,106 +4429,106 @@ export default class Exchange {
     }
 
     setMarkets (markets, currencies = undefined) {
-        this.marketsMutexLocker (true);
-        try {
-            const values: Dict[] = [];
-            this.markets_by_id = this.createSafeDictionary ();
-            // handle marketId conflicts
-            // we insert spot markets first
-            const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
-            for (let i = 0; i < marketValues.length; i++) {
-                const value = marketValues[i];
-                if (value['id'] in this.markets_by_id) {
-                    const marketsByIdArray = (this.markets_by_id[value['id']] as any);
-                    marketsByIdArray.push (value);
-                    this.markets_by_id[value['id']] = marketsByIdArray;
-                } else {
-                    this.markets_by_id[value['id']] = [ value ] as any;
-                }
-                const market = this.deepExtend (this.safeMarketStructure (), {
-                    'precision': this.precision,
-                    'limits': this.limits,
-                }, this.fees['trading'], value);
-                if (market['linear']) {
-                    market['subType'] = 'linear';
-                } else if (market['inverse']) {
-                    market['subType'] = 'inverse';
-                } else {
-                    market['subType'] = undefined;
-                }
-                values.push (market);
-            }
-            this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol') as any);
-            const marketsSortedBySymbol = this.keysort (this.markets);
-            const marketsSortedById = this.keysort (this.markets_by_id);
-            this.symbols = Object.keys (marketsSortedBySymbol);
-            this.ids = Object.keys (marketsSortedById);
-            let numCurrencies = 0;
-            if (currencies !== undefined) {
-                const keys = Object.keys (currencies);
-                numCurrencies = keys.length;
-            }
-            if (numCurrencies > 0) {
-                // currencies is always undefined when called in constructor but not when called from loadMarkets
-                this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
+      this.marketsMutexLocker (true);
+      try {
+        const values: Dict[] = [];
+        this.markets_by_id = this.createSafeDictionary ();
+        // handle marketId conflicts
+        // we insert spot markets first
+        const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
+        for (let i = 0; i < marketValues.length; i++) {
+            const value = marketValues[i];
+            if (value['id'] in this.markets_by_id) {
+                const marketsByIdArray = (this.markets_by_id[value['id']] as any);
+                marketsByIdArray.push (value);
+                this.markets_by_id[value['id']] = marketsByIdArray;
             } else {
-                let baseCurrencies: CurrencyInterface[] = [];
-                let quoteCurrencies: CurrencyInterface[] = [];
-                for (let i = 0; i < values.length; i++) {
-                    const market = values[i];
-                    const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
-                    const marketPrecision = this.safeDict (market, 'precision', {});
-                    if ('base' in market) {
-                        const currency = this.safeCurrencyStructure ({
-                            'id': this.safeString2 (market, 'baseId', 'base'),
-                            'numericId': this.safeInteger (market, 'baseNumericId'),
-                            'code': this.safeString (market, 'base'),
-                            'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
-                        });
-                        baseCurrencies.push (currency);
-                    }
-                    if ('quote' in market) {
-                        const currency = this.safeCurrencyStructure ({
-                            'id': this.safeString2 (market, 'quoteId', 'quote'),
-                            'numericId': this.safeInteger (market, 'quoteNumericId'),
-                            'code': this.safeString (market, 'quote'),
-                            'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
-                        });
-                        quoteCurrencies.push (currency);
-                    }
-                }
-                baseCurrencies = this.sortBy (baseCurrencies, 'code', false, '');
-                quoteCurrencies = this.sortBy (quoteCurrencies, 'code', false, '');
-                this.baseCurrencies = this.mapToSafeMap (this.indexBy (baseCurrencies, 'code'));
-                this.quoteCurrencies = this.mapToSafeMap (this.indexBy (quoteCurrencies, 'code'));
-                const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
-                const groupedCurrencies = this.groupBy (allCurrencies, 'code');
-                const codes = Object.keys (groupedCurrencies);
-                const resultingCurrencies: CurrencyInterface[] = [];
-                for (let i = 0; i < codes.length; i++) {
-                    const code = codes[i];
-                    const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
-                    let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
-                    for (let j = 1; j < groupedCurrenciesCode.length; j++) {
-                        const currentCurrency = groupedCurrenciesCode[j];
-                        if (this.precisionMode === TICK_SIZE) {
-                            highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
-                        } else {
-                            highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
-                        }
-                    }
-                    resultingCurrencies.push (highestPrecisionCurrency);
-                }
-                const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
-                this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code')));
+                this.markets_by_id[value['id']] = [ value ] as any;
             }
-            this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
-            const currenciesSortedByCode = this.keysort (this.currencies);
-            this.codes = Object.keys (currenciesSortedByCode);
-            this.marketsMutexLocker (false);
-        } catch (e) {
-            this.marketsMutexLocker (false);
+            const market = this.deepExtend (this.safeMarketStructure (), {
+                'precision': this.precision,
+                'limits': this.limits,
+            }, this.fees['trading'], value);
+            if (market['linear']) {
+                market['subType'] = 'linear';
+            } else if (market['inverse']) {
+                market['subType'] = 'inverse';
+            } else {
+                market['subType'] = undefined;
+            }
+            values.push (market);
         }
+        this.markets = this.mapToSafeMap (this.indexBy (values, 'symbol') as any);
+        const marketsSortedBySymbol = this.keysort (this.markets);
+        const marketsSortedById = this.keysort (this.markets_by_id);
+        this.symbols = Object.keys (marketsSortedBySymbol);
+        this.ids = Object.keys (marketsSortedById);
+        let numCurrencies = 0;
+        if (currencies !== undefined) {
+            const keys = Object.keys (currencies);
+            numCurrencies = keys.length;
+        }
+        if (numCurrencies > 0) {
+            // currencies is always undefined when called in constructor but not when called from loadMarkets
+            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, currencies));
+        } else {
+            let baseCurrencies: CurrencyInterface[] = [];
+            let quoteCurrencies: CurrencyInterface[] = [];
+            for (let i = 0; i < values.length; i++) {
+                const market = values[i];
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
+                const marketPrecision = this.safeDict (market, 'precision', {});
+                if ('base' in market) {
+                    const currency = this.safeCurrencyStructure ({
+                        'id': this.safeString2 (market, 'baseId', 'base'),
+                        'numericId': this.safeInteger (market, 'baseNumericId'),
+                        'code': this.safeString (market, 'base'),
+                        'precision': this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision),
+                    });
+                    baseCurrencies.push (currency);
+                }
+                if ('quote' in market) {
+                    const currency = this.safeCurrencyStructure ({
+                        'id': this.safeString2 (market, 'quoteId', 'quote'),
+                        'numericId': this.safeInteger (market, 'quoteNumericId'),
+                        'code': this.safeString (market, 'quote'),
+                        'precision': this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision),
+                    });
+                    quoteCurrencies.push (currency);
+                }
+            }
+            baseCurrencies = this.sortBy (baseCurrencies, 'code', false, '');
+            quoteCurrencies = this.sortBy (quoteCurrencies, 'code', false, '');
+            this.baseCurrencies = this.mapToSafeMap (this.indexBy (baseCurrencies, 'code'));
+            this.quoteCurrencies = this.mapToSafeMap (this.indexBy (quoteCurrencies, 'code'));
+            const allCurrencies = this.arrayConcat (baseCurrencies, quoteCurrencies);
+            const groupedCurrencies = this.groupBy (allCurrencies, 'code');
+            const codes = Object.keys (groupedCurrencies);
+            const resultingCurrencies: CurrencyInterface[] = [];
+            for (let i = 0; i < codes.length; i++) {
+                const code = codes[i];
+                const groupedCurrenciesCode = this.safeList (groupedCurrencies, code, []);
+                let highestPrecisionCurrency = this.safeValue (groupedCurrenciesCode, 0);
+                for (let j = 1; j < groupedCurrenciesCode.length; j++) {
+                    const currentCurrency = groupedCurrenciesCode[j];
+                    if (this.precisionMode === TICK_SIZE) {
+                        highestPrecisionCurrency = (currentCurrency['precision'] < highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                    } else {
+                        highestPrecisionCurrency = (currentCurrency['precision'] > highestPrecisionCurrency['precision']) ? currentCurrency : highestPrecisionCurrency;
+                    }
+                }
+                resultingCurrencies.push (highestPrecisionCurrency);
+            }
+            const sortedCurrencies = this.sortBy (resultingCurrencies, 'code');
+            this.currencies = this.mapToSafeMap (this.deepExtend (this.currencies, this.indexBy (sortedCurrencies, 'code')));
+        }
+        this.currencies_by_id = this.indexBySafe (this.currencies, 'id');
+        const currenciesSortedByCode = this.keysort (this.currencies);
+        this.codes = Object.keys (currenciesSortedByCode);
+        this.marketsMutexLocker (false);
+      } catch (e) {
+        this.marketsMutexLocker (false);
+      }
         return this.markets;
     }
 
