@@ -1,15 +1,14 @@
 namespace ccxt;
 
 // Native dedicated prediction-market structs. C# structs cannot inherit, so each
-// duplicates its base unified struct's fields (flat typed access) and adds the
-// prediction identity fields. The inherited `symbol` is left unpopulated — `outcome`
-// (the "MARKET:LABEL" handle) is the canonical identity. Mirrors the
-// `Prediction* extends <Base>` interfaces in ts/src/base/types.ts. The transpiler
+// carries only the prediction-meaningful fields (flat typed access) plus the
+// prediction identity fields. These types are standalone — there is no `symbol`;
+// `outcome` (the "MARKET:LABEL" handle) is the canonical identity. Mirrors the
+// standalone `Prediction*` interfaces in ts/src/base/types.ts. The transpiler
 // wraps a `-> PredictionTicker` return with `new PredictionTicker(res)`.
 
 public struct PredictionTicker
 {
-    public string? symbol;
     public Int64? timestamp;
     public string? datetime;
     public double? high;
@@ -18,18 +17,14 @@ public struct PredictionTicker
     public double? bidVolume;
     public double? ask;
     public double? askVolume;
-    public double? vwap;
     public double? open;
     public double? close;
     public double? last;
-    public double? previousClose;
     public double? change;
     public double? percentage;
     public double? average;
     public double? baseVolume;
     public double? quoteVolume;
-    public double? indexPrice;
-    public double? markPrice;
     // prediction-specific
     public string? outcome;
     public string? outcomeId;
@@ -42,7 +37,6 @@ public struct PredictionTicker
     public PredictionTicker(object ticker2)
     {
         var ticker = (Dictionary<string, object>)ticker2;
-        symbol = Exchange.SafeString(ticker, "symbol");
         timestamp = Exchange.SafeInteger(ticker, "timestamp");
         datetime = Exchange.SafeString(ticker, "datetime");
         high = Exchange.SafeFloat(ticker, "high");
@@ -51,18 +45,14 @@ public struct PredictionTicker
         bidVolume = Exchange.SafeFloat(ticker, "bidVolume");
         ask = Exchange.SafeFloat(ticker, "ask");
         askVolume = Exchange.SafeFloat(ticker, "askVolume");
-        vwap = Exchange.SafeFloat(ticker, "vwap");
         open = Exchange.SafeFloat(ticker, "open");
         close = Exchange.SafeFloat(ticker, "close");
         last = Exchange.SafeFloat(ticker, "last");
-        previousClose = Exchange.SafeFloat(ticker, "previousClose");
         change = Exchange.SafeFloat(ticker, "change");
         percentage = Exchange.SafeFloat(ticker, "percentage");
         average = Exchange.SafeFloat(ticker, "average");
         baseVolume = Exchange.SafeFloat(ticker, "baseVolume");
         quoteVolume = Exchange.SafeFloat(ticker, "quoteVolume");
-        indexPrice = Exchange.SafeFloat(ticker, "indexPrice");
-        markPrice = Exchange.SafeFloat(ticker, "markPrice");
         outcome = Exchange.SafeString(ticker, "outcome");
         outcomeId = Exchange.SafeString(ticker, "outcomeId");
         label = Exchange.SafeString(ticker, "label");
@@ -80,7 +70,6 @@ public struct PredictionOrder
     public Int64? timestamp;
     public string? datetime;
     public string? lastTradeTimestamp;
-    public string? symbol;
     public string? type;
     public string? side;
     public double? price;
@@ -88,9 +77,6 @@ public struct PredictionOrder
     public double? average;
     public double? amount;
     public double? filled;
-    public double? triggerPrice;
-    public double? stopLossPrice;
-    public double? takeProfitPrice;
     public double? remaining;
     public string? status;
     public bool? reduceOnly;
@@ -113,7 +99,6 @@ public struct PredictionOrder
         timestamp = Exchange.SafeInteger(order, "timestamp");
         datetime = Exchange.SafeString(order, "datetime");
         lastTradeTimestamp = Exchange.SafeString(order, "lastTradeTimestamp");
-        symbol = Exchange.SafeString(order, "symbol");
         type = Exchange.SafeString(order, "type");
         side = Exchange.SafeString(order, "side");
         price = Exchange.SafeFloat(order, "price");
@@ -125,9 +110,6 @@ public struct PredictionOrder
         status = Exchange.SafeString(order, "status");
         fee = order.ContainsKey("fee") ? new Fee(order["fee"]) : null;
         trades = order.ContainsKey("trades") ? ((IEnumerable<object>)order["trades"]).Select(x => new Trade(x)) : null;
-        triggerPrice = Exchange.SafeFloat(order, "triggerPrice");
-        stopLossPrice = Exchange.SafeFloat(order, "stopLossPrice");
-        takeProfitPrice = Exchange.SafeFloat(order, "takeProfitPrice");
         reduceOnly = Exchange.SafeBool(order, "reduceOnly", false);
         postOnly = Exchange.SafeBool(order, "postOnly", false);
         outcome = Exchange.SafeString(order, "outcome");
@@ -148,7 +130,6 @@ public struct PredictionTrade
     public string? order;
     public Int64? timestamp;
     public string? datetime;
-    public string? symbol;
     public string? type;
     public string? side;
     public string? takerOrMaker;
@@ -171,7 +152,6 @@ public struct PredictionTrade
         order = Exchange.SafeString(trade, "order");
         timestamp = Exchange.SafeInteger(trade, "timestamp");
         datetime = Exchange.SafeString(trade, "datetime");
-        symbol = Exchange.SafeString(trade, "symbol");
         type = Exchange.SafeString(trade, "type");
         side = Exchange.SafeString(trade, "side");
         takerOrMaker = Exchange.SafeString(trade, "takerOrMaker");
@@ -187,7 +167,6 @@ public struct PredictionTrade
 
 public struct PredictionPosition
 {
-    public string symbol;
     public string? id;
     public double? timestamp;
     public string? datetime;
@@ -195,23 +174,11 @@ public struct PredictionPosition
     public double? contractsSize;
     public string? side;
     public double? notional;
-    public double? leverage;
     public double? unrealizedPnl;
     public double? realizedPnl;
     public double? collateral;
     public double? entryPrice;
     public double? markPrice;
-    public double? liquidationPrice;
-    public double? stopLossPrice;
-    public double? takeProfitPrice;
-    public string? marginMode;
-    public bool? hedged;
-    public double? maintenenceMargin;
-    public double? maintenanceMarginPercentage;
-    public double? initialMargin;
-    public double? initialMarginPercentage;
-    public double? marginRatio;
-    public double? lastUpdateTimestamp;
     public double? lastPrice;
     public double? percentage;
     // prediction-specific
@@ -229,7 +196,6 @@ public struct PredictionPosition
 
     public PredictionPosition(object position)
     {
-        symbol = Exchange.SafeString(position, "symbol");
         id = Exchange.SafeString(position, "id");
         info = Helper.GetInfo(position);
         timestamp = Exchange.SafeInteger(position, "timestamp");
@@ -238,25 +204,13 @@ public struct PredictionPosition
         contractsSize = Exchange.SafeFloat(position, "contractsSize");
         side = Exchange.SafeString(position, "side");
         notional = Exchange.SafeFloat(position, "notional");
-        leverage = Exchange.SafeFloat(position, "leverage");
         unrealizedPnl = Exchange.SafeFloat(position, "unrealizedPnl");
         realizedPnl = Exchange.SafeFloat(position, "realizedPnl");
         collateral = Exchange.SafeFloat(position, "collateral");
         entryPrice = Exchange.SafeFloat(position, "entryPrice");
         markPrice = Exchange.SafeFloat(position, "markPrice");
-        liquidationPrice = Exchange.SafeFloat(position, "liquidationPrice");
-        marginMode = Exchange.SafeString(position, "marginMode");
-        hedged = Exchange.SafeValue(position, "hedged") != null ? (bool)Exchange.SafeValue(position, "hedged") : null;
-        maintenenceMargin = Exchange.SafeFloat(position, "maintenenceMargin");
-        maintenanceMarginPercentage = Exchange.SafeFloat(position, "maintenanceMarginPercentage");
-        initialMargin = Exchange.SafeFloat(position, "initialMargin");
-        initialMarginPercentage = Exchange.SafeFloat(position, "initialMarginPercentage");
-        marginRatio = Exchange.SafeFloat(position, "marginRatio");
-        lastUpdateTimestamp = Exchange.SafeFloat(position, "lastUpdateTimestamp");
         lastPrice = Exchange.SafeFloat(position, "lastPrice");
         percentage = Exchange.SafeFloat(position, "percentage");
-        takeProfitPrice = Exchange.SafeFloat(position, "takeProfitPrice");
-        stopLossPrice = Exchange.SafeFloat(position, "stopLossPrice");
         outcome = Exchange.SafeString(position, "outcome");
         outcomeId = Exchange.SafeString(position, "outcomeId");
         label = Exchange.SafeString(position, "label");
@@ -274,7 +228,6 @@ public struct PredictionOrderBook
 {
     public List<List<double>>? bids;
     public List<List<double>>? asks;
-    public string? symbol;
     public Int64? timestamp;
     public string? datetime;
     public Int64? nonce;
@@ -288,7 +241,6 @@ public struct PredictionOrderBook
         var orderbook = (IDictionary<string, object>)orderbook2;
         bids = orderbook.ContainsKey("bids") ? ((IEnumerable<object>)orderbook["bids"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
         asks = orderbook.ContainsKey("asks") ? ((IEnumerable<object>)orderbook["asks"]).Select(x => ((IEnumerable<object>)x).Select(y => Convert.ToDouble(y)).ToList()).ToList() : null;
-        symbol = Exchange.SafeString(orderbook, "symbol");
         timestamp = Exchange.SafeInteger(orderbook, "timestamp");
         datetime = Exchange.SafeString(orderbook, "datetime");
         nonce = Exchange.SafeInteger(orderbook, "nonce");
@@ -300,7 +252,6 @@ public struct PredictionOrderBook
 
 public struct PredictionTradingFee
 {
-    public string? symbol;
     public double? maker;
     public double? taker;
     public bool? percentage;
@@ -314,7 +265,6 @@ public struct PredictionTradingFee
     public PredictionTradingFee(object fee2)
     {
         var fee = (Dictionary<string, object>)fee2;
-        symbol = Exchange.SafeString(fee, "symbol");
         maker = Exchange.SafeFloat(fee, "maker");
         taker = Exchange.SafeFloat(fee, "taker");
         percentage = fee.ContainsKey("percentage") && fee["percentage"] != null ? (bool)fee["percentage"] : null;
@@ -328,7 +278,6 @@ public struct PredictionTradingFee
 
 public struct PredictionOpenInterest
 {
-    public string? symbol;
     public double? openInterestAmount;
     public double? openInterestValue;
     public Int64? timestamp;
@@ -341,7 +290,6 @@ public struct PredictionOpenInterest
 
     public PredictionOpenInterest(object openInterest)
     {
-        symbol = Exchange.SafeString(openInterest, "symbol");
         openInterestAmount = Exchange.SafeFloat(openInterest, "openInterestAmount");
         openInterestValue = Exchange.SafeFloat(openInterest, "openInterestValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");

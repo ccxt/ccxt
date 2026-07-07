@@ -8,65 +8,57 @@ package ccxt
 // return with NewPredictionTicker(res) and a list with NewPredictionTickerArray(res).
 
 type PredictionTicker struct {
-	Info          map[string]any
-	Timestamp     *int64
-	Datetime      *string
-	High          *float64
-	Low           *float64
-	Bid           *float64
-	BidVolume     *float64
-	Ask           *float64
-	AskVolume     *float64
-	Vwap          *float64
-	Open          *float64
-	Close         *float64
-	Last          *float64
-	PreviousClose *float64
-	Change        *float64
-	Percentage    *float64
-	Average       *float64
-	QuoteVolume   *float64
-	BaseVolume    *float64
-	IndexPrice    *float64
-	MarkPrice     *float64
-	Outcome       *string
-	OutcomeId     *string
-	Label         *string
-	Market        *string
-	Event         *string
-	OpenInterest  *float64
+	Info         map[string]any
+	Timestamp    *int64
+	Datetime     *string
+	High         *float64
+	Low          *float64
+	Bid          *float64
+	BidVolume    *float64
+	Ask          *float64
+	AskVolume    *float64
+	Open         *float64
+	Close        *float64
+	Last         *float64
+	Change       *float64
+	Percentage   *float64
+	Average      *float64
+	QuoteVolume  *float64
+	BaseVolume   *float64
+	Outcome      *string
+	OutcomeId    *string
+	Label        *string
+	Market       *string
+	Event        *string
+	OpenInterest *float64
 }
 
 func NewPredictionTicker(data any) PredictionTicker {
 	m := data.(map[string]any)
 	return PredictionTicker{
-		Info:          GetInfo(m),
-		Timestamp:     SafeInt64Typed(m, "timestamp"),
-		Datetime:      SafeStringTyped(m, "datetime"),
-		High:          SafeFloatTyped(m, "high"),
-		Low:           SafeFloatTyped(m, "low"),
-		Bid:           SafeFloatTyped(m, "bid"),
-		BidVolume:     SafeFloatTyped(m, "bidVolume"),
-		Ask:           SafeFloatTyped(m, "ask"),
-		AskVolume:     SafeFloatTyped(m, "askVolume"),
-		Vwap:          SafeFloatTyped(m, "vwap"),
-		Open:          SafeFloatTyped(m, "open"),
-		Close:         SafeFloatTyped(m, "close"),
-		Last:          SafeFloatTyped(m, "last"),
-		PreviousClose: SafeFloatTyped(m, "previousClose"),
-		Change:        SafeFloatTyped(m, "change"),
-		Percentage:    SafeFloatTyped(m, "percentage"),
-		Average:       SafeFloatTyped(m, "average"),
-		QuoteVolume:   SafeFloatTyped(m, "quoteVolume"),
-		BaseVolume:    SafeFloatTyped(m, "baseVolume"),
-		IndexPrice:    SafeFloatTyped(m, "indexPrice"),
-		MarkPrice:     SafeFloatTyped(m, "markPrice"),
-		Outcome:       SafeStringTyped(m, "outcome"),
-		OutcomeId:     SafeStringTyped(m, "outcomeId"),
-		Label:         SafeStringTyped(m, "label"),
-		Market:        SafeStringTyped(m, "market"),
-		Event:         SafeStringTyped(m, "event"),
-		OpenInterest:  SafeFloatTyped(m, "openInterest"),
+		Info:         GetInfo(m),
+		Timestamp:    SafeInt64Typed(m, "timestamp"),
+		Datetime:     SafeStringTyped(m, "datetime"),
+		High:         SafeFloatTyped(m, "high"),
+		Low:          SafeFloatTyped(m, "low"),
+		Bid:          SafeFloatTyped(m, "bid"),
+		BidVolume:    SafeFloatTyped(m, "bidVolume"),
+		Ask:          SafeFloatTyped(m, "ask"),
+		AskVolume:    SafeFloatTyped(m, "askVolume"),
+		Open:         SafeFloatTyped(m, "open"),
+		Close:        SafeFloatTyped(m, "close"),
+		Last:         SafeFloatTyped(m, "last"),
+		Change:       SafeFloatTyped(m, "change"),
+		Percentage:   SafeFloatTyped(m, "percentage"),
+		Average:      SafeFloatTyped(m, "average"),
+		QuoteVolume:  SafeFloatTyped(m, "quoteVolume"),
+		BaseVolume:   SafeFloatTyped(m, "baseVolume"),
+		Outcome:      SafeStringTyped(m, "outcome"),
+		OutcomeId:    SafeStringTyped(m, "outcomeId"),
+		Label:        SafeStringTyped(m, "label"),
+		Market:       SafeStringTyped(m, "market"),
+		Event:        SafeStringTyped(m, "event"),
+		OpenInterest: SafeFloatTyped(m, "openInterest"),
 	}
 }
 
@@ -98,10 +90,6 @@ type PredictionOrder struct {
 	Amount              *float64
 	Filled              *float64
 	Remaining           *float64
-	StopPrice           *float64
-	TriggerPrice        *float64
-	TakeProfitPrice     *float64
-	StopLossPrice       *float64
 	Cost                *float64
 	Fee                 Fee
 	ReduceOnly          *bool
@@ -141,10 +129,6 @@ func NewPredictionOrder(data any) PredictionOrder {
 		Amount:              SafeFloatTyped(m, "amount"),
 		Filled:              SafeFloatTyped(m, "filled"),
 		Remaining:           SafeFloatTyped(m, "remaining"),
-		StopPrice:           SafeFloatTyped(m, "stopPrice"),
-		TriggerPrice:        SafeFloatTyped(m, "triggerPrice"),
-		TakeProfitPrice:     SafeFloatTyped(m, "takeProfitPrice"),
-		StopLossPrice:       SafeFloatTyped(m, "stopLossPrice"),
 		Cost:                SafeFloatTyped(m, "cost"),
 		Fee:                 NewFee(SafeValue(m, "fee", map[string]any{}).(map[string]any)),
 		ReduceOnly:          SafeBoolTyped(m, "reduceOnly"),
@@ -224,85 +208,61 @@ func NewPredictionTradeArray(data any) []PredictionTrade {
 }
 
 type PredictionPosition struct {
-	Info                        map[string]any
-	Id                          *string
-	Timestamp                   *int64
-	Datetime                    *string
-	Contracts                   *float64
-	ContractSize                *float64
-	Side                        *string
-	Notional                    *float64
-	Leverage                    *float64
-	UnrealizedPnl               *float64
-	RealizedPnl                 *float64
-	Collateral                  *float64
-	EntryPrice                  *float64
-	MarkPrice                   *float64
-	LiquidationPrice            *float64
-	MarginMode                  *string
-	Hedged                      *bool
-	MaintenanceMargin           *float64
-	MaintenanceMarginPercentage *float64
-	InitialMargin               *float64
-	InitialMarginPercentage     *float64
-	MarginRatio                 *float64
-	LastUpdateTimestamp         *int64
-	LastPrice                   *float64
-	StopLossPrice               *float64
-	TakeProfitPrice             *float64
-	Percentage                  *float64
-	Outcome                     *string
-	OutcomeId                   *string
-	Label                       *string
-	Market                      *string
-	Event                       *string
-	OppositeOutcome             *string
-	Resolved                    *bool
-	Won                         *bool
-	SettleFraction              *float64
-	Payout                      *float64
+	Info            map[string]any
+	Id              *string
+	Timestamp       *int64
+	Datetime        *string
+	Contracts       *float64
+	ContractSize    *float64
+	Side            *string
+	Notional        *float64
+	UnrealizedPnl   *float64
+	RealizedPnl     *float64
+	Collateral      *float64
+	EntryPrice      *float64
+	MarkPrice       *float64
+	LastPrice       *float64
+	Percentage      *float64
+	Outcome         *string
+	OutcomeId       *string
+	Label           *string
+	Market          *string
+	Event           *string
+	OppositeOutcome *string
+	Resolved        *bool
+	Won             *bool
+	SettleFraction  *float64
+	Payout          *float64
 }
 
 func NewPredictionPosition(data any) PredictionPosition {
 	m := data.(map[string]any)
 	return PredictionPosition{
-		Info:                        GetInfo(m),
-		Id:                          SafeStringTyped(m, "id"),
-		Timestamp:                   SafeInt64Typed(m, "timestamp"),
-		Datetime:                    SafeStringTyped(m, "datetime"),
-		Contracts:                   SafeFloatTyped(m, "contracts"),
-		ContractSize:                SafeFloatTyped(m, "contractSize"),
-		Side:                        SafeStringTyped(m, "side"),
-		Notional:                    SafeFloatTyped(m, "notional"),
-		Leverage:                    SafeFloatTyped(m, "leverage"),
-		UnrealizedPnl:               SafeFloatTyped(m, "unrealizedPnl"),
-		RealizedPnl:                 SafeFloatTyped(m, "realizedPnl"),
-		Collateral:                  SafeFloatTyped(m, "collateral"),
-		EntryPrice:                  SafeFloatTyped(m, "entryPrice"),
-		MarkPrice:                   SafeFloatTyped(m, "markPrice"),
-		LiquidationPrice:            SafeFloatTyped(m, "liquidationPrice"),
-		MarginMode:                  SafeStringTyped(m, "marginMode"),
-		Hedged:                      SafeBoolTyped(m, "hedged"),
-		MaintenanceMargin:           SafeFloatTyped(m, "maintenanceMargin"),
-		MaintenanceMarginPercentage: SafeFloatTyped(m, "maintenanceMarginPercentage"),
-		InitialMargin:               SafeFloatTyped(m, "initialMargin"),
-		InitialMarginPercentage:     SafeFloatTyped(m, "initialMarginPercentage"),
-		MarginRatio:                 SafeFloatTyped(m, "marginRatio"),
-		LastUpdateTimestamp:         SafeInt64Typed(m, "lastUpdateTimestamp"),
-		LastPrice:                   SafeFloatTyped(m, "lastPrice"),
-		StopLossPrice:               SafeFloatTyped(m, "stopLossPrice"),
-		TakeProfitPrice:             SafeFloatTyped(m, "takeProfitPrice"),
-		Percentage:                  SafeFloatTyped(m, "percentage"),
-		Outcome:                     SafeStringTyped(m, "outcome"),
-		OutcomeId:                   SafeStringTyped(m, "outcomeId"),
-		Label:                       SafeStringTyped(m, "label"),
-		Market:                      SafeStringTyped(m, "market"),
-		Event:                       SafeStringTyped(m, "event"),
-		OppositeOutcome:             SafeStringTyped(m, "oppositeOutcome"),
-		Resolved:                    SafeBoolTyped(m, "resolved"),
-		Won:                         SafeBoolTyped(m, "won"),
-		SettleFraction:              SafeFloatTyped(m, "settleFraction"),
-		Payout:                      SafeFloatTyped(m, "payout"),
+		Info:            GetInfo(m),
+		Id:              SafeStringTyped(m, "id"),
+		Timestamp:       SafeInt64Typed(m, "timestamp"),
+		Datetime:        SafeStringTyped(m, "datetime"),
+		Contracts:       SafeFloatTyped(m, "contracts"),
+		ContractSize:    SafeFloatTyped(m, "contractSize"),
+		Side:            SafeStringTyped(m, "side"),
+		Notional:        SafeFloatTyped(m, "notional"),
+		UnrealizedPnl:   SafeFloatTyped(m, "unrealizedPnl"),
+		RealizedPnl:     SafeFloatTyped(m, "realizedPnl"),
+		Collateral:      SafeFloatTyped(m, "collateral"),
+		EntryPrice:      SafeFloatTyped(m, "entryPrice"),
+		MarkPrice:       SafeFloatTyped(m, "markPrice"),
+		LastPrice:       SafeFloatTyped(m, "lastPrice"),
+		Percentage:      SafeFloatTyped(m, "percentage"),
+		Outcome:         SafeStringTyped(m, "outcome"),
+		OutcomeId:       SafeStringTyped(m, "outcomeId"),
+		Label:           SafeStringTyped(m, "label"),
+		Market:          SafeStringTyped(m, "market"),
+		Event:           SafeStringTyped(m, "event"),
+		OppositeOutcome: SafeStringTyped(m, "oppositeOutcome"),
+		Resolved:        SafeBoolTyped(m, "resolved"),
+		Won:             SafeBoolTyped(m, "won"),
+		SettleFraction:  SafeFloatTyped(m, "settleFraction"),
+		Payout:          SafeFloatTyped(m, "payout"),
 	}
 }
 
@@ -442,8 +402,6 @@ type PredictionOpenInterest struct {
 	Info               map[string]any
 	OpenInterestAmount *float64
 	OpenInterestValue  *float64
-	BaseVolume         *float64
-	QuoteVolume        *float64
 	Timestamp          *int64
 	Datetime           *string
 	Outcome            *string
@@ -457,8 +415,6 @@ func NewPredictionOpenInterest(data any) PredictionOpenInterest {
 		Info:               GetInfo(m),
 		OpenInterestAmount: SafeFloatTyped(m, "openInterestAmount"),
 		OpenInterestValue:  SafeFloatTyped(m, "openInterestValue"),
-		BaseVolume:         SafeFloatTyped(m, "baseVolume"),
-		QuoteVolume:        SafeFloatTyped(m, "quoteVolume"),
 		Timestamp:          SafeInt64Typed(m, "timestamp"),
 		Datetime:           SafeStringTyped(m, "datetime"),
 		Outcome:            SafeStringTyped(m, "outcome"),

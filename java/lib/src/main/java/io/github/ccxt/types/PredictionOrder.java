@@ -23,9 +23,6 @@ public final class PredictionOrder {
     public Double amount;
     public Double filled;
     public Double remaining;
-    public Double triggerPrice;
-    public Double stopLossPrice;
-    public Double takeProfitPrice;
     public String status;
     public Boolean reduceOnly;
     public Boolean postOnly;
@@ -56,9 +53,6 @@ public final class PredictionOrder {
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.filled = TypeHelper.safeFloat(data, "filled");
         this.remaining = TypeHelper.safeFloat(data, "remaining");
-        this.triggerPrice = TypeHelper.safeFloat(data, "triggerPrice");
-        this.stopLossPrice = TypeHelper.safeFloat(data, "stopLossPrice");
-        this.takeProfitPrice = TypeHelper.safeFloat(data, "takeProfitPrice");
         this.status = TypeHelper.safeString(data, "status");
         this.reduceOnly = TypeHelper.safeBool(data, "reduceOnly");
         this.postOnly = TypeHelper.safeBool(data, "postOnly");
