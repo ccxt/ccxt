@@ -2104,7 +2104,10 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 	})
 }
 
-func (this *BaseExchange) LoadOrderBook(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
+// LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
+// 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
+// use it; prediction venues embed BaseExchange and never call it.
+func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
 	limit := GetArg(optionalArgs, 0, nil)
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)

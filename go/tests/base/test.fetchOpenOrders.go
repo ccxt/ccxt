@@ -12,7 +12,7 @@ import "github.com/ccxt/ccxt/go/v4"
                     defer ReturnPanicError(ch)
                         var method any = "fetchOpenOrders"
             
-                orders:= (<-exchange.FetchOpenOrders(symbol))
+                orders:= (<-exchange.(ccxt.IFullExchange).FetchOpenOrders(symbol))
                 PanicOnError(orders)
                 AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol)
                 var now any = exchange.Milliseconds()

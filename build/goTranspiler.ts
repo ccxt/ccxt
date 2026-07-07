@@ -490,6 +490,11 @@ class NewTranspiler {
     // override a unified method still emit the prediction-typed wrapper (resolving to the
     // inherited base method) instead of the crypto-typed exchangeTyped fallback
     predictionBaseMethodsTypes: any[] = [];
+    // names of the 62 symbol-based trading methods that live in `export default class Exchange
+    // extends BaseExchange` in the TS source. They hang off *Exchange (not *BaseExchange), so
+    // prediction venues (which embed BaseExchange via PredictionExchange) never inherit them —
+    // matching TS/C#/Java. Populated in transpileBaseMethods.
+    exchangeTierMethods: Set<string> = new Set();
     private _extendedExchanges: { [key: string]: string } | null = null;
     private _typeAndFuncNamesCache: { [key: string]: Set<string> } = {};
     futuresExchanges = new Set<string>([  // futures exchanges that extend a spot exchange class
@@ -1427,7 +1432,7 @@ class NewTranspiler {
             params = 'params...';
         }
 
-        const accessor = isExchange ? 'this.BaseExchange.' : 'this.Core.';
+        const accessor = isExchange ? 'this.Exchange.' : 'this.Core.';
         const body = [
             // `${two}ch:= make(chan ${unwrappedType})`,
             // `${two}go func() {`,
@@ -1486,9 +1491,23 @@ class NewTranspiler {
         const methodsList = new Set(wrappers.map(wrapper => wrapper.name));
         const missingMethods = INTERFACE_METHODS.filter(method => !methodsList.has(method));
         const isAlias = this.isAlias(exchange);
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
+        let wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
         if (isWs && path === GLOBAL_WRAPPER_FILE) {
             return;
+        }
+        // BaseExchangeTyped mirrors ExchangeTyped but embeds only *BaseExchange and carries only the
+        // base unified methods (never the 62 symbol-based ones). Prediction venues delegate their
+        // inherited base methods to it, so the 62 stay off the prediction API. Reuse the ExchangeTyped
+        // wrapper bodies with the base subset, rewriting the receiver and accessor.
+        if (exchange === 'Exchange' && !isWs) {
+            const baseTypedWrappers = wrappers
+                .filter ((wrapper: any) => !this.exchangeTierMethods.has (wrapper.name))
+                .map ((wrapper: any) => this.createWrapper (exchange, wrapper, ws))
+                .filter ((wrapper: string) => wrapper !== '')
+                .join('\n')
+                .replace (/func \(this \*ExchangeTyped\)/g, 'func (this *BaseExchangeTyped)')
+                .replace (/this\.Exchange\./g, 'this.BaseExchange.');
+            wrappersIndented = wrappersIndented + '\n' + baseTypedWrappers;
         }
 
         let missingMethodsWrappers = '';
@@ -1505,6 +1524,12 @@ class NewTranspiler {
                     const predMethod = this.predictionBaseMethodsTypes.find ((w: any) => w.name === m);
                     if (predMethod) {
                         return this.createWrapper (exchange, predMethod, ws);
+                    }
+                    // the 62 symbol-based trading methods live only on the Exchange tier (not
+                    // PredictionExchange), so prediction venues must not expose them — this keeps the Go
+                    // prediction API in line with TS/C#/Java and with the Python/PHP tier-split.
+                    if (this.exchangeTierMethods.has (m)) {
+                        return '';
                     }
                 }
                 return this.createMissingMethodWrapper(exchange, m,  WRAPPER_METHODS['Exchange'][m]);
@@ -1527,7 +1552,15 @@ class NewTranspiler {
         if (exchange === 'Exchange') {
 
             exchangeStruct = [
+                // ExchangeTyped embeds the concrete *Exchange (which itself embeds BaseExchange), so it
+                // exposes both the base methods and the 62 symbol-based trading methods — regular venues
+                // delegate their inherited unified methods here. Prediction venues use BaseExchangeTyped
+                // (base methods only) instead, so the 62 stay off the prediction API.
                 `type ExchangeTyped struct {`,
+                `   *Exchange`,
+                `}`,
+                ``,
+                `type BaseExchangeTyped struct {`,
                 `   *BaseExchange`,
                 `}`
             ].join('\n');
@@ -1538,7 +1571,7 @@ class NewTranspiler {
                 // prediction exchanges extend the base Exchange directly, so the typed
                 // fallback is the base ExchangeTyped (cross-package prefixing adds ccxt.)
                 if (!isAlias) {
-                    exchangeTyped =  this.isPrediction ? '*ccxt.ExchangeTyped' : '*ExchangeTyped';
+                    exchangeTyped =  this.isPrediction ? '*ccxt.BaseExchangeTyped' : '*ExchangeTyped';
                 } else {
                     exchangeTyped = '*'+capitalize(this.getParentExchange(exchange));
                 }
@@ -1561,19 +1594,28 @@ class NewTranspiler {
             newMethod = [
                 'func NewExchangeTyped(exchangePointer *Exchange) *ExchangeTyped {',
                 `   return &ExchangeTyped{`,
-                `       BaseExchange: &exchangePointer.BaseExchange,`,
+                `       Exchange: exchangePointer,`,
                 `   }`,
                 '}',
                 '',
-                '// NewExchangeTypedFromBase wraps a bare *BaseExchange (used by prediction venues, which',
-                '// embed BaseExchange directly rather than the concrete Exchange).',
-                'func NewExchangeTypedFromBase(base *BaseExchange) *ExchangeTyped {',
-                `   return &ExchangeTyped{`,
+                '// NewBaseExchangeTyped wraps a bare *BaseExchange (used by prediction venues, which',
+                '// embed BaseExchange via PredictionExchange rather than the concrete Exchange). It exposes',
+                '// the base unified methods only — never the 62 symbol-based trading methods.',
+                'func NewBaseExchangeTyped(base *BaseExchange) *BaseExchangeTyped {',
+                `   return &BaseExchangeTyped{`,
                 `       BaseExchange: base,`,
                 `   }`,
                 '}',
                 '',
                 'func (this *ExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
+                '	res := <-this.Exchange.LoadMarkets(params...)',
+                '	if IsError(res) {',
+                '		return nil, CreateReturnError(res)',
+                '	}',
+                '	return NewMarketsMap(res), nil',
+                '}',
+                '',
+                'func (this *BaseExchangeTyped) LoadMarkets(params ...any) (map[string]MarketInterface, error) {',
                 '	res := <-this.BaseExchange.LoadMarkets(params...)',
                 '	if IsError(res) {',
                 '		return nil, CreateReturnError(res)',
@@ -1590,7 +1632,7 @@ class NewTranspiler {
                 if (!isAlias) {
                     // prediction cores embed BaseExchange (via PredictionExchange), not the concrete
                     // Exchange, so wrap the bare base pointer through NewExchangeTypedFromBase
-                    exTyped = this.isPrediction ? 'ccxt.NewExchangeTypedFromBase(&p.BaseExchange)' : 'NewExchangeTyped(&p.Exchange)';
+                    exTyped = this.isPrediction ? 'ccxt.NewBaseExchangeTyped(&p.BaseExchange)' : 'NewExchangeTyped(&p.Exchange)';
                 } else {
                     const parent = this.isAlias(exchange) ? this.getParentExchange(exchange) : '';
                     exTyped = `New${capitalize(this.getParentExchange(exchange))}FromCore(&(p.${capitalize(parent)}Core))`;
@@ -1615,7 +1657,7 @@ class NewTranspiler {
 
             if (!isWs) {
 
-                const exchangeTypedFactory = this.isPrediction ? 'ccxt.NewExchangeTypedFromBase' : 'NewExchangeTyped';
+                const exchangeTypedFactory = this.isPrediction ? 'ccxt.NewBaseExchangeTyped' : 'NewExchangeTyped';
                 const exchangeTypedArg = this.isPrediction ? '&core.BaseExchange' : '&core.Exchange';
                 const coreExchange = !isAlias ? `${capitizedName}` : `${capitalize(this.getParentExchange(exchange))}`;
                 fromCoreMethod = [
@@ -1769,6 +1811,19 @@ ${constStatements.join('\n')}
         this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any; // remove this later
 
+        // capture the 62 symbol-based method names from the TS `Exchange extends BaseExchange` tier,
+        // so the wrappers keep them on ExchangeTyped (regular venues) and off prediction venues.
+        const tsRaw = fs.readFileSync (baseExchangeFile, 'utf8');
+        const exTierMatch = tsRaw.match (/export default class Exchange extends BaseExchange \{([\s\S]*?)\n\}/);
+        this.exchangeTierMethods = new Set ();
+        if (exTierMatch) {
+            const methodNameRe = /^ {4}(?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/gm;
+            let mm;
+            while ((mm = methodNameRe.exec (exTierMatch[1])) !== null) {
+                this.exchangeTierMethods.add (mm[1]);
+            }
+        }
+
         const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
         const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
 
@@ -1842,24 +1897,24 @@ ${constStatements.join('\n')}
             // the auto-generated duplicates to avoid redeclaration.
             [/type Exchange struct \{\s*BaseExchange\s*\}/g, ''],
             [/func NewExchange\(\) \*Exchange \{[\s\S]*?\n\}/g, ''],
-            // fine split recombine: the 62 symbol-based trading methods (createOrder/fetchTicker/
-            // fetchOrders/cancelOrder/watch*/… + convenience wrappers) were moved out of BaseExchange
-            // into `export default class Exchange extends BaseExchange` in the TS source so the
-            // standalone-typed prediction tier does not inherit them. They transpile with a *Exchange
-            // receiver, but the Go base + wrappers call them on *BaseExchange. Go embeds via BaseExchange
-            // and shadows by method name with no return-covariance constraint, so put them back on
-            // *BaseExchange (mirrors the Python/PHP recombine in build/transpile.ts). Prediction venues
-            // still shadow these with their own outcome-typed versions.
-            // loadOrderBook is the exception: it is hand-written on *BaseExchange in exchange.go (it uses
+            // fine split: the 62 symbol-based trading methods (createOrder/fetchTicker/fetchOrders/
+            // cancelOrder/watch*/… + convenience wrappers) live in `export default class Exchange
+            // extends BaseExchange` in the TS source and transpile with a *Exchange receiver, which we
+            // keep (matching TS/C#/Java). They hang off *Exchange (embedded by regular venues) and NOT
+            // *BaseExchange, so prediction venues — which embed BaseExchange via PredictionExchange —
+            // never inherit them. The concrete `Exchange` struct is hand-written in exchange.go.
+            // loadOrderBook is the exception: it is hand-written on *Exchange in exchange.go (it uses
             // WS cache primitives the transpiler cannot emit), so drop the transpiled *Exchange copy to
             // avoid a redeclaration (and its untranspilable body). loadOrderBook is the first method of
             // the Exchange class, always followed by another `func (this *Exchange)`.
             [/func\s+\(this \*Exchange\)\s+LoadOrderBook\([\s\S]*?(?=\nfunc\s+\(this \*Exchange\))/g, ''],
-            // rewrite both the top-level receiver (`func  (this *Exchange)`) and the inner
-            // try/catch closures the transpiler types to the class name (`func(this *Exchange) any
-            // {…}(this)`) — the recombined methods now hang off *BaseExchange, so `this` is a
-            // *BaseExchange and every occurrence must agree. \s* matches both spacings.
-            [/func(\s*)\(this \*Exchange\)/g, 'func$1(this *BaseExchange)'],
+            // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
+            // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
+            // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
+            // (see go/v4/exchange_interface.go) to let prediction cores satisfy it. These dispatch
+            // sites live only inside the 62 (regular-only code that prediction never compiles), so we
+            // type-assert to IFullExchange, which every regular venue satisfies.
+            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers)\(/g, 'this.DerivedExchange.(IFullExchange).$1('],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
@@ -1908,6 +1963,11 @@ ${constStatements.join('\n')}
             [/NewNotSupported/g, 'NotSupported'],
             // super.method() in the outcome-stub overrides → the embedded BaseExchange
             [/\bbase\./gm, 'this.BaseExchange.'],
+            // the base parse loops (parsePredictionTrades→parsePredictionTrade, etc.) must reach the
+            // venue override, not the base NotSupported stub. Go has no virtual dispatch on `this`, so
+            // route through this.DerivedExchange type-asserted to IPredictionDispatch (these loops only
+            // ever run on prediction instances, whose DerivedExchange satisfies it).
+            [/this\.(ParsePredictionOrder|ParsePredictionTrade|ParsePredictionPosition)\(/g, 'this.DerivedExchange.(IPredictionDispatch).$1('],
         ]);
         const jsDelimiter = '// ' + delimiter;
         const parts = baseClass.split (jsDelimiter);
@@ -2847,6 +2907,10 @@ func (this *${className}) Init(userConfig map[string]any) {
         contentIndentend = this.regexAll (contentIndentend, [
             [/var (mockedExchange|exchange) any =/g, 'var $1 ccxt.ICoreExchange ='],
             [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+            // these 62 symbol-based methods are trimmed from ICoreExchange (so prediction cores satisfy
+            // it), so call sites in the harness must type-assert to IFullExchange, which regular venues
+            // satisfy. Prediction never reaches these calls (guarded by has-flags / prediction path).
+            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.IFullExchange).$1('],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
@@ -2943,6 +3007,9 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
                 [/exchange := (?:&)?ccxt\.Coinbase\{\}/g, 'exchange := ccxt.NewCoinbase()'],
                 [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+                // 62 symbol-based methods trimmed from ICoreExchange → assert to IFullExchange (regular
+                // venues satisfy it; prediction never runs these per-method tests, guarded by has-flags)
+                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.IFullExchange).$1('],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],

@@ -1245,7 +1245,7 @@ func  (this *CexCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
             var messageHash any = ccxt.Add("ohlcv:", symbol)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var request any = map[string]any {
-                "e": "ccxt.Init-ohlcv",
+                "e": "init-ohlcv",
                 "i": timeframe,
                 "rooms": []any{ccxt.Add(ccxt.Add(ccxt.Add("pair-", ccxt.GetValue(market, "baseId")), "-"), ccxt.GetValue(market, "quoteId"))},
             }
@@ -1265,7 +1265,7 @@ func  (this *CexCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
 func  (this *CexCore) HandleInitOHLCV(client any, message any)  {
     //
     //     {
-    //         "e": "ccxt.Init-ohlcv-data",
+    //         "e": "init-ohlcv-data",
     //         "data": [
     //             [
     //                 1663660680,
@@ -1476,7 +1476,7 @@ func  (this *CexCore) FetchOpenOrdersWs(optionalArgs ...any) <- chan any {
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
  * @param {object} [params] extra parameters specific to the kraken api endpoint
- * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "ccxt.Order is not maker"
+ * @param {boolean} [params.maker_only] Optional, maker only places an order only if offers best sell (<= max) or buy(>= max) price for this pair, if not order placement will be rejected with an error - "Order is not maker"
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
  */
 func  (this *CexCore) CreateOrderWs(symbol any, typeVar any, side any, amount any, optionalArgs ...any) <- chan any {
@@ -1773,7 +1773,7 @@ func  (this *CexCore) HandleMessage(client any, message any)  {
         "connected": this.HandleConnected,
         "tick": this.HandleTicker,
         "ticker": this.HandleTicker,
-        "ccxt.Init-ohlcv-data": this.HandleInitOHLCV,
+        "init-ohlcv-data": this.HandleInitOHLCV,
         "ohlcv24": this.HandleOHLCV24,
         "ohlcv1m": this.HandleOHLCV1m,
         "ohlcv": this.HandleOHLCV,

@@ -799,7 +799,7 @@ func  (this *GrvtCore) Authenticate(optionalArgs ...any) <- chan any {
                         "options": map[string]any {
                             "headers": map[string]any {
                                 "Cookie": cookieValue,
-                                "X-Grvt-ccxt.Account-Id": accountId,
+                                "X-Grvt-Account-Id": accountId,
                             },
                         },
                     },

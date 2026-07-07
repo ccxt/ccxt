@@ -99,6 +99,9 @@ func (this *BaseExchange) SetWalletAddress(publicKey any) {
 }
 
 func (this *BaseExchange) SetCurrencies(currencies any) {
+	if currencies == nil {
+		return
+	}
 	this.Currencies = this.MapToSafeMap(currencies.(map[string]any))
 }
 

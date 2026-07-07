@@ -480,6 +480,11 @@ func InitExchange(exchangeId any, options ...any) ccxt.ICoreExchange {
 		forcePrediction := GetCliArgValue("--prediction")
 		if forcePrediction {
 			instance, success = ccxtPrediction.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+			if !success {
+				// ids not in the prediction package (e.g. the base "Exchange" used for utility calls)
+				// fall back to regular ccxt so the harness can still construct them under --prediction
+				instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
+			}
 		} else {
 			instance, success = ccxt.DynamicallyCreateInstance(exchangeId.(string), exchangeOptions.(map[string]any))
 			if !success {

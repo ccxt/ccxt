@@ -12,7 +12,7 @@ import "github.com/ccxt/ccxt/go/v4"
                     defer ReturnPanicError(ch)
                         var method any = "fetchL2OrderBook"
             
-                orderBook:= (<-exchange.FetchL2OrderBook(symbol))
+                orderBook:= (<-exchange.(ccxt.IFullExchange).FetchL2OrderBook(symbol))
                 PanicOnError(orderBook)
                 TestOrderBook(exchange, skippedProperties, method, orderBook, symbol)
             
