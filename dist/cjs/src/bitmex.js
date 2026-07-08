@@ -288,7 +288,7 @@ class bitmex extends bitmex$1["default"] {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5, // in seconds
+                'recvWindow': 5000,
                 'fetchOHLCV': {
                     'useOpenTimestamp': true,
                 },
@@ -3698,7 +3698,8 @@ class bitmex extends bitmex$1["default"] {
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials();
             let auth = method + query;
-            let expires = this.safeInteger(this.options, 'api-expires');
+            const apiExpires = this.safeInteger(this.options, 'api-expires'); // backwards compatibility
+            let expires = this.safeIntegerProduct(this.options, 'recvWindow', 0.001, apiExpires);
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
