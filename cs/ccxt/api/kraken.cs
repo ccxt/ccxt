@@ -56,11 +56,6 @@ public partial class kraken : Exchange
         return await this.callAsync ("publicGetDepth",parameters);
     }
 
-    public async Task<object> publicGetLevel3 (object parameters = null)
-    {
-        return await this.callAsync ("publicGetLevel3",parameters);
-    }
-
     public async Task<object> publicGetGroupedBook (object parameters = null)
     {
         return await this.callAsync ("publicGetGroupedBook",parameters);
@@ -84,6 +79,11 @@ public partial class kraken : Exchange
     public async Task<object> publicGetPostTrade (object parameters = null)
     {
         return await this.callAsync ("publicGetPostTrade",parameters);
+    }
+
+    public async Task<object> privatePostLevel3 (object parameters = null)
+    {
+        return await this.callAsync ("privatePostLevel3",parameters);
     }
 
     public async Task<object> privatePostBalance (object parameters = null)
