@@ -1,5 +1,5 @@
 import { Feed } from 'feed';
-import { getSortedPosts, postCanonicalUrl } from '@/lib/blog';
+import { blogDescription, getSortedPosts, postCanonicalUrl } from '@/lib/blog';
 import { appName, siteUrl } from '@/lib/shared';
 
 // Fully static: generated once at build time. This route lives OUTSIDE [lang] on
@@ -12,8 +12,7 @@ export function GET(): Response {
     title: `${appName} Blog`,
     id: `${siteUrl}/blog`,
     link: `${siteUrl}/blog`,
-    description:
-      'News, release deep-dives, and multi-language guides from the CCXT team — the open-source library connecting 100+ cryptocurrency exchanges.',
+    description: blogDescription,
     language: 'en',
     favicon: `${siteUrl}/icon.svg`,
     copyright: `© ${new Date().getFullYear()} CCXT`,

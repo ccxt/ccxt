@@ -21,14 +21,14 @@ export default async function BlogPost(props: PageProps<'/[lang]/blog/[slug]'>) 
     <main className="flex-1 w-full max-w-3xl mx-auto px-4 py-12">
       <div className="flex items-center justify-between gap-4 text-sm">
         <Link
-          href={`${basePath}/blog`}
+          href="/blog"
           className="flex items-center gap-1.5 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
         >
           <ArrowLeft className="size-4" aria-hidden />
           All posts
         </Link>
         <Link
-          href={`${basePath}/blog/rss.xml`}
+          href="/blog/rss.xml"
           className="flex items-center gap-1.5 text-fd-muted-foreground transition-colors hover:text-fd-foreground"
           title="Subscribe via RSS"
         >
