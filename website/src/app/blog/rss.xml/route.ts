@@ -20,7 +20,9 @@ export function GET(): Response {
     feedLinks: { rss: `${siteUrl}/blog/rss.xml` },
   });
 
-  for (const post of getSortedPosts()) {
+  // Latest 20 only — feed readers re-download this file on every poll, and the
+  // full archive lives in the sitemap/index, not the feed.
+  for (const post of getSortedPosts().slice(0, 20)) {
     const url = postCanonicalUrl(post);
     feed.addItem({
       id: url,
