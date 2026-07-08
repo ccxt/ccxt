@@ -962,7 +962,7 @@ func  (this *PhemexCore) HandleMyTrades(client any, message any)  {
     //            "execQuoteQtyEv":1245767663,
     //            "feeCurrency":"BTC",
     //            "lastLiquidityInd":"RemovedLiquidity",
-    //            "ordType":"Market",
+    //            "ordType":"ccxt.Market",
     //            "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
     //            "priceEp":4549022000000,
     //            "qtyType":"ByQuote",
@@ -970,7 +970,7 @@ func  (this *PhemexCore) HandleMyTrades(client any, message any)  {
     //            "quoteQtyEv":1248000000,
     //            "side":"Buy",
     //            "symbol":"sBTCUSDT",
-    //            "tradeType":"Trade",
+    //            "tradeType":"ccxt.Trade",
     //            "transactTimeNs":"1650442617609928764",
     //            "userID":2647224
     //        }
@@ -1017,7 +1017,7 @@ func  (this *PhemexCore) HandleMyTrades(client any, message any)  {
     //            "leavesValueRv": "63.4503",
     //            "message": "No error",
     //            "ordStatus": "New",
-    //            "ordType": "Market",
+    //            "ordType": "ccxt.Market",
     //            "orderID": "fa64c6f2-47a4-4929-aab4-b7fa9bbc4323",
     //            "orderQty": "0.003",
     //            "pegOffsetValueRp": "0",
@@ -1152,7 +1152,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
     //              "leavesBaseQtyEv":0,
     //              "leavesQuoteQtyEv":0,
     //              "ordStatus":"Filled",
-    //              "ordType":"Market",
+    //              "ordType":"ccxt.Market",
     //              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
     //              "pegOffsetValueEp":0,
     //              "priceEp":4549022000000,
@@ -1163,7 +1163,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
     //              "stopPxEp":0,
     //              "symbol":"sBTCUSDT",
     //              "timeInForce":"ImmediateOrCancel",
-    //              "tradeType":"Trade",
+    //              "tradeType":"ccxt.Trade",
     //              "transactTimeNs":"1650442617609928764",
     //              "triggerTimeNs":0,
     //              "userID":2647224
@@ -1182,7 +1182,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
     //              "execQuoteQtyEv":1245767663,
     //              "feeCurrency":"BTC",
     //              "lastLiquidityInd":"RemovedLiquidity",
-    //              "ordType":"Market",
+    //              "ordType":"ccxt.Market",
     //              "orderID":"34a4b1a8-ac3a-4580-b3e6-a6d039f27195",
     //              "priceEp":4549022000000,
     //              "qtyType":"ByQuote",
@@ -1190,7 +1190,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
     //              "quoteQtyEv":1248000000,
     //              "side":"Buy",
     //              "symbol":"sBTCUSDT",
-    //              "tradeType":"Trade",
+    //              "tradeType":"ccxt.Trade",
     //              "transactTimeNs":"1650442617609928764",
     //              "userID":2647224
     //           }
@@ -1267,7 +1267,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
     //          "leavesValueRv": "0",
     //          "message": "No error",
     //          "ordStatus": "Filled",
-    //          "ordType": "Market",
+    //          "ordType": "ccxt.Market",
     //          "orderID": "79620ed2-54c6-4645-a35c-7057e687c576",
     //          "orderQty": "0.001",
     //          "pegOffsetProportionRr": "0",
@@ -1284,7 +1284,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
     //          "takeProfitRp": "0",
     //          "timeInForce": "ImmediateOrCancel",
     //          "tpTrigger": "ByLastPrice",
-    //          "tradeType": "Trade",
+    //          "tradeType": "ccxt.Trade",
     //          "transactTimeNs": "1674110665387882268",
     //          "userID": 4018340
     //        },
@@ -1315,7 +1315,7 @@ func  (this *PhemexCore) HandleOrders(client any, message any)  {
         for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(message)); i++ {
             var update any = ccxt.GetValue(message, i)
             var action any = this.SafeString(update, "action")
-            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(action, nil))) && ccxt.IsTrue((!ccxt.IsEqual(action, "Cancel")))) {
+            if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(action, nil))) && ccxt.IsTrue((!ccxt.IsEqual(action, "ccxt.Cancel")))) {
                 // order + trade info together
                 ccxt.AppendToArray(&trades, update)
             }
@@ -1356,7 +1356,7 @@ func  (this *PhemexCore) ParseWSSwapOrder(order any, optionalArgs ...any) any  {
     // swap
     //    {
     //        "accountID":26472240002,
-    //        "action":"Cancel",
+    //        "action":"ccxt.Cancel",
     //        "actionBy":"ByUser",
     //        "actionTimeNs":"1650450096104760797",
     //        "addedSeq":26975849309,
@@ -1452,7 +1452,7 @@ func  (this *PhemexCore) ParseWSSwapOrder(order any, optionalArgs ...any) any  {
     //        "leavesValueRv": "0",
     //        "message": "No error",
     //        "ordStatus": "Filled",
-    //        "ordType": "Market",
+    //        "ordType": "ccxt.Market",
     //        "orderID": "79620ed2-54c6-4645-a35c-7057e687c576",
     //        "orderQty": "0.001",
     //        "pegOffsetProportionRr": "0",
@@ -1469,7 +1469,7 @@ func  (this *PhemexCore) ParseWSSwapOrder(order any, optionalArgs ...any) any  {
     //        "takeProfitRp": "0",
     //        "timeInForce": "ImmediateOrCancel",
     //        "tpTrigger": "ByLastPrice",
-    //        "tradeType": "Trade",
+    //        "tradeType": "ccxt.Trade",
     //        "transactTimeNs": "1674110665387882268",
     //        "userID": 4018340
     //    }

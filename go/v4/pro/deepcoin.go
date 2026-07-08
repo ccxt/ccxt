@@ -1011,7 +1011,7 @@ func  (this *DeepcoinCore) HandleMyTrade(client any, message any)  {
     //         "action": "PushTrade",
     //         "result": [
     //             {
-    //                 "table": "Trade",
+    //                 "table": "ccxt.Trade",
     //                 "data": {
     //                     "A": "9256245",
     //                     "CC": "USDT",
@@ -1107,7 +1107,7 @@ func  (this *DeepcoinCore) HandleOrder(client any, message any)  {
     //         "action": "PushOrder",
     //         "result": [
     //             {
-    //                 "table": "Order",
+    //                 "table": "ccxt.Order",
     //                 "data": {
     //                     "D": "0",
     //                     "I": "DOGE/USDT",
@@ -1279,7 +1279,7 @@ func  (this *DeepcoinCore) HandlePosition(client any, message any)  {
     //         "action": "PushPosition",
     //         "result": [
     //             {
-    //                 "table": "Position",
+    //                 "table": "ccxt.Position",
     //                 "data": {
     //                     "A": "9256245",
     //                     "CP": 0,

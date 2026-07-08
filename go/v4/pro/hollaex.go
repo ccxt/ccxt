@@ -51,7 +51,7 @@ func  (this *HollaexCore) Describe() any  {
             "ws": map[string]any {
                 "exact": map[string]any {
                     "Bearer or HMAC authentication required": ccxt.BadSymbol,
-                    "Error: wrong input": ccxt.BadRequest,
+                    "ccxt.Error: wrong input": ccxt.BadRequest,
                 },
             },
         },
@@ -584,7 +584,7 @@ func  (this *HollaexCore) WatchPrivate(messageHash any, optionalArgs ...any) <- 
 func  (this *HollaexCore) HandleErrorMessage(client any, message any) any  {
     //
     //     { error: "Bearer or HMAC authentication required" }
-    //     { error: "Error: wrong input" }
+    //     { error: "ccxt.Error: wrong input" }
     //
     var error any = this.SafeInteger(message, "error")
     
