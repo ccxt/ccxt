@@ -25,7 +25,7 @@ public partial class kucoin : ccxt.kucoin
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchPosition", true },
-                { "watchPositions", false },
+                { "watchPositions", true },
                 { "watchMyTrades", true },
                 { "watchTickers", true },
                 { "watchTicker", true },
@@ -40,7 +40,7 @@ public partial class kucoin : ccxt.kucoin
                 { "unWatchOHLCV", true },
                 { "unWatchOrderBook", true },
                 { "unWatchTrades", true },
-                { "unWatchhTradesForSymbols", true },
+                { "unWatchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -1588,10 +1588,13 @@ public partial class kucoin : ccxt.kucoin
     /**
      * @method
      * @name kucoin#unWatchOrderBook
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+     * @see https://www.kucoin.com/docs-new/3470221w0 // uta
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint

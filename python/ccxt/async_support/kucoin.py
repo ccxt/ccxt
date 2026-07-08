@@ -138,6 +138,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'fetchTransactionFee': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': True,
                 'repayCrossMargin': True,
                 'repayIsolatedMargin': True,
                 'setLeverage': True,
@@ -2172,7 +2173,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean force: load account state for non hf
         loads the migration status for the account(hf or not)
 
-        https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/get-user-type
+        https://www.kucoin.com/docs-new/rest/account-info/account-funding/get-account-type-spot
 
         :returns any: ignore
         """
@@ -2419,7 +2420,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         *DEPRECATED* please use fetchDepositWithdrawFee instead
 
-        https://docs.kucoin.com/#get-withdrawal-quotas
+        https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-quotas
 
         :param str code: unified currency code
         :param dict params: extra parameters specific to the exchange API endpoint
@@ -6286,7 +6287,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://docs.kucoin.com/#list-fills
+        https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
         https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
         https://www.kucoin.com/docs-new/rest/margin-trading/orders/get-trade-history
         https://www.kucoin.com/docs-new/rest/ua/get-trade-history
@@ -7289,8 +7290,7 @@ class kucoin(Exchange, ImplicitAPI):
         fetch all deposits made to an account
 
         https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-history
-        https://www.kucoin.com/docs/rest/funding/deposit/get-deposit-list
-        https://www.kucoin.com/docs/rest/funding/deposit/get-v1-historical-deposits-list
+        https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-deposit-history-old
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -7428,8 +7428,7 @@ class kucoin(Exchange, ImplicitAPI):
         fetch all withdrawals made from an account
 
         https://www.kucoin.com/docs-new/rest/account-info/withdrawals/get-withdrawal-history
-        https://www.kucoin.com/docs/rest/funding/withdrawals/get-withdrawals-list
-        https://www.kucoin.com/docs/rest/funding/withdrawals/get-v1-historical-withdrawals-list
+        https://www.kucoin.com/docs-new/abandoned-endpoints/account-funding/get-withdrawal-history-old
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -9151,7 +9150,7 @@ class kucoin(Exchange, ImplicitAPI):
         """
         fetch deposit and withdraw fees - *IMPORTANT* use fetchDepositWithdrawFee to get more in-depth info
 
-        https://docs.kucoin.com/#get-currencies
+        https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-all-currencies
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -10288,6 +10287,48 @@ class kucoin(Exchange, ImplicitAPI):
             'amount': self.amount_to_precision(symbol, amount),
             'direction': 'in',
         })
+
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: *required for hedged position* 'BOTH', 'LONG' or 'SHORT'(default is 'BOTH')
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        amountString = self.amount_to_precision(symbol, amount)
+        request = {
+            'symbol': market['id'],
+            'withdrawAmount': amountString,
+        }
+        response = await self.futuresPrivatePostMarginWithdrawMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": "0.1"
+        #     }
+        #
+        currencyId = self.safe_string(market, 'settle')
+        responseCode = self.safe_string(response, 'code')
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'type': 'reduce',
+            'marginMode': 'isolated',
+            'amount': self.parse_number(amountString),
+            'total': None,
+            'code': self.safe_currency_code(currencyId),
+            'status': 'ok' if (responseCode == '200000') else None,
+            'timestamp': None,
+            'datetime': None,
+        }
 
     def parse_margin_modification(self, info, market: Market = None) -> MarginModification:
         #

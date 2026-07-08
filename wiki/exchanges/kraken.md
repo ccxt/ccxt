@@ -62,7 +62,7 @@ retrieves data on all markets for kraken
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs  
+**See**: https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ the latest known information on the availability of the exchange API
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [status structure](https://docs.ccxt.com/?id=exchange-status-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/get-system-status/  
+**See**: https://docs.kraken.com/api-reference/market-data/get-system-status  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -102,7 +102,7 @@ fetches all available currencies on an exchange
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an associative dictionary of currencies
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo  
+**See**: https://docs.kraken.com/api-reference/market-data/get-asset-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -122,7 +122,7 @@ fetch the trading fees for a market
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [fee structure](https://docs.ccxt.com/?id=fee-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume  
+**See**: https://docs.kraken.com/api-reference/account-data/get-trade-volume  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -143,7 +143,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook  
+**See**: https://docs.kraken.com/api-reference/market-data/get-order-book  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -165,7 +165,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation  
+**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -186,7 +186,7 @@ fetches a price ticker, a statistical calculation with the information calculate
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation  
+**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-information  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -207,7 +207,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
 
-**See**: https://docs.kraken.com/api/docs/rest-api/get-ohlc-data  
+**See**: https://docs.kraken.com/api-reference/market-data/get-ohlc-data  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -232,7 +232,7 @@ fetch the history of changes, actions done by the user or operations that altere
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [ledger structure](https://docs.ccxt.com/?id=ledger-entry-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers  
+**See**: https://docs.kraken.com/api-reference/account-data/get-ledgers-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -257,7 +257,7 @@ get the list of most recent trades for a particular symbol
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=public-trades)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades  
+**See**: https://docs.kraken.com/api-reference/market-data/get-recent-trades  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -280,7 +280,7 @@ query for balance and get the amount of funds available for trading or funds loc
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance  
+**See**: https://docs.kraken.com/api-reference/account-data/get-extended-balance  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -300,7 +300,7 @@ create a market order by providing the symbol, side and cost
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder  
+**See**: https://docs.kraken.com/api-reference/trading/add-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -323,7 +323,7 @@ create a market buy order by providing the symbol, side and cost
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder  
+**See**: https://docs.kraken.com/api-reference/trading/add-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -345,7 +345,7 @@ create a trade order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/add-order  
+**See**: https://docs.kraken.com/api-reference/trading/add-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -380,7 +380,7 @@ create a list of trade orders
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/add-order-batch/  
+**See**: https://docs.kraken.com/api-reference/trading/add-order-batch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -401,7 +401,7 @@ edit a trade order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/amend-order  
+**See**: https://docs.kraken.com/api-reference/trading/amend-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -436,7 +436,7 @@ fetches information on an order made by the user
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - An [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo  
+**See**: https://docs.kraken.com/api-reference/account-data/query-orders-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -458,7 +458,7 @@ fetch all the trades made from a single order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo  
+**See**: https://docs.kraken.com/api-reference/account-data/query-trades-info  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -482,7 +482,7 @@ fetch orders by the list of order id
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders  
+**See**: https://docs.kraken.com/api-reference/account-data/get-closed-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -504,7 +504,7 @@ fetch all trades made by the user
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Trade&gt;</code> - a list of [trade structures](https://docs.ccxt.com/?id=trade-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/get-trade-history  
+**See**: https://docs.kraken.com/api-reference/account-data/get-trades-history  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -529,7 +529,7 @@ cancels an open order
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/cancel-order  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-order  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -553,7 +553,7 @@ cancel multiple orders
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-order-batch  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -575,7 +575,7 @@ cancel all open orders
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-all-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -596,7 +596,7 @@ dead man's switch, cancel all orders after the given timeout
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - the api result
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter  
+**See**: https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -617,7 +617,7 @@ fetch all unfilled currently open orders
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/get-open-orders  
+**See**: https://docs.kraken.com/api-reference/account-data/get-open-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -642,7 +642,7 @@ fetches information on multiple closed orders made by the user
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.kraken.com/api/docs/rest-api/get-closed-orders  
+**See**: https://docs.kraken.com/api-reference/account-data/get-closed-orders  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -668,7 +668,7 @@ fetch all deposits made to an account
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits  
+**See**: https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -693,7 +693,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime  
+**See**: https://docs.kraken.com/api-reference/market-data/get-server-time  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -713,7 +713,7 @@ fetch all withdrawals made from an account
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals  
+**See**: https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -739,7 +739,7 @@ create a currency deposit address
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses  
+**See**: https://docs.kraken.com/api-reference/funding/get-deposit-addresses  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -760,7 +760,7 @@ fetch deposit methods for a currency associated with this account
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - of deposit methods
 
-**See**: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods  
+**See**: https://docs.kraken.com/api-reference/funding/get-deposit-methods  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -781,7 +781,7 @@ fetch the deposit address for a currency associated with this account
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses  
+**See**: https://docs.kraken.com/api-reference/funding/get-deposit-addresses  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -802,7 +802,7 @@ make a withdrawal
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>object</code> - a [transaction structure](https://docs.ccxt.com/?id=transaction-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds  
+**See**: https://docs.kraken.com/api-reference/funding/withdraw-funds  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -826,7 +826,7 @@ fetch all open positions
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [position structure](https://docs.ccxt.com/?id=position-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions  
+**See**: https://docs.kraken.com/api-reference/account-data/get-open-positions  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -847,7 +847,7 @@ transfer from spot wallet to futures wallet
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer  
+**See**: https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -869,7 +869,7 @@ transfers currencies between sub-accounts (only spot->swap direction is supporte
 **Kind**: instance method of [<code>kraken</code>](#kraken)  
 **Returns**: a [transfer structure](https://docs.ccxt.com/?id=transfer-structure)
 
-**See**: https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer  
+**See**: https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

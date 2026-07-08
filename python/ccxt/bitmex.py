@@ -298,7 +298,9 @@ class bitmex(Exchange, ImplicitAPI):
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5,  # in seconds
-                'fetchOHLCVOpenTimestamp': True,
+                'fetchOHLCV': {
+                    'useOpenTimestamp': True,
+                },
                 'oldPrecision': False,
                 'networks': {
                     'BTC': 'btc',
@@ -1696,11 +1698,12 @@ class bitmex(Exchange, ImplicitAPI):
             params = self.omit(params, ['until'])
             request['endTime'] = self.iso8601(until)
         duration = self.parse_timeframe(timeframe) * 1000
-        fetchOHLCVOpenTimestamp = self.safe_bool(self.options, 'fetchOHLCVOpenTimestamp', True)
+        useOpenTimestamp = None
+        useOpenTimestamp, params = self.handle_option_and_params(params, 'fetchOHLCV', 'useOpenTimestamp', True)
         # if since is not set, they will return candles starting from 2017-01-01
         if since is not None:
             timestamp = since
-            if fetchOHLCVOpenTimestamp:
+            if useOpenTimestamp:
                 timestamp = self.sum(timestamp, duration)
             startTime = self.iso8601(timestamp)
             request['startTime'] = startTime  # starting date filter for results
@@ -1715,7 +1718,7 @@ class bitmex(Exchange, ImplicitAPI):
         #     ]
         #
         result = self.parse_ohlcvs(response, market, timeframe, since, limit)
-        if fetchOHLCVOpenTimestamp:
+        if useOpenTimestamp:
             # bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             # we can emulate the open timestamp by shifting all the timestamps one place
             # so the previous close becomes the current open, and we drop the first candle
