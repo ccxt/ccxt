@@ -671,7 +671,7 @@ export default class hibachi extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
-    parseOrderStatus (status: string): string {
+    parseOrderStatus (status: Str): Str {
         const uppercaseStatus = (status === undefined) ? undefined : status.toUpperCase ();
         const statuses: Dict = {
             'PENDING': 'open',
@@ -1510,7 +1510,7 @@ export default class hibachi extends Exchange {
      * @name hibachi#fetchOrdersByStatus
      * @description fetch orders filtered by terminal status
      * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
-     * @param {string} [status] exchange specific terminal status
+     * @param {string} status exchange specific terminal status
      * @param {string} [symbol] unified market symbol to filter by
      * @param {int} [since] timestamp in ms of the earliest order
      * @param {int} [limit] the maximum number of orders to return
@@ -1519,7 +1519,7 @@ export default class hibachi extends Exchange {
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOrdersByStatus (status: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    async fetchOrdersByStatus (status, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1570,7 +1570,7 @@ export default class hibachi extends Exchange {
         //
         const orders = this.safeList (response, 'orders', []);
         const parsedOrders = this.parseOrders (orders, market);
-        return this.filterBySymbolSinceLimit (parsedOrders, symbol, since) as Order[];
+        return this.filterBySymbolSinceLimit (parsedOrders, symbol, since, limit) as Order[];
     }
 
     /**
@@ -2146,7 +2146,7 @@ export default class hibachi extends Exchange {
         return this.filterBySinceLimit (withdrawals, since, limit, 'timestamp') as Transaction[];
     }
 
-    parseSettlement (settlement, market) {
+    parseSettlement (settlement, market = undefined) {
         //
         //     {
         //         "direction": "Long",
@@ -2169,7 +2169,7 @@ export default class hibachi extends Exchange {
         };
     }
 
-    parseSettlements (settlements, market) {
+    parseSettlements (settlements, market = undefined) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
             result.push (this.parseSettlement (settlements[i], market));
@@ -2189,7 +2189,7 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<object[]> {
+    async fetchMySettlementHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         let market: Market = undefined;
         const request: Dict = {
