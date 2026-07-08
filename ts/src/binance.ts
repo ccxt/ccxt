@@ -1332,8 +1332,8 @@ export default class binance extends Exchange {
                     ],
                     'loadAllOptions': false,
                 },
-                'fetchCurrencies': true, // this is a private call and it requires API keys
-                // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades // todo: reorganize
+                'fetchCurrencies': true, // this is a private call and it requires API keys // todo: reorganize
+                // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
                 'createOrder': {
                     'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
