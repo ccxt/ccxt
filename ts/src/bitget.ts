@@ -4310,15 +4310,15 @@ export default class bitget extends Exchange {
         };
         let marketType: Str = undefined;
         let timeframes = undefined;
-        const optionTimeframes = this.handleOption ('fetchOHLCV', 'timeframes');
+        const timeframesOption = this.handleOption ('fetchOHLCV', 'timeframes');
         let uta = undefined;
         [ uta, params ] = await this.handleUTAAndParams (params, 'fetchOHLCV', false);
         if (uta) {
-            timeframes = optionTimeframes['uta'];
+            timeframes = timeframesOption['uta'];
             request['interval'] = this.safeString (timeframes, timeframe, timeframe);
         } else {
             marketType = market['spot'] ? 'spot' : 'swap';
-            timeframes = optionTimeframes[marketType];
+            timeframes = timeframesOption[marketType];
             request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
         }
         const msInDay = 86400000;
