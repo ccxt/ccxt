@@ -1093,6 +1093,7 @@
                 "parsedResponse": [
                     {
                         "id": "SOMI:USDso",
+                        "lowercaseId": null,
                         "symbol": "SOMI/USDso",
                         "base": "SOMI",
                         "quote": "USDso",
@@ -1106,10 +1107,12 @@
                         "swap": false,
                         "future": false,
                         "option": false,
+                        "index": false,
                         "active": true,
                         "contract": false,
                         "linear": null,
                         "inverse": null,
+                        "subType": null,
                         "taker": 0,
                         "maker": 0,
                         "contractSize": null,
@@ -1138,6 +1141,10 @@
                                 "min": null,
                                 "max": null
                             }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
                         },
                         "created": null,
                         "info": {
