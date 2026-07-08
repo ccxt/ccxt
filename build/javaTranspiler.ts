@@ -3028,9 +3028,17 @@ class NewTranspiler {
         // ad-hoc fixes
         contentIndentend = this.regexAll(contentIndentend, [
             [/Object mockedExchange =/gm, 'var mockedExchange ='],
-            [/public Object initOfflineExchange/g, 'public Exchange initOfflineExchange'],
-            [/Object exchange(?=[,)])/g, 'Exchange exchange'],
-            [/Object exchange =/g, 'Exchange exchange ='],
+            // The shared static-test harness holds either a regular Exchange or a prediction
+            // PredictionExchange (both extend BaseExchange, as siblings), so type the shared `exchange`
+            // variable as the common base and drive the tested method by reflection. The legacy
+            // request-builders that call a symbol-trading method (createOrder/fetchTicker) directly are
+            // cast back to Exchange below — they run only against regular venues.
+            [/public Object initOfflineExchange/g, 'public BaseExchange initOfflineExchange'],
+            [/Object exchange(?=[,)])/g, 'BaseExchange exchange'],
+            [/Object exchange =/g, 'BaseExchange exchange ='],
+            [/BaseExchange exchange = (initExchange\((?:exchangeId|"Exchange")[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
+            [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
+            [/testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)'],
             [/throw new Error/g, 'throw new Exception'],
             [/public class TestMainClass/g, 'public class TestMain extends BaseTest'],
             [/assert/gm, 'Assert'],
@@ -3046,6 +3054,7 @@ class NewTranspiler {
             'package tests.exchange;',
             'import io.github.ccxt.Helpers;',
             'import io.github.ccxt.Exchange;',
+            'import io.github.ccxt.BaseExchange;',
             'import tests.BaseTest;',
             'import io.github.ccxt.errors.*;',
             '',
