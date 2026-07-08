@@ -378,7 +378,9 @@ export default class bitfinex extends Exchange {
                     'GBP': 'GBP',
                     'CHN': 'CHN',
                 },
-                'accountsByType': {
+                // actually the correct names unlike the v1
+                // we don't want to extend this with accountsByType in v1
+                'v2AccountsByType': {
                     'spot': 'exchange',
                     'exchange': 'exchange',
                     'funding': 'funding',
@@ -955,7 +957,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType as IndexType, requestedType);
         if (accountType === undefined) {
@@ -1007,7 +1009,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
+        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
