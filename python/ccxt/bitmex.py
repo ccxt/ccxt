@@ -297,7 +297,7 @@ class bitmex(Exchange, ImplicitAPI):
             'options': {
                 # https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 # https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5,  # in seconds
+                'recvWindow': 5000,
                 'fetchOHLCV': {
                     'useOpenTimestamp': True,
                 },
@@ -3518,7 +3518,8 @@ class bitmex(Exchange, ImplicitAPI):
         if api == 'private' or (api == 'public' and isAuthenticated):
             self.check_required_credentials()
             auth = method + query
-            expires = self.safe_integer(self.options, 'api-expires')
+            apiExpires = self.safe_integer(self.options, 'api-expires')  # backwards compatibility
+            expires = self.safe_integer_product(self.options, 'recvWindow', 0.001, apiExpires)
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': self.apiKey,
