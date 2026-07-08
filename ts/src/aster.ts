@@ -2686,7 +2686,7 @@ export default class aster extends Exchange {
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.handleOption ('createOrder','quoteOrderQty', true);
+                const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
