@@ -893,7 +893,8 @@ export default class bitfinex extends Exchange {
         const fees = this.safeList (feeValues, 1, []);
         const fee = this.safeNumber (fees, 1);
         const undl = this.safeList (indexed['undl'], id, []);
-        const precision = this.handleOption ('fetchCurrencies', 'defaultPrecision', this.safeString (this.options, 'defaultCurrencyPrecision', '8')) as string;
+        const optionValue = this.safeString (this.options, 'defaultCurrencyPrecision', '8');
+        const precision = this.handleOption ('fetchCurrencies', 'defaultPrecision', optionValue) as string;
         const networks: Dict = {};
         const networkIds = this.safeList (indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
