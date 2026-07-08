@@ -887,9 +887,11 @@ export default class nado extends Exchange {
         if (!trigger) {
             throw new NotSupported (this.id + ' fetchOrders only support trigger');
         }
+        let recvWindow = undefined;
+        [ recvWindow, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'recvWindow', 5000);
         const tx = {
             'sender': sender,
-            'recvTime': this.numberToString (this.milliseconds () + 10000),
+            'recvTime': this.numberToString (this.milliseconds () + recvWindow),
         };
         const request = {
             'tx': tx,
