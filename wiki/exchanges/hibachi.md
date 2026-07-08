@@ -22,40 +22,20 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchOpenOrders](#fetchopenorders)
+* [fetchClosedOrders](#fetchclosedorders)
+* [fetchCanceledOrders](#fetchcanceledorders)
+* [fetchOHLCV](#fetchohlcv)
 * [fetchPositions](#fetchpositions)
 * [fetchLedger](#fetchledger)
 * [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchMySettlementHistory](#fetchmysettlementhistory)
 * [fetchTime](#fetchtime)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingRate](#fetchfundingrate)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
-
-<a name="fetchOHLCV" id="fetchohlcv"></a>
-
-### fetchOHLCV{docsify-ignore}
-fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
-
-**Kind**: instance property of [<code>hibachi</code>](#hibachi)  
-**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
-
-**See**: https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac  
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
-| timeframe | <code>string</code> | Yes | the length of time each candle represents |
-| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-
-
-```javascript
-hibachi.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
-```
-
 
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
@@ -128,7 +108,11 @@ fetches a price ticker and the related information for the past 24h
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
 **Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47  
+**See**
+
+- https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e
+- https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -171,6 +155,7 @@ fetch the trading fee
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
 **Returns**: <code>object</code> - a map of market symbols to [fee structures](https://docs.ccxt.com/?id=fee-structure)
 
+**See**: https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -372,7 +357,7 @@ fetches the state of the open orders on the orderbook
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
 **Returns**: <code>object</code> - A dictionary containg [orderbook information](https://docs.ccxt.com/?id=order-book-structure)
 
-**See**: https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47  
+**See**: https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -432,6 +417,81 @@ hibachi.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the orders |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | the maximum number of closed order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest order |
+| params.cursorOrderId | <code>string</code> | No | pagination cursor, returns orders with orderId strictly less than this value |
+
+
+```javascript
+hibachi.fetchClosedOrders (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
+
+### fetchCanceledOrders{docsify-ignore}
+fetches information on multiple canceled orders made by the user
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the orders |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | the maximum number of canceled order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest order |
+| params.cursorOrderId | <code>string</code> | No | pagination cursor, returns orders with orderId strictly less than this value |
+
+
+```javascript
+hibachi.fetchCanceledOrders (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchOHLCV" id="fetchohlcv"></a>
+
+### fetchOHLCV{docsify-ignore}
+fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;Array&lt;int&gt;&gt;</code> - A list of candles ordered as timestamp, open, high, low, close, volume
+
+**See**: https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
+| timeframe | <code>string</code> | Yes | the length of time each candle represents |
+| since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
+
+
+```javascript
+hibachi.fetchOHLCV (symbol, timeframe, since?, limit?, params?)
+```
+
+
 <a name="fetchPositions" id="fetchpositions"></a>
 
 ### fetchPositions{docsify-ignore}
@@ -484,6 +544,7 @@ fetch deposit address for given currency and chain. currently, we have a single 
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
 **Returns**: <code>object</code> - an [address structure](https://docs.ccxt.com/?id=address-structure)
 
+**See**: https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -494,6 +555,29 @@ fetch deposit address for given currency and chain. currently, we have a single 
 
 ```javascript
 hibachi.fetchDepositAddress (code, params?)
+```
+
+
+<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
+
+### fetchDepositsWithdrawals{docsify-ignore}
+fetch deposit and withdrawal history for the account
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | timestamp in ms of the earliest transaction |
+| limit | <code>int</code> | No | the maximum number of transactions to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hibachi.fetchDepositsWithdrawals (code?, since?, limit?, params?)
 ```
 
 
@@ -543,6 +627,30 @@ hibachi.fetchWithdrawals (code?, since?, limit?, params?)
 ```
 
 
+<a name="fetchMySettlementHistory" id="fetchmysettlementhistory"></a>
+
+### fetchMySettlementHistory{docsify-ignore}
+fetches historical settlement records of the user
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+
+**See**: https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the settlement history |
+| since | <code>int</code> | No | timestamp in ms of the earliest settlement |
+| limit | <code>int</code> | No | the maximum number of settlements to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest settlement |
+
+
+```javascript
+hibachi.fetchMySettlementHistory (symbol?, since?, limit?, params?)
+```
+
+
 <a name="fetchTime" id="fetchtime"></a>
 
 ### fetchTime{docsify-ignore}
@@ -551,7 +659,7 @@ fetches the current integer timestamp in milliseconds from the exchange server
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
 **Returns**: <code>int</code> - the current integer timestamp in milliseconds from the exchange server
 
-**See**: http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434  
+**See**: https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -613,7 +721,7 @@ fetches historical funding rate prices
 **Kind**: instance method of [<code>hibachi</code>](#hibachi)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure)
 
-**See**: https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47  
+**See**: https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

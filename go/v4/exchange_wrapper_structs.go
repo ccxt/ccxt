@@ -4900,18 +4900,6 @@ func WithUnWatchBidsAsksParams(params map[string]any) UnWatchBidsAsksOptions {
 	}
 }
 
-type CreateAccountOptionsStruct struct {
-	Params *map[string]any
-}
-
-type CreateAccountOptions func(opts *CreateAccountOptionsStruct)
-
-func WithCreateAccountParams(params map[string]any) CreateAccountOptions {
-	return func(opts *CreateAccountOptionsStruct) {
-		opts.Params = &params
-	}
-}
-
 type FetchOpenOrderOptionsStruct struct {
 	Symbol *string
 	Params *map[string]any

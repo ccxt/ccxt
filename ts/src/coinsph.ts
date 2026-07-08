@@ -806,7 +806,7 @@ export default class coinsph extends Exchange {
         //     }
         //
         const markets = this.safeList (response, 'symbols', []);
-        const result = [];
+        const result: Dict[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -871,7 +871,7 @@ export default class coinsph extends Exchange {
             });
         }
         this.setMarkets (result);
-        return result;
+        return result as Market[];
     }
 
     /**
@@ -886,10 +886,12 @@ export default class coinsph extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (symbols !== undefined) {
-            const ids = [];
+            const ids: Str[] = [];
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market (symbols[i]);
                 const id = market['id'];
@@ -900,7 +902,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict (this.options, 'fetchTickers', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        let tickers: Dict[] = undefined;
+        let tickers: Dict[] = [];
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             tickers = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
         } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -923,7 +925,9 @@ export default class coinsph extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -931,7 +935,7 @@ export default class coinsph extends Exchange {
         const defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         const options = this.safeDict (this.options, 'fetchTicker', {});
         const method = this.safeString (options, 'method', defaultMethod);
-        let ticker: Dict = undefined;
+        let ticker: Dict = {};
         if (method === 'publicGetOpenapiQuoteV1TickerPrice') {
             ticker = await this.publicGetOpenapiQuoteV1TickerPrice (this.extend (request, params));
         } else if (method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -1032,7 +1036,9 @@ export default class coinsph extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1073,7 +1079,9 @@ export default class coinsph extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe);
         const until = this.safeInteger (params, 'until');
@@ -1147,7 +1155,9 @@ export default class coinsph extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1192,7 +1202,9 @@ export default class coinsph extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1277,7 +1289,7 @@ export default class coinsph extends Exchange {
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'qty');
         const type = undefined;
-        let fee: Dict = undefined;
+        let fee: Dict = {};
         const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'commissionAsset');
@@ -1326,7 +1338,9 @@ export default class coinsph extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetOpenapiV1Account (params);
         //
         //     {
@@ -1388,11 +1402,13 @@ export default class coinsph extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         // todo: add test order low priority
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const testOrder = this.safeBool (params, 'test', false);
         params = this.omit (params, 'test');
-        let orderType = this.safeString (params, 'type', type);
+        let orderType: Str = this.safeString (params, 'type', type);
         orderType = this.encodeOrderType (orderType);
         params = this.omit (params, 'type');
         const orderSide = this.encodeOrderSide (side);
@@ -1451,7 +1467,7 @@ export default class coinsph extends Exchange {
         }
         request['newOrderRespType'] = newOrderRespType;
         params = this.omit (params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        let response: Dict = undefined;
+        let response: Dict = {};
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, params));
         } else {
@@ -1498,7 +1514,9 @@ export default class coinsph extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1523,7 +1541,9 @@ export default class coinsph extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1549,7 +1569,9 @@ export default class coinsph extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1576,7 +1598,9 @@ export default class coinsph extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         const clientOrderId = this.safeValue2 (params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1602,7 +1626,9 @@ export default class coinsph extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1721,6 +1747,9 @@ export default class coinsph extends Exchange {
             'BUY': 'buy',
             'SELL': 'sell',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1729,6 +1758,9 @@ export default class coinsph extends Exchange {
             'buy': 'BUY',
             'sell': 'SELL',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1742,6 +1774,9 @@ export default class coinsph extends Exchange {
             'TAKE_PROFIT': 'market',
             'TAKE_PROFIT_LIMIT': 'limit',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1755,6 +1790,9 @@ export default class coinsph extends Exchange {
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1767,6 +1805,9 @@ export default class coinsph extends Exchange {
             'PARTIALLY_CANCELED': 'canceled',
             'REJECTED': 'rejected',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1776,6 +1817,9 @@ export default class coinsph extends Exchange {
             'FOK': 'FOK',
             'IOC': 'IOC',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -1789,7 +1833,9 @@ export default class coinsph extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1817,7 +1863,9 @@ export default class coinsph extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetOpenapiV1AssetTradeFee (params);
         //
         //     [
@@ -1837,7 +1885,9 @@ export default class coinsph extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = this.parseTradingFee (response[i]);
             const symbol = fee['symbol'];
-            result[symbol] = fee;
+            if (symbol !== undefined) {
+                result[symbol] = fee;
+            }
         }
         return result;
     }
@@ -1882,11 +1932,13 @@ export default class coinsph extends Exchange {
             throw new InvalidAddress (this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' withdraw() require network parameter');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -1915,7 +1967,9 @@ export default class coinsph extends Exchange {
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         // todo: returns an empty array - find out why
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
@@ -1973,7 +2027,9 @@ export default class coinsph extends Exchange {
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         // todo: returns an empty array - find out why
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {
@@ -2123,6 +2179,9 @@ export default class coinsph extends Exchange {
             '2': 'failed',
             '3': 'pending',
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString (statuses, status, status);
     }
 
@@ -2138,11 +2197,13 @@ export default class coinsph extends Exchange {
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         const networkCode = this.safeString (params, 'network');
-        const networkId = this.networkCodeToId (networkCode, code);
+        const networkId = (networkCode === undefined) ? undefined : this.networkCodeToId (networkCode, code);
         if (networkId === undefined) {
             throw new BadRequest (this.id + ' fetchDepositAddress() require network parameter');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const currency = this.currency (code);
         const request: Dict = {
             'coin': currency['id'],
@@ -2173,7 +2234,7 @@ export default class coinsph extends Exchange {
         return {
             'info': depositAddress,
             'currency': parsedCurrency,
-            'network': null,
+            'network': undefined,
             'address': this.safeString (depositAddress, 'address'),
             'tag': this.safeString (depositAddress, 'addressTag'),
         } as DepositAddress;

@@ -43,7 +43,7 @@ class poloniex(Exchange, ImplicitAPI):
                 'spot': True,
                 'margin': None,  # has but not fully implemented
                 'swap': True,
-                'future': True,
+                'future': False,
                 'option': False,
                 'addMargin': True,
                 'cancelAllOrders': True,
@@ -1795,7 +1795,7 @@ class poloniex(Exchange, ImplicitAPI):
             request['limit'] = max(limit, max)
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        response = None
+        response = []
         if marketType != 'spot':
             raw = await self.swapPrivateGetV3TradeOrderOpens(self.extend(request, params))
             #
@@ -1837,7 +1837,7 @@ class poloniex(Exchange, ImplicitAPI):
             #                "qCcy": "USDT"
             #            },
             #
-            response = self.safe_list(raw, 'data')
+            response = self.safe_list(raw, 'data', [])
         elif isTrigger:
             response = await self.privateGetSmartorders(self.extend(request, params))
         else:
@@ -1968,13 +1968,13 @@ class poloniex(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         request, params = self.order_request(symbol, type, side, amount, request, price, params)
-        response = None
+        response = {}
         if market['swap'] or market['future']:
             responseInitial = await self.swapPrivatePostV3TradeOrder(self.extend(request, params))
             #
             # {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
             #
-            response = self.safe_dict(responseInitial, 'data')
+            response = self.safe_dict(responseInitial, 'data', {})
         elif triggerPrice is not None:
             response = await self.privatePostSmartorders(self.extend(request, params))
         else:
@@ -1987,7 +1987,7 @@ class poloniex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    def order_request(self, symbol, type, side, amount, request, price=None, params={}):
+    def order_request(self, symbol, type, side, amount, request, price: Num = None, params={}):
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         market = self.market(symbol)
         if market['contract']:
@@ -2078,7 +2078,7 @@ class poloniex(Exchange, ImplicitAPI):
         }
         triggerPrice = self.safe_number_2(params, 'stopPrice', 'triggerPrice')
         request, params = self.order_request(symbol, type, side, amount, request, price, params)
-        response = None
+        response = {}
         if triggerPrice is not None:
             response = await self.privatePutSmartordersId(self.extend(request, params))
         else:
@@ -2127,14 +2127,14 @@ class poloniex(Exchange, ImplicitAPI):
             #        }
             #    }
             #
-            return self.parse_order(self.safe_dict(raw, 'data'))
+            return self.parse_order(self.safe_dict(raw, 'data', {}))
         clientOrderId = self.safe_value(params, 'clientOrderId')
         if clientOrderId is not None:
             id = clientOrderId
         request['id'] = id
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['clientOrderId', 'trigger', 'stop'])
-        response = None
+        response = {}
         if isTrigger:
             response = await self.privateDeleteSmartordersId(self.extend(request, params))
         else:
@@ -2174,7 +2174,7 @@ class poloniex(Exchange, ImplicitAPI):
             request['symbols'] = [
                 market['id'],
             ]
-        response = None
+        response = []
         marketType = None
         marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'swap' or marketType == 'future':
@@ -2193,7 +2193,7 @@ class poloniex(Exchange, ImplicitAPI):
             #        ]
             #    }
             #
-            response = self.safe_list(raw, 'data')
+            response = self.safe_list(raw, 'data', [])
             return self.parse_orders(response, market)
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
@@ -2248,7 +2248,7 @@ class poloniex(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchOrder() is not supported for ' + marketType + ' markets yet')
         isTrigger = self.safe_value_2(params, 'trigger', 'stop')
         params = self.omit(params, ['trigger', 'stop'])
-        response = None
+        response = {}
         if isTrigger:
             response = await self.privateGetSmartordersId(self.extend(request, params))
             response = self.safe_value(response, 0)
@@ -2886,7 +2886,7 @@ class poloniex(Exchange, ImplicitAPI):
             data[currencyId] = entry[currencyId]
         return self.parse_deposit_withdraw_fees(data, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         #
         #         {
         #             "1CR": {
@@ -2943,7 +2943,8 @@ class poloniex(Exchange, ImplicitAPI):
 
     def parse_deposit_withdraw_fee(self, fee, currency: Currency = None):
         depositWithdrawFee = self.deposit_withdraw_fee({})
-        depositWithdrawFee['info'][currency['code']] = fee
+        currencyCode = self.safe_string(currency, 'code')
+        depositWithdrawFee['info'][currencyCode] = fee
         networkId = self.safe_string(fee, 'blockchain')
         withdrawFee = self.safe_number(fee, 'withdrawalFee')
         withdrawResult = {

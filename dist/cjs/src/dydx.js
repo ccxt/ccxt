@@ -235,7 +235,7 @@ class dydx extends dydx$1["default"] {
                 'privateKey': false,
             },
             'options': {
-                'mnemonic': undefined, // specify mnemonic, copy secret phrase from UI
+                'privateKey': undefined, // specify a hex-encoded secp256k1 private key
                 'chainName': 'dydx-mainnet-1',
                 'chainId': 1,
                 'sandboxMode': false,
@@ -576,7 +576,7 @@ class dydx extends dydx$1["default"] {
     /**
      * @method
      * @name dydx#fetchMarkets
-     * @description retrieves data on all markets for hyperliquid
+     * @description retrieves data on all markets for dydx
      * @see https://docs.dydx.xyz/indexer-client/http#get-perpetual-markets
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
@@ -658,7 +658,7 @@ class dydx extends dydx$1["default"] {
      * @method
      * @name dydx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://developer.woox.io/api-reference/endpoint/public_data/marketTrades
+     * @see https://docs.dydx.xyz/indexer-client/http#get-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -666,7 +666,9 @@ class dydx extends dydx$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -734,7 +736,9 @@ class dydx extends dydx$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -792,7 +796,9 @@ class dydx extends dydx$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -943,7 +949,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': id,
         };
@@ -968,7 +976,9 @@ class dydx extends dydx$1["default"] {
         let subAccountNumber = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchOrders', params);
         [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1136,7 +1146,9 @@ class dydx extends dydx$1["default"] {
         let subAccountNumber = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchPositions', params);
         [subAccountNumber, params] = this.handleOptionAndParams(params, 'fetchOrders', 'subAccountNumber', '0');
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'address': userAddress,
             'subaccountNumber': subAccountNumber,
@@ -1215,12 +1227,12 @@ class dydx extends dydx$1["default"] {
         if (credentials !== undefined) {
             return credentials;
         }
-        let entropy = this.safeString(this.options, 'mnemonic');
-        if (entropy === undefined) {
+        let privateKey = this.safeString(this.options, 'privateKey');
+        if (privateKey === undefined) {
             const signature = this.signOnboardingAction();
-            entropy = this.hashMessage(this.base16ToBinary(signature['r'] + signature['s']));
+            privateKey = this.hashMessage(this.base16ToBinary(signature['r'] + signature['s']));
         }
-        credentials = this.retrieveDydxCredentials(entropy);
+        credentials = this.retrieveDydxCredentials(privateKey);
         credentials['privateKey'] = this.binaryToBase16(credentials['privateKey']);
         credentials['publicKey'] = this.binaryToBase16(credentials['publicKey']);
         this.options['dydxCredentials'] = credentials;
@@ -1449,7 +1461,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const credentials = this.retrieveCredentials();
         const account = await this.fetchDydxAccount();
         const lastBlockHeight = await this.fetchLatestBlockHeight();
@@ -1507,7 +1521,9 @@ class dydx extends dydx$1["default"] {
         if (!isTrigger && (symbol === undefined)) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'clientId', id);
         if (clientOrderId === undefined) {
@@ -1600,7 +1616,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const clientOrderIds = this.safeList(params, 'clientOrderIds');
         if (!clientOrderIds) {
@@ -1668,7 +1686,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'market': market['id'],
@@ -1770,7 +1790,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1843,7 +1865,9 @@ class dydx extends dydx$1["default"] {
         if (code !== 'USDC') {
             throw new errors.NotSupported(this.id + ' transfer() only support USDC');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const fromSubaccountId = this.safeInteger(params, 'fromSubaccountId');
         const toSubaccountId = this.safeInteger(params, 'toSubaccountId');
         if (fromAccount !== 'main') {
@@ -1978,7 +2002,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async fetchTransfers(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2057,7 +2083,9 @@ class dydx extends dydx$1["default"] {
         if (code !== 'USDC') {
             throw new errors.NotSupported(this.id + ' withdraw() only support USDC');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const subaccountId = this.safeInteger(params, 'subaccountId');
         if (subaccountId === undefined) {
@@ -2119,7 +2147,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2142,7 +2172,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2165,7 +2197,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -2297,7 +2331,9 @@ class dydx extends dydx$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handlePublicAddress('fetchAccounts', params);
         let subaccountNumber = undefined;

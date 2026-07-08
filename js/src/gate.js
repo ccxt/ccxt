@@ -2051,7 +2051,9 @@ export default class gate extends Exchange {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
@@ -2114,7 +2116,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let market = undefined;
         if (symbols !== undefined) {
@@ -2253,7 +2257,9 @@ export default class gate extends Exchange {
         return this.safeString(intervals, interval, interval);
     }
     async fetchNetworkDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'], // todo: currencies have network-junctions
@@ -2301,7 +2307,9 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     async fetchDepositAddressesByNetwork(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -2324,7 +2332,9 @@ export default class gate extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const chainsIndexedById = await this.fetchDepositAddressesByNetwork(code, params);
@@ -2362,7 +2372,9 @@ export default class gate extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'currency_pair': market['id'],
@@ -2393,7 +2405,9 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateWalletGetFee(params);
         //
         //    {
@@ -2461,7 +2475,9 @@ export default class gate extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateWalletGetWithdrawStatus(params);
         //
         //    {
@@ -2520,7 +2536,9 @@ export default class gate extends Exchange {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateWalletGetWithdrawStatus(params);
         //
         //    [
@@ -2608,7 +2626,9 @@ export default class gate extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // let defaultType = 'future';
         let market = undefined;
         if (symbol !== undefined) {
@@ -2696,7 +2716,9 @@ export default class gate extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         //
         //     const request: Dict = {
@@ -2821,7 +2843,9 @@ export default class gate extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [request, query] = this.prepareRequest(market, undefined, params);
         let response;
@@ -2985,7 +3009,9 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const first = this.safeString(symbols, 0);
         let market = undefined;
@@ -3046,7 +3072,9 @@ export default class gate extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const symbol = this.safeString(params, 'symbol');
         params = this.omit(params, 'symbol');
@@ -3348,7 +3376,9 @@ export default class gate extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (units in quote currency)
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate');
@@ -3411,7 +3441,9 @@ export default class gate extends Exchange {
     }
     async fetchOptionOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         // separated option logic because the from, to and limit parameters weren't functioning
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let request = {};
         [request, params] = this.prepareRequest(market, undefined, params);
@@ -3436,7 +3468,9 @@ export default class gate extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -3545,7 +3579,9 @@ export default class gate extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTrades', 'paginate');
         if (paginate) {
@@ -3662,7 +3698,9 @@ export default class gate extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOrderTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         //
         //      [
         //          {
@@ -3711,7 +3749,9 @@ export default class gate extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchMyTrades', 'paginate');
@@ -4011,7 +4051,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'paginate');
         if (paginate) {
@@ -4049,7 +4091,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchWithdrawals', 'paginate');
         if (paginate) {
@@ -4088,7 +4132,9 @@ export default class gate extends Exchange {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'], // todo: currencies have network-junctions
@@ -4290,7 +4336,9 @@ export default class gate extends Exchange {
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const market = this.market(symbol);
         const trigger = this.safeValue(params, 'trigger');
@@ -4442,7 +4490,9 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const ordersRequests = this.createOrdersRequest(orders, params);
         const firstOrder = orders[0];
@@ -4734,7 +4784,9 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const market = this.market(symbol);
         if (!market['spot']) {
@@ -4803,7 +4855,9 @@ export default class gate extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const market = this.market(symbol);
         const extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
@@ -5262,7 +5316,9 @@ export default class gate extends Exchange {
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const result = this.handleMarketTypeAndParams('fetchOrder', market, params);
@@ -5344,7 +5400,9 @@ export default class gate extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const until = this.safeInteger(params, 'until');
         let market = undefined;
@@ -5415,7 +5473,9 @@ export default class gate extends Exchange {
         return [request, finalParams];
     }
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         let market = undefined;
         if (symbol !== undefined) {
@@ -5642,7 +5702,9 @@ export default class gate extends Exchange {
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const trigger = this.safeBoolN(params, ['is_stop_order', 'stop', 'trigger'], false);
@@ -5777,7 +5839,9 @@ export default class gate extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         let market = undefined;
         if (symbol !== undefined) {
@@ -5825,7 +5889,9 @@ export default class gate extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrdersForSymbols(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
@@ -5870,7 +5936,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
@@ -5952,7 +6020,9 @@ export default class gate extends Exchange {
      * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const fromId = this.convertTypeToAccount(fromAccount);
         const toId = this.convertTypeToAccount(toAccount);
@@ -6043,7 +6113,9 @@ export default class gate extends Exchange {
         if ((leverage < 0) || (leverage > 100)) {
             throw new BadRequest(this.id + ' setLeverage() leverage should be between 1 and 100');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [request, query] = this.prepareRequest(market, undefined, params);
         const defaultMarginMode = this.safeString2(this.options, 'marginMode', 'defaultMarginMode');
@@ -6187,7 +6259,6 @@ export default class gate extends Exchange {
                 side = 'short';
             }
         }
-        const maintenanceRate = this.safeString(position, 'maintenance_rate');
         const notional = this.safeString(position, 'value');
         const leverage = this.safeString(position, 'leverage');
         let marginMode = undefined;
@@ -6199,15 +6270,19 @@ export default class gate extends Exchange {
                 marginMode = 'isolated';
             }
         }
-        // Initial Position Margin = ( Position Value / Leverage ) + Close Position Fee
-        // *The default leverage under the full position is the highest leverage in the market.
-        // *Trading fee is charged as Taker Fee Rate (0.075%).
-        let feePaid = this.safeString(position, 'pnl_fee');
-        let initialMarginString = undefined;
-        if (feePaid === undefined) {
-            const takerFee = '0.00075';
-            feePaid = Precise.stringMul(takerFee, notional);
-            initialMarginString = Precise.stringAdd(Precise.stringDiv(notional, leverage), feePaid);
+        // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
+        const marginBalance = this.safeString(position, 'margin');
+        const initialMarginString = this.omitZero(this.safeString(position, 'initial_margin'));
+        // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
+        // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
+        const maintenanceMarginString = this.omitZero(this.safeString(position, 'maintenance_margin'));
+        // the margin field is the position margin balance, which excludes the unrealized pnl,
+        // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
+        // so the unified collateral (the amount that can be lost, affected by pnl) includes it
+        const unrealisedPnl = this.safeString(position, 'unrealised_pnl');
+        let collateral = marginBalance;
+        if ((marginBalance !== undefined) && (unrealisedPnl !== undefined)) {
+            collateral = Precise.stringAdd(marginBalance, unrealisedPnl);
         }
         let timestamp = this.safeTimestamp2(position, 'open_time', 'first_open_time');
         if (timestamp === 0) {
@@ -6222,12 +6297,12 @@ export default class gate extends Exchange {
             'lastUpdateTimestamp': this.safeTimestamp2(position, 'update_time', 'time'),
             'initialMargin': this.parseNumber(initialMarginString),
             'initialMarginPercentage': this.parseNumber(Precise.stringDiv(initialMarginString, notional)),
-            'maintenanceMargin': this.parseNumber(Precise.stringMul(maintenanceRate, notional)),
-            'maintenanceMarginPercentage': this.parseNumber(maintenanceRate),
+            'maintenanceMargin': this.parseNumber(maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber(Precise.stringDiv(maintenanceMarginString, notional)),
             'entryPrice': this.safeNumber(position, 'entry_price'),
             'notional': this.parseNumber(notional),
             'leverage': this.safeNumber(position, 'leverage'),
-            'unrealizedPnl': this.safeNumber(position, 'unrealised_pnl'),
+            'unrealizedPnl': this.parseNumber(unrealisedPnl),
             'realizedPnl': this.safeNumber2(position, 'realised_pnl', 'pnl'),
             'contracts': this.parseNumber(Precise.stringAbs(size)),
             'contractSize': this.safeNumber(market, 'contractSize'),
@@ -6235,7 +6310,7 @@ export default class gate extends Exchange {
             'liquidationPrice': this.safeNumber(position, 'liq_price'),
             'markPrice': this.safeNumber(position, 'mark_price'),
             'lastPrice': undefined,
-            'collateral': this.safeNumber(position, 'margin'),
+            'collateral': this.parseNumber(collateral),
             'marginMode': marginMode,
             'side': side,
             'percentage': undefined,
@@ -6255,7 +6330,9 @@ export default class gate extends Exchange {
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['contract']) {
             throw new BadRequest(this.id + ' fetchPosition() supports contract markets only');
@@ -6345,7 +6422,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         symbols = this.marketSymbols(symbols, undefined, true, true, true);
         if (symbols !== undefined) {
@@ -6453,7 +6532,9 @@ export default class gate extends Exchange {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [type, query] = this.handleMarketTypeAndParams('fetchLeverageTiers', undefined, params);
         const [request, requestParams] = this.prepareRequest(undefined, type, query);
         if (type !== 'future' && type !== 'swap') {
@@ -6574,7 +6655,9 @@ export default class gate extends Exchange {
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
     async fetchMarketLeverageTiers(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [type, query] = this.handleMarketTypeAndParams('fetchMarketLeverageTiers', market, params);
         const [request, requestParams] = this.prepareRequest(market, type, query);
@@ -6678,7 +6761,9 @@ export default class gate extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayIsolatedMargin(symbol, code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
@@ -6707,7 +6792,9 @@ export default class gate extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async repayCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
         const request = {
@@ -6757,7 +6844,9 @@ export default class gate extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowIsolatedMargin(symbol, code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'].toUpperCase(), // todo: currencies have network-junctions
@@ -6801,7 +6890,9 @@ export default class gate extends Exchange {
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
     async borrowCrossMargin(code, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         const currency = this.currency(code);
         const request = {
@@ -6905,7 +6996,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [borrow interest structures]{@link https://docs.ccxt.com/?id=borrow-interest-structure}
      */
     async fetchBorrowInterest(code = undefined, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadUnifiedStatus();
         let isUnifiedAccount = false;
         [isUnifiedAccount, params] = this.handleOptionAndParams(params, 'fetchBorrowInterest', 'unifiedAccount');
@@ -7063,7 +7156,9 @@ export default class gate extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
     async modifyMarginHelper(symbol, amount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const [request, query] = this.prepareRequest(market, undefined, params);
         request['change'] = this.numberToString(amount);
@@ -7165,7 +7260,9 @@ export default class gate extends Exchange {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterestHistory(symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenInterestHistory', 'paginate', false);
         if (paginate) {
@@ -7254,7 +7351,9 @@ export default class gate extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchSettlementHistory() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let type = undefined;
         [type, params] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
@@ -7302,7 +7401,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [settlement history objects]
      */
     async fetchMySettlementHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -7481,7 +7582,9 @@ export default class gate extends Exchange {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
         if (paginate) {
@@ -7736,7 +7839,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [underlying assets]{@link https://docs.ccxt.com/?id=underlying-assets-structure}
      */
     async fetchUnderlyingAssets(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let marketType = undefined;
         [marketType, params] = this.handleMarketTypeAndParams('fetchUnderlyingAssets', undefined, params);
         if ((marketType === undefined) || (marketType === 'spot')) {
@@ -7778,7 +7883,9 @@ export default class gate extends Exchange {
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
     async fetchLiquidations(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['swap']) {
             throw new NotSupported(this.id + ' fetchLiquidations() supports swap markets only');
@@ -7826,7 +7933,9 @@ export default class gate extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchMyLiquidations() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'contract': market['id'],
@@ -7986,7 +8095,9 @@ export default class gate extends Exchange {
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
     async fetchGreeks(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'underlying': market['info']['underlying'],
@@ -8103,7 +8214,9 @@ export default class gate extends Exchange {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             // unified account does not require a symbol
@@ -8211,7 +8324,9 @@ export default class gate extends Exchange {
      * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverages(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let response;
         const isUnified = this.safeBool(params, 'unified');
@@ -8271,7 +8386,9 @@ export default class gate extends Exchange {
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOption(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'contract': market['id'],
@@ -8331,7 +8448,9 @@ export default class gate extends Exchange {
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
     async fetchOptionChain(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'underlying': currency['code'] + '_USDT', // todo: currency['id'].toUpperCase () &  network junctions
@@ -8464,7 +8583,9 @@ export default class gate extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsHistory(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbols !== undefined) {
             const symbolsLength = symbols.length;

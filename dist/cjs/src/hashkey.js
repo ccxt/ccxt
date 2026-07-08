@@ -28,10 +28,10 @@ class hashkey extends hashkey$1["default"] {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'borrowCrossMargin': false,
                 'borrowIsolatedMargin': false,
                 'borrowMargin': false,
@@ -146,13 +146,13 @@ class hashkey extends hashkey$1["default"] {
                 'fetchUnderlyingAssets': false,
                 'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
-                'reduceMargin': false,
+                'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
                 'sandbox': false,
                 'setLeverage': true,
                 'setMargin': false,
-                'setMarginMode': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -223,10 +223,12 @@ class hashkey extends hashkey$1["default"] {
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrder': 1,
+                        'api/v1/coinInfo': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1,
                         'api/v1/account/trades': 5,
                         'api/v1/account/type': 5,
+                        'api/v1/account/chainType': 1,
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -247,6 +249,8 @@ class hashkey extends hashkey$1["default"] {
                         'api/v1/spot/batchOrders': 5,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
+                        'api/v1/futures/marginType': 1,
+                        'api/v1/futures/positionMargin': 1,
                         'api/v1/futures/position/trading-stop': 3,
                         'api/v1/futures/batchOrders': 5,
                         'api/v1/account/assetTransfer': 1,
@@ -1239,7 +1243,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1278,7 +1284,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1321,7 +1329,9 @@ class hashkey extends hashkey$1["default"] {
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchMyTrades';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1540,7 +1550,9 @@ class hashkey extends hashkey$1["default"] {
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOHLCV';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, methodName, 'paginate');
         if (paginate) {
@@ -1615,7 +1627,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1650,7 +1664,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetQuoteV1Ticker24hr(params);
         return this.parseTickers(response, symbols);
@@ -1709,7 +1725,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a dictionary of lastprices structures
      */
     async fetchLastPrices(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         const response = await this.publicGetQuoteV1TickerPrice(this.extend(request, params));
@@ -1747,7 +1765,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const methodName = 'fetchBalance';
         let marketType = 'spot';
@@ -1861,7 +1881,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -1910,7 +1932,7 @@ class hashkey extends hashkey$1["default"] {
         }
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': this.safeString(currency, 'code'),
             'network': undefined,
             'address': address,
             'tag': tag,
@@ -1931,7 +1953,9 @@ class hashkey extends hashkey$1["default"] {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchDeposits';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1980,7 +2004,9 @@ class hashkey extends hashkey$1["default"] {
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchWithdrawals';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -2039,7 +2065,9 @@ class hashkey extends hashkey$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2189,7 +2217,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -2237,7 +2267,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetApiV1AccountType(params);
         //
         //     [
@@ -2321,7 +2353,9 @@ class hashkey extends hashkey$1["default"] {
         if (until === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires an until argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {};
         request['startTime'] = since;
@@ -2443,7 +2477,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (market['spot']) {
             return await this.createSpotOrder(symbol, type, side, amount, price, params);
@@ -2465,7 +2501,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (!market['spot']) {
             throw new errors.NotSupported(this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
@@ -2499,7 +2537,9 @@ class hashkey extends hashkey$1["default"] {
         if (triggerPrice !== undefined) {
             throw new errors.NotSupported(this.id + ' trigger orders are not supported for spot markets');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isMarketBuy = (type === 'market') && (side === 'buy');
         const cost = this.safeString(params, 'cost');
@@ -2740,7 +2780,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createSwapOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.createSwapOrderRequest(symbol, type, side, amount, price, params);
         const response = await this.privatePostApiV1FuturesOrder(this.extend(request, params));
@@ -2778,7 +2820,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -2900,7 +2944,9 @@ class hashkey extends hashkey$1["default"] {
     async cancelOrder(id, symbol = undefined, params = {}) {
         const methodName = 'cancelOrder';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId === undefined) {
@@ -2991,7 +3037,9 @@ class hashkey extends hashkey$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' ' + methodName + '() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3034,7 +3082,9 @@ class hashkey extends hashkey$1["default"] {
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
         const methodName = 'cancelOrders';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const orderIds = ids.join(',');
         request['ids'] = orderIds;
@@ -3083,7 +3133,9 @@ class hashkey extends hashkey$1["default"] {
     async fetchOrder(id, symbol = undefined, params = {}) {
         const methodName = 'fetchOrder';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let clientOrderId = undefined;
         [clientOrderId, params] = this.handleParamString(params, 'clientOrderId');
@@ -3192,7 +3244,9 @@ class hashkey extends hashkey$1["default"] {
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchOpenOrders';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -3227,7 +3281,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenSpotOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let methodName = 'fetchOpenSpotOrders';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
         let market = undefined;
@@ -3396,7 +3452,9 @@ class hashkey extends hashkey$1["default"] {
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         const methodName = 'fetchCanceledAndClosedOrders';
         this.checkTypeParam(methodName, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -3754,7 +3812,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -3779,7 +3839,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rates-structure}, indexed by market symbols
      */
     async fetchFundingRates(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {
             'timestamp': this.milliseconds(),
@@ -3840,7 +3902,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -3900,7 +3964,9 @@ class hashkey extends hashkey$1["default"] {
                 throw new errors.NotSupported(this.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         return await this.fetchPositionsForSymbol(symbols[0], this.extend({ 'methodName': 'fetchPositions' }, params));
     }
     /**
@@ -3915,7 +3981,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositionsForSymbol(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let methodName = 'fetchPosition';
         [methodName, params] = this.handleParamString(params, 'methodName', methodName);
@@ -3994,7 +4062,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -4037,7 +4107,9 @@ class hashkey extends hashkey$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setLeverage() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'leverage': leverage,
         };
@@ -4055,6 +4127,127 @@ class hashkey extends hashkey$1["default"] {
     }
     /**
      * @method
+     * @name hashkey#setMarginMode
+     * @description set margin mode to 'cross' or 'isolated'
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+     * @param {string} marginMode 'cross' or 'isolated'
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} response from the exchange
+     */
+    async setMarginMode(marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        marginMode = marginMode.toUpperCase();
+        if (marginMode === 'CROSSED') {
+            marginMode = 'CROSS';
+        }
+        if ((marginMode !== 'CROSS') && (marginMode !== 'ISOLATED')) {
+            throw new errors.ArgumentsRequired(this.id + ' setMarginMode() marginMode must be either cross or isolated');
+        }
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' setMarginMode() supports swap markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        };
+        return await this.privatePostApiV1FuturesMarginType(this.extend(request, params));
+    }
+    /**
+     * @method
+     * @name hashkey#addMargin
+     * @description add margin
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount amount of margin to add
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async addMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'add', params);
+    }
+    /**
+     * @method
+     * @name hashkey#reduceMargin
+     * @description remove margin from a position
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.side position side, either 'long' or 'short'
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async reduceMargin(symbol, amount, params = {}) {
+        return await this.modifyMarginHelper(symbol, amount, 'reduce', params);
+    }
+    async modifyMarginHelper(symbol, amount, type, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadSymbol(this.id + ' modifyMarginHelper() supports swap markets only');
+        }
+        let side = undefined;
+        [side, params] = this.handleParamString(params, 'side');
+        if (side === undefined) {
+            throw new errors.ArgumentsRequired(this.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"');
+        }
+        side = side.toUpperCase();
+        if ((side !== 'LONG') && (side !== 'SHORT')) {
+            throw new errors.ArgumentsRequired(this.id + ' ' + type + 'Margin() params["side"] must be either long or short');
+        }
+        let amountString = this.numberToString(amount);
+        if (type === 'reduce') {
+            amountString = Precise["default"].stringMul(amountString, '-1');
+        }
+        const request = {
+            'symbol': market['id'],
+            'side': side,
+            'amount': amountString,
+        };
+        const response = await this.privatePostApiV1FuturesPositionMargin(this.extend(request, params));
+        //
+        //     {
+        //         "code": "0000",
+        //         "symbol": "BTCUSDT-PERPETUAL",
+        //         "margin": "12344.345",
+        //         "timestamp": "1726869763318"
+        //     }
+        //
+        return this.extend(this.parseMarginModification(response, market), {
+            'type': type,
+            'amount': amount,
+        });
+    }
+    parseMarginModification(data, market = undefined) {
+        const marketId = this.safeString(data, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger(data, 'timestamp');
+        const errorCode = this.safeString(data, 'code');
+        const success = errorCode === '0000';
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': this.safeNumber(data, 'margin'),
+            'code': market['settle'],
+            'status': (success) ? 'ok' : 'failed',
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        };
+    }
+    /**
+     * @method
      * @name hashkey#fetchLeverageTiers
      * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
      * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
@@ -4063,7 +4256,9 @@ class hashkey extends hashkey$1["default"] {
      * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}, indexed by market symbols
      */
     async fetchLeverageTiers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetApiV1ExchangeInfo(params);
         // response is the same as in fetchMarkets()
         const data = this.safeList(response, 'contracts', []);
@@ -4172,14 +4367,16 @@ class hashkey extends hashkey$1["default"] {
      * @method
      * @name hashkey#fetchTradingFee
      * @description fetch the trading fees for a market
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information // spot
      * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const methodName = 'fetchTradingFee';
         let response = undefined;
@@ -4207,12 +4404,14 @@ class hashkey extends hashkey$1["default"] {
      * @method
      * @name hashkey#fetchTradingFees
      * @description *for spot markets only* fetch the trading fees for multiple markets
-     * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+     * @see https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetApiV1AccountVipInfo(params);
         //
         //     {

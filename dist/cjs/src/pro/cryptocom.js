@@ -111,7 +111,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
@@ -158,7 +160,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBookForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const subMessageHashes = [];
@@ -335,7 +339,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const topics = [];
         for (let i = 0; i < symbols.length; i++) {
@@ -362,7 +368,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
@@ -434,7 +442,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -458,7 +468,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker' + '.' + market['id'];
         return await this.watchPublic(messageHash, params);
@@ -473,7 +485,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const subMessageHash = 'ticker' + '.' + market['id'];
         const messageHash = 'unsubscribe:ticker:' + market['symbol'];
@@ -489,7 +503,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         const marketIds = this.marketIds(symbols);
@@ -524,7 +540,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         const subMessageHashes = [];
@@ -631,7 +649,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const messageHashes = [];
         const topics = [];
@@ -696,7 +716,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -718,7 +740,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -773,7 +797,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -850,7 +876,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws']['private'];
         const id = this.nonce();
@@ -1057,7 +1085,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.createOrderRequest(symbol, type, side, amount, price, params);
         const request = {
             'method': 'private/create-order',
@@ -1082,7 +1112,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.editOrderRequest(id, symbol, amount, price, params);
         const request = {
             'method': 'private/amend-order',
@@ -1119,7 +1151,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         params = this.extend({
             'order_id': id,
         }, params);
@@ -1140,7 +1174,9 @@ class cryptocom extends cryptocom$1["default"] {
      * @returns {object} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {
             'method': 'private/cancel-all-orders',

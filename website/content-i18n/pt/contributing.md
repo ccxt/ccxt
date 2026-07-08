@@ -205,10 +205,7 @@ O conteúdo do repositório está estruturado da seguinte forma:
 /python/__init__.py        # entry point for the Python version of the ccxt.library
 /python/async_support/     # asynchronous version of the ccxt.library for Python 3.5.3+ asyncio
 /python/base/              # base code for the Python version of the ccxt library
-/python/MANIFEST.in        # a PyPI-package file listing extra package files (license, configs, etc...)
 /python/README.md          # a copy of README.md for PyPI
-/python/setup.cfg          # wheels config file for the Python package
-/python/setup.py           # pip/setuptools script (build/install) for ccxt in Python
 /python/tox.ini            # tox config for Python
 /examples/                 # self-explanatory
 /examples/js               # ...
@@ -216,7 +213,8 @@ O conteúdo do repositório está estruturado da seguinte forma:
 /examples/py               # ...
 /java/examples/            # Java examples (Gradle module)
 /exchanges.cfg             # custom bundle config for including only the exchanges you need
-/package.json              # npm package file, also used in setup.py for version single-sourcing
+/package.json              # npm package file, version single-sourced into pyproject.toml and other files via `npm run vss`
+/pyproject.toml            # metadata and build config (pip/setuptools) for the ccxt package in Python
 /run-tests.js              # a front-end to run individual tests of all exchanges in all languages (JS/PHP/Python)
 /wiki/                     # the source of all docs (edits go here)
 ```

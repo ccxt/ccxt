@@ -126,5 +126,18 @@ function testSafeTicker() {
     assert(preciseEqualStr(exchange, result8, 'indexPrice', '5.8'));
     assert(preciseEqualStr(exchange, result8, 'markPrice', '5.9'));
     assert(result8['info'] !== undefined);
+    // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
+    const ticker9 = {
+        'open': 6.0,
+        'close': 6.0,
+        'last': 6.0,
+        'change': 0.0,
+        'percentage': 0.0,
+    };
+    const result9 = exchange.safeTicker(ticker9);
+    assert(preciseEqualStr(exchange, result9, 'change', '0'));
+    assert(preciseEqualStr(exchange, result9, 'percentage', '0'));
+    assert(preciseEqualStr(exchange, result9, 'open', '6.0'));
+    assert(preciseEqualStr(exchange, result9, 'last', '6.0'));
 }
 export default testSafeTicker;

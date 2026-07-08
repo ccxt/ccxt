@@ -201,7 +201,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-structure order structure~ indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
@@ -320,7 +322,9 @@ class bitrue extends \ccxt\async\bitrue {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook:' . $symbol;
@@ -472,7 +476,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if (!$market['swap']) {
@@ -549,7 +555,7 @@ class bitrue extends \ccxt\async\bitrue {
         }
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer($trade, 'ts');
         $sideLower = $this->safe_string_lower($trade, 'side');
@@ -587,7 +593,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if (!$market['swap']) {
@@ -668,7 +676,7 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($stored, $messageHash);
     }
 
-    public function parse_ws_ohlcv($tick, $market = null): array {
+    public function parse_ws_ohlcv($tick, ?array $market = null): array {
         $symbol = $market['symbol'];
         $idSeconds = $this->safe_integer($tick, 'id');
         $timestamp = ($idSeconds === null) ? null : $idSeconds * 1000;
@@ -692,7 +700,9 @@ class bitrue extends \ccxt\async\bitrue {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if (!$market['swap']) {

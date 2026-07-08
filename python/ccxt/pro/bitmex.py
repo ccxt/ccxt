@@ -73,7 +73,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -88,7 +89,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         name = 'instrument'
         url = self.urls['api']['ws']
@@ -386,7 +388,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         messageHashes = []
         subscriptionHashes = []
@@ -463,7 +466,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         messageHash = 'margin'
         url = self.urls['api']['ws']
@@ -721,7 +725,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         subscriptionHash = 'position'
         messageHash = 'positions'
@@ -938,7 +943,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         name = 'order'
         subscriptionHash = name
@@ -1147,7 +1153,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         name = 'execution'
         subscriptionHash = name
@@ -1280,7 +1287,8 @@ class bitmex(ccxt.async_support.bitmex):
             table = 'orderBookL10'
         else:
             raise ExchangeError(self.id + ' watchOrderBookForSymbols limit argument must be None(L2), 25(L2) or 10(L3)')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
@@ -1311,7 +1319,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         table = 'trade'
         topics = []
@@ -1348,7 +1357,8 @@ class bitmex(ccxt.async_support.bitmex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         table = 'tradeBin' + self.safe_string(self.timeframes, timeframe, timeframe)
@@ -1465,7 +1475,8 @@ class bitmex(ccxt.async_support.bitmex):
             client.resolve(results[messageHash], messageHash)
 
     async def watch_heartbeat(self, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         event = 'heartbeat'
         url = self.urls['api']['ws']
         return await self.watch(url, event)

@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.62'
+__version__ = '4.5.64'
 
 # ----------------------------------------------------------------------------
 
@@ -57,10 +57,8 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 # DO_NOT_REMOVE__ERROR_IMPORTS_END
 
-from ccxt.pro.aftermath import aftermath                                  # noqa: F401
 from ccxt.pro.alpaca import alpaca                                        # noqa: F401
 from ccxt.pro.apex import apex                                            # noqa: F401
-from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.aster import aster                                          # noqa: F401
 from ccxt.pro.backpack import backpack                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
@@ -112,12 +110,14 @@ from ccxt.pro.independentreserve import independentreserve                # noqa
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.lbank import lbank                                          # noqa: F401
 from ccxt.pro.lighter import lighter                                      # noqa: F401
 from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.modetrade import modetrade                                  # noqa: F401
+from ccxt.pro.mudrex import mudrex                                        # noqa: F401
 from ccxt.pro.myokx import myokx                                          # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
@@ -137,10 +137,8 @@ from ccxt.pro.woofipro import woofipro                                    # noqa
 from ccxt.pro.xt import xt                                                # noqa: F401
 
 exchanges = [
-    'aftermath',
     'alpaca',
     'apex',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -192,12 +190,14 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'lbank',
     'lighter',
     'luno',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
     'okx',

@@ -275,7 +275,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * create a trade order
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/add_order
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
              *
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
@@ -345,7 +345,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * edit a trade order
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/amend_order
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
              *
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market to create an order in
@@ -380,7 +380,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * cancel multiple orders
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
              *
              * @param {string[]} $ids order $ids
              * @param {string} [$symbol] unified market $symbol, default is null
@@ -412,7 +412,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * cancels an open order
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
              *
              * @param {string} $id order $id
              * @param {string} [$symbol] unified $symbol of the market the order was made in
@@ -461,7 +461,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * cancel all open orders
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
              *
              * @param {string} [$symbol] unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -642,7 +642,7 @@ class kraken extends \ccxt\async\kraken {
         $ohlcvsLength = count($data);
         for ($i = 0; $i < $ohlcvsLength; $i++) {
             $candle = $data[$ohlcvsLength - $i - 1];
-            $datetime = $this->safe_string($candle, 'timestamp');
+            $datetime = $this->safe_string($candle, 'interval_begin');
             $timestamp = $this->parse8601($datetime);
             $parsed = array(
                 $timestamp,
@@ -671,7 +671,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -689,7 +689,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
              *
              * @param {string[]} $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -712,7 +712,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches best bid & ask for $symbols
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ticker
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
              *
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -736,7 +736,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -753,7 +753,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * get the list of most recent $trades for a list of $symbols
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/trade
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
              *
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -776,7 +776,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/book
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -792,7 +792,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/book
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -817,7 +817,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/ohlc
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
              *
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1165,7 +1165,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches information on multiple trades made by the user
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
              *
              * @param {string} $symbol unified market $symbol of the market trades were made in
              * @param {int} [$since] the earliest time in ms to fetch trades for
@@ -1299,7 +1299,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watches information on multiple orders made by the user
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/executions
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
              *
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -1491,7 +1491,7 @@ class kraken extends \ccxt\async\kraken {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
              *
-             * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+             * @see https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~

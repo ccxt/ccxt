@@ -281,7 +281,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                     'OMNI': 'OMNI',
                     'EOS': 'EOS',
-                    'SPL': 'SOL',
+                    'SOL': 'SOL',
                 },
                 'reverseNetworks': {
                     'tronscan.org': 'TRC20',
@@ -912,7 +912,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {}
         if limit is not None:
@@ -1112,7 +1113,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': self.get_market_id_by_type(market),
@@ -1293,7 +1295,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.binanceGetTicker24hr(params)
         return self.parse_tickers(response, symbols)
 
@@ -1312,7 +1315,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', ''),
@@ -1333,7 +1337,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.binanceGetTickerBookTicker(params)
         return self.parse_tickers(response, symbols)
 
@@ -1396,7 +1401,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         # binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
         # the reality is that the time range wider than 500 candles won't work right
@@ -1446,7 +1452,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', defaultType)
         defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
@@ -1692,7 +1699,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param float [params.cost]: for spot market buy orders, the quote quantity that can be used alternative for the amount
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'clientId')
         postOnly = self.safe_bool(params, 'postOnly', False)
@@ -1899,7 +1907,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2042,7 +2051,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2095,7 +2105,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
@@ -2152,7 +2163,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param int [params.until]: the latest time in ms to fetch deposits for
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {}
         until = self.safe_integer(params, 'until')
@@ -2208,7 +2220,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         currency = None
         if code is not None:
@@ -2390,7 +2403,8 @@ class tokocrypto(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {

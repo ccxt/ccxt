@@ -1,5 +1,5 @@
 import apexRest from '../apex.js';
-import type { Bool, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Bool, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class apex extends apexRest {
     describe(): any;
@@ -28,7 +28,7 @@ export default class apex extends apexRest {
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name apex#watchOrderBook

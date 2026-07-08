@@ -47,7 +47,9 @@ export default class luno extends lunoRest {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
@@ -144,7 +146,9 @@ export default class luno extends lunoRest {
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];

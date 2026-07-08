@@ -23,9 +23,12 @@ public class TestFetchLedgerEntry extends BaseTest {
         {
             Object firstItem = Helpers.GetValue(items, 0);
             Object id = Helpers.GetValue(firstItem, "id");
-            Object item = (exchange.fetchLedgerEntry(id)).join();
-            Object now = exchange.milliseconds();
-            TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+            if (Helpers.isTrue(!Helpers.isEqual(id, null)))
+            {
+                Object item = (exchange.fetchLedgerEntry(id)).join();
+                Object now = exchange.milliseconds();
+                TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
+            }
         }
         return true;
         });

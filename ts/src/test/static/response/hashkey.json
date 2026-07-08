@@ -3639,7 +3639,7 @@
                         "lastPrice": 2399.67,
                         "stopLossPrice": null,
                         "takeProfitPrice": null,
-                        "percentage": null,
+                        "percentage": 83.34,
                         "info": {
                             "symbol": "ETHUSDT-PERPETUAL",
                             "side": "SHORT",
@@ -3711,6 +3711,98 @@
                     "marginMode": null,
                     "longLeverage": 5,
                     "shortLeverage": 5
+                }
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode to isolated",
+                "method": "setMarginMode",
+                "input": [
+                    "isolated",
+                    "ETH/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "marginType": "ISOLATED"
+                },
+                "parsedResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "marginType": "ISOLATED"
+                }
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin",
+                "method": "addMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    10,
+                    {
+                        "side": "long"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "margin": "12344.345",
+                    "timestamp": "1726869763318"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0000",
+                        "symbol": "ETHUSDT-PERPETUAL",
+                        "margin": "12344.345",
+                        "timestamp": "1726869763318"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "add",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "total": 12344.345,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": 1726869763318,
+                    "datetime": "2024-09-20T22:02:43.318Z"
+                }
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce margin",
+                "method": "reduceMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    10,
+                    {
+                        "side": "long"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "0000",
+                    "symbol": "ETHUSDT-PERPETUAL",
+                    "margin": "12334.345",
+                    "timestamp": "1726869763318"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "code": "0000",
+                        "symbol": "ETHUSDT-PERPETUAL",
+                        "margin": "12334.345",
+                        "timestamp": "1726869763318"
+                    },
+                    "symbol": "ETH/USDT:USDT",
+                    "type": "reduce",
+                    "marginMode": "isolated",
+                    "amount": 10,
+                    "total": 12334.345,
+                    "code": "USDT",
+                    "status": "ok",
+                    "timestamp": 1726869763318,
+                    "datetime": "2024-09-20T22:02:43.318Z"
                 }
             }
         ],

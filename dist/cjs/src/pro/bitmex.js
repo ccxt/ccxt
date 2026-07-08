@@ -66,7 +66,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], params);
         return tickers[symbol];
@@ -81,7 +83,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true);
         const name = 'instrument';
         const url = this.urls['api']['ws'];
@@ -383,7 +387,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     async watchLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const messageHashes = [];
         const subscriptionHashes = [];
@@ -467,7 +473,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const messageHash = 'margin';
         const url = this.urls['api']['ws'];
@@ -732,7 +740,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const subscriptionHash = 'position';
         let messageHash = 'positions';
@@ -958,7 +968,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const name = 'order';
         const subscriptionHash = name;
@@ -1174,7 +1186,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const name = 'execution';
         const subscriptionHash = name;
@@ -1317,7 +1331,9 @@ class bitmex extends bitmex$1["default"] {
         else {
             throw new errors.ExchangeError(this.id + ' watchOrderBookForSymbols limit argument must be undefined (L2), 25 (L2) or 10 (L3)');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const topics = [];
         const messageHashes = [];
@@ -1349,7 +1365,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const table = 'trade';
         const topics = [];
@@ -1388,7 +1406,9 @@ class bitmex extends bitmex$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const table = 'tradeBin' + this.safeString(this.timeframes, timeframe, timeframe);
@@ -1509,7 +1529,9 @@ class bitmex extends bitmex$1["default"] {
         }
     }
     async watchHeartbeat(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
         return await this.watch(url, event);

@@ -7,10 +7,6 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 
 func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (ccxt.ICoreExchange, bool) {
     switch exchangeId {
-    case "aftermath":
-        aftermathItf := NewAftermathCore()
-        aftermathItf.Init(exchangeArgs)
-        return aftermathItf, true
     case "alpaca":
         alpacaItf := NewAlpacaCore()
         alpacaItf.Init(exchangeArgs)
@@ -19,10 +15,6 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         apexItf := NewApexCore()
         apexItf.Init(exchangeArgs)
         return apexItf, true
-    case "ascendex":
-        ascendexItf := NewAscendexCore()
-        ascendexItf.Init(exchangeArgs)
-        return ascendexItf, true
     case "aster":
         asterItf := NewAsterCore()
         asterItf.Init(exchangeArgs)
@@ -227,6 +219,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         kucoinItf := NewKucoinCore()
         kucoinItf.Init(exchangeArgs)
         return kucoinItf, true
+    case "kucoineu":
+        kucoineuItf := NewKucoineuCore()
+        kucoineuItf.Init(exchangeArgs)
+        return kucoineuItf, true
     case "kucoinfutures":
         kucoinfuturesItf := NewKucoinfuturesCore()
         kucoinfuturesItf.Init(exchangeArgs)
@@ -251,6 +247,10 @@ func DynamicallyCreateInstance(exchangeId string, exchangeArgs map[string]any) (
         modetradeItf := NewModetradeCore()
         modetradeItf.Init(exchangeArgs)
         return modetradeItf, true
+    case "mudrex":
+        mudrexItf := NewMudrexCore()
+        mudrexItf.Init(exchangeArgs)
+        return mudrexItf, true
     case "myokx":
         myokxItf := NewMyokxCore()
         myokxItf.Init(exchangeArgs)

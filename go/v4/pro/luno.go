@@ -66,9 +66,11 @@ func  (this *LunoCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
             this.CheckRequiredCredentials()
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes518 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes518)
+                retRes5212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes5212)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))
@@ -183,9 +185,11 @@ func  (this *LunoCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
             this.CheckRequiredCredentials()
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1518 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1518)
+                retRes15412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes15412)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var subscriptionHash any = ccxt.Add("/stream/", ccxt.GetValue(market, "id"))

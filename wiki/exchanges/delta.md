@@ -38,6 +38,7 @@
 * [fetchGreeks](#fetchgreeks)
 * [closeAllPositions](#closeallpositions)
 * [fetchMarginMode](#fetchmarginmode)
+* [setMarginMode](#setmarginmode)
 * [fetchOption](#fetchoption)
 * [fetchPositionsADLRank](#fetchpositionsadlrank)
 
@@ -761,6 +762,29 @@ fetches the margin mode of a trading pair
 
 ```javascript
 delta.fetchMarginMode (symbol, params?)
+```
+
+
+<a name="setMarginMode" id="setmarginmode"></a>
+
+### setMarginMode{docsify-ignore}
+set margin mode to 'isolated' or 'portfolio'
+
+**Kind**: instance method of [<code>delta</code>](#delta)  
+**Returns**: <code>object</code> - response from the exchange
+
+**See**: https://docs.delta.exchange/#change-margin-mode  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| marginMode | <code>string</code> | Yes | 'isolated' or 'portfolio' |
+| symbol | <code>string</code> | No | not used by delta.setMarginMode |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.subaccount_user_id | <code>string</code> | Yes | the user id of the subaccount |
+
+
+```javascript
+delta.setMarginMode (marginMode, symbol?, params?)
 ```
 
 

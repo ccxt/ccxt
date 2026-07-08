@@ -50,7 +50,9 @@ export default class ndax extends ndaxRest {
      */
     async watchTicker(symbol, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'SubscribeLevel1';
         const messageHash = name + ':' + market['id'];
@@ -118,7 +120,9 @@ export default class ndax extends ndaxRest {
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const name = 'SubscribeTrades';
@@ -169,7 +173,7 @@ export default class ndax extends ndaxRest {
         for (let i = 0; i < payload.length; i++) {
             const trade = this.parseTrade(payload[i]);
             const symbol = trade['symbol'];
-            let tradesArray = this.safeValue(this.trades, symbol);
+            let tradesArray = (symbol === undefined) ? undefined : this.safeValue(this.trades, symbol);
             if (tradesArray === undefined) {
                 const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
                 tradesArray = new ArrayCache(limit);
@@ -201,7 +205,9 @@ export default class ndax extends ndaxRest {
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const name = 'SubscribeTicker';
@@ -332,7 +338,9 @@ export default class ndax extends ndaxRest {
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         const omsId = this.safeInteger(this.options, 'omsId', 1);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const name = 'SubscribeLevel2';
@@ -490,7 +498,7 @@ export default class ndax extends ndaxRest {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = this.safeValue(subscriptionsById, id);
+        const subscription = (id === undefined) ? undefined : this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {
@@ -537,7 +545,7 @@ export default class ndax extends ndaxRest {
             'TickerDataUpdateEvent': this.handleOHLCV,
         };
         const event = this.safeString(message, 'n');
-        const method = this.safeValue(methods, event);
+        const method = (event === undefined) ? undefined : this.safeValue(methods, event);
         if (method !== undefined) {
             method.call(this, client, message);
         }

@@ -1422,7 +1422,9 @@ class xt extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
             if ($paginate) {
@@ -1558,7 +1560,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1652,7 +1656,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1731,7 +1737,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
@@ -1820,7 +1828,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $request = array();
             $market = null;
@@ -1952,7 +1962,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -2028,7 +2040,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -2310,7 +2324,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             $subType = null;
             $response = null;
@@ -2439,7 +2455,9 @@ class xt extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -2473,7 +2491,9 @@ class xt extends Exchange {
              * @param {float} [$params->takeProfit] $price to set a take-profit on an open position
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             if ($market['spot']) {
@@ -2486,7 +2506,9 @@ class xt extends Exchange {
 
     public function create_spot_order(string $symbol, $type, $side, $amount, $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -2549,7 +2571,9 @@ class xt extends Exchange {
 
     public function create_contract_order(string $symbol, $type, $side, $amount, $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -2642,7 +2666,9 @@ class xt extends Exchange {
              * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2821,7 +2847,9 @@ class xt extends Exchange {
              * @param {bool} [$params->trigger] if the order is a $trigger order or not
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -2976,7 +3004,9 @@ class xt extends Exchange {
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -3335,7 +3365,9 @@ class xt extends Exchange {
              * @param {bool} [$params->stopLossTakeProfit] if the $order is a stop-loss or take-profit $order
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -3419,7 +3451,9 @@ class xt extends Exchange {
              * @param {bool} [$params->stopLossTakeProfit] if the order is a stop-loss or take-profit order
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -3495,7 +3529,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'orderIds' => $ids,
             );
@@ -3725,7 +3761,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ledger-structure $ledger structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -3844,7 +3882,9 @@ class xt extends Exchange {
              * @param {string} $params->network required network id
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $currency = $this->currency($code);
@@ -3902,7 +3942,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -3961,7 +4003,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $currency = null;
             if ($code !== null) {
@@ -4022,7 +4066,9 @@ class xt extends Exchange {
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
              */
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $networkCode = null;
@@ -4164,7 +4210,9 @@ class xt extends Exchange {
             if (($leverage < 1) || ($leverage > 125)) {
                 throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 125');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!($market['contract'])) {
                 throw new BadSymbol($this->id . ' setLeverage() supports contract markets only');
@@ -4231,7 +4279,9 @@ class xt extends Exchange {
         return Async\async(function () use ($symbol, $amount, $addOrReduce, $params) {
             $positionSide = $this->safe_string($params, 'positionSide');
             $this->check_required_argument('setLeverage', $positionSide, 'positionSide', array( 'LONG', 'SHORT' ));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -4285,7 +4335,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchLeverageTiers', null, $params);
             $response = null;
@@ -4370,7 +4422,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -4466,7 +4520,9 @@ class xt extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -4559,7 +4615,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
@@ -4644,7 +4702,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' fetchFundingHistory() supports swap contracts only');
@@ -4737,7 +4797,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -4800,7 +4862,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subType = null;
             list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', null, $params);
             $response = null;
@@ -4912,7 +4976,9 @@ class xt extends Exchange {
              * @param {array} $params extra parameters specific to the whitebit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $accountsByType = $this->safe_value($this->options, 'accountsById');
             $fromAccountId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -4973,7 +5039,9 @@ class xt extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['spot']) {
                 throw new BadSymbol($this->id . ' setMarginMode() supports contract markets only');
@@ -5035,7 +5103,9 @@ class xt extends Exchange {
             if ($amount === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $stopLoss = $this->safe_number_2($params, 'stopLoss', 'triggerStopPrice');

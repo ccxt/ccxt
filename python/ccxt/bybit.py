@@ -2479,7 +2479,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTicker() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2545,7 +2546,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.baseCoin]: *option only* base coin, default is 'BTC'
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         code = self.safe_string_n(params, ['code', 'currency', 'baseCoin'])
         market = None
         parsedSymbols = None
@@ -2688,7 +2690,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
         if paginate:
@@ -2842,7 +2845,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if symbols is not None:
@@ -2919,7 +2923,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -3229,7 +3234,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3283,7 +3289,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrderBook() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3506,7 +3513,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.type]: wallet type, ['spot', 'swap', 'funding']
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -3909,7 +3917,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot orders only')
@@ -3929,7 +3938,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         types = self.is_unified_enabled()
         enableUnifiedAccount = types[1]
         if not enableUnifiedAccount:
@@ -3978,7 +3988,8 @@ class bybit(Exchange, ImplicitAPI):
         :param boolean [params.tradingStopEndpoint]: whether to enforce using the tradingStop(https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         parts = self.is_unified_enabled()
         enableUnifiedAccount = parts[1]
@@ -4265,7 +4276,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accounts = self.is_unified_enabled()
         isUta = accounts[1]
         ordersRequests = []
@@ -4430,7 +4442,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.tpTriggerby]: 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires a symbol argument')
         market = self.market(symbol)
@@ -4465,7 +4478,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         orderSymbols = []
         for i in range(0, len(orders)):
@@ -4577,7 +4591,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         requestExtended = self.cancel_order_request(id, symbol, params)
         response = self.privatePostV5OrderCancel(requestExtended)
@@ -4610,7 +4625,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         types = self.is_unified_enabled()
         enableUnifiedAccount = types[1]
@@ -4688,7 +4704,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.product]: OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
         :returns dict: the api result
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'timeWindow': self.parse_to_int(timeout / 1000),
         }
@@ -4720,7 +4737,8 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         types = self.is_unified_enabled()
         enableUnifiedAccount = types[1]
         if not enableUnifiedAccount:
@@ -4808,7 +4826,8 @@ class bybit(Exchange, ImplicitAPI):
         :param str [params.settleCoin]: Settle coin. Supports linear, inverse & option
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         market = None
@@ -4878,7 +4897,8 @@ class bybit(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if market['spot']:
             raise NotSupported(self.id + ' fetchOrder() is not supported for spot markets')
@@ -4907,7 +4927,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params.acknowledged]: to suppress the warning, set to True
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         if not isUnifiedAccount:
@@ -5028,7 +5049,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
         if paginate:
@@ -5126,7 +5148,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderId': id,
         }
@@ -5158,7 +5181,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.orderFilter]: 'Order' or 'StopOrder' or 'tpslOrder'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderId': id,
         }
@@ -5191,7 +5215,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchCanceledAndClosedOrders', 'paginate')
         if paginate:
@@ -5304,7 +5329,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderStatus': 'Filled',
         }
@@ -5329,7 +5355,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'orderStatus': 'Cancelled',
         }
@@ -5355,7 +5382,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
         if paginate:
@@ -5485,7 +5513,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -5580,7 +5609,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -5628,7 +5658,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         indexedAddresses = self.fetch_deposit_addresses_by_network(code, paramsOmited)
@@ -5651,7 +5682,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.cursor]: used for pagination
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -5715,7 +5747,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
@@ -5891,7 +5924,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
@@ -6168,7 +6202,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType')
         if accountType is None:
             accountType = 'UTA' if isUta else 'SPOT'
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
         request = {
@@ -6211,7 +6246,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchPosition() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -6285,7 +6321,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchPositions', 'paginate')
         if paginate:
@@ -6615,7 +6652,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         position = self.fetch_position(symbol, params)
         return self.parse_leverage(position, market)
@@ -6644,7 +6682,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.leverage]: the rate of leverage, is required if setting trade mode(symbol)
         :returns dict: response from the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
         market = None
@@ -6730,7 +6769,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         # WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
@@ -6764,7 +6804,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: response from the exchange
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -6800,7 +6841,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         return response
 
     def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         subType = 'linear' if market['linear'] else 'inverse'
         category = self.safe_string(params, 'category', subType)
@@ -6863,7 +6905,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.category]: "linear" or "inverse"
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
@@ -6925,7 +6968,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if timeframe == '1m':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot use the 1m timeframe')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = self.safe_bool(params, 'paginate')
         if paginate:
             params = self.omit(params, 'paginate')
@@ -6972,7 +7016,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -7041,7 +7086,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         response = self.privateGetV5SpotCrossMarginTradeAccount(self.extend(request, params))
         #
@@ -7087,7 +7133,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param int [params.until]: the latest time in ms to fetch entries for
         :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -7160,7 +7207,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.transferId]: UUID, which is unique across the platform
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         transferId = self.safe_string(params, 'transferId', self.uuid())
         accountTypes = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountTypes, fromAccount, fromAccount)
@@ -7213,7 +7261,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
         if paginate:
@@ -7265,7 +7314,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -7298,7 +7348,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -7396,7 +7447,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         }
 
     def fetch_derivatives_market_leverage_tiers(self, symbol: str, params={}) -> List[LeverageTier]:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -7443,7 +7495,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         market = self.market(symbol)
@@ -7482,7 +7535,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -7523,7 +7577,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.type]: market type, ['swap', 'option', 'spot']
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = None
         type, params = self.handle_option_and_params(params, 'fetchTradingFees', 'type', 'future')
         if type == 'spot':
@@ -7616,7 +7671,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :returns dict: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
         self.check_required_credentials()
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetV5AssetCoinQueryInfo(params)
         #
         #     {
@@ -7666,7 +7722,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :returns dict[]: a list of [settlement history objects]
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -7719,7 +7776,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: market subType, ['linear', 'inverse']
         :returns dict[]: a list of [settlement history objects]
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -7839,7 +7897,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param int [params.period]: the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
         :returns dict[]: a list of `volatility history objects <https://docs.ccxt.com/?id=volatility-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'category': 'option',
@@ -7893,7 +7952,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -7960,7 +8020,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.baseCoin]: the baseCoin of the symbol, default is BTC
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         baseCoin = self.safe_string(params, 'baseCoin', 'BTC')
         request = {
@@ -8087,7 +8148,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `liquidation structures <https://docs.ccxt.com/?id=liquidation-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyLiquidations', 'paginate')
         if paginate:
@@ -8200,7 +8262,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         })
 
     def get_leverage_tiers_paginated(self, symbol: Str = None, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -8238,7 +8301,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         symbol = None
         if symbols is not None:
@@ -8327,7 +8391,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
         if paginate:
@@ -8417,7 +8482,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'category': 'option',
@@ -8479,7 +8545,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'category': 'option',
@@ -8596,7 +8663,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.subType]: 'linear' or 'inverse'
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         subType = None
         symbolsLength = 0
@@ -8667,7 +8735,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: an associative dictionary of currencies
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -8763,7 +8832,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -8817,7 +8887,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'quoteTxId': id,
         }
@@ -8849,7 +8920,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         accountType = None
         enableUnifiedMargin, enableUnifiedAccount = self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
@@ -8910,7 +8982,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str [params.accountType]: eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -9019,7 +9092,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/?id=long-short-ratio-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         type = None
         type, params = self.get_bybit_type('fetchLongShortRatioHistory', market, params)
@@ -9091,7 +9165,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         """
         if symbols is None:
             raise ArgumentsRequired(self.id + ' fetchPositionsADLRank() requires a symbols argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
         market = self.get_market_from_symbols(symbols)
         request = {}
@@ -9220,7 +9295,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/?id=margin-mode-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         response = self.privateGetV5AccountInfo(params)
         #

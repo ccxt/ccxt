@@ -773,7 +773,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($market['swap']) {
             $responseForSwap = $this->fetch_tickers(array( $market['symbol'] ), $params);
@@ -820,7 +822,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbols = $this->market_symbols($symbols);
@@ -900,7 +904,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 60;
@@ -1090,7 +1096,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1167,7 +1175,9 @@ class lbank extends Exchange {
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         // endpoint doesnt work
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100;
@@ -1402,7 +1412,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $responseForSwap = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
         return $this->safe_value($responseForSwap, $market['symbol']);
@@ -1418,7 +1430,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $request = array(
             'productGroup' => 'SwapU',
@@ -1462,7 +1476,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $options = $this->safe_value($this->options, 'fetchBalance', array());
         $defaultMethod = $this->safe_string($options, 'method', 'spotPrivatePostSupplementUserInfo');
         $method = $this->safe_string($params, 'method', $defaultMethod);
@@ -1550,7 +1566,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $response = $this->spotPrivatePostSupplementCustomerTradeFee($this->extend($request, $params));
         $fees = $this->safe_value($response, 'data', array());
@@ -1575,7 +1593,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1599,7 +1619,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
         $postOnly = $this->safe_bool($params, 'postOnly', false);
@@ -1854,7 +1876,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $method = $this->safe_string($params, 'method');
         if ($method === null) {
             $options = $this->safe_value($this->options, 'fetchOrder', array());
@@ -1870,7 +1894,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1907,7 +1933,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1964,7 +1992,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $since = $this->safe_value($params, 'start_date', $since);
         $params = $this->omit($params, 'start_date');
@@ -2026,7 +2056,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100;
@@ -2085,7 +2117,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if ($limit === null) {
             $limit = 100;
@@ -2142,7 +2176,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
         $market = $this->market($symbol);
@@ -2184,7 +2220,9 @@ class lbank extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2231,7 +2269,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
         $defaultMethod = $this->safe_string($options, 'method', 'fetchDepositAddressDefault');
         $method = $this->safe_string($params, 'method', $defaultMethod);
@@ -2245,7 +2285,9 @@ class lbank extends Exchange {
     }
 
     public function fetch_deposit_address_default(string $code, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'assetCode' => $currency['id'],
@@ -2283,7 +2325,9 @@ class lbank extends Exchange {
 
     public function fetch_deposit_address_supplement(string $code, $params = array()): array {
         // returns the $address for whatever the default $network is...
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -2335,7 +2379,9 @@ class lbank extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $fee = $this->safe_string($params, 'fee');
         $params = $this->omit($params, 'fee');
         // The relevant coin $network $fee can be found by calling fetchDepositWithdrawFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchDepositWithdrawFees ().
@@ -2496,7 +2542,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime' => end time, timestamp in milliseconds, default now
@@ -2550,7 +2598,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime' => end time, timestamp in milliseconds, default now
@@ -2605,7 +2655,9 @@ class lbank extends Exchange {
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
         // private only returns information for currencies with non-zero balance
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isAuthorized = $this->check_required_credentials(false);
         if ($isAuthorized === true) {
             $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
@@ -2626,7 +2678,9 @@ class lbank extends Exchange {
     public function fetch_private_transaction_fees($params = array()) {
         // complete $response
         // incl. for coins which null in public method
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->spotPrivatePostSupplementUserInfo();
         //
         //    {
@@ -2685,7 +2739,9 @@ class lbank extends Exchange {
     public function fetch_public_transaction_fees($params = array()) {
         // extremely incomplete $response
         // vast majority fees null
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $code = $this->safe_string_2($params, 'coin', 'assetCode');
         $params = $this->omit($params, array( 'coin', 'assetCode' ));
         $request = array();
@@ -2752,7 +2808,9 @@ class lbank extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $isAuthorized = $this->check_required_credentials(false);
         if ($isAuthorized === true) {
             $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
@@ -2773,7 +2831,9 @@ class lbank extends Exchange {
     public function fetch_private_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         // complete $response
         // incl. for coins which null in public method
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->spotPrivatePostSupplementUserInfo($params);
         //
         //    {
@@ -2812,7 +2872,9 @@ class lbank extends Exchange {
     public function fetch_public_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         // extremely incomplete $response
         // vast majority fees null
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $response = $this->spotPublicGetWithdrawConfigs($this->extend($request, $params));
         //

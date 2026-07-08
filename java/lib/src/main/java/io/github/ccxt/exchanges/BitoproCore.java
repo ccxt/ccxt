@@ -1120,7 +1120,7 @@ public class BitoproCore extends BitoproApi
             put( "4", "canceled" );
             put( "6", "canceled" );
         }};
-        return this.safeString(statuses, status);
+        return ((Helpers.isTrue((Helpers.isEqual(status, null))))) ? null : this.safeString(statuses, status);
     }
 
     public Object parseOrder(Object order, Object... optionalArgs)
@@ -2012,7 +2012,7 @@ final Object finalJ = j;
                 Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
                 Object requestedNetwork = this.safeStringUpper(parameters, "network");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
-                Object networkId = this.safeString(networks, requestedNetwork);
+                Object networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
                 if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " invalid network "), requestedNetwork)) ;

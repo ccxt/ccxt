@@ -398,6 +398,7 @@ class bitvavo extends Exchange {
                 ),
             ),
             'options' => array(
+                'mica' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
                 'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
                 'networks' => array(
@@ -682,7 +683,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -767,7 +770,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetTicker24h($params);
         //
         //     array(
@@ -804,7 +809,9 @@ class bitvavo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
@@ -947,7 +954,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetAccount($params);
         //
         //     {
@@ -999,7 +1008,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1038,7 +1049,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1131,7 +1144,9 @@ class bitvavo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
@@ -1177,7 +1192,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetBalance($params);
         //
         //     array(
@@ -1200,7 +1217,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=account-structure account structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetSubaccounts($params);
         //
         //     {
@@ -1245,7 +1264,9 @@ class bitvavo extends Exchange {
          * @param {string} [$params->clientRequestId] client defined unique id
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $subaccountId = $this->safe_string($params, 'subaccountId');
         $params = $this->omit($params, 'subaccountId');
@@ -1304,7 +1325,9 @@ class bitvavo extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch transfers for
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -1357,7 +1380,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
@@ -1431,7 +1456,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'symbol' => $currency['id'],
@@ -1559,7 +1586,9 @@ class bitvavo extends Exchange {
          * @param {bool} [$params->responseRequired] Set this to 'false' when only an acknowledgement of success or failure is required, this is faster.
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostOrder($request);
@@ -1658,7 +1687,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePutOrder($request);
@@ -1698,7 +1729,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = $this->cancel_order_request($id, $symbol, $params);
         $response = $this->privateDeleteOrder($request);
@@ -1720,7 +1753,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1762,7 +1797,9 @@ class bitvavo extends Exchange {
         if (($timeout > 0) && ($timeout < 10000)) {
             throw new BadRequest($this->id . ' cancelAllOrdersAfter() $timeout should be 0 or greater than or equal to 10000 milliseconds');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $codGroupId = null;
         list($codGroupId, $params) = $this->handle_option_and_params($params, 'cancelAllOrdersAfter', 'codGroupId', 1);
         $request = array(
@@ -1793,7 +1830,9 @@ class bitvavo extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -1877,7 +1916,9 @@ class bitvavo extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -1937,7 +1978,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // "market" => $market["id"], // rate $limit 25 without a $market, 1 with $market specified
         );
@@ -2145,7 +2188,9 @@ class bitvavo extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -2188,7 +2233,9 @@ class bitvavo extends Exchange {
          * @param {int} [$params->page] the page number for the transaction history
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=ledger ledger structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -2315,7 +2362,9 @@ class bitvavo extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $this->check_address($address);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = $this->withdraw_request($code, $amount, $address, $tag, $params);
         $response = $this->privatePostWithdrawal($request);
@@ -2362,7 +2411,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = $this->fetch_withdrawals_request($code, $since, $limit, $params);
         $currency = null;
         if ($code !== null) {
@@ -2419,7 +2470,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = $this->fetch_deposits_request($code, $since, $limit, $params);
         $currency = null;
         if ($code !== null) {
@@ -2591,7 +2644,9 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetAssets($params);
         //
         //   array(

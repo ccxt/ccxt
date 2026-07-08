@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.5.62'
+__version__ = '4.5.64'
 
 # ----------------------------------------------------------------------------
 
@@ -84,10 +84,8 @@ from ccxt.base.errors import CancelPending                            # noqa: F4
 from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
-from ccxt.aftermath import aftermath                                  # noqa: F401
 from ccxt.alpaca import alpaca                                        # noqa: F401
 from ccxt.apex import apex                                            # noqa: F401
-from ccxt.ascendex import ascendex                                    # noqa: F401
 from ccxt.aster import aster                                          # noqa: F401
 from ccxt.backpack import backpack                                    # noqa: F401
 from ccxt.bequant import bequant                                      # noqa: F401
@@ -129,7 +127,6 @@ from ccxt.coinbaseinternational import coinbaseinternational          # noqa: F4
 from ccxt.coincheck import coincheck                                  # noqa: F401
 from ccxt.coinex import coinex                                        # noqa: F401
 from ccxt.coinmate import coinmate                                    # noqa: F401
-from ccxt.coinmetro import coinmetro                                  # noqa: F401
 from ccxt.coinone import coinone                                      # noqa: F401
 from ccxt.coinsph import coinsph                                      # noqa: F401
 from ccxt.coinspot import coinspot                                    # noqa: F401
@@ -160,6 +157,7 @@ from ccxt.indodax import indodax                                      # noqa: F4
 from ccxt.kraken import kraken                                        # noqa: F401
 from ccxt.krakenfutures import krakenfutures                          # noqa: F401
 from ccxt.kucoin import kucoin                                        # noqa: F401
+from ccxt.kucoineu import kucoineu                                    # noqa: F401
 from ccxt.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
@@ -168,9 +166,9 @@ from ccxt.luno import luno                                            # noqa: F4
 from ccxt.mercado import mercado                                      # noqa: F401
 from ccxt.mexc import mexc                                            # noqa: F401
 from ccxt.modetrade import modetrade                                  # noqa: F401
+from ccxt.mudrex import mudrex                                        # noqa: F401
 from ccxt.myokx import myokx                                          # noqa: F401
 from ccxt.ndax import ndax                                            # noqa: F401
-from ccxt.novadax import novadax                                      # noqa: F401
 from ccxt.okx import okx                                              # noqa: F401
 from ccxt.okxus import okxus                                          # noqa: F401
 from ccxt.onetrading import onetrading                                # noqa: F401
@@ -192,10 +190,8 @@ from ccxt.zaif import zaif                                            # noqa: F4
 from ccxt.zebpay import zebpay                                        # noqa: F401
 
 exchanges = [
-    'aftermath',
     'alpaca',
     'apex',
-    'ascendex',
     'aster',
     'backpack',
     'bequant',
@@ -237,7 +233,6 @@ exchanges = [
     'coincheck',
     'coinex',
     'coinmate',
-    'coinmetro',
     'coinone',
     'coinsph',
     'coinspot',
@@ -268,6 +263,7 @@ exchanges = [
     'kraken',
     'krakenfutures',
     'kucoin',
+    'kucoineu',
     'kucoinfutures',
     'latoken',
     'lbank',
@@ -276,9 +272,9 @@ exchanges = [
     'mercado',
     'mexc',
     'modetrade',
+    'mudrex',
     'myokx',
     'ndax',
-    'novadax',
     'okx',
     'okxus',
     'onetrading',

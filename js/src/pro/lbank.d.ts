@@ -1,5 +1,5 @@
 import lbankRest from '../lbank.js';
-import type { Balances, Int, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import type { Balances, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class lbank extends lbankRest {
     describe(): any;
@@ -52,7 +52,7 @@ export default class lbank extends lbankRest {
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     handleTicker(client: any, message: any): void;
-    parseWsTicker(ticker: any, market?: any): Ticker;
+    parseWsTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name lbank#fetchTradesWs
@@ -78,7 +78,7 @@ export default class lbank extends lbankRest {
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrades(client: any, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name lbank#watchOrders

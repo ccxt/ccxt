@@ -66,9 +66,11 @@ func  (this *GeminiCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes518 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes518)
+                retRes5212 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes5212)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("trades:", ccxt.GetValue(market, "symbol"))
             var marketId any = ccxt.GetValue(market, "id")
@@ -323,9 +325,11 @@ func  (this *GeminiCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2788 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2788)
+                retRes28112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes28112)
+            }
             var market any = this.Market(symbol)
             var timeframeId any = this.SafeString(this.Timeframes, timeframe, timeframe)
             var request any = map[string]any {
@@ -425,9 +429,11 @@ func  (this *GeminiCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3698 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3698)
+                retRes37412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes37412)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
             var marketId any = ccxt.GetValue(market, "id")
@@ -522,9 +528,9 @@ func  (this *GeminiCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes44015 :=  (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
-                ccxt.PanicOnError(retRes44015)
-                ch <- retRes44015
+                retRes44615 :=  (<-this.HelperForWatchMultipleConstruct("bidsasks", symbols, params))
+                ccxt.PanicOnError(retRes44615)
+                ch <- retRes44615
                 return nil
         
             }()
@@ -602,9 +608,11 @@ func  (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, optio
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5088)
+                retRes51512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes51512)
+            }
             if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
                 panic(ccxt.NotSupported(ccxt.Add(this.Id, " watchMultiple requires at least one symbol")))
             }
@@ -632,9 +640,9 @@ func  (this *GeminiCore) HelperForWatchMultipleConstruct(itemHashName any, optio
                 url = ccxt.Add(url, "trades=true&bids=false&offers=false")
             }
         
-                retRes53515 :=  (<-this.WatchMultiple(url, messageHashes, nil))
-                ccxt.PanicOnError(retRes53515)
-                ch <- retRes53515
+                retRes54315 :=  (<-this.WatchMultiple(url, messageHashes, nil))
+                ccxt.PanicOnError(retRes54315)
+                ch <- retRes54315
                 return nil
         
             }()
@@ -753,15 +761,17 @@ func  (this *GeminiCore) WatchOrders(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
             var url any = ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/v1/order/events?eventTypeFilter=initial&eventTypeFilter=accepted&eventTypeFilter=rejected&eventTypeFilter=fill&eventTypeFilter=cancelled&eventTypeFilter=booked")
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6418)
+                retRes65012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes65012)
+            }
             var authParams any = map[string]any {
                 "url": url,
             }
         
-            retRes6458 := (<-this.Authenticate(authParams))
-            ccxt.PanicOnError(retRes6458)
+            retRes6558 := (<-this.Authenticate(authParams))
+            ccxt.PanicOnError(retRes6558)
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")

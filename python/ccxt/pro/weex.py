@@ -174,7 +174,8 @@ class weex(ccxt.async_support.weex):
         :param str [params.name]: stream to use can be ticker or miniTicker
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbol = self.symbol(symbol)
         tickers = await self.watch_tickers([symbol], params)
         return tickers[symbol]
@@ -190,7 +191,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isContract = firstMarket['contract']
@@ -235,7 +237,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isContract = firstMarket['contract']
@@ -370,7 +373,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isContract = firstMarket['contract']
@@ -402,7 +406,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         return await self.un_watch_trades_for_symbols([symbol], params)
 
     async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
@@ -416,7 +421,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isContract = firstMarket['contract']
@@ -541,7 +547,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         callerMethodName = self.safe_string(params, 'callerMethodName', 'watchOHLCVForSymbols')
         params = self.omit(params, 'callerMethodName')
         channels = []
@@ -598,7 +605,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         callerMethodName = self.safe_string(params, 'callerMethodName', 'unWatchOHLCVForSymbols')
         params = self.omit(params, 'callerMethodName')
         channels = []
@@ -737,7 +745,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isContract = firstMarket['contract']
@@ -787,7 +796,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         isContract = firstMarket['contract']
@@ -872,7 +882,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         if firstMarket['contract']:
@@ -903,7 +914,8 @@ class weex(ccxt.async_support.weex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False, True)
         firstMarket = self.get_market_from_symbols(symbols)
         if firstMarket['contract']:
@@ -976,7 +988,8 @@ class weex(ccxt.async_support.weex):
         :param str [params.type]: spot or swap, default is spot if symbol is not provided
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         marketType = None
         market = None
         if symbol is not None:
@@ -1163,7 +1176,8 @@ class weex(ccxt.async_support.weex):
         :param str [params.type]: spot or swap, default is spot if symbol is not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -1436,7 +1450,8 @@ class weex(ccxt.async_support.weex):
         :param str [params.type]: 'spot' or 'swap', default is 'spot'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('watchBalance', None, params)
         isContract = (type != 'spot')
@@ -1573,7 +1588,8 @@ class weex(ccxt.async_support.weex):
         :param int [params.accountNumber]: account number to query orders for, required
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['contract'] + '/private'
         self.authenticate(url)
         client = self.client(url)

@@ -168,7 +168,9 @@ class gate extends gate$1["default"] {
      * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageType = this.getTypeByMarket(market);
@@ -191,7 +193,9 @@ class gate extends gate$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrdersWs(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = this.createOrdersRequest(orders, params);
         const firstOrder = orders[0];
         const market = this.market(firstOrder['symbol']);
@@ -221,7 +225,9 @@ class gate extends gate$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrdersWs() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const trigger = this.safeBool2(params, 'stop', 'trigger');
         const messageType = this.getTypeByMarket(market);
@@ -248,7 +254,9 @@ class gate extends gate$1["default"] {
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const trigger = this.safeValueN(params, ['is_stop_order', 'stop', 'trigger'], false);
         params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
@@ -278,7 +286,9 @@ class gate extends gate$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, params);
         const messageType = this.getTypeByMarket(market);
@@ -304,7 +314,9 @@ class gate extends gate$1["default"] {
      * @returns An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrderWs(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = (symbol === undefined) ? undefined : this.market(symbol);
         const [request, requestParams] = this.fetchOrderRequest(id, symbol, params);
         const messageType = this.getTypeByMarket(market);
@@ -357,7 +369,9 @@ class gate extends gate$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersByStatusWs(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -392,7 +406,9 @@ class gate extends gate$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const marketId = market['id'];
@@ -444,7 +460,9 @@ class gate extends gate$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const url = this.getUrlByMarket(market);
         symbol = market['symbol'];
@@ -700,7 +718,9 @@ class gate extends gate$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         params['callerMethodName'] = 'watchTicker';
@@ -777,7 +797,9 @@ class gate extends gate$1["default"] {
         this.handleTickerAndBidAsk('bidask', client, message);
     }
     async subscribeWatchTickersAndBidsAsks(symbols = undefined, callerMethodName = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         [callerMethodName, params] = this.handleParamString(params, 'callerMethodName', callerMethodName);
         symbols = this.marketSymbols(symbols, undefined, false);
         const market = this.market(symbols[0]);
@@ -866,7 +888,9 @@ class gate extends gate$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
         const market = this.market(symbols[0]);
@@ -895,7 +919,9 @@ class gate extends gate$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async unWatchTradesForSymbols(symbols, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const marketIds = this.marketIds(symbols);
         const market = this.market(symbols[0]);
@@ -973,7 +999,9 @@ class gate extends gate$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // todo add options support
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -1061,7 +1089,9 @@ class gate extends gate$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let subType = undefined;
         let type = undefined;
         let marketId = '!' + 'all';
@@ -1155,7 +1185,9 @@ class gate extends gate$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let type = undefined;
         let subType = undefined;
         [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params);
@@ -1281,7 +1313,9 @@ class gate extends gate$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         symbols = this.marketSymbols(symbols);
         const payload = ['!' + 'all'];
@@ -1455,7 +1489,9 @@ class gate extends gate$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1598,7 +1634,9 @@ class gate extends gate$1["default"] {
      * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
      */
     async watchMyLiquidationsForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true, true);
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;

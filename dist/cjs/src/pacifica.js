@@ -32,7 +32,7 @@ class pacifica extends pacifica$1["default"] {
                 'spot': false,
                 'margin': false,
                 'swap': true,
-                'future': true,
+                'future': false,
                 'option': false,
                 'addMargin': false,
                 'borrowCrossMargin': false,
@@ -653,7 +653,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async fetchLeverage(symbol, params = {}) {
         await this.loadAccountSettings();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let userAccount = undefined;
         [userAccount, params] = this.handleOriginAndSingleAddress('fetchLeverage', params);
@@ -839,7 +841,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let aggLevel = undefined;
         [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
@@ -993,7 +997,9 @@ class pacifica extends pacifica$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchOHLCV() requires a "symbol" argument');
         }
         const defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
@@ -1082,7 +1088,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1125,7 +1133,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1280,7 +1290,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const [request, operationType] = this.createOrderRequest(symbol, type, side, amount, price, params);
         params = this.omit(params, [
@@ -1512,7 +1524,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders(orders, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const request = this.createOrdersRequest(orders);
         const response = await this.privatePostOrdersBatch(this.extend(request, params));
@@ -1566,7 +1580,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders(ids, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a "symbol" argument!');
@@ -1650,7 +1666,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const request = this.cancelAllOrdersRequest(symbol, params);
         params = this.omit(params, ['excludeReduceOnly', 'expiryWindow']);
@@ -1702,7 +1720,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
@@ -1768,7 +1788,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, market, params);
@@ -1827,7 +1849,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchFundingRateHistory() requires a symbol argument');
         }
@@ -1889,7 +1913,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const response = await this.publicGetInfoPrices(params);
         //
@@ -1966,7 +1992,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchOrders(symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
         const closedOrders = this.filterByArray(orders, 'status', ['closed'], false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -1983,7 +2011,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchOrders(symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
         const closedOrders = this.filterByArray(orders, 'status', ['canceled'], false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2000,7 +2030,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledAndClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const orders = await this.fetchOrders(symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
         const closedOrders = this.filterByArray(orders, 'status', ['canceled', 'closed', 'rejected'], false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2018,7 +2050,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('fetchOpenOrders', params);
         const request = {
@@ -2073,7 +2107,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOrders', 'paginate', false);
         const defaultLimit = 100; // max default 100
@@ -2151,7 +2187,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2408,7 +2446,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('fetchPositions', params);
         symbols = this.marketSymbols(symbols);
@@ -2509,7 +2549,9 @@ class pacifica extends pacifica$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const isIsolated = (marginMode === 'isolated');
         const sigPayload = {
@@ -2540,7 +2582,9 @@ class pacifica extends pacifica$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' setMarginMode() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const sigPayload = {
             'symbol': market['id'],
@@ -2569,7 +2613,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         const operationType = 'withdraw';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const sigPayload = {
             'amount': amount.toString(),
@@ -2590,7 +2636,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('fetchTradingFee', params);
         const market = this.market(symbol);
@@ -2663,7 +2711,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
     async fetchOpenInterests(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const swapMarkets = await this.fetchSwapMarkets();
         return this.parseOpenInterests(swapMarkets, symbols);
@@ -2678,7 +2728,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async fetchOpenInterest(symbol, params = {}) {
         symbol = this.symbol(symbol);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const ois = await this.fetchOpenInterests([symbol], params);
         return ois[symbol];
     }
@@ -2734,7 +2786,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate', false);
         let userAddress = undefined;
@@ -2834,7 +2888,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);

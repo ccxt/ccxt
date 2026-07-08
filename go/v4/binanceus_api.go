@@ -2011,6 +2011,10 @@ func (this *BinanceusCore) DapiPrivateGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetOpenOrders", args...)
 }
 
+func (this *BinanceusCore) DapiPrivateGetOpenAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("dapiPrivateGetOpenAlgoOrders", args...)
+}
+
 func (this *BinanceusCore) DapiPrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateGetAllOrders", args...)
 }
@@ -2095,6 +2099,10 @@ func (this *BinanceusCore) DapiPrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostOrder", args...)
 }
 
+func (this *BinanceusCore) DapiPrivatePostAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("dapiPrivatePostAlgoOrder", args...)
+}
+
 func (this *BinanceusCore) DapiPrivatePostBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivatePostBatchOrders", args...)
 }
@@ -2133,6 +2141,10 @@ func (this *BinanceusCore) DapiPrivatePutBatchOrders(args ...any) <-chan any {
 
 func (this *BinanceusCore) DapiPrivateDeleteOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("dapiPrivateDeleteOrder", args...)
+}
+
+func (this *BinanceusCore) DapiPrivateDeleteAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("dapiPrivateDeleteAlgoOrder", args...)
 }
 
 func (this *BinanceusCore) DapiPrivateDeleteAllOpenOrders(args ...any) <-chan any {

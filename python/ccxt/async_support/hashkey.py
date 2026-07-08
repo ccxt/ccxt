@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hashkey import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Any, Balances, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Any, Balances, Bool, Currencies, Currency, DepositAddress, Int, LastPrice, LastPrices, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -51,10 +51,10 @@ class hashkey(Exchange, ImplicitAPI):
                 'CORS': None,
                 'spot': True,
                 'margin': False,
-                'swap': False,
+                'swap': True,
                 'future': False,
                 'option': False,
-                'addMargin': False,
+                'addMargin': True,
                 'borrowCrossMargin': False,
                 'borrowIsolatedMargin': False,
                 'borrowMargin': False,
@@ -169,13 +169,13 @@ class hashkey(Exchange, ImplicitAPI):
                 'fetchUnderlyingAssets': False,
                 'fetchVolatilityHistory': False,
                 'fetchWithdrawals': True,
-                'reduceMargin': False,
+                'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
                 'sandbox': False,
                 'setLeverage': True,
                 'setMargin': False,
-                'setMarginMode': False,
+                'setMarginMode': True,
                 'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -246,10 +246,12 @@ class hashkey(Exchange, ImplicitAPI):
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrder': 1,
+                        'api/v1/coinInfo': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1,
                         'api/v1/account/trades': 5,
                         'api/v1/account/type': 5,
+                        'api/v1/account/chainType': 1,
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -270,6 +272,8 @@ class hashkey(Exchange, ImplicitAPI):
                         'api/v1/spot/batchOrders': 5,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
+                        'api/v1/futures/marginType': 1,
+                        'api/v1/futures/positionMargin': 1,
                         'api/v1/futures/position/trading-stop': 3,
                         'api/v1/futures/batchOrders': 5,
                         'api/v1/account/assetTransfer': 1,
@@ -1253,7 +1257,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1291,7 +1296,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1333,7 +1339,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns Trade[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#trade-structure>`
         """
         methodName = 'fetchMyTrades'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -1534,7 +1541,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         methodName = 'fetchOHLCV'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, methodName, 'paginate')
         if paginate:
@@ -1605,7 +1613,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1640,7 +1649,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetQuoteV1Ticker24hr(params)
         return self.parse_tickers(response, symbols)
@@ -1699,7 +1709,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.symbol]: the id of the market to fetch last price for
         :returns dict: a dictionary of lastprices structures
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         response = await self.publicGetQuoteV1TickerPrice(self.extend(request, params))
@@ -1737,7 +1748,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.type]: 'spot' or 'swap' - the type of the market to fetch balance for(default 'spot')
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         methodName = 'fetchBalance'
         marketType = 'spot'
@@ -1847,7 +1859,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.network]: network for fetch deposit address(default is 'ETH')
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -1894,7 +1907,7 @@ class hashkey(Exchange, ImplicitAPI):
             tag = None
         return {
             'info': depositAddress,
-            'currency': currency['code'],
+            'currency': self.safe_string(currency, 'code'),
             'network': None,
             'address': address,
             'tag': tag,
@@ -1915,7 +1928,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
         methodName = 'fetchDeposits'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         currency = None
         if code is not None:
@@ -1960,7 +1974,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         methodName = 'fetchWithdrawals'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         currency = None
         if code is not None:
@@ -2015,7 +2030,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -2158,7 +2174,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.remark]: a note for the transfer
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -2205,7 +2222,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetApiV1AccountType(params)
         #
         #     [
@@ -2285,7 +2303,8 @@ class hashkey(Exchange, ImplicitAPI):
         until, params = self.handle_option_and_params(params, methodName, 'until')
         if until is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires an until argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
         request = {}
         request['startTime'] = since
@@ -2403,7 +2422,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: *swap markets only* The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if market['spot']:
             return await self.create_spot_order(symbol, type, side, amount, price, params)
@@ -2420,7 +2440,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() is supported for spot markets only')
@@ -2452,7 +2473,8 @@ class hashkey(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'stopPrice', 'triggerPrice')
         if triggerPrice is not None:
             raise NotSupported(self.id + ' trigger orders are not supported for spot markets')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         isMarketBuy = (type == 'market') and (side == 'buy')
         cost = self.safe_string(params, 'cost')
@@ -2670,7 +2692,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = self.create_swap_order_request(symbol, type, side, amount, price, params)
         response = await self.privatePostApiV1FuturesOrder(self.extend(request, params))
@@ -2708,7 +2731,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -2824,7 +2848,8 @@ class hashkey(Exchange, ImplicitAPI):
         """
         methodName = 'cancelOrder'
         self.check_type_param(methodName, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is None:
@@ -2906,7 +2931,8 @@ class hashkey(Exchange, ImplicitAPI):
         methodName = 'cancelAllOrders'
         if symbol is None:
             raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -2945,7 +2971,8 @@ class hashkey(Exchange, ImplicitAPI):
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         methodName = 'cancelOrders'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         orderIds = ','.join(ids)
         request['ids'] = orderIds
@@ -2990,7 +3017,8 @@ class hashkey(Exchange, ImplicitAPI):
         """
         methodName = 'fetchOrder'
         self.check_type_param(methodName, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         clientOrderId = None
         clientOrderId, params = self.handle_param_string(params, 'clientOrderId')
@@ -3092,7 +3120,8 @@ class hashkey(Exchange, ImplicitAPI):
         """
         methodName = 'fetchOpenOrders'
         self.check_type_param(methodName, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -3123,7 +3152,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.accountId]: account id to fetch the orders from
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         methodName = 'fetchOpenSpotOrders'
         methodName, params = self.handle_param_string(params, 'methodName', methodName)
         market = None
@@ -3282,7 +3312,8 @@ class hashkey(Exchange, ImplicitAPI):
         """
         methodName = 'fetchCanceledAndClosedOrders'
         self.check_type_param(methodName, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -3387,7 +3418,7 @@ class hashkey(Exchange, ImplicitAPI):
         if (paramsType is not None) and (paramsType != 'spot') and (paramsType != 'swap'):
             raise BadRequest(self.id + ' ' + methodName + '() type parameter can not be "' + paramsType + '". It should define the type of the market("spot" or "swap"). To define the type of an order use the trigger parameter(True for trigger orders)')
 
-    def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue=None):
+    def handle_trigger_option_and_params(self, params: object, methodName: str, defaultValue: Bool = None) -> list:
         isTrigger = defaultValue
         isTrigger, params = self.handle_option_and_params_2(params, methodName, 'stop', 'trigger', isTrigger)
         return [isTrigger, params]
@@ -3614,7 +3645,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3639,7 +3671,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rates-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {
             'timestamp': self.milliseconds(),
@@ -3700,7 +3733,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param int [params.endId]: the id of the entry to end with
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         market = self.market(symbol)
@@ -3754,7 +3788,8 @@ class hashkey(Exchange, ImplicitAPI):
             symbolsLength = len(symbols)
             if symbolsLength != 1:
                 raise NotSupported(self.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         return await self.fetch_positions_for_symbol(symbols[0], self.extend({'methodName': 'fetchPositions'}, params))
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}) -> List[Position]:
@@ -3769,7 +3804,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param str [params.side]: 'LONG' or 'SHORT' - the direction of the position(if not provided, positions for both sides will be returned)
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         methodName = 'fetchPosition'
         methodName, params = self.handle_param_string(params, 'methodName', methodName)
@@ -3847,7 +3883,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -3889,7 +3926,8 @@ class hashkey(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {
             'leverage': leverage,
         }
@@ -3905,6 +3943,117 @@ class hashkey(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)
 
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}) -> dict:
+        """
+        set margin mode to 'cross' or 'isolated'
+
+        https://hashkeyglobal-apidoc.readme.io/reference/change-margin-type
+
+        :param str marginMode: 'cross' or 'isolated'
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: response from the exchange
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' setMarginMode() requires a symbol argument')
+        if self.markets is None:
+            await self.load_markets()
+        marginMode = marginMode.upper()
+        if marginMode == 'CROSSED':
+            marginMode = 'CROSS'
+        if (marginMode != 'CROSS') and (marginMode != 'ISOLATED'):
+            raise ArgumentsRequired(self.id + ' setMarginMode() marginMode must be either cross or isolated')
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' setMarginMode() supports swap markets only')
+        request = {
+            'symbol': market['id'],
+            'marginType': marginMode,
+        }
+        return await self.privatePostApiV1FuturesMarginType(self.extend(request, params))
+
+    async def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        add margin
+
+        https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['side']: position side, either 'long' or 'short'
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        return await self.modify_margin_helper(symbol, amount, 'add', params)
+
+    async def reduce_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://hashkeyglobal-apidoc.readme.io/reference/modify-isolated-position-margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str params['side']: position side, either 'long' or 'short'
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
+        return await self.modify_margin_helper(symbol, amount, 'reduce', params)
+
+    async def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' modifyMarginHelper() supports swap markets only')
+        side = None
+        side, params = self.handle_param_string(params, 'side')
+        if side is None:
+            raise ArgumentsRequired(self.id + ' ' + type + 'Margin() requires a params["side"] argument, either "long" or "short"')
+        side = side.upper()
+        if (side != 'LONG') and (side != 'SHORT'):
+            raise ArgumentsRequired(self.id + ' ' + type + 'Margin() params["side"] must be either long or short')
+        amountString = self.number_to_string(amount)
+        if type == 'reduce':
+            amountString = Precise.string_mul(amountString, '-1')
+        request = {
+            'symbol': market['id'],
+            'side': side,
+            'amount': amountString,
+        }
+        response = await self.privatePostApiV1FuturesPositionMargin(self.extend(request, params))
+        #
+        #     {
+        #         "code": "0000",
+        #         "symbol": "BTCUSDT-PERPETUAL",
+        #         "margin": "12344.345",
+        #         "timestamp": "1726869763318"
+        #     }
+        #
+        return self.extend(self.parse_margin_modification(response, market), {
+            'type': type,
+            'amount': amount,
+        })
+
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
+        marketId = self.safe_string(data, 'symbol')
+        market = self.safe_market(marketId, market, None, 'swap')
+        timestamp = self.safe_integer(data, 'timestamp')
+        errorCode = self.safe_string(data, 'code')
+        success = errorCode == '0000'
+        return {
+            'info': data,
+            'symbol': market['symbol'],
+            'type': None,
+            'marginMode': 'isolated',
+            'amount': None,
+            'total': self.safe_number(data, 'margin'),
+            'code': market['settle'],
+            'status': 'ok' if (success) else 'failed',
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
     async def fetch_leverage_tiers(self, symbols: Strings = None, params={}) -> LeverageTiers:
         """
         retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -3915,7 +4064,8 @@ class hashkey(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/?id=leverage-tiers-structure>`, indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.publicGetApiV1ExchangeInfo(params)
         # response is the same fetchMarkets()
         data = self.safe_list(response, 'contracts', [])
@@ -4023,14 +4173,15 @@ class hashkey(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
 
-        https://developers.binance.com/docs/wallet/asset/trade-fee  # spot
+        https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information  # spot
         https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight  # swap
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         methodName = 'fetchTradingFee'
         response = None
@@ -4055,12 +4206,13 @@ class hashkey(Exchange, ImplicitAPI):
         """
         *for spot markets only* fetch the trading fees for multiple markets
 
-        https://developers.binance.com/docs/wallet/asset/trade-fee
+        https://hashkeyglobal-apidoc.readme.io/reference/get-vip-information
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetApiV1AccountVipInfo(params)
         #
         #     {

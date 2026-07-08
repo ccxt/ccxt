@@ -394,7 +394,11 @@ Gets all closed orders, including trigger orders, for an account from the exchan
 **Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
 **Returns**: An array of [order structures](https://docs.ccxt.com/?id=order-structure)
 
-**See**: https://docs.futures.kraken.com/#http-api-history-account-history-get-order-events  
+**See**
+
+- https://docs.kraken.com/api-reference/account-history/get-order-events
+- https://docs.kraken.com/api-reference/account-history/get-trigger-events
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |

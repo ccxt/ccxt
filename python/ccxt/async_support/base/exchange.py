@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.62'
+__version__ = '4.5.64'
 
 # -----------------------------------------------------------------------------
 
@@ -38,6 +38,15 @@ from ccxt.async_support.base.ws.client import Client
 from ccxt.async_support.base.ws.future import Future
 from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook
 
+
+# -----------------------------------------------------------------------------
+
+try:
+    # patches aiohttp to use zlib-ng for gzip/deflate (~2x faster decompression)
+    import aiohttp_fast_zlib
+    aiohttp_fast_zlib.enable()
+except ImportError:
+    pass
 
 # -----------------------------------------------------------------------------
 
@@ -1014,13 +1023,26 @@ class Exchange(BaseExchange):
         retries, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailure', 0)
         retryDelay = None
         retryDelay, params = self.handle_option_and_params(params, path, 'maxRetriesOnFailureDelay', 0)
+        fetchData = None
+        fetchDataCacheEnabled = self.fetchHistoryCacheSize > 0
         for i in range(0, retries + 1):
+            if fetchDataCacheEnabled:
+                fetchData = {'request': None, 'response': {'body': None}, 'error': None}
             try:
                 self.set_last_rest_request_timestamp()
                 request = self.sign(path, api, method, params, headers, body)
+                if fetchDataCacheEnabled:
+                    fetchData['request'] = request
                 self.set_last_request(request)
-                return await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                response = await self.fetch(request['url'], request['method'], request['headers'], request['body'])
+                if fetchDataCacheEnabled:
+                    fetchData['response']['body'] = response
+                    self.add_fetch_cache(fetchData)
+                return response
             except Exception as e:
+                if fetchDataCacheEnabled:
+                    fetchData['error'] = e
+                    self.add_fetch_cache(fetchData)
                 if isinstance(e, OperationFailed):
                     if i < retries:
                         if self.verbose:
@@ -1832,7 +1854,7 @@ class Exchange(BaseExchange):
                 return self.safe_dict(addressStructures, network)
             else:
                 keys = list(addressStructures.keys())
-                key = self.safe_string(keys, 0)
+                key = keys[0]
                 return self.safe_dict(addressStructures, key)
         else:
             raise NotSupported(self.id + ' fetchDepositAddress() is not supported yet')
@@ -2243,7 +2265,7 @@ class Exchange(BaseExchange):
                     index = responseLength - j - 1
                     entry = self.safe_dict(response, index)
                     info = self.safe_dict(entry, 'info')
-                    cursor = self.safe_value(info, cursorReceived)
+                    cursor = None if (cursorReceived is None) else self.safe_value(info, cursorReceived)
                     if cursor is not None:
                         cursorValue = cursor
                         break

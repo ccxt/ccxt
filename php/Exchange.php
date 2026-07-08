@@ -44,7 +44,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.5.62';
+$version = '4.5.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -63,10 +63,10 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.5.62';
+    const VERSION = '4.5.64';
 
     // this is updated by vss.js when building
-    public static $ccxt_version = '4.5.62';
+    public static $ccxt_version = '4.5.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -306,6 +306,8 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
+    public $fetchHistoryCache = [];
+    public $fetchHistoryCacheSize = 0;
 
     public $rateLimit = 2000;
 
@@ -331,10 +333,8 @@ class Exchange {
     public $quoteCurrencies = null;
 
     public static $exchanges = array(
-        'aftermath',
         'alpaca',
         'apex',
-        'ascendex',
         'aster',
         'backpack',
         'bequant',
@@ -376,7 +376,6 @@ class Exchange {
         'coincheck',
         'coinex',
         'coinmate',
-        'coinmetro',
         'coinone',
         'coinsph',
         'coinspot',
@@ -407,6 +406,7 @@ class Exchange {
         'kraken',
         'krakenfutures',
         'kucoin',
+        'kucoineu',
         'kucoinfutures',
         'latoken',
         'lbank',
@@ -415,9 +415,9 @@ class Exchange {
         'mercado',
         'mexc',
         'modetrade',
+        'mudrex',
         'myokx',
         'ndax',
-        'novadax',
         'okx',
         'okxus',
         'onetrading',
@@ -1315,6 +1315,20 @@ class Exchange {
         return file_exists($path);
     }
 
+    public function add_fetch_cache($data) {
+        if ($this->fetchHistoryCacheSize <= 0) {
+            return;
+        }
+        if (count($this->fetchHistoryCache) >= $this->fetchHistoryCacheSize) {
+            array_shift($this->fetchHistoryCache);
+        }
+        $this->fetchHistoryCache[] = $data;
+    }
+
+    public function get_fetch_cache() {
+        return $this->fetchHistoryCache;
+    }
+
     public static function base64_to_base64url(string $base64, bool $stripPadding = true): string {
         $base64url = strtr($base64, '+/', '-_');
 
@@ -1753,7 +1767,10 @@ class Exchange {
     }
 
     public function parse_json($json_string, $as_associative_array = true) {
-        return json_decode($this->on_json_response($json_string), $as_associative_array);
+        // PHP integers are 64-bit, so json_decode preserves integer ids up to
+        // 9223372036854775807 (19 digits) natively; JSON_BIGINT_AS_STRING keeps
+        // anything larger as an exact string instead of a lossy double.
+        return json_decode($json_string, $as_associative_array, flags: JSON_BIGINT_AS_STRING);
     }
 
     public function log() {
@@ -1769,10 +1786,6 @@ class Exchange {
 
     public function on_rest_response($code, $reason, $url, $method, $response_headers, $response_body, $request_headers, $request_body) {
         return is_string($response_body) ? trim($response_body) : $response_body;
-    }
-
-    public function on_json_response($response_body) {
-        return (is_string($response_body) && $this->quoteJsonNumbers) ? preg_replace('/":([+.0-9eE-]+)([,}])/', '":"$1"$2', $response_body) : $response_body;
     }
 
     public function setProxyAgents($httpProxy, $httpsProxy, $socksProxy) {
@@ -3636,7 +3649,7 @@ class Exchange {
     }
 
     public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        return array();
+        return array( 'url' => null, 'method' => null, 'headers' => null, 'body' => null );
     }
 
     public function fetch_accounts($params = array()) {
@@ -5342,7 +5355,7 @@ class Exchange {
     public function safe_ticker(array $ticker, ?array $market = null) {
         $open = $this->omit_zero($this->safe_string($ticker, 'open'));
         $close = $this->omit_zero($this->safe_string_2($ticker, 'close', 'last'));
-        $change = $this->omit_zero($this->safe_string($ticker, 'change'));
+        $change = $this->safe_string($ticker, 'change'); // $change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
         $percentage = $this->omit_zero($this->safe_string($ticker, 'percentage'));
         $average = $this->omit_zero($this->safe_string($ticker, 'average'));
         $vwap = $this->safe_string($ticker, 'vwap');
@@ -5953,7 +5966,7 @@ class Exchange {
         return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
-    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
+    public function parse_leverage_tiers(mixed $response, ?array $symbols = null, ?string $marketIdKey = null) {
         // $marketIdKey should only be null when $response is a dictionary.
         $symbols = $this->market_symbols($symbols);
         $tiers = array();
@@ -5965,7 +5978,7 @@ class Exchange {
         if ((gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response)))) {
             for ($i = 0; $i < count($response); $i++) {
                 $item = $response[$i];
-                $id = $this->safe_string($item, $marketIdKey);
+                $id = ($marketIdKey === null) ? null : $this->safe_string($item, $marketIdKey);
                 $market = $this->safe_market($id, null, null, 'swap');
                 $symbol = $market['symbol'];
                 $contract = $this->safe_bool($market, 'contract', false);
@@ -6005,7 +6018,7 @@ class Exchange {
 
     public function safe_position(array $position) {
         // simplified version of => /pull/12765/
-        $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         //
         // PERCENTAGE
@@ -6329,13 +6342,30 @@ class Exchange {
         list($retries, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailure', 0);
         $retryDelay = null;
         list($retryDelay, $params) = $this->handle_option_and_params($params, $path, 'maxRetriesOnFailureDelay', 0);
+        $fetchData = null;
+        $fetchDataCacheEnabled = $this->fetchHistoryCacheSize > 0;
         for ($i = 0; $i < $retries + 1; $i++) {
+            if ($fetchDataCacheEnabled) {
+                $fetchData = array( 'request' => null, 'response' => array( 'body' => null ), 'error' => null );
+            }
             try {
                 $this->set_last_rest_request_timestamp();
                 $request = $this->sign($path, $api, $method, $params, $headers, $body);
+                if ($fetchDataCacheEnabled) {
+                    $fetchData['request'] = $request;
+                }
                 $this->set_last_request($request);
-                return $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+                $response = $this->fetch($request['url'], $request['method'], $request['headers'], $request['body']);
+                if ($fetchDataCacheEnabled) {
+                    $fetchData['response']['body'] = $response;
+                    $this->add_fetch_cache($fetchData);
+                }
+                return $response;
             } catch (Exception $e) {
+                if ($fetchDataCacheEnabled) {
+                    $fetchData['error'] = $e;
+                    $this->add_fetch_cache($fetchData);
+                }
                 if ($e instanceof OperationFailed) {
                     if ($i < $retries) {
                         if ($this->verbose) {
@@ -7732,7 +7762,7 @@ class Exchange {
                 return $this->safe_dict($addressStructures, $network);
             } else {
                 $keys = is_array($addressStructures) ? array_keys($addressStructures) : array();
-                $key = $this->safe_string($keys, 0);
+                $key = $keys[0];
                 return $this->safe_dict($addressStructures, $key);
             }
         } else {
@@ -8678,7 +8708,7 @@ class Exchange {
         }
     }
 
-    public function parse_deposit_withdraw_fees($response, ?array $codes = null, $currencyIdKey = null) {
+    public function parse_deposit_withdraw_fees($response, ?array $codes = null, ?string $currencyIdKey = null) {
         /**
          * @ignore
          * @param {object[]|array} $response unparsed $response from the exchange
@@ -8695,7 +8725,10 @@ class Exchange {
         for ($i = 0; $i < count($responseKeys); $i++) {
             $entry = $responseKeys[$i];
             $dictionary = $isArray ? $entry : $response[$entry];
-            $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
+            $currencyId = $entry;
+            if ($isArray) {
+                $currencyId = ($currencyIdKey === null) ? null : $this->safe_string($dictionary, $currencyIdKey);
+            }
             $currency = $this->safe_currency($currencyId);
             $code = $this->safe_string($currency, 'code');
             if (($codes === null) || ($this->in_array($code, $codes))) {
@@ -9053,7 +9086,7 @@ class Exchange {
                     $index = $responseLength - $j - 1;
                     $entry = $this->safe_dict($response, $index);
                     $info = $this->safe_dict($entry, 'info');
-                    $cursor = $this->safe_value($info, $cursorReceived);
+                    $cursor = ($cursorReceived === null) ? null : $this->safe_value($info, $cursorReceived);
                     if ($cursor !== null) {
                         $cursorValue = $cursor;
                         break;
@@ -9268,9 +9301,9 @@ class Exchange {
         $optionStructures = array();
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $currencyId = $this->safe_string($info, $currencyKey);
+            $currencyId = ($currencyKey === null) ? null : $this->safe_string($info, $currencyKey);
             $currency = $this->safe_currency($currencyId);
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, 'option');
             $optionStructures[$market['symbol']] = $this->parse_option($info, $currency, $market);
         }
@@ -9284,7 +9317,7 @@ class Exchange {
         }
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
                 $marginModeStructures[$market['symbol']] = $this->parse_margin_mode($info, $market);
@@ -9304,7 +9337,7 @@ class Exchange {
         }
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
                 $leverageStructures[$market['symbol']] = $this->parse_leverage($info, $market);
@@ -9324,8 +9357,8 @@ class Exchange {
         $toCurrency = null;
         for ($i = 0; $i < count($conversions); $i++) {
             $entry = $conversions[$i];
-            $fromId = $this->safe_string($entry, $fromCurrencyKey);
-            $toId = $this->safe_string($entry, $toCurrencyKey);
+            $fromId = ($fromCurrencyKey === null) ? null : $this->safe_string($entry, $fromCurrencyKey);
+            $toId = ($toCurrencyKey === null) ? null : $this->safe_string($entry, $toCurrencyKey);
             if ($fromId !== null) {
                 $fromCurrency = $this->safe_currency($fromId);
             }
@@ -9467,7 +9500,7 @@ class Exchange {
         $marginModifications = array();
         for ($i = 0; $i < count($response); $i++) {
             $info = $response[$i];
-            $marketId = $this->safe_string($info, $symbolKey);
+            $marketId = ($symbolKey === null) ? null : $this->safe_string($info, $symbolKey);
             $market = $this->safe_market($marketId, null, null, $marketType);
             if (($symbols === null) || $this->in_array($market['symbol'], $symbols)) {
                 $marginModifications[] = $this->parse_margin_modification($info, $market);

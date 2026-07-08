@@ -1685,7 +1685,7 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicGetV5SystemStatus", new Object[] { parameters })).join();
+            Object response = (this.publicGetV5SystemStatus(parameters)).join();
             //
             //     {
             //         "retCode": 0,

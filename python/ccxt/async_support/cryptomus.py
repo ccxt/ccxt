@@ -461,7 +461,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetV1ExchangeMarketTickers(params)
         #
@@ -527,7 +528,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param int [params.level]: 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currencyPair': market['id'],
@@ -571,7 +573,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'currencyPair': market['id'],
@@ -634,7 +637,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         response = await self.privateGetV2UserApiExchangeAccountBalance(self.extend(request, params))
         #
@@ -689,7 +693,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique identifier for the order(optional)
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -747,7 +752,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         request['orderId'] = id
         response = await self.privateDeleteV2UserApiExchangeOrdersOrderId(self.extend(request, params))
@@ -775,7 +781,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = {}
         market = None
         if symbol is not None:
@@ -847,7 +854,8 @@ class cryptomus(Exchange, ImplicitAPI):
         :param str [params.offset]: A special parameter that sets the number of records from the beginning of the list
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)

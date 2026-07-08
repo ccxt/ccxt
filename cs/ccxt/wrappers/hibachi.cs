@@ -84,7 +84,8 @@ public partial class hibachi
     /// fetches a price ticker and the related information for the past 24h
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#bca696ca-b9b2-4072-8864-5d6b8c09807e"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#0064ca53-a2d0-41b9-8ade-6b2abf4ccb12"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -124,6 +125,7 @@ public partial class hibachi
     /// fetch the trading fee
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#69aafedb-8274-4e21-bbaf-91dace8b8f31"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -342,7 +344,7 @@ public partial class hibachi
     /// fetches the state of the open orders on the orderbook
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#c7a64b0d-9e37-4009-93e5-2aa12e8d7e9b"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -440,10 +442,166 @@ public partial class hibachi
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
+    /// fetch orders filtered by terminal status
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol to filter by
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of orders to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cursorOrderId</term>
+    /// <description>
+    /// string : pagination cursor, returns orders with orderId strictly less than this value
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchOrdersByStatus(object status, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchOrdersByStatus(status, symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple closed orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of closed order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cursorOrderId</term>
+    /// <description>
+    /// string : pagination cursor, returns orders with orderId strictly less than this value
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchClosedOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
+    /// fetches information on multiple canceled orders made by the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of canceled order structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.cursorOrderId</term>
+    /// <description>
+    /// string : pagination cursor, returns orders with orderId strictly less than this value
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
+    public async Task<List<Order>> FetchCanceledOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchCanceledOrders(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the close, high, low, open prices, interval and the volumeNotional
     /// </summary>
     /// <remarks>
-    /// See <see href=""/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#4f0eacec-c61e-4d51-afb3-23c51c2c6bac"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -543,6 +701,7 @@ public partial class hibachi
     /// fetch deposit address for given currency and chain. currently, we have a single EVM address across multiple EVM chains. Note: This method is currently only supported for trustless accounts
     /// </summary>
     /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#6fa35580-3d45-4b59-854d-c9326db06af5"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -563,6 +722,46 @@ public partial class hibachi
     {
         var res = await this.fetchDepositAddress(code, parameters);
         return new DepositAddress(res);
+    }
+    /// <summary>
+    /// fetch deposit and withdrawal history for the account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest transaction
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of transactions to return
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}.</returns>
+    public async Task<List<Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchDepositsWithdrawals(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
     /// fetch deposits made to account
@@ -645,10 +844,56 @@ public partial class hibachi
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// fetches historical settlement records of the user
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol of the settlement history
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest settlement
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of settlements to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest settlement
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchMySettlementHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchMySettlementHistory(symbol, since, limit, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="http://api-doc.hibachi.xyz/#b5c6a3bc-243d-4d35-b6d4-a74c92495434"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#3277e546-4cb0-4d30-a832-717af0de9b20"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -708,7 +953,7 @@ public partial class hibachi
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://api-doc.hibachi.xyz/#4abb30c4-e5c7-4b0f-9ade-790111dbfa47"/>  <br/>
+    /// See <see href="https://api-doc.hibachi.xyz/#079586af-0d94-41ea-99bb-7afcd93bf438"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

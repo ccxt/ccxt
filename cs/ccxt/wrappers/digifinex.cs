@@ -10,6 +10,10 @@ public partial class digifinex
     /// retrieves data on all markets for digifinex
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#all-the-market-description"/>  <br/>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-trading-pair-symbol"/>  <br/>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-trading-pair-symbol"/>  <br/>
+    /// See <see href="https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -131,6 +135,7 @@ public partial class digifinex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-timestamp"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -150,6 +155,7 @@ public partial class digifinex
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#server-ping"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -391,6 +397,7 @@ public partial class digifinex
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -577,6 +584,7 @@ public partial class digifinex
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-address-inquiry"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -603,6 +611,7 @@ public partial class digifinex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#deposit-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -636,6 +645,7 @@ public partial class digifinex
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/spot/v3/rest.html#withdrawal-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -796,6 +806,7 @@ public partial class digifinex
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.digifinex.com/en-ww/swap/v2/rest.html#fundingratehistory"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

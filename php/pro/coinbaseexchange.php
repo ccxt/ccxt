@@ -66,7 +66,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
 
     public function subscribe($name, $symbol = null, $messageHashStart = null, $params = array()) {
         return Async\async(function () use ($name, $symbol, $messageHashStart, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = $messageHashStart;
             $productIds = array();
@@ -94,7 +96,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
 
     public function subscribe_multiple($name, $symbols = array(), $messageHashStart = null, $params = array()) {
         return Async\async(function () use ($name, $symbols, $messageHashStart, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $symbols = $this->market_symbols($symbols);
             $messageHashes = array();
@@ -144,7 +148,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbolsLength = count($symbols);
             if ($symbolsLength === 0) {
                 throw new BadSymbol($this->id . ' watchTickers requires a non-empty $symbols array');
@@ -171,7 +177,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $name = 'matches';
             $trades = Async\await($this->subscribe($name, $symbol, $name, $params));
@@ -196,7 +204,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             if ($symbolsLength === 0) {
                 throw new BadRequest($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $name = 'matches';
             $trades = Async\await($this->subscribe_multiple($name, $symbols, $name, $params));
@@ -222,7 +232,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $name = 'user';
             $messageHash = 'myTrades';
@@ -246,7 +258,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
             $symbols = $this->market_symbols($symbols, null, false);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'user';
             $messageHash = 'myTrades';
             $authentication = $this->authenticate();
@@ -270,7 +284,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $name = 'user';
             $messageHash = 'orders';
@@ -298,7 +314,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $name = 'user';
             $messageHash = 'orders';
@@ -325,7 +343,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
                 throw new BadRequest($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
             }
             $name = 'level2';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $marketIds = $this->market_ids($symbols);
             $messageHashes = array();
@@ -364,7 +384,9 @@ class coinbaseexchange extends \ccxt\async\coinbaseexchange {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $name = 'level2';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = $name . ':' . $market['id'];

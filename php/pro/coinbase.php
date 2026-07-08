@@ -72,7 +72,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = $name;
             $productIds = array();
@@ -116,7 +118,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {string} [$symbol] unified $market $symbol
              * @return {array} $subscription to a websocket channel
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($this->safe_bool($this->options, 'unSubscriptionPending', false)) {
                 throw new ExchangeError($this->id . ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
             }
@@ -176,7 +180,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $productIds = array();
             $messageHashes = array();
             $symbols = $this->market_symbols($symbols, null, false);
@@ -219,7 +225,9 @@ class coinbase extends \ccxt\async\coinbase {
                 throw new ExchangeError($this->id . ' another unSubscription is pending, coinbase does not support concurrent unSubscriptions');
             }
             $this->options['unSubscriptionPending'] = true;
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $productIds = array();
             $watchMessageHashes = array();
             $unWatchMessageHashes = array();
@@ -295,7 +303,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'ticker';
             return Async\await($this->subscribe($name, false, $symbol, $params));
         })();
@@ -312,7 +322,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'ticker';
             return Async\await($this->un_subscribe('ticker', $name, false, $symbol));
         })();
@@ -329,7 +341,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbols === null) {
                 $symbols = $this->symbols;
             }
@@ -356,7 +370,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbols === null) {
                 $symbols = $this->symbols;
             }
@@ -540,7 +556,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $name = 'market_trades';
             $trades = Async\await($this->subscribe($name, false, $symbol, $params));
@@ -562,7 +580,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'market_trades';
             return Async\await($this->un_subscribe('trades', $name, false, $symbol));
         })();
@@ -581,7 +601,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'market_trades';
             $trades = Async\await($this->subscribe_multiple($name, false, $symbols, $params));
             if ($this->newUpdates) {
@@ -604,7 +626,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'market_trades';
             return Async\await($this->un_subscribe_multiple('trades', $name, false, $symbols, $params));
         })();
@@ -623,7 +647,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'user';
             $orders = Async\await($this->subscribe($name, true, $symbol, $params));
             if ($this->newUpdates) {
@@ -644,7 +670,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'user';
             return Async\await($this->un_subscribe('orders', $name, true, $this->symbol($symbol)));
         })();
@@ -662,7 +690,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'level2';
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -682,7 +712,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $name = 'level2';
             return Async\await($this->un_subscribe('orderbook', $name, false, $symbol));
@@ -701,7 +733,9 @@ class coinbase extends \ccxt\async\coinbase {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'level2';
             $orderbook = Async\await($this->subscribe_multiple($name, false, $symbols, $params));
             return $orderbook->limit();

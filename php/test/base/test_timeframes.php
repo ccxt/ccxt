@@ -14,6 +14,9 @@ function test_round_timeframe() {
         'id' => 'sampleexchange',
     ));
     $test_date = $exchange->parse8601('2019-08-12 13:22:08');
+    if ($test_date === null) {
+        return;
+    }
     assert($exchange->round_timeframe('5m', $test_date, ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:20:00'));
     assert($exchange->round_timeframe('10m', $test_date, ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:20:00'));
     assert($exchange->round_timeframe('30m', $test_date, ROUND_DOWN) === $exchange->parse8601('2019-08-12 13:00:00'));

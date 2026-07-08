@@ -330,6 +330,7 @@ class onetrading(Exchange, ImplicitAPI):
             },
             # exchange-specific options
             'options': {
+                'mica': True,
                 'fetchTradingFees': {
                     'method': 'fetchPrivateTradingFees',  # or 'fetchPublicTradingFees'
                 },
@@ -620,7 +621,8 @@ class onetrading(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchTradingFees() does not support ' + method + ', fetchPrivateTradingFees and fetchPublicTradingFees are supported')
 
     def fetch_public_trading_fees(self, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.publicGetFees(params)
         #
         # [
@@ -689,7 +691,8 @@ class onetrading(Exchange, ImplicitAPI):
         return result
 
     def fetch_private_trading_fees(self, params={}):
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountFees(params)
         #
         # {
@@ -831,7 +834,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_code': market['id'],
@@ -867,7 +871,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         response = self.publicGetMarketTicker(params)
         #
@@ -908,7 +913,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instrument_code': market['id'],
@@ -1035,7 +1041,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         periodUnit = self.safe_string(self.timeframes, timeframe)
         period, unit = periodUnit.split('/')
@@ -1169,7 +1176,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountBalances(params)
         #
         #     {
@@ -1341,7 +1349,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: onetrading only does stop limit orders and does not do stop market
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         uppercaseType = type.upper()
         request = {
@@ -1407,7 +1416,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'client_id')
         params = self.omit(params, ['clientOrderId', 'client_id'])
         method = 'privateDeleteAccountOrdersOrderId'
@@ -1437,7 +1447,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if symbol is not None:
             market = self.market(symbol)
@@ -1461,7 +1472,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'ids': ','.join(ids),
         }
@@ -1485,7 +1497,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'order_id': id,
         }
@@ -1545,7 +1558,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days
@@ -1680,7 +1694,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'order_id': id,
             # 'max_page_size': 100,
@@ -1737,7 +1752,8 @@ class onetrading(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'from': self.iso8601(since),
             # 'to': self.iso8601(self.milliseconds()),  # max range is 100 days

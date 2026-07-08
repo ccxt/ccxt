@@ -884,7 +884,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
@@ -929,7 +931,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $symbol = $this->safe_string($symbols, 0);
             if ($symbol !== null) {
@@ -1044,7 +1048,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['contract']) {
                 $request = array(
@@ -1284,7 +1290,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['contract']) {
                 throw new NotSupported($this->id . ' fetchTrades () can only fetch $trades for spot markets');
@@ -1355,7 +1363,9 @@ class bigone extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['contract']) {
                 throw new NotSupported($this->id . ' fetchOHLCV () can only fetch ohlcvs for spot markets');
@@ -1443,7 +1453,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = $this->safe_string($params, 'type', '');
             $params = $this->omit($params, 'type');
             if ($type === 'funding' || $type === 'fund') {
@@ -1562,7 +1574,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1595,7 +1609,9 @@ class bigone extends Exchange {
              * @param {string} [$params->client_order_id] must match ^[a-zA-Z0-9-_]array(1,36)$ this regex. client_order_id is unique in 24 hours, If created 24 hours later and the $order closed, it will be released and can be reused
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $isBuy = ($side === 'buy');
             $requestSide = $isBuy ? 'BID' : 'ASK';
@@ -1696,7 +1712,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( 'id' => $id );
             $response = Async\await($this->privatePostOrdersIdCancel($this->extend($request, $params)));
             //    {
@@ -1727,7 +1745,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
@@ -1781,7 +1801,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array( 'id' => $id );
             $response = Async\await($this->privateGetOrdersId($this->extend($request, $params)));
             $order = $this->safe_dict($response, 'data', array());
@@ -1805,7 +1827,9 @@ class bigone extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
@@ -1859,7 +1883,9 @@ class bigone extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'asset_pair_name' => $market['id'],
@@ -2006,7 +2032,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'asset_symbol' => $currency['id'],
@@ -2164,7 +2192,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'page_token' => 'dxzef', // $request page after this page token
                 // 'limit' => 50, // optional, default 50
@@ -2219,7 +2249,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'page_token' => 'dxzef', // $request page after this page token
                 // 'limit' => 50, // optional, default 50
@@ -2275,7 +2307,9 @@ class bigone extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
@@ -2353,7 +2387,9 @@ class bigone extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'symbol' => $currency['id'],

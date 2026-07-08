@@ -113,7 +113,7 @@ public class BitmexCore extends BitmexApi
                 put( "fetchTransfer", false );
                 put( "fetchTransfers", false );
                 put( "fetchVolatilityHistory", false );
-                put( "index", true );
+                put( "index", false );
                 put( "reduceMargin", null );
                 put( "repayCrossMargin", false );
                 put( "repayIsolatedMargin", false );

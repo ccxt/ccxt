@@ -637,7 +637,7 @@ class ndax extends Exchange {
         );
     }
 
-    public function parse_order_book($orderbook, $symbol, $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
+    public function parse_order_book($orderbook, $symbol, ?int $timestamp = null, $bidsKey = 'bids', $asksKey = 'asks', int|string $priceKey = 6, int|string $amountKey = 8, int|string $countOrIdKey = 2) {
         $nonce = null;
         $result = array(
             'symbol' => $symbol,
@@ -653,13 +653,17 @@ class ndax extends Exchange {
                 $timestamp = $this->safe_integer($level, 2);
             } else {
                 $newTimestamp = $this->safe_integer($level, 2);
-                $timestamp = max($timestamp, $newTimestamp);
+                if ($newTimestamp !== null) {
+                    $timestamp = max($timestamp, $newTimestamp);
+                }
             }
             if ($nonce === null) {
                 $nonce = $this->safe_integer($level, 0);
             } else {
                 $newNonce = $this->safe_integer($level, 0);
-                $nonce = max($nonce, $newNonce);
+                if ($newNonce !== null) {
+                    $nonce = max($nonce, $newNonce);
+                }
             }
             $bidask = $this->parse_order_book_bid_ask($level, $priceKey, $amountKey);
             $levelSide = $this->safe_integer($level, 9);
@@ -687,7 +691,9 @@ class ndax extends Exchange {
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $limit = ($limit === null) ? 100 : $limit; // default 100
         $request = array(
@@ -799,7 +805,9 @@ class ndax extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'omsId' => $omsId,
@@ -877,7 +885,9 @@ class ndax extends Exchange {
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'omsId' => $omsId,
@@ -1028,7 +1038,7 @@ class ndax extends Exchange {
         $side = null;
         $orderId = null;
         $takerOrMaker = null;
-        $fee = null;
+        $fee = array();
         $type = null;
         if ((gettype($trade) === 'array' && array_keys($trade) === array_keys(array_keys($trade)))) {
             $priceString = $this->safe_string($trade, 3);
@@ -1088,7 +1098,9 @@ class ndax extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'omsId' => $omsId,
@@ -1153,7 +1165,7 @@ class ndax extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
             $currencyId = $this->safe_string($balance, 'ProductId');
-            if (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) {
+            if (($currencyId !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balance, 'Amount');
@@ -1174,12 +1186,14 @@ class ndax extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
         $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId');
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         if ($accountId === null) {
-            $accountId = intval($this->accounts[0]['id']);
+            $accountId = $this->parse_to_int($this->accounts[0]['id']);
         }
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1310,9 +1324,11 @@ class ndax extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1357,6 +1373,9 @@ class ndax extends Exchange {
             'Expired' => 'expired',
             'FullyExecuted' => 'closed',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1472,9 +1491,11 @@ class ndax extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
         $orderType = $this->safe_integer($this->options['orderTypes'], $this->capitalize($type));
@@ -1489,8 +1510,9 @@ class ndax extends Exchange {
         $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId', 'triggerPrice' ));
         $market = $this->market($symbol);
         $orderSide = ($side === 'buy') ? 0 : 1;
+        $amountString = $this->amount_to_precision($symbol, $amount);
         $request = array(
-            'InstrumentId' => intval($market['id']),
+            'InstrumentId' => $this->parse_to_int($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
             'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1502,7 +1524,7 @@ class ndax extends Exchange {
             // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity' => floatval($this->amount_to_precision($symbol, $amount)),
+            'Quantity' => ($amountString === null) ? null : floatval($amountString),
             'OrderType' => $orderType, // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
@@ -1530,17 +1552,20 @@ class ndax extends Exchange {
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $clientOrderId = $this->safe_integer_2($params, 'ClientOrderId', 'clientOrderId');
         $params = $this->omit($params, array( 'accountId', 'AccountId', 'clientOrderId', 'ClientOrderId' ));
         $market = $this->market($symbol);
         $orderSide = ($side === 'buy') ? 0 : 1;
+        $amountString = $this->amount_to_precision($symbol, $amount);
         $request = array(
             'OrderIdToReplace' => intval($id),
-            'InstrumentId' => intval($market['id']),
+            'InstrumentId' => $this->parse_to_int($market['id']),
             'omsId' => $omsId,
             'AccountId' => $accountId,
             'TimeInForce' => 1, // 0 Unknown, 1 GTC by default, 2 OPG execute to opening $price, 3 IOC immediate or canceled,  4 FOK fill-or-kill, 5 GTX good 'til executed, 6 GTD good 'til date
@@ -1552,7 +1577,7 @@ class ndax extends Exchange {
             // 'OrderIdOCO' => 0, // The order ID if One Cancels the Other.
             // 'UseDisplayQuantity' => false, // If you enter a Limit order with a reserve, you must set UseDisplayQuantity to true
             'Side' => $orderSide, // 0 Buy, 1 Sell, 2 Short, 3 unknown an error condition
-            'Quantity' => floatval($this->amount_to_precision($symbol, $amount)),
+            'Quantity' => ($amountString === null) ? null : floatval($amountString),
             'OrderType' => $this->safe_integer($this->options['orderTypes'], $this->capitalize($type)), // 0 Unknown, 1 Market, 2 Limit, 3 StopMarket, 4 StopLimit, 5 TrailingStopMarket, 6 TrailingStopLimit, 7 BlockTrade
             // 'PegPriceType' => 3, // 1 Last, 2 Bid, 3 Ask, 4 Midpoint
             // 'LimitPrice' => floatval($this->price_to_precision($symbol, $price)),
@@ -1589,9 +1614,11 @@ class ndax extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1676,9 +1703,11 @@ class ndax extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1718,9 +1747,11 @@ class ndax extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
@@ -1759,9 +1790,11 @@ class ndax extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
@@ -1839,9 +1872,11 @@ class ndax extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $request = array(
@@ -1934,9 +1969,11 @@ class ndax extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
@@ -2014,9 +2051,11 @@ class ndax extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        // $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         // $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         // $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $market = null;
@@ -2092,9 +2131,11 @@ class ndax extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = $this->currency($code);
@@ -2135,10 +2176,10 @@ class ndax extends Exchange {
         //         "DepositInfo":"[\"r3e95RwVsLH7yCbnMfyh7SA8FdwUJCB4S2?memo=241452010\"]"
         //     }
         //
-        $depositInfoString = $this->safe_string($depositAddress, 'DepositInfo');
+        $depositInfoString = $this->safe_string($depositAddress, 'DepositInfo', '[]');
         $depositInfo = json_decode($depositInfoString, $as_associative_array = true);
         $depositInfoLength = count($depositInfo);
-        $lastString = $this->safe_string($depositInfo, $depositInfoLength - 1);
+        $lastString = $this->safe_string($depositInfo, $depositInfoLength - 1, '');
         $parts = explode('?memo=', $lastString);
         $address = $this->safe_string($parts, 0);
         $tag = $this->safe_string($parts, 1);
@@ -2182,9 +2223,11 @@ class ndax extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = null;
@@ -2243,9 +2286,11 @@ class ndax extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = null;
@@ -2284,7 +2329,7 @@ class ndax extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status_by_type($status, $type = null) {
+    public function parse_transaction_status_by_type(?string $status = null, ?string $type = null) {
         $statusesByType = array(
             'deposit' => array(
                 'New' => 'pending', // new ticket awaiting operator review
@@ -2329,7 +2374,10 @@ class ndax extends Exchange {
                 'Confirmed2Fa' => 'pending', // user has confirmed withdraw via 2-factor authentication.
             ),
         );
-        $statuses = $this->safe_value($statusesByType, $type, array());
+        $statuses = ($type === null) ? array() : $this->safe_value($statusesByType, $type, array());
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2404,7 +2452,7 @@ class ndax extends Exchange {
         $timestamp = $this->safe_integer($templateForm, 'TimeSubmitted');
         $feeCost = $this->safe_number($transaction, 'FeeAmount');
         $transactionStatus = $this->safe_string($transaction, 'TicketStatus');
-        $fee = null;
+        $fee = array();
         if ($feeCost !== null) {
             $fee = array( 'currency' => $code, 'cost' => $feeCost );
         }
@@ -2453,9 +2501,11 @@ class ndax extends Exchange {
         }
         $this->check_address($address);
         $omsId = $this->safe_integer($this->options, 'omsId', 1);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->load_accounts();
-        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', intval($this->accounts[0]['id']));
+        $defaultAccountId = $this->safe_integer_2($this->options, 'accountId', 'AccountId', $this->parse_to_int($this->accounts[0]['id']));
         $accountId = $this->safe_integer_2($params, 'accountId', 'AccountId', $defaultAccountId);
         $params = $this->omit($params, array( 'accountId', 'AccountId' ));
         $currency = $this->currency($code);

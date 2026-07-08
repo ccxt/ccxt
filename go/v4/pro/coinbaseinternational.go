@@ -95,9 +95,11 @@ func  (this *CoinbaseinternationalCore) Subscribe(name any, optionalArgs ...any)
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes828 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes828)
+                retRes8312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes8312)
+            }
             this.CheckRequiredCredentials()
             var market any = nil
             var messageHash any = name
@@ -139,15 +141,15 @@ func  (this *CoinbaseinternationalCore) Subscribe(name any, optionalArgs ...any)
             }
             if ccxt.IsTrue(ccxt.IsGreaterThan(symbolsLength, 1)) {
         
-                    retRes12519 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(subscribe, params), messageHashes))
-                    ccxt.PanicOnError(retRes12519)
-                    ch <- retRes12519
+                    retRes12719 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(subscribe, params), messageHashes))
+                    ccxt.PanicOnError(retRes12719)
+                    ch <- retRes12719
                     return nil
             }
         
-                retRes12715 :=  (<-this.Watch(url, messageHash, this.Extend(subscribe, params), messageHash))
-                ccxt.PanicOnError(retRes12715)
-                ch <- retRes12715
+                retRes12915 :=  (<-this.Watch(url, messageHash, this.Extend(subscribe, params), messageHash))
+                ccxt.PanicOnError(retRes12915)
+                ch <- retRes12915
                 return nil
         
             }()
@@ -172,9 +174,11 @@ func  (this *CoinbaseinternationalCore) SubscribeMultiple(name any, optionalArgs
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1418 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1418)
+                retRes14412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes14412)
+            }
             this.CheckRequiredCredentials()
             if ccxt.IsTrue(this.IsEmpty(symbols)) {
                 symbols = this.Symbols
@@ -206,9 +210,9 @@ func  (this *CoinbaseinternationalCore) SubscribeMultiple(name any, optionalArgs
                 "signature": signature,
             }
         
-                retRes17215 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(subscribe, params), messageHashes))
-                ccxt.PanicOnError(retRes17215)
-                ch <- retRes17215
+                retRes17615 :=  (<-this.WatchMultiple(url, messageHashes, this.Extend(subscribe, params), messageHashes))
+                ccxt.PanicOnError(retRes17615)
+                ch <- retRes17615
                 return nil
         
             }()
@@ -230,13 +234,15 @@ func  (this *CoinbaseinternationalCore) WatchFundingRate(symbol any, optionalArg
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1858 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1858)
+                retRes19012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes19012)
+            }
         
-                retRes18615 :=  (<-this.Subscribe("RISK", []any{symbol}, params))
-                ccxt.PanicOnError(retRes18615)
-                ch <- retRes18615
+                retRes19215 :=  (<-this.Subscribe("RISK", []any{symbol}, params))
+                ccxt.PanicOnError(retRes19215)
+                ch <- retRes19215
                 return nil
         
             }()
@@ -263,9 +269,11 @@ func  (this *CoinbaseinternationalCore) WatchFundingRates(optionalArgs ...any) <
             if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
                 panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchFundingRates() requires an array of symbols")))
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2028)
+                retRes20912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes20912)
+            }
         
             fundingRate:= (<-this.SubscribeMultiple("RISK", symbols, params))
             ccxt.PanicOnError(fundingRate)
@@ -301,17 +309,19 @@ func  (this *CoinbaseinternationalCore) WatchTicker(symbol any, optionalArgs ...
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2248)
+                retRes23312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes23312)
+            }
             var channel any = nil
             channelparamsVariable := this.HandleOptionAndParams(params, "watchTicker", "channel", "LEVEL1")
             channel = ccxt.GetValue(channelparamsVariable,0)
             params = ccxt.GetValue(channelparamsVariable,1)
         
-                retRes22715 :=  (<-this.Subscribe(channel, []any{symbol}, params))
-                ccxt.PanicOnError(retRes22715)
-                ch <- retRes22715
+                retRes23715 :=  (<-this.Subscribe(channel, []any{symbol}, params))
+                ccxt.PanicOnError(retRes23715)
+                ch <- retRes23715
                 return nil
         
             }()
@@ -348,9 +358,11 @@ func  (this *CoinbaseinternationalCore) WatchTickers(optionalArgs ...any) <- cha
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2548)
+                retRes26512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes26512)
+            }
             var channel any = nil
             channelparamsVariable := this.HandleOptionAndParams(params, "watchTickers", "channel", "LEVEL1")
             channel = ccxt.GetValue(channelparamsVariable,0)
@@ -580,9 +592,11 @@ func  (this *CoinbaseinternationalCore) WatchOHLCV(symbol any, optionalArgs ...a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4628 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4628)
+                retRes47512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes47512)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var options any = this.SafeDict(this.Options, "timeframes", map[string]any {})
@@ -661,9 +675,9 @@ func  (this *CoinbaseinternationalCore) WatchTrades(symbol any, optionalArgs ...
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes52515 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes52515)
-                ch <- retRes52515
+                retRes53915 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes53915)
+                ch <- retRes53915
                 return nil
         
             }()
@@ -690,9 +704,11 @@ func  (this *CoinbaseinternationalCore) WatchTradesForSymbols(symbols any, optio
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5398 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5398)
+                retRes55412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes55412)
+            }
             symbols = this.MarketSymbols(symbols, nil, false, true, true)
         
             trades:= (<-this.SubscribeMultiple("MATCH", symbols, params))
@@ -791,9 +807,9 @@ func  (this *CoinbaseinternationalCore) WatchOrderBook(symbol any, optionalArgs 
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes62315 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-                ccxt.PanicOnError(retRes62315)
-                ch <- retRes62315
+                retRes63915 :=  (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+                ccxt.PanicOnError(retRes63915)
+                ch <- retRes63915
                 return nil
         
             }()
@@ -818,13 +834,15 @@ func  (this *CoinbaseinternationalCore) WatchOrderBookForSymbols(symbols any, op
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6378 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6378)
+                retRes65412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes65412)
+            }
         
-                retRes63815 :=  (<-this.SubscribeMultiple("LEVEL2", symbols, params))
-                ccxt.PanicOnError(retRes63815)
-                ch <- retRes63815
+                retRes65615 :=  (<-this.SubscribeMultiple("LEVEL2", symbols, params))
+                ccxt.PanicOnError(retRes65615)
+                ch <- retRes65615
                 return nil
         
             }()

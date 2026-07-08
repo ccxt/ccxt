@@ -608,6 +608,28 @@ function exchangeProp(exchange, key, defaultValue = undefined) {
     const keyUpper = exchange.capitalize(key.toString());
     return exchange.getProperty(exchange, keyUpper, defaultValue);
 }
+async function validateTickerExceptionForPercentage(ex, exchange, ticker) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    const eMessage = exchange.exceptionMessage(ex, false);
+    if (eMessage.indexOf('percentage should be above') >= 0 || eMessage.indexOf('percentage should be below') >= 0) {
+        const symbol = ticker['symbol'];
+        if (symbol !== undefined) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(symbol in exchange.markets)) {
+                return;
+            }
+            // if OHLCV supported
+            if (exchange.featureValue(symbol, 'fetchOHLCV') !== undefined) {
+                const ohlcv = await exchange.fetchOHLCV(symbol, '1d', undefined, 5);
+                if (ohlcv.length <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert(eMessage === '', eMessage); // trigger error
+}
 export default {
     exchangeProp,
     deepEqual,
@@ -642,4 +664,5 @@ export default {
     assertRoundMinuteTimestamp,
     concat,
     getActiveMarkets,
+    validateTickerExceptionForPercentage,
 };
