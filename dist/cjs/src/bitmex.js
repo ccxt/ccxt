@@ -289,7 +289,9 @@ class bitmex extends bitmex$1["default"] {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
-                'fetchOHLCVOpenTimestamp': true,
+                'fetchOHLCV': {
+                    'useOpenTimestamp': true,
+                },
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
@@ -1752,11 +1754,12 @@ class bitmex extends bitmex$1["default"] {
             request['endTime'] = this.iso8601(until);
         }
         const duration = this.parseTimeframe(timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeBool(this.options, 'fetchOHLCVOpenTimestamp', true);
+        let useOpenTimestamp = undefined;
+        [useOpenTimestamp, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
-            if (fetchOHLCVOpenTimestamp) {
+            if (useOpenTimestamp) {
                 timestamp = this.sum(timestamp, duration);
             }
             const startTime = this.iso8601(timestamp);
@@ -1774,7 +1777,7 @@ class bitmex extends bitmex$1["default"] {
         //     ]
         //
         const result = this.parseOHLCVs(response, market, timeframe, since, limit);
-        if (fetchOHLCVOpenTimestamp) {
+        if (useOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle

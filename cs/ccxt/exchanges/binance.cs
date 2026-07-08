@@ -5391,19 +5391,59 @@ public partial class binance : Exchange
             ((IDictionary<string,object>)request)["limit"] = ((bool) isTrue(isFutureOrSwap)) ? mathMin(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         parameters = this.omit(parameters, new List<object>() {"until", "fetchTradesMethod"});
+        if (isTrue(isEqual(method, null)))
+        {
+            if (isTrue(getValue(market, "option")))
+            {
+                method = "eapiPublicGetTrades";
+            } else if (isTrue(getValue(market, "linear")))
+            {
+                method = "fapiPublicGetAggTrades";
+            } else if (isTrue(getValue(market, "inverse")))
+            {
+                method = "dapiPublicGetAggTrades";
+            } else
+            {
+                method = "publicGetAggTrades";
+            }
+        }
         object response = null;
-        if (isTrue(isTrue(getValue(market, "option")) || isTrue(isEqual(method, "eapiPublicGetTrades"))))
-        {
-            response = await this.eapiPublicGetTrades(this.extend(request, parameters));
-        } else if (isTrue(isTrue(getValue(market, "linear")) || isTrue(isEqual(method, "fapiPublicGetAggTrades"))))
-        {
-            response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
-        } else if (isTrue(isTrue(getValue(market, "inverse")) || isTrue(isEqual(method, "dapiPublicGetAggTrades"))))
-        {
-            response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
-        } else
+        if (isTrue(isEqual(method, "publicGetAggTrades")))
         {
             response = await this.publicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicGetTrades")))
+        {
+            response = await this.publicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "publicGetHistoricalTrades")))
+        {
+            response = await this.publicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetAggTrades")))
+        {
+            response = await this.fapiPublicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetTrades")))
+        {
+            response = await this.fapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "fapiPublicGetHistoricalTrades")))
+        {
+            response = await this.fapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetAggTrades")))
+        {
+            response = await this.dapiPublicGetAggTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetTrades")))
+        {
+            response = await this.dapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "dapiPublicGetHistoricalTrades")))
+        {
+            response = await this.dapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "eapiPublicGetTrades")))
+        {
+            response = await this.eapiPublicGetTrades(this.extend(request, parameters));
+        } else if (isTrue(isEqual(method, "eapiPublicGetHistoricalTrades")))
+        {
+            response = await this.eapiPublicGetHistoricalTrades(this.extend(request, parameters));
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTrades() does not support this method")) ;
         }
         //
         // Caveats:

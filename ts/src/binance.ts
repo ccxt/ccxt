@@ -5248,15 +5248,42 @@ export default class binance extends Exchange {
             request['limit'] = isFutureOrSwap ? Math.min (limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         params = this.omit (params, [ 'until', 'fetchTradesMethod' ]);
+        if (method === undefined) {
+            if (market['option']) {
+                method = 'eapiPublicGetTrades';
+            } else if (market['linear']) {
+                method = 'fapiPublicGetAggTrades';
+            } else if (market['inverse']) {
+                method = 'dapiPublicGetAggTrades';
+            } else {
+                method = 'publicGetAggTrades';
+            }
+        }
         let response = undefined;
-        if (market['option'] || method === 'eapiPublicGetTrades') {
-            response = await this.eapiPublicGetTrades (this.extend (request, params));
-        } else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
-            response = await this.fapiPublicGetAggTrades (this.extend (request, params));
-        } else if (market['inverse'] || method === 'dapiPublicGetAggTrades') {
-            response = await this.dapiPublicGetAggTrades (this.extend (request, params));
-        } else {
+        if (method === 'publicGetAggTrades') {
             response = await this.publicGetAggTrades (this.extend (request, params));
+        } else if (method === 'publicGetTrades') {
+            response = await this.publicGetTrades (this.extend (request, params));
+        } else if (method === 'publicGetHistoricalTrades') {
+            response = await this.publicGetHistoricalTrades (this.extend (request, params));
+        } else if (method === 'fapiPublicGetAggTrades') {
+            response = await this.fapiPublicGetAggTrades (this.extend (request, params));
+        } else if (method === 'fapiPublicGetTrades') {
+            response = await this.fapiPublicGetTrades (this.extend (request, params));
+        } else if (method === 'fapiPublicGetHistoricalTrades') {
+            response = await this.fapiPublicGetHistoricalTrades (this.extend (request, params));
+        } else if (method === 'dapiPublicGetAggTrades') {
+            response = await this.dapiPublicGetAggTrades (this.extend (request, params));
+        } else if (method === 'dapiPublicGetTrades') {
+            response = await this.dapiPublicGetTrades (this.extend (request, params));
+        } else if (method === 'dapiPublicGetHistoricalTrades') {
+            response = await this.dapiPublicGetHistoricalTrades (this.extend (request, params));
+        } else if (method === 'eapiPublicGetTrades') {
+            response = await this.eapiPublicGetTrades (this.extend (request, params));
+        } else if (method === 'eapiPublicGetHistoricalTrades') {
+            response = await this.eapiPublicGetHistoricalTrades (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchTrades() does not support this method');
         }
         //
         // Caveats:
@@ -5635,7 +5662,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
+    async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8070,7 +8097,7 @@ export default class binance extends Exchange {
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -9123,7 +9150,7 @@ export default class binance extends Exchange {
      * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+    async transfer (code: string, amount: number, fromAccount: string, toAccount: string, params = {}): Promise<TransferEntry> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
