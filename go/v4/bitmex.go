@@ -276,7 +276,7 @@ func (this *BitmexCore) Describe() any {
 		},
 		"precisionMode": TICK_SIZE,
 		"options": map[string]any{
-			"api-expires": 5,
+			"recvWindow": 5000,
 			"fetchOHLCV": map[string]any{
 				"useOpenTimestamp": true,
 			},
@@ -4373,7 +4373,8 @@ func (this *BitmexCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsTrue(IsEqual(api, "private")) || IsTrue((IsTrue(IsEqual(api, "public")) && IsTrue(isAuthenticated)))) {
 		this.CheckRequiredCredentials()
 		var auth any = Add(method, query)
-		var expires any = this.SafeInteger(this.Options, "api-expires")
+		var apiExpires any = this.SafeInteger(this.Options, "api-expires") // backwards compatibility
+		var expires any = this.SafeIntegerProduct(this.Options, "recvWindow", 0.001, apiExpires)
 		headers = map[string]any{
 			"Content-Type": "application/json",
 			"api-key":      this.ApiKey,
