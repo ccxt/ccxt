@@ -2756,7 +2756,7 @@ export default class aster extends Exchange {
         }
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
             let tif: Str = undefined;
-            [ tif, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce', 'GTC');
+            [ tif, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
             request['timeInForce'] = tif;
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
