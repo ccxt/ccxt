@@ -34,9 +34,6 @@ abstract class kraken extends \ccxt\Exchange {
     public function public_get_depth($params = array()) {
         return $this->request('Depth', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
-    public function public_get_level3($params = array()) {
-        return $this->request('Level3', 'public', 'GET', $params, null, null, array("cost" => 1.2));
-    }
     public function public_get_groupedbook($params = array()) {
         return $this->request('GroupedBook', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
@@ -51,6 +48,9 @@ abstract class kraken extends \ccxt\Exchange {
     }
     public function public_get_posttrade($params = array()) {
         return $this->request('PostTrade', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_level3($params = array()) {
+        return $this->request('Level3', 'private', 'POST', $params, null, null, array("cost" => 1.2));
     }
     public function private_post_balance($params = array()) {
         return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));
@@ -217,9 +217,6 @@ abstract class kraken extends \ccxt\Exchange {
     public function publicGetDepth($params = array()) {
         return $this->request('Depth', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
-    public function publicGetLevel3($params = array()) {
-        return $this->request('Level3', 'public', 'GET', $params, null, null, array("cost" => 1.2));
-    }
     public function publicGetGroupedBook($params = array()) {
         return $this->request('GroupedBook', 'public', 'GET', $params, null, null, array("cost" => 1.2));
     }
@@ -234,6 +231,9 @@ abstract class kraken extends \ccxt\Exchange {
     }
     public function publicGetPostTrade($params = array()) {
         return $this->request('PostTrade', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostLevel3($params = array()) {
+        return $this->request('Level3', 'private', 'POST', $params, null, null, array("cost" => 1.2));
     }
     public function privatePostBalance($params = array()) {
         return $this->request('Balance', 'private', 'POST', $params, null, null, array("cost" => 3));
