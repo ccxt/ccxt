@@ -34,6 +34,38 @@
                 "output": null
             }
         ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders",
+                "method": "fetchClosedOrders",
+                "url": "https://api.hibachi.xyz/trade/orders/history?accountId=13787&status=filled&startTime=1754040000000&endTime=1754050000000",
+                "input": [
+                    "SOL/USDT:USDT",
+                    1754040000000,
+                    null,
+                    {
+                        "until": 1754050000000
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.hibachi.xyz/trade/orders/history?accountId=13787&startTime=1754040000000&endTime=1754050000000",
+                "input": [
+                    "SOL/USDT:USDT",
+                    1754040000000,
+                    null,
+                    {
+                        "until": 1754050000000
+                    }
+                ],
+                "output": null
+            }
+        ],
         "fetchMyTrades": [
             {
                 "description": "fetchMyTrades",
