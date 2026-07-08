@@ -431,10 +431,12 @@ export default class aster extends Exchange {
             'options': {
                 'defaultType': 'spot',
                 'recvWindow': 10 * 1000, // 10 sec
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'v3ChainId': 1666, // Aster chain ID used for EIP-712 v3 signing
-                'quoteOrderQty': true, // whether market orders support amounts in quote currency
+                'createOrder': {
+                    'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty': true, // whether market orders support amounts in quote currency
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'swap': 'FUTURE',
@@ -2684,7 +2686,7 @@ export default class aster extends Exchange {
         request['type'] = uppercaseType;
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
+                const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
@@ -2753,7 +2755,9 @@ export default class aster extends Exchange {
             }
         }
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            let tif: Str = undefined;
+            [ tif, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+            request['timeInForce'] = tif;
         }
         const requestParams = this.omit (params, [ 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ]);
         if (this.safeBool (this.options, 'builderFee') && market['swap']) {
