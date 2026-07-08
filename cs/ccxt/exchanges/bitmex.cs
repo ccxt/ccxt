@@ -269,7 +269,7 @@ public partial class bitmex : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
-                { "api-expires", 5 },
+                { "recvWindow", 5000 },
                 { "fetchOHLCV", new Dictionary<string, object>() {
                     { "useOpenTimestamp", true },
                 } },
@@ -4012,7 +4012,8 @@ public partial class bitmex : Exchange
         {
             this.checkRequiredCredentials();
             object auth = add(method, query);
-            object expires = this.safeInteger(this.options, "api-expires");
+            object apiExpires = this.safeInteger(this.options, "api-expires"); // backwards compatibility
+            object expires = this.safeIntegerProduct(this.options, "recvWindow", 0.001, apiExpires);
             headers = new Dictionary<string, object>() {
                 { "Content-Type", "application/json" },
                 { "api-key", this.apiKey },
