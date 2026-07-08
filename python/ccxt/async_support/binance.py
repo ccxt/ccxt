@@ -5114,15 +5114,40 @@ class binance(Exchange, ImplicitAPI):
             maxLimitForContractHistorical = 500 if isHistoricalEndpoint else 1000
             request['limit'] = min(limit, maxLimitForContractHistorical) if isFutureOrSwap else limit  # default = 500, maximum = 1000
         params = self.omit(params, ['until', 'fetchTradesMethod'])
+        if method is None:
+            if market['option']:
+                method = 'eapiPublicGetTrades'
+            elif market['linear']:
+                method = 'fapiPublicGetAggTrades'
+            elif market['inverse']:
+                method = 'dapiPublicGetAggTrades'
+            else:
+                method = 'publicGetAggTrades'
         response = None
-        if market['option'] or method == 'eapiPublicGetTrades':
-            response = await self.eapiPublicGetTrades(self.extend(request, params))
-        elif market['linear'] or method == 'fapiPublicGetAggTrades':
-            response = await self.fapiPublicGetAggTrades(self.extend(request, params))
-        elif market['inverse'] or method == 'dapiPublicGetAggTrades':
-            response = await self.dapiPublicGetAggTrades(self.extend(request, params))
-        else:
+        if method == 'publicGetAggTrades':
             response = await self.publicGetAggTrades(self.extend(request, params))
+        elif method == 'publicGetTrades':
+            response = await self.publicGetTrades(self.extend(request, params))
+        elif method == 'publicGetHistoricalTrades':
+            response = await self.publicGetHistoricalTrades(self.extend(request, params))
+        elif method == 'fapiPublicGetAggTrades':
+            response = await self.fapiPublicGetAggTrades(self.extend(request, params))
+        elif method == 'fapiPublicGetTrades':
+            response = await self.fapiPublicGetTrades(self.extend(request, params))
+        elif method == 'fapiPublicGetHistoricalTrades':
+            response = await self.fapiPublicGetHistoricalTrades(self.extend(request, params))
+        elif method == 'dapiPublicGetAggTrades':
+            response = await self.dapiPublicGetAggTrades(self.extend(request, params))
+        elif method == 'dapiPublicGetTrades':
+            response = await self.dapiPublicGetTrades(self.extend(request, params))
+        elif method == 'dapiPublicGetHistoricalTrades':
+            response = await self.dapiPublicGetHistoricalTrades(self.extend(request, params))
+        elif method == 'eapiPublicGetTrades':
+            response = await self.eapiPublicGetTrades(self.extend(request, params))
+        elif method == 'eapiPublicGetHistoricalTrades':
+            response = await self.eapiPublicGetHistoricalTrades(self.extend(request, params))
+        else:
+            raise NotSupported(self.id + ' fetchTrades() does not support self method')
         #
         # Caveats:
         # - default limit(500) applies only if no other parameters set, trades up
