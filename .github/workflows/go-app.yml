@@ -23,7 +23,7 @@ jobs:
       - name: Setup Golang with cache
         uses: magnetikonline/action-golang-cache@v5
         with:
-          go-version: ~1.24
+          go-version: ~1.25
       - name: Install dependencies
         run: go mod download
         working-directory: ./go
