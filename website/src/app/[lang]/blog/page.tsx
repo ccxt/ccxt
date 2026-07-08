@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { BlogIndex } from '@/components/blog-index';
-import { blogDescription, getPostsPage, getTotalPages } from '@/lib/blog';
-import { appName, basePath, siteUrl } from '@/lib/shared';
+import { blogAbsoluteBase, blogDescription, getPostsPage, getTotalPages } from '@/lib/blog';
+import { appName, basePath } from '@/lib/shared';
 
 // Render on demand, then cache (same policy as the docs pages — prerendering a
 // default-locale page under hideLocale breaks the / rewrite, see [lang]/layout.tsx).
@@ -11,9 +11,9 @@ export const metadata: Metadata = {
   title: `Blog | ${appName}`,
   description: blogDescription,
   alternates: {
-    canonical: `${siteUrl}/blog`,
+    canonical: `${blogAbsoluteBase}/blog`,
     types: {
-      'application/rss+xml': [{ title: `${appName} Blog`, url: `${siteUrl}/blog/rss.xml` }],
+      'application/rss+xml': [{ title: `${appName} Blog`, url: `${blogAbsoluteBase}/blog/rss.xml` }],
     },
   },
   openGraph: {
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     siteName: appName,
     title: `${appName} Blog`,
     description: blogDescription,
-    url: `${siteUrl}/blog`,
+    url: `${blogAbsoluteBase}/blog`,
     images: [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
   },
 };

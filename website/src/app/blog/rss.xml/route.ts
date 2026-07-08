@@ -1,6 +1,6 @@
 import { Feed } from 'feed';
-import { blogDescription, getSortedPosts, postCanonicalUrl } from '@/lib/blog';
-import { appName, siteUrl } from '@/lib/shared';
+import { blogAbsoluteBase, blogDescription, getSortedPosts, postCanonicalUrl } from '@/lib/blog';
+import { appName } from '@/lib/shared';
 
 // Fully static: generated once at build time. This route lives OUTSIDE [lang] on
 // purpose — paths with a file extension bypass the i18n proxy (see src/proxy.ts
@@ -10,13 +10,13 @@ export const dynamic = 'force-static';
 export function GET(): Response {
   const feed = new Feed({
     title: `${appName} Blog`,
-    id: `${siteUrl}/blog`,
-    link: `${siteUrl}/blog`,
+    id: `${blogAbsoluteBase}/blog`,
+    link: `${blogAbsoluteBase}/blog`,
     description: blogDescription,
     language: 'en',
-    favicon: `${siteUrl}/icon.svg`,
+    favicon: `${blogAbsoluteBase}/icon.svg`,
     copyright: `© ${new Date().getFullYear()} CCXT`,
-    feedLinks: { rss: `${siteUrl}/blog/rss.xml` },
+    feedLinks: { rss: `${blogAbsoluteBase}/blog/rss.xml` },
   });
 
   // Latest 20 only — feed readers re-download this file on every poll, and the

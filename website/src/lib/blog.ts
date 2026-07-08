@@ -1,7 +1,7 @@
 import { blogPosts } from 'collections/server';
 import { toFumadocsSource } from 'fumadocs-mdx/runtime/server';
 import { loader } from 'fumadocs-core/source';
-import { siteUrl } from './shared';
+import { basePath, siteUrl } from './shared';
 
 // The blog is English-only (no i18n on this loader): every locale renders the same
 // posts, and the canonical URL is always the un-prefixed /blog/<slug>.
@@ -32,10 +32,14 @@ export function getPostsPage(page: number): BlogPost[] {
   return getSortedPosts().slice((page - 1) * POSTS_PER_PAGE, page * POSTS_PER_PAGE);
 }
 
+// Absolute URL prefix for blog canonical/OG/RSS links — includes the basePath so
+// a subpath deploy (/v2) emits URLs consistent with the sitemap.
+export const blogAbsoluteBase = `${siteUrl}${basePath}`;
+
 // Canonical, locale-less absolute URL of a post — used for <link rel=canonical>,
 // the RSS feed, and syndication (dev.to/Hashnode/Medium canonical_url).
 export function postCanonicalUrl(post: BlogPost): string {
-  return `${siteUrl}${post.url}`;
+  return `${blogAbsoluteBase}${post.url}`;
 }
 
 export function formatPostDate(date: Date | string): string {

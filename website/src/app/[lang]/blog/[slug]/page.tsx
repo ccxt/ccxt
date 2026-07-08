@@ -4,8 +4,8 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, Rss } from 'lucide-react';
 import { InlineTOC } from 'fumadocs-ui/components/inline-toc';
 import { getMDXComponents } from '@/components/mdx';
-import { blog, formatPostDate, postCanonicalUrl } from '@/lib/blog';
-import { appName, basePath, siteUrl } from '@/lib/shared';
+import { blog, blogAbsoluteBase, formatPostDate, postCanonicalUrl } from '@/lib/blog';
+import { appName, basePath } from '@/lib/shared';
 
 // Render on demand, then cache (same policy as the docs pages).
 export const revalidate = false;
@@ -73,7 +73,7 @@ export async function generateMetadata(props: PageProps<'/[lang]/blog/[slug]'>):
     alternates: {
       canonical,
       types: {
-        'application/rss+xml': [{ title: `${appName} Blog`, url: `${siteUrl}/blog/rss.xml` }],
+        'application/rss+xml': [{ title: `${appName} Blog`, url: `${blogAbsoluteBase}/blog/rss.xml` }],
       },
     },
     openGraph: {
