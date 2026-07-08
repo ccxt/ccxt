@@ -313,7 +313,9 @@ export default class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ],
-                'defaultTimeInForce': 'gtc', // fok, gtc, ioc
+                'createOrder': {
+                    'timeInForce': 'gtc', // fok, gtc, ioc
+                },
                 'clientOrderId': 'ccxt_{id}',
             },
             'features': {
@@ -1092,8 +1094,9 @@ export default class alpaca extends Exchange {
         } else {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
-        const defaultTIF = this.safeString (this.options, 'defaultTimeInForce');
-        request['time_in_force'] = this.safeString (params, 'timeInForce', defaultTIF);
+        let defaultTIF = undefined;
+        [ defaultTIF, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'timeInForce', 'defaultTimeInForce', 'gtc'); // defaultTimeInForce is for backward compatibility
+        request['time_in_force'] = defaultTIF;
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         request['client_order_id'] = this.generateClientOrderId (params);
         params = this.omit (params, [ 'clientOrderId' ]);
