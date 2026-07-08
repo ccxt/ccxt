@@ -1795,12 +1795,6 @@ export default class bitmex extends Exchange {
         //     ]
         //
         let result = this.parseOHLCVs (response, market, timeframe, since, limit);
-        result = this.changeCandlesFromCloseToOpenTime (result, duration, params);
-        result = this.changeCandlesOpenToHighLow (result);
-        return result;
-    }
-
-    changeCandlesFromCloseToOpenTime (result, duration: Int, params = {}) {
         let useOpenTimestamp = undefined;
         [ useOpenTimestamp, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useOpenTimestamp', true);
         if (useOpenTimestamp) {
@@ -1811,6 +1805,7 @@ export default class bitmex extends Exchange {
                 result[i][0] = this.parseToInt (result[i][0]) - duration;
             }
         }
+        result = this.changeCandlesOpenToHighLow (result);
         return result;
     }
 
@@ -1825,6 +1820,9 @@ export default class bitmex extends Exchange {
         if (this.handleOption ('fetchOHLCV', 'autocorrectOpenPrice', true)) {
             for (let i = 0; i < result.length; i++) {
                 const open = result[i][1];
+                if (open === undefined) {
+                    continue;
+                }
                 const high = result[i][2];
                 const low = result[i][3];
                 if (open > high) {
