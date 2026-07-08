@@ -5281,15 +5281,42 @@ class binance extends Exchange {
                 $request['limit'] = $isFutureOrSwap ? min($limit, $maxLimitForContractHistorical) : $limit; // default = 500, maximum = 1000
             }
             $params = $this->omit($params, array( 'until', 'fetchTradesMethod' ));
+            if ($method === null) {
+                if ($market['option']) {
+                    $method = 'eapiPublicGetTrades';
+                } elseif ($market['linear']) {
+                    $method = 'fapiPublicGetAggTrades';
+                } elseif ($market['inverse']) {
+                    $method = 'dapiPublicGetAggTrades';
+                } else {
+                    $method = 'publicGetAggTrades';
+                }
+            }
             $response = null;
-            if ($market['option'] || $method === 'eapiPublicGetTrades') {
-                $response = Async\await($this->eapiPublicGetTrades($this->extend($request, $params)));
-            } elseif ($market['linear'] || $method === 'fapiPublicGetAggTrades') {
-                $response = Async\await($this->fapiPublicGetAggTrades($this->extend($request, $params)));
-            } elseif ($market['inverse'] || $method === 'dapiPublicGetAggTrades') {
-                $response = Async\await($this->dapiPublicGetAggTrades($this->extend($request, $params)));
-            } else {
+            if ($method === 'publicGetAggTrades') {
                 $response = Async\await($this->publicGetAggTrades($this->extend($request, $params)));
+            } elseif ($method === 'publicGetTrades') {
+                $response = Async\await($this->publicGetTrades($this->extend($request, $params)));
+            } elseif ($method === 'publicGetHistoricalTrades') {
+                $response = Async\await($this->publicGetHistoricalTrades($this->extend($request, $params)));
+            } elseif ($method === 'fapiPublicGetAggTrades') {
+                $response = Async\await($this->fapiPublicGetAggTrades($this->extend($request, $params)));
+            } elseif ($method === 'fapiPublicGetTrades') {
+                $response = Async\await($this->fapiPublicGetTrades($this->extend($request, $params)));
+            } elseif ($method === 'fapiPublicGetHistoricalTrades') {
+                $response = Async\await($this->fapiPublicGetHistoricalTrades($this->extend($request, $params)));
+            } elseif ($method === 'dapiPublicGetAggTrades') {
+                $response = Async\await($this->dapiPublicGetAggTrades($this->extend($request, $params)));
+            } elseif ($method === 'dapiPublicGetTrades') {
+                $response = Async\await($this->dapiPublicGetTrades($this->extend($request, $params)));
+            } elseif ($method === 'dapiPublicGetHistoricalTrades') {
+                $response = Async\await($this->dapiPublicGetHistoricalTrades($this->extend($request, $params)));
+            } elseif ($method === 'eapiPublicGetTrades') {
+                $response = Async\await($this->eapiPublicGetTrades($this->extend($request, $params)));
+            } elseif ($method === 'eapiPublicGetHistoricalTrades') {
+                $response = Async\await($this->eapiPublicGetHistoricalTrades($this->extend($request, $params)));
+            } else {
+                throw new NotSupported($this->id . ' fetchTrades() does not support this method');
             }
             //
             // Caveats:
