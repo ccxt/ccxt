@@ -488,24 +488,6 @@
                 "url": "https://api.bithumb.com/v1/deposits/coin_addresses",
                 "input": []
             }
-        ],
-        "createTwapOrder": [
-            {
-                "description": "generation 2 createTwapOrder",
-                "method": "createTwapOrder",
-                "url": "https://api.bithumb.com/v1/twap",
-                "input": [
-                    "BTC/KRW",
-                    "buy",
-                    null,
-                    43200000,
-                    {
-                        "price": "9500000",
-                        "frequency": "120"
-                    }
-                ],
-                "output": "{\"market\":\"KRW-BTC\",\"duration\":\"43200\",\"side\":\"bid\",\"price\":\"9500000\",\"frequency\":\"120\"}"
-            }
         ]
     }
 }

@@ -3238,56 +3238,6 @@
                     }
                 }
             }
-        ],
-        "createTwapOrder": [
-            {
-                "description": "generation 2 create twap order",
-                "method": "createTwapOrder",
-                "input": [
-                    "BTC/KRW",
-                    "buy",
-                    null,
-                    43200000,
-                    {
-                        "price": "9500000",
-                        "frequency": "120"
-                    }
-                ],
-                "httpResponse": {
-                    "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
-                    },
-                    "id": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
-                    "clientOrderId": null,
-                    "timestamp": null,
-                    "datetime": null,
-                    "lastTradeTimestamp": null,
-                    "symbol": "BTC/KRW",
-                    "type": null,
-                    "timeInForce": null,
-                    "postOnly": null,
-                    "side": null,
-                    "price": null,
-                    "triggerPrice": null,
-                    "amount": null,
-                    "cost": null,
-                    "average": null,
-                    "filled": null,
-                    "remaining": null,
-                    "status": null,
-                    "fee": null,
-                    "trades": [],
-                    "fees": [],
-                    "lastUpdateTimestamp": null,
-                    "reduceOnly": null,
-                    "stopPrice": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
-                }
-            }
         ]
     }
 }
