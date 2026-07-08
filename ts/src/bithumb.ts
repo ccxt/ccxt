@@ -45,6 +45,7 @@ export default class bithumb extends Exchange {
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createOrderWithTakeProfitAndStopLossWs': false,
                 'createReduceOnlyOrder': false,
+                'createTwapOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowInterest': false,
                 'fetchBorrowRate': false,
@@ -1750,15 +1751,66 @@ export default class bithumb extends Exchange {
 
     /**
      * @method
+     * @name bithumb#createTwapOrder
+     * @description create a trade order that is executed as a TWAP order over a specified duration.
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
+     * @param {string} symbol unified symbol of the market to create an order in
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} amount how much of currency you want to trade in units of base currency, only required for sale
+     * @param {int} duration the duration of the TWAP order in milliseconds
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} params.frequency required order interval in seconds, 15, 20, 30, 60 or 120
+     * @param {string} [params.price] order price, required for purchase
+     * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async createTwapOrder (symbol: string, side: OrderSide, amount: number, duration: number, params = {}): Promise<Order> {
+        let generation: Int = undefined;
+        [ generation, params ] = this.handleOptionAndParams (params, 'createTwapOrder', 'generation', 2);
+        if (generation !== 2) {
+            throw new BadRequest (this.id + ' createTwapOrder() is only supported for the generation 2 API');
+        }
+        await this.loadMarketsGeneration (generation);
+        const market = this.market (symbol);
+        const durationString = this.numberToString (duration);
+        const durationSeconds = Precise.stringDiv (durationString, '1000');
+        const request: Dict = {
+            'market': market['id'],
+            'duration': durationSeconds,
+        };
+        if (amount !== undefined) {
+            request['volume'] = this.amountToPrecision (symbol, amount); // required for sale
+        }
+        let sideRequest = undefined;
+        if (side === 'buy') {
+            sideRequest = 'bid';
+        } else {
+            sideRequest = 'ask';
+        }
+        request['side'] = sideRequest;
+        const response = await this.privatePostV1Twap (this.extend (request, params));
+        //
+        //     {
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
+    /**
+     * @method
      * @name bithumb#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C
      * @see https://apidocs.bithumb.com/reference/%EA%B0%9C%EB%B3%84-%EC%A3%BC%EB%AC%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] the clientOrderId of the order, alternative to using the order id
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch a generation 2 twap order
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1769,41 +1821,77 @@ export default class bithumb extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        const twap = this.safeBool (params, 'twap', false);
+        params = this.omit (params, 'twap');
         const request: Dict = {};
         let response = undefined;
         let data = undefined;
         if (generation === 2) {
-            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-            if (clientOrderId !== undefined) {
-                request['client_order_id'] = clientOrderId;
-                params = this.omit (params, [ 'clientOrderId' ]);
+            if (twap) {
+                if (market !== undefined) {
+                    request['market'] = market['id'];
+                }
+                request['uuids'] = [ id ];
+                response = await this.privateGetV1Twap (this.extend (request, params));
+                //
+                //     {
+                //         "has_next": false,
+                //         "next_key": null,
+                //         "orders": [
+                //             {
+                //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                //                 "side": "bid",
+                //                 "price": "92500000",
+                //                 "state": "progress",
+                //                 "market": "KRW-BTC",
+                //                 "created_at": "2025-12-04T10:00:00+09:00",
+                //                 "volume": "1.0",
+                //                 "total_order_count": 60,
+                //                 "total_trades_count": 10,
+                //                 "progress_count": 25,
+                //                 "total_executed_amount": "2312500000",
+                //                 "total_executed_volume": "0.25",
+                //                 "avg_trade_price": "92500000.000",
+                //                 "wallet_id": "0000000000-00-0000"
+                //             },
+                //         ]
+                //     }
+                //
+                const orders = this.safeList (response, 'orders', []);
+                data = this.safeDict (orders, 0, {});
             } else {
-                request['uuid'] = id;
+                const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+                if (clientOrderId !== undefined) {
+                    request['client_order_id'] = clientOrderId;
+                    params = this.omit (params, [ 'clientOrderId' ]);
+                } else {
+                    request['uuid'] = id;
+                }
+                response = await this.privateGetV1Order (this.extend (request, params));
+                //
+                //     {
+                //         "uuid": "C0101000003152406454",
+                //         "side": "bid",
+                //         "ord_type": "limit",
+                //         "price": "9500000",
+                //         "state": "wait",
+                //         "market": "KRW-BTC",
+                //         "created_at": "2026-07-04T15:05:46+09:00",
+                //         "volume": "0.001",
+                //         "remaining_volume": "0.001",
+                //         "reserved_fee": "23.75",
+                //         "remaining_fee": "23.75",
+                //         "paid_fee": "0",
+                //         "locked": "9524.75",
+                //         "executed_volume": "0",
+                //         "executed_funds": "0",
+                //         "trades_count": 0,
+                //         "stp_type": "cancel_taker",
+                //         "trades": []
+                //     }
+                //
+                data = response;
             }
-            response = await this.privateGetV1Order (this.extend (request, params));
-            //
-            //     {
-            //         "uuid": "C0101000003152406454",
-            //         "side": "bid",
-            //         "ord_type": "limit",
-            //         "price": "9500000",
-            //         "state": "wait",
-            //         "market": "KRW-BTC",
-            //         "created_at": "2026-07-04T15:05:46+09:00",
-            //         "volume": "0.001",
-            //         "remaining_volume": "0.001",
-            //         "reserved_fee": "23.75",
-            //         "remaining_fee": "23.75",
-            //         "paid_fee": "0",
-            //         "locked": "9524.75",
-            //         "executed_volume": "0",
-            //         "executed_funds": "0",
-            //         "trades_count": 0,
-            //         "stp_type": "cancel_taker",
-            //         "trades": []
-            //     }
-            //
-            data = response;
         } else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -1857,6 +1945,7 @@ export default class bithumb extends Exchange {
             'watch': 'open',
             'done': 'closed',
             'cancel': 'canceled',
+            'progress': 'open',
         };
         return this.safeString (statuses, (status as string), status);
     }
@@ -1951,6 +2040,33 @@ export default class bithumb extends Exchange {
         //         "created_at": "2026-07-04T14:39:04+09:00"
         //     }
         //
+        // generation 2: createTwapOrder, twap cancelOrder
+        //
+        //     {
+        //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
+        //     }
+        //
+        // generation 2: twap fetchOrder, fetchOrders, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
+        //
+        //     {
+        //         "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+        //         "side": "bid",
+        //         "price": "92500000",
+        //         "state": "progress",
+        //         "market": "KRW-BTC",
+        //         "created_at": "2025-12-03T09:00:00+09:00",
+        //         "volume": "1.0",
+        //         "total_order_count": 60,
+        //         "total_trades_count": 10,
+        //         "progress_count": 25,
+        //         "total_executed_amount": "2312500000",
+        //         "total_executed_volume": "0.25",
+        //         "avg_trade_price": "92500000.000",
+        //         "wallet_id": "0000000000-00-0000",
+        //         "canceled_at": "2025-12-03T09:15:00+09:00",
+        //         "cancel_type": "user"
+        //     }
+        //
         let datetime = this.safeString (order, 'created_at');
         let timestamp = undefined;
         if (datetime !== undefined) {
@@ -1979,7 +2095,8 @@ export default class bithumb extends Exchange {
         const status = this.parseOrderStatus (this.safeString2 (order, 'order_status', 'state'));
         const price = this.safeString2 (order, 'order_price', 'price');
         let type = this.safeString2 (order, 'order_type', 'ord_type');
-        if ((type === undefined) && (price !== undefined)) {
+        const progressCount = this.safeString (order, 'progress_count');
+        if ((type === undefined) && (price !== undefined) && (progressCount === undefined)) {
             if (Precise.stringEquals (price, '0')) {
                 type = 'market';
             } else {
@@ -2008,7 +2125,7 @@ export default class bithumb extends Exchange {
             market = this.safeMarket (marketId, market);
             symbol = market['symbol'];
         }
-        const id = this.safeString2 (order, 'order_id', 'uuid');
+        const id = this.safeStringN (order, [ 'order_id', 'uuid', 'algo_order_id' ]);
         const rawTrades = this.safeList2 (order, 'contract', 'trades', []);
         const feeCost = this.safeNumber (order, 'reserved_fee');
         let fee: Fee = undefined;
@@ -2039,7 +2156,7 @@ export default class bithumb extends Exchange {
             'triggerPrice': undefined,
             'amount': amount,
             'cost': undefined,
-            'average': undefined,
+            'average': this.safeNumber (order, 'avg_trade_price'),
             'filled': undefined,
             'remaining': remaining,
             'status': status,
@@ -2054,11 +2171,14 @@ export default class bithumb extends Exchange {
      * @description fetch all unfilled currently open orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch generation 2 twap orders
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2069,7 +2189,12 @@ export default class bithumb extends Exchange {
         let market = undefined;
         let response = undefined;
         if (generation === 2) {
-            params['state'] = 'wait';
+            const twap = this.safeBool (params, 'twap', false);
+            if (twap) {
+                params['state'] = 'progress';
+            } else {
+                params['state'] = 'wait';
+            }
             const orders = await this.fetchOrders (symbol, since, limit, params);
             return this.filterBySinceLimit (orders, since, limit) as Order[];
         } else {
@@ -2116,12 +2241,15 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchOrders
      * @description fetches information on multiple orders made by the user
      * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] an array of client order ids
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] *generation 2 only* if you want to fetch generation 2 twap orders
+     * @param {string} [params.state] *generation 2 only* the order state, either wait, watch, done, or cancel. For twap either progress (default), done, or cancel
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2132,10 +2260,14 @@ export default class bithumb extends Exchange {
         }
         await this.loadMarketsGeneration (generation);
         const request: Dict = {};
-        const clientOrderIds = this.safeList2 (params, 'client_order_ids', 'clientOrderIds');
-        if (clientOrderIds !== undefined) {
-            request['client_order_ids'] = clientOrderIds;
-            params = this.omit (params, [ 'clientOrderIds' ]);
+        const twap = this.safeBool (params, 'twap', false);
+        params = this.omit (params, 'twap');
+        if (!twap) {
+            const clientOrderIds = this.safeList2 (params, 'client_order_ids', 'clientOrderIds');
+            if (clientOrderIds !== undefined) {
+                request['client_order_ids'] = clientOrderIds;
+                params = this.omit (params, [ 'clientOrderIds' ]);
+            }
         }
         let market = undefined;
         if (symbol !== undefined) {
@@ -2145,31 +2277,63 @@ export default class bithumb extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV1Orders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "uuid": "C0101000003152406454",
-        //             "side": "bid",
-        //             "ord_type": "limit",
-        //             "price": "9500000",
-        //             "state": "wait",
-        //             "market": "KRW-BTC",
-        //             "created_at": "2026-07-04T15:05:46+09:00",
-        //             "volume": "0.001",
-        //             "remaining_volume": "0.001",
-        //             "reserved_fee": "23.75",
-        //             "remaining_fee": "23.75",
-        //             "paid_fee": "0",
-        //             "locked": "9524.75",
-        //             "executed_volume": "0",
-        //             "executed_funds": "0",
-        //             "trades_count": 0,
-        //             "stp_type": "cancel_taker"
-        //         }
-        //     ]
-        //
-        return this.parseOrders (response, market, since, limit);
+        let response = undefined;
+        let data = undefined;
+        if (twap) {
+            response = await this.privateGetV1Twap (this.extend (request, params));
+            //
+            //     {
+            //         "has_next": false,
+            //         "next_key": null,
+            //         "orders": [
+            //             {
+            //                 "uuid": "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+            //                 "side": "bid",
+            //                 "price": "92500000",
+            //                 "state": "progress",
+            //                 "market": "KRW-BTC",
+            //                 "created_at": "2025-12-04T10:00:00+09:00",
+            //                 "volume": "1.0",
+            //                 "total_order_count": 60,
+            //                 "total_trades_count": 10,
+            //                 "progress_count": 25,
+            //                 "total_executed_amount": "2312500000",
+            //                 "total_executed_volume": "0.25",
+            //                 "avg_trade_price": "92500000.000",
+            //                 "wallet_id": "0000000000-00-0000"
+            //             },
+            //         ]
+            //     }
+            //
+            data = this.safeList (response, 'orders', []);
+        } else {
+            response = await this.privateGetV1Orders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "uuid": "C0101000003152406454",
+            //             "side": "bid",
+            //             "ord_type": "limit",
+            //             "price": "9500000",
+            //             "state": "wait",
+            //             "market": "KRW-BTC",
+            //             "created_at": "2026-07-04T15:05:46+09:00",
+            //             "volume": "0.001",
+            //             "remaining_volume": "0.001",
+            //             "reserved_fee": "23.75",
+            //             "remaining_fee": "23.75",
+            //             "paid_fee": "0",
+            //             "locked": "9524.75",
+            //             "executed_volume": "0",
+            //             "executed_funds": "0",
+            //             "trades_count": 0,
+            //             "stp_type": "cancel_taker"
+            //         }
+            //     ]
+            //
+            data = response;
+        }
+        return this.parseOrders (data, market, since, limit);
     }
 
     /**
@@ -2177,12 +2341,14 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchClosedOrders
      * @description fetches information on multiple closed orders made by the user
      * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] an array of client order ids
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2196,12 +2362,14 @@ export default class bithumb extends Exchange {
      * @name bithumb#fetchCanceledOrders
      * @description fetches information on multiple canceled orders made by the user
      * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.clientOrderIds] an array of client order ids
      * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to fetch generation 2 twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -2216,11 +2384,13 @@ export default class bithumb extends Exchange {
      * @description cancels an open order
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0
      * @see https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C-%EC%A0%91%EC%88%98
+     * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.clientOrderId] the clientOrderId of the order, alternative to using the order id
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {bool} [params.twap] if you want to cancel a generation 2 twap order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2233,21 +2403,36 @@ export default class bithumb extends Exchange {
         }
         const request: Dict = {};
         let response = undefined;
-        const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
-        if ((generation === 2) && (clientOrderId !== undefined)) {
-            request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'clientOrderId' ]);
+        const twap = this.safeBool (params, 'twap', false);
+        params = this.omit (params, 'twap');
+        if (twap) {
+            request['algo_order_id'] = id;
         } else {
-            request['order_id'] = id;
+            const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
+            if ((generation === 2) && (clientOrderId !== undefined)) {
+                request['client_order_id'] = clientOrderId;
+                params = this.omit (params, [ 'clientOrderId' ]);
+            } else {
+                request['order_id'] = id;
+            }
         }
         if (generation === 2) {
-            response = await this.privateDeleteV2Order (this.extend (request, params));
-            //
-            //     {
-            //         "order_id": "C0101000003152350309",
-            //         "created_at": "2026-07-04T14:39:04+09:00"
-            //     }
-            //
+            if (twap) {
+                response = await this.privateDeleteV1Twap (this.extend (request, params));
+                //
+                //     {
+                //         "algo_order_id": "TWAP-A01B02C03D04E05F06"
+                //     }
+                //
+            } else {
+                response = await this.privateDeleteV2Order (this.extend (request, params));
+                //
+                //     {
+                //         "order_id": "C0101000003152350309",
+                //         "created_at": "2026-07-04T14:39:04+09:00"
+                //     }
+                //
+            }
         } else {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -2391,14 +2576,14 @@ export default class bithumb extends Exchange {
                 if (twoFactorType === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a two_factor_type parameter for withdrawing KRW');
                 }
-                const krwRequest: Dict = { 'amount': amount.toString () }; // KRW withdraw only accepts amount and two_factor_type parameters
+                const krwRequest: Dict = { 'amount': this.numberToString (amount) }; // KRW withdraw only accepts amount and two_factor_type parameters
                 response = await this.privatePostV1WithdrawsKrw (this.extend (krwRequest, params));
             } else {
                 if (network === undefined) {
                     throw new ArgumentsRequired (this.id + ' ' + code + ' withdraw() requires a network parameter');
                 }
                 request['net_type'] = network;
-                request['amount'] = amount.toString ();
+                request['amount'] = this.numberToString (amount);
                 if (destinationRequest !== undefined) {
                     request['secondary_address'] = destinationRequest;
                 }
@@ -2961,19 +3146,19 @@ export default class bithumb extends Exchange {
                     'timestamp': this.milliseconds (),
                 };
                 let auth = undefined;
-                const isBulkCancelEndpoint = (endpoint === '/v2/orders/cancel');
+                const usesBracketedArrayEncoding = (endpoint === '/v2/orders/cancel') || (endpoint === '/v1/twap');
                 if ((method !== 'GET') && (method !== 'DELETE')) {
                     body = this.json (query);
                     headers['Content-Type'] = 'application/json';
                     if (hasQuery) {
-                        if (isBulkCancelEndpoint) {
+                        if (usesBracketedArrayEncoding) {
                             auth = this.urlencodeWithArrayBrackets (query);
                         } else {
                             auth = this.rawencode (query);
                         }
                     }
                 } else if (hasQuery) {
-                    if (isBulkCancelEndpoint) {
+                    if (usesBracketedArrayEncoding) {
                         auth = this.urlencodeWithArrayBrackets (query);
                     } else {
                         auth = this.urlencode (query);

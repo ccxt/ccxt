@@ -197,6 +197,48 @@
                     "C0101000003152406454",
                     "BTC/KRW"
                 ]
+            },
+            {
+                "description": "generation 2 twap fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&uuids[]=019f3ed7-4f92-7179-beee-84b4c71e53fa&state=cancel",
+                "input": [
+                    "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                    "BTC/KRW",
+                    {
+                        "twap": true,
+                        "state": "cancel"
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "generation 2 fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api.bithumb.com/v1/orders?market=KRW-BTC&limit=1&state=cancel",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    1,
+                    {
+                        "state": "cancel"
+                    }
+                ]
+            },
+            {
+                "description": "generation 2 twap fetchOrders",
+                "method": "fetchOrders",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&state=cancel",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    null,
+                    {
+                        "twap": true,
+                        "state": "cancel"
+                    }
+                ]
             }
         ],
         "fetchOpenOrders": [
@@ -223,6 +265,19 @@
                     null,
                     null
                 ]
+            },
+            {
+                "description": "generation 2 twap fetchOpenOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&state=progress",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    null,
+                    {
+                        "twap": true
+                    }
+                ]
             }
         ],
         "cancelOrder": [
@@ -247,6 +302,18 @@
                 "input": [
                     "C0101000003152406454",
                     "BTC/KRW"
+                ]
+            },
+            {
+                "description": "generation 2 twap cancelOrder",
+                "method": "cancelOrder",
+                "url": "https://api.bithumb.com/v1/twap?algo_order_id=019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                "input": [
+                    "019f3ed7-4f92-7179-beee-84b4c71e53fa",
+                    "BTC/KRW",
+                    {
+                        "twap": true
+                    }
                 ]
             }
         ],
@@ -312,6 +379,20 @@
                     "BTC/KRW",
                     null,
                     3
+                ]
+            },
+            {
+                "description": "generation 2 twap fetchCanceledOrders",
+                "method": "fetchCanceledOrders",
+                "url": "https://api.bithumb.com/v1/twap?market=KRW-BTC&state=cancel",
+                "input": [
+                    "BTC/KRW",
+                    null,
+                    null,
+                    {
+                        "twap": true,
+                        "state": "cancel"
+                    }
                 ]
             }
         ],
@@ -406,6 +487,24 @@
                 "method": "fetchDepositAddresses",
                 "url": "https://api.bithumb.com/v1/deposits/coin_addresses",
                 "input": []
+            }
+        ],
+        "createTwapOrder": [
+            {
+                "description": "generation 2 createTwapOrder",
+                "method": "createTwapOrder",
+                "url": "https://api.bithumb.com/v1/twap",
+                "input": [
+                    "BTC/KRW",
+                    "buy",
+                    null,
+                    43200000,
+                    {
+                        "price": "9500000",
+                        "frequency": "120"
+                    }
+                ],
+                "output": "{\"market\":\"KRW-BTC\",\"duration\":\"43200\",\"side\":\"bid\",\"price\":\"9500000\",\"frequency\":\"120\"}"
             }
         ]
     }
