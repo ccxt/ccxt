@@ -2,7 +2,8 @@
     "exchange": "nado",
     "skipKeys": [
         "signature",
-        "recvTime"
+        "recvTime",
+        "nonce"
     ],
     "outputType": "json",
     "walletAddress": "0x1230000000000000000000000000000000000123",
@@ -333,6 +334,106 @@
                 "method": "fetchCurrencies",
                 "url": "https://gateway.test.nado.xyz/v2/assets",
                 "input": []
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "create limit buy BTC/USDT0:USDT0 order",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://gateway.test.nado.xyz/v1/execute",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "limit",
+                    "buy",
+                    0.1,
+                    10000
+                ],
+                "output": "{\"place_order\":{\"product_id\":2,\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132061784768512\",\"appendix\":\"2748779069441\"},\"signature\":\"\"}}"
+            },
+            {
+                "description": "create BTC/USDT0:USDT0 trigger order",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://trigger.test.nado.xyz/v1/execute",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "limit",
+                    "buy",
+                    0.1,
+                    10000,
+                    {
+                        "triggerPrice": 10010,
+                        "triggerDirection": "up"
+                    }
+                ],
+                "output": "{\"place_order\":{\"product_id\":2,\"trigger\":{\"price_trigger\":{\"price_requirement\":{\"oracle_price_up\":\"10010000000000000000000\"}}},\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132253619650560\",\"appendix\":\"2748779073537\"},\"signature\":\"0xc4b9b3af50ee19200d09045293c1af5596dda3de13be48aab07df94f1e31cab2595d769e6d8d9e10e0b118d0bdd6d75f9b55517f249efcc2aef657f8186fda661b\"}}"
+            },
+            {
+                "description": "create BTC/USDT0:USDT0 take profit order",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://trigger.test.nado.xyz/v1/execute",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    "limit",
+                    "buy",
+                    0.1,
+                    10000,
+                    {
+                        "takeProfitPrice": 10010
+                    }
+                ],
+                "output": "{\"place_order\":{\"product_id\":2,\"trigger\":{\"price_trigger\":{\"price_requirement\":{\"oracle_price_below\":\"10010000000000000000000\"}}},\"order\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"priceX18\":\"10000000000000000000000\",\"amount\":\"100000000000000000\",\"expiration\":\"4294967295\",\"nonce\":\"1870132253619650560\",\"appendix\":\"2748779073537\"},\"signature\":\"0xc4b9b3af50ee19200d09045293c1af5596dda3de13be48aab07df94f1e31cab2595d769e6d8d9e10e0b118d0bdd6d75f9b55517f249efcc2aef657f8186fda661b\"}}"
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://gateway.test.nado.xyz/v1/execute",
+                "input": [
+                    "BTC/USDT0:USDT0"
+                ],
+                "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"productIds\":[2],\"nonce\":\"1870132663242719232\"},\"signature\":\"\"}}"
+            },
+            {
+                "description": "cancelAllTriggerOrders",
+                "method": "cancelAllOrders",
+                "url": "https://trigger.test.nado.xyz/v1/execute",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"cancel_product_orders\":{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"productIds\":[2],\"nonce\":\"1870132663252156416\"},\"signature\":\"\"}}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders",
+                "method": "cancelOrders",
+                "url": "https://gateway.test.nado.xyz/v1/execute",
+                "input": [
+                    [
+                        "0x0000000000000000000000000000000000000000000000000000000000000001"
+                    ],
+                    "BTC/USDT0:USDT0"
+                ],
+                "output": "{\"cancel_orders\":{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"productIds\":[2],\"digests\":[\"0x0000000000000000000000000000000000000000000000000000000000000001\"],\"nonce\":\"1870133155077292032\"},\"signature\":\"\"}}"
+            },
+            {
+                "description": "cancelTriggerOrders",
+                "method": "cancelOrders",
+                "url": "https://trigger.test.nado.xyz/v1/execute",
+                "input": [
+                    [
+                        "0x0000000000000000000000000000000000000000000000000000000000000001"
+                    ],
+                    "BTC/USDT0:USDT0",
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"cancel_orders\":{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"productIds\":[2],\"digests\":[\"0x0000000000000000000000000000000000000000000000000000000000000001\"],\"nonce\":\"1870133155110846464\"},\"signature\":\"\"}}"
             }
         ]
     }
