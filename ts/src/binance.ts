@@ -1344,7 +1344,7 @@ export default class binance extends Exchange {
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
                 'fetchOpenOrders': {
-                    'warnIfWithoutSymbol': true,
+                    'warnWithoutSymbol': true,
                 },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
@@ -7426,11 +7426,15 @@ export default class binance extends Exchange {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             const marketType = ('type' in market) ? market['type'] : defaultType;
             type = this.safeString (params, 'type', marketType);
-        } else if (this.safeBool (this.options['fetchOpenOrders'], 'warnIfWithoutSymbol') && this.safeValue (this.options, 'warnOnFetchOpenOrdersWithoutSymbol')) {
-            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnIfWithoutSymbol"] = false to suppress this warning message.');
         } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
+            const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol');
+            const optValue = this.safeBool (this.options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
+            if (optValue || (optValue === undefined && warnWithoutSymbol)) {
+                throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
+            } else {
+                const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+                type = this.safeString (params, 'type', defaultType);
+            }
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
