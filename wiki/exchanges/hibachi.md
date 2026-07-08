@@ -22,12 +22,16 @@
 * [fetchOrderBook](#fetchorderbook)
 * [fetchMyTrades](#fetchmytrades)
 * [fetchOpenOrders](#fetchopenorders)
+* [fetchClosedOrders](#fetchclosedorders)
+* [fetchCanceledOrders](#fetchcanceledorders)
 * [fetchOHLCV](#fetchohlcv)
 * [fetchPositions](#fetchpositions)
 * [fetchLedger](#fetchledger)
 * [fetchDepositAddress](#fetchdepositaddress)
+* [fetchDepositsWithdrawals](#fetchdepositswithdrawals)
 * [fetchDeposits](#fetchdeposits)
 * [fetchWithdrawals](#fetchwithdrawals)
+* [fetchMySettlementHistory](#fetchmysettlementhistory)
 * [fetchTime](#fetchtime)
 * [fetchOpenInterest](#fetchopeninterest)
 * [fetchFundingRate](#fetchfundingrate)
@@ -413,6 +417,56 @@ hibachi.fetchOpenOrders (symbol?, since?, limit?, params?)
 ```
 
 
+<a name="fetchClosedOrders" id="fetchclosedorders"></a>
+
+### fetchClosedOrders{docsify-ignore}
+fetches information on multiple closed orders made by the user
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the orders |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | the maximum number of closed order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest order |
+| params.cursorOrderId | <code>string</code> | No | pagination cursor, returns orders with orderId strictly less than this value |
+
+
+```javascript
+hibachi.fetchClosedOrders (symbol?, since?, limit?, params?)
+```
+
+
+<a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
+
+### fetchCanceledOrders{docsify-ignore}
+fetches information on multiple canceled orders made by the user
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;Order&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the orders |
+| since | <code>int</code> | No | timestamp in ms of the earliest order |
+| limit | <code>int</code> | No | the maximum number of canceled order structures to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest order |
+| params.cursorOrderId | <code>string</code> | No | pagination cursor, returns orders with orderId strictly less than this value |
+
+
+```javascript
+hibachi.fetchCanceledOrders (symbol?, since?, limit?, params?)
+```
+
+
 <a name="fetchOHLCV" id="fetchohlcv"></a>
 
 ### fetchOHLCV{docsify-ignore}
@@ -504,6 +558,29 @@ hibachi.fetchDepositAddress (code, params?)
 ```
 
 
+<a name="fetchDepositsWithdrawals" id="fetchdepositswithdrawals"></a>
+
+### fetchDepositsWithdrawals{docsify-ignore}
+fetch deposit and withdrawal history for the account
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [transaction structures](https://docs.ccxt.com/?id=transaction-structure)
+
+**See**: https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| code | <code>string</code> | No | unified currency code |
+| since | <code>int</code> | No | timestamp in ms of the earliest transaction |
+| limit | <code>int</code> | No | the maximum number of transactions to return |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+hibachi.fetchDepositsWithdrawals (code?, since?, limit?, params?)
+```
+
+
 <a name="fetchDeposits" id="fetchdeposits"></a>
 
 ### fetchDeposits{docsify-ignore}
@@ -547,6 +624,30 @@ fetch withdrawals made from account
 
 ```javascript
 hibachi.fetchWithdrawals (code?, since?, limit?, params?)
+```
+
+
+<a name="fetchMySettlementHistory" id="fetchmysettlementhistory"></a>
+
+### fetchMySettlementHistory{docsify-ignore}
+fetches historical settlement records of the user
+
+**Kind**: instance method of [<code>hibachi</code>](#hibachi)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [settlement history objects](https://docs.ccxt.com/#/?id=settlement-history-structure)
+
+**See**: https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | No | unified market symbol of the settlement history |
+| since | <code>int</code> | No | timestamp in ms of the earliest settlement |
+| limit | <code>int</code> | No | the maximum number of settlements to retrieve |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest settlement |
+
+
+```javascript
+hibachi.fetchMySettlementHistory (symbol?, since?, limit?, params?)
 ```
 
 

@@ -2166,6 +2166,7 @@ fetches information on multiple canceled orders made by the user
 * [derive](/exchanges/derive.md#fetchcanceledorders)
 * [exmo](/exchanges/exmo.md#fetchcanceledorders)
 * [extended](/exchanges/extended.md#fetchcanceledorders)
+* [hibachi](/exchanges/hibachi.md#fetchcanceledorders)
 * [htx](/exchanges/htx.md#fetchcanceledorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledorders)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
@@ -2250,6 +2251,7 @@ fetches information on multiple closed orders made by the user
 * [extended](/exchanges/extended.md#fetchclosedorders)
 * [foxbit](/exchanges/foxbit.md#fetchclosedorders)
 * [gate](/exchanges/gate.md#fetchclosedorders)
+* [hibachi](/exchanges/hibachi.md#fetchclosedorders)
 * [hitbtc](/exchanges/hitbtc.md#fetchclosedorders)
 * [hollaex](/exchanges/hollaex.md#fetchclosedorders)
 * [htx](/exchanges/htx.md#fetchclosedorders)
@@ -3057,6 +3059,7 @@ fetch history of deposits and withdrawals
 * [dydx](/exchanges/dydx.md#fetchdepositswithdrawals)
 * [exmo](/exchanges/exmo.md#fetchdepositswithdrawals)
 * [gemini](/exchanges/gemini.md#fetchdepositswithdrawals)
+* [hibachi](/exchanges/hibachi.md#fetchdepositswithdrawals)
 * [hitbtc](/exchanges/hitbtc.md#fetchdepositswithdrawals)
 * [indodax](/exchanges/indodax.md#fetchdepositswithdrawals)
 * [modetrade](/exchanges/modetrade.md#fetchdepositswithdrawals)
@@ -4131,6 +4134,7 @@ fetches historical settlement records of the user
 * [binance](/exchanges/binance.md#fetchmysettlementhistory)
 * [bybit](/exchanges/bybit.md#fetchmysettlementhistory)
 * [gate](/exchanges/gate.md#fetchmysettlementhistory)
+* [hibachi](/exchanges/hibachi.md#fetchmysettlementhistory)
 
 ---
 
