@@ -3735,7 +3735,7 @@ export default class bitmex extends Exchange {
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials ();
             let auth = method + query;
-            const apiExpires = this.safeInteger (this.options, 'apiExpires'); // backwards compatibility
+            const apiExpires = this.safeInteger (this.options, 'api-expires'); // backwards compatibility
             let expires = this.safeIntegerProduct (this.options, 'recvWindow', 0.001, apiExpires);
             headers = {
                 'Content-Type': 'application/json',
