@@ -11,24 +11,30 @@ public partial class Exchange
     public object fetchResponse = null; // tmp for response tests
     public string id { get; set; } = "Exchange";
 
+    public string[] countries = null;
+    public bool certified = false;
+    public bool pro = false;
+
     public bool alias { get; set; } = false;
 
     public string version { get; set; } = "";
     public string userAgent { get; set; }
     public bool verbose { get; set; } = true;
     public bool enableRateLimit { get; set; } = true;
+    public double rollingWindowSize { get; set; } = 0.0;  // set to 0.0 to use leaky bucket rate limiter
+    public string rateLimiterAlgorithm { get; set; } = "leakyBucket";
     public long lastRestRequestTimestamp { get; set; } = 0;
     public string url { get; set; } = "";
 
     public string hostname { get; set; } = "";
 
-    public dict baseCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> baseCurrencies { get; set; } = null;
 
     public bool reloadingMarkets { get; set; } = false;
 
     public Task<object> marketsLoading { get; set; } = null;
 
-    public dict quoteCurrencies { get; set; } = new dict();
+    public IDictionary<string, object> quoteCurrencies { get; set; } = null;
 
     public dict api { get; set; } = new dict();
 
@@ -36,13 +42,13 @@ public partial class Exchange
 
     public bool reduceFees { get; set; } = true;
 
-    public dict markets_by_id { get; set; } = null;
+    public IDictionary<string, object> markets_by_id { get; set; } = null;
 
-    public List<object> symbols { get; set; } = new list();
+    public List<object> symbols { get; set; } = null;
 
-    public List<object> codes { get; set; } = new list();
+    public List<object> codes { get; set; } = null;
 
-    public List<object> ids { get; set; } = new list();
+    public List<object> ids { get; set; } = null;
 
     public bool substituteCommonCurrencyCodes { get; set; } = true;
 
@@ -52,11 +58,11 @@ public partial class Exchange
 
     public object precisionMode { get; set; } = DECIMAL_PLACES;
 
-    public object currencies_by_id { get; set; } = new dict();
+    public object currencies_by_id { get; set; } = null;
 
     public object accounts { get; set; } = new dict();
 
-    public object accountsById { get; set; } = new dict();
+    public object accountsById { get; set; } = null;
 
     public object status { get; set; } = new dict();
 
@@ -64,25 +70,31 @@ public partial class Exchange
 
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
-    public Dictionary<string, object> features { get; set; } = new dict();
+    public Dictionary<string, object> features { get; set; }
     public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
     public object markets { get; set; } = null;
-    public object currencies { get; set; } = null;
+    public object currencies { get; set; } = new dict();
     public object fees { get; set; } = new dict();
     public object requiredCredentials { get; set; } = new dict();
-    public object timeframes { get; set; } = new dict();
-    public double rateLimit { get; set; }
+    public dict timeframes { get; set; } = null;
+    public double rateLimit { get; set; } = 2000;
     public object exceptions { get; set; } = new dict();
     public object urls { get; set; } = new dict();
-    public object precision { get; set; } = new dict();
+    public dict precision { get; set; } = null;
 
-    public string secret { get; set; }
     public string apiKey { get; set; }
+    public string secret { get; set; }
     public string password { get; set; }
     public string uid { get; set; }
     public string accountId { get; set; }
+    public string login { get; set; }
+    public string privateKey { get; set; }
+    public string walletAddress { get; set; }
+    public object token { get; set; }
+    public string twofa { get; set; }
+
     public int minFundingAddressLength { get; set; } = 1;
 
     public dict userAgents { get; set; } = new dict(){
@@ -90,12 +102,6 @@ public partial class Exchange
         {"chrome39","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"},
         {"chrome100","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"}
     };
-
-    public string twofa { get; set; }
-    public string privateKey { get; set; }
-    public string walletAddress { get; set; }
-    public string token { get; set; }
-    public string login { get; set; }
     public string proxy { get; set; }
     public string agent { get; set; }
     public object timeout { get; set; } = 10000;
@@ -125,11 +131,17 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+
+    public readonly System.Collections.Concurrent.ConcurrentQueue<Dictionary<string, object>> fetchHistoryCache = new ();
+
+    public int fetchHistoryCacheSize = 0;
+
     public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
 
     public object headers { get; set; } = new dict();
+    public bool returnResponseHeaders { get; set; } = false;
 
     public dict httpExceptions { get; set; } = new dict();
 
@@ -175,8 +187,8 @@ public partial class Exchange
     public bool newUpdates;
 
     public object positions;
-    public object liquidations = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object myLiquidations = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public object liquidations;
+    public object myLiquidations;
     public object trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
     public object orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
 
@@ -227,16 +239,17 @@ public partial class Exchange
 
         // credentials initis
         this.requiredCredentials = SafeValue(extendedProperties, "requiredCredentials") as dict;
-        this.apiKey = SafeString(extendedProperties, "apiKey", "");
-        this.secret = SafeString(extendedProperties, "secret", "");
-        this.password = SafeString(extendedProperties, "password", "");
-        this.login = SafeString(extendedProperties, "login", "");
-        this.twofa = SafeString(extendedProperties, "twofa", "");
-        this.privateKey = SafeString(extendedProperties, "privateKey", "");
-        this.walletAddress = SafeString(extendedProperties, "walletAddress", "");
-        this.token = SafeString(extendedProperties, "token", "");
-        this.uid = SafeString(extendedProperties, "uid", "");
-        this.accountId = SafeString(extendedProperties, "accountId", "");
+
+        this.apiKey = SafeString(extendedProperties, "apiKey", null);
+        this.secret = SafeString(extendedProperties, "secret", null);
+        this.password = SafeString(extendedProperties, "password", null);
+        this.login = SafeString(extendedProperties, "login", null);
+        this.twofa = SafeString(extendedProperties, "twofa", null);
+        this.privateKey = SafeString(extendedProperties, "privateKey", null);
+        this.walletAddress = SafeString(extendedProperties, "walletAddress", null);
+        this.token = SafeString(extendedProperties, "token", null);
+        this.uid = SafeString(extendedProperties, "uid", null);
+        this.accountId = SafeString(extendedProperties, "accountId", null);
 
         this.userAgents = SafeValue(extendedProperties, "userAgents", userAgents) as dict;
         this.userAgent = SafeString(extendedProperties, "userAgent");
@@ -260,12 +273,14 @@ public partial class Exchange
             var extendedDict = extendedOptions as dict;
             var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
             this.options = concurrentExtendedDict;
-        } else {
+        }
+        else
+        {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options =  new ConcurrentDictionary<string, object>(dict2);
+            this.options = new ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
-        this.timeframes = SafeValue(extendedProperties, "timeframes", new dict()) as dict;
+        this.timeframes = SafeValue(extendedProperties, "timeframes", null) as dict;
         this.fees = SafeValue(extendedProperties, "fees") as dict;
         this.has = SafeValue(extendedProperties, "has") as dict;
         this.httpExceptions = SafeValue(extendedProperties, "httpExceptions") as dict;
@@ -280,7 +295,12 @@ public partial class Exchange
         this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1) ?? -1;
         this.status = SafeValue(extendedProperties, "status") as dict;
         this.precisionMode = SafeInteger(extendedProperties, "precisionMode", this.precisionMode);
-        this.paddingMode = ((int)SafeInteger(extendedProperties, "paddingMode", this.paddingMode));
+        var paddingModeOp = SafeInteger(extendedProperties, "paddingMode", this.paddingMode);
+        if (paddingModeOp != null)
+        {
+            this.paddingMode = ((int)paddingModeOp);
+
+        }
         this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies") as dict;
         var subVal = SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true);
         this.substituteCommonCurrencyCodes = subVal != null ? (bool)subVal : true;
@@ -290,5 +310,9 @@ public partial class Exchange
         this.newUpdates = SafeValue(extendedProperties, "newUpdates") as bool? ?? true;
         this.accounts = SafeValue(extendedProperties, "accounts") as List<object>;
         this.features = SafeValue(extendedProperties, "features", features) as dict;
+        this.rollingWindowSize = (int)(SafeInteger(extendedProperties, "rollingWindowSize") ?? 0.0);
+        this.rateLimiterAlgorithm = SafeString(extendedProperties, "rateLimiterAlgorithm", "leakyBucket");
+        this.returnResponseHeaders = (bool)SafeValue(extendedProperties, "returnResponseHeaders", false);
+        this.fetchHistoryCacheSize = (int)(SafeInteger(extendedProperties, "fetchHistoryCacheSize") ?? 0.0);
     }
 }

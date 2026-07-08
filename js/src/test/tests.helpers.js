@@ -7,22 +7,23 @@
 // ----------------------------------------------------------------------------
 /* eslint-disable max-classes-per-file */
 import fs from 'fs';
+import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'url';
 import ccxt from '../../ccxt.js';
 import errorsHierarchy from '../base/errorHierarchy.js';
 import { unCamelCase } from '../base/functions/string.js';
 // js specific codes //
-const DIR_NAME = fileURLToPath(new URL('.', import.meta.url));
+const DIR_NAME = path.dirname(fileURLToPath(import.meta.url)) + path.sep;
 process.on('uncaughtException', (e) => {
-    throw new Error(exceptionMessage(e));
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 process.on('unhandledRejection', (e) => {
-    if (e.message.includes('connection closed by remote server')) {
-        // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
-        return;
-    }
-    throw new Error(exceptionMessage(e));
+    // if (e.message.includes ('connection closed by remote server')) {
+    //     // because of unbeknown reason, this error is happening somewhere in the middle of WS tests, and it's not caught by the try/catch block. so temporarily ignore it
+    //     return;
+    // }
+    throw new Error('[TEST_FAILURE] ' + exceptionMessage(e));
     // process.exit (1);
 });
 const AuthenticationError = ccxt.AuthenticationError;
@@ -53,7 +54,7 @@ function getCliArgValue(arg) {
 const fileParts = import.meta.url.split('.');
 const EXT = fileParts[fileParts.length - 1];
 const LANG = 'JS';
-const ROOT_DIR = DIR_NAME + '/../../../';
+const ROOT_DIR = path.resolve(DIR_NAME, '..', '..', '..') + path.sep;
 const ENV_VARS = process.env;
 const NEW_LINE = '\n';
 const LOG_CHARS_LENGTH = 10000;
@@ -135,13 +136,13 @@ function getTestFilesSync(properties, ws = false) {
     return {};
 }
 async function getTestFiles(properties, ws = false) {
-    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
+    const targetPath = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
     const finalPropList = properties.concat([PROXY_TEST_FILE_NAME, 'features']);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
-        const filePathWoExt = path + 'Exchange/test.' + name;
+        const filePathWoExt = targetPath + 'Exchange/test.' + name;
         if (ioFileExists(filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile(filePathWoExt);
@@ -151,7 +152,7 @@ async function getTestFiles(properties, ws = false) {
     const errorHierarchyKeys = Object.keys(errorsHierarchy);
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
-        const filePathWoExt = path + '/base/errors/test.' + name;
+        const filePathWoExt = targetPath + '/base/errors/test.' + name;
         if (ioFileExists(filePathWoExt + '.' + EXT)) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[name] = await importTestFile(filePathWoExt);
@@ -184,11 +185,20 @@ function getLang() {
 function getExt() {
     return EXT;
 }
+function isWindows() {
+    return process.platform === "win32";
+}
+function isLinux() {
+    return process.platform === "linux";
+}
+function isAmd64() {
+    return process.arch === "x64";
+}
 export { 
 // errors
 AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
 // shared
 getCliArgValue, 
 //
-dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt };
+dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, getRootDir, argvExchange, argvSymbol, argvMethod, isSync, LANG, ENV_VARS, NEW_LINE, EXT, getEnvVars, getLang, getExt, isWindows, isLinux, isAmd64, };
 export default {};

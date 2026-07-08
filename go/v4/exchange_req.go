@@ -7,12 +7,13 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"strings"
 )
 
-func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) chan interface{} {
-	ch := make(chan interface{})
+func (this *Exchange) Fetch(url any, method any, headers any, body any) chan any {
+	ch := make(chan any)
 	go func() {
 		defer close(ch)
 		defer func() {
@@ -40,18 +41,9 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		}
 
 		// Convert headers to map[string]string
-		headersMap, ok := headers.(map[string]interface{})
+		headersMap, ok := headers.(map[string]any)
 		if !ok {
-			panic("headers must be a map[string]interface{}")
-		}
-
-		if this.Verbose {
-			fmt.Println("Headers:", headersMap)
-			fmt.Println("\n\n")
-			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
-			fmt.Println("\n\n")
-			fmt.Printf("Body: %v\n", body)
-			fmt.Println("\n\n")
+			panic("headers must be a map[string]any")
 		}
 
 		headersStrMap := make(map[string]string)
@@ -59,6 +51,40 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			headersStrMap[k] = fmt.Sprintf("%v", v)
 		}
 
+		headersOptions, ok := this.Options.Load("headers")
+		if ok {
+			if headersOptions != nil {
+				for key, value := range headersOptions.(map[string]any) {
+					if _, exists := headersStrMap[key]; !exists {
+						headersStrMap[key] = fmt.Sprintf("%v", value)
+					}
+				}
+			} else {
+				panic("headersOptions should be a map[string]any")
+			}
+
+		}
+
+		// check content type for multipart/form-data, used in lighter
+		for k, v := range headersStrMap {
+			lk := strings.ToLower(k)
+			if lk == "content-type" {
+				if v == "multipart/form-data" {
+					var formBody bytes.Buffer
+					writer := multipart.NewWriter(&formBody)
+
+					for fk, fv := range body.(map[string]any) {
+						writer.WriteField(fk, fmt.Sprintf("%v", fv))
+					}
+
+					headersStrMap[k] = writer.FormDataContentType()
+					writer.Close()
+					body = formBody.String()
+				}
+				break
+			}
+			headersStrMap[k] = fmt.Sprintf("%v", v)
+		}
 
 		// Marshal the body to JSON if not nil
 		// var requestBody []byte
@@ -89,22 +115,22 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 				// }
 				req, err = http.NewRequest(methodStr, urlStr, strings.NewReader(v))
 				if err != nil {
-					panic(fmt.Sprintf("error creating request"))
+					panic("error creating request")
 				}
 			default:
 				requestBody, err := json.Marshal(body)
 				if err != nil {
-					panic(fmt.Sprintf("error marshalling JSON"))
+					panic("error marshalling JSON")
 				}
 				req, err = http.NewRequest(methodStr, urlStr, bytes.NewBuffer(requestBody))
 				if err != nil {
-					panic(fmt.Sprintf("error creating request"))
+					panic("error creating request")
 				}
 			}
 		} else {
 			req, err = http.NewRequest(methodStr, urlStr, nil)
 			if err != nil {
-				panic(fmt.Sprintf("error creating request"))
+				panic("error creating request")
 			}
 		}
 		// Create the HTTP request
@@ -114,7 +140,7 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// }
 
 		//set default headers
-		defaultHeaders := this.Headers.(map[string]interface{})
+		defaultHeaders := this.Headers.(map[string]any)
 		for key, value := range defaultHeaders {
 			req.Header.Set(key, value.(string))
 		}
@@ -122,6 +148,15 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		// Set headers
 		for key, value := range headersStrMap {
 			req.Header.Set(key, value)
+		}
+
+		if this.Verbose {
+			fmt.Println("Headers:", req.Header)
+			fmt.Printf("\n\n\n")
+			fmt.Printf("Request: %s %s\n", methodStr, urlStr)
+			fmt.Printf("\n\n\n")
+			fmt.Printf("Body: %v\n", body)
+			fmt.Printf("\n\n\n")
 		}
 
 		// strings.NewReader()
@@ -137,7 +172,13 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			networkError := NetworkError(fmt.Sprintf("Network error: %v", err))
 			panic(networkError)
 		}
-
+		respHeadersMap := HeaderToMap(resp.Header)
+		// guard the shared bookkeeping fields: concurrent requests on the same
+		// *Exchange would otherwise data-race on these writes
+		this.lastMu.Lock()
+		this.Last_response_headers = respHeadersMap
+		this.LastResponseHeaders = respHeadersMap
+		this.lastMu.Unlock()
 		if err == nil {
 			defer resp.Body.Close()
 			if resp.Header.Get("Content-Encoding") == "gzip" {
@@ -161,12 +202,22 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 			}
 		}
 
-		// Unmarshal the response body
-		var result interface{}
-		err = json.Unmarshal(respBody, &result)
-		if err != nil {
-			// panic(fmt.Sprintf("failed to unmarshal response body: %v", err))
+		responseHeaders := HeaderToMap(resp.Header)
+
+		// Use ParseJSON to handle JSON parsing with proper number normalization
+		var result any
+		result = ParseJSON(string(respBody))
+
+		if result == nil {
+			// If ParseJSON failed, fallback to raw string
 			result = string(respBody)
+		} else {
+			if this.ReturnResponseHeaders {
+				if resultMap, ok := result.(map[string]any); ok {
+					resultMap["responseHeaders"] = responseHeaders
+					result = resultMap
+				}
+			}
 		}
 
 		// Log the response (for debugging purposes)
@@ -175,7 +226,8 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		}
 
 		statusText := http.StatusText(resp.StatusCode)
-		handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		// handleErrorResult := <-this.callInternal("handleErrors", resp.StatusCode, statusText, urlStr, methodStr, headers, string(respBody), result, headersStrMap, body)
+		handleErrorResult := this.DerivedExchange.HandleErrors(resp.StatusCode, statusText, urlStr, methodStr, responseHeaders, string(respBody), result, headersStrMap, body)
 		PanicOnError(handleErrorResult)
 
 		if handleErrorResult == nil {
@@ -198,15 +250,27 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 	return ch
 }
 
-func (this *Exchange) HandleHttpStatusCode(code interface{}, reason interface{}, url interface{}, method interface{}, body interface{}) {
+func (this *Exchange) HandleHttpStatusCode(code any, reason any, url any, method any, body any) {
 
 	codeString := ToString(code)
 	codeinHttpExceptions := SafeValue(this.HttpExceptions, codeString, nil)
 
 	if codeinHttpExceptions != nil {
 		errorMessage := this.Id + " " + ToString(method) + " " + ToString(url) + " " + ToString(code) + " " + ToString(reason) + " " + ToString(body)
-		functionError := codeinHttpExceptions.(func(...interface{}) error)
+		functionError := codeinHttpExceptions.(func(...any) error)
 		panic(functionError(errorMessage))
 	}
 
+}
+
+func HeaderToMap(header http.Header) map[string]any {
+	result := make(map[string]any)
+	for key, values := range header {
+		if len(values) == 1 {
+			result[key] = values[0]
+		} else {
+			result[key] = values
+		}
+	}
+	return result
 }

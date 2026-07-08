@@ -21,31 +21,73 @@ public partial class coinbaseexchange : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
+                { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createDepositAddress", true },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopLimitOrder", true },
                 { "createStopMarketOrder", true },
                 { "createStopOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIndexOHLCV", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", true },
+                { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
                 { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
+                { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchMyTrades", true },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
@@ -57,6 +99,8 @@ public partial class coinbaseexchange : Exchange
                 { "fetchPositionsForSymbol", false },
                 { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
+                { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -64,7 +108,16 @@ public partial class coinbaseexchange : Exchange
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", "emulated" },
+                { "fetchVolatilityHistory", false },
                 { "fetchWithdrawals", true },
+                { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
+                { "setLeverage", false },
+                { "setMargin", false },
+                { "setMarginMode", false },
+                { "setPositionMode", false },
                 { "withdraw", true },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -81,7 +134,7 @@ public partial class coinbaseexchange : Exchange
                     { "public", "https://api-public.sandbox.exchange.coinbase.com" },
                     { "private", "https://api-public.sandbox.exchange.coinbase.com" },
                 } },
-                { "logo", "https://github.com/ccxt/ccxt/assets/43336371/34a65553-88aa-4a38-a714-064bd228b97e" },
+                { "logo", "https://github.com/user-attachments/assets/a99ef849-a4b2-4dd4-87fe-458ef17db7fd" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://api.{hostname}" },
                     { "private", "https://api.{hostname}" },
@@ -100,9 +153,10 @@ public partial class coinbaseexchange : Exchange
                     { "get", new List<object>() {"currencies", "products", "products/{id}", "products/{id}/book", "products/{id}/candles", "products/{id}/stats", "products/{id}/ticker", "products/{id}/trades", "time", "products/spark-lines", "products/volume-summary"} },
                 } },
                 { "private", new Dictionary<string, object>() {
-                    { "get", new List<object>() {"address-book", "accounts", "accounts/{id}", "accounts/{id}/holds", "accounts/{id}/ledger", "accounts/{id}/transfers", "coinbase-accounts", "fills", "funding", "fees", "margin/profile_information", "margin/buying_power", "margin/withdrawal_power", "margin/withdrawal_power_all", "margin/exit_plan", "margin/liquidation_history", "margin/position_refresh_amounts", "margin/status", "oracle", "orders", "orders/{id}", "orders/client:{client_oid}", "otc/orders", "payment-methods", "position", "profiles", "profiles/{id}", "reports/{report_id}", "transfers", "transfers/{transfer_id}", "users/self/exchange-limits", "users/self/hold-balances", "users/self/trailing-volume", "withdrawals/fee-estimate", "conversions/{conversion_id}", "conversions/fees"} },
-                    { "post", new List<object>() {"conversions", "deposits/coinbase-account", "deposits/payment-method", "coinbase-accounts/{id}/addresses", "funding/repay", "orders", "position/close", "profiles/margin-transfer", "profiles/transfer", "reports", "withdrawals/coinbase", "withdrawals/coinbase-account", "withdrawals/crypto", "withdrawals/payment-method"} },
+                    { "get", new List<object>() {"address-book", "accounts", "accounts/{id}", "accounts/{id}/holds", "accounts/{id}/ledger", "accounts/{id}/transfers", "coinbase-accounts", "fills", "funding", "fees", "margin/profile_information", "margin/buying_power", "margin/withdrawal_power", "margin/withdrawal_power_all", "margin/exit_plan", "margin/liquidation_history", "margin/position_refresh_amounts", "margin/status", "oracle", "orders", "orders/{id}", "orders/client:{client_oid}", "otc/orders", "payment-methods", "position", "profiles", "profiles/{id}", "reports/{report_id}", "transfers", "transfers/{transfer_id}", "users/self/exchange-limits", "users/self/hold-balances", "users/self/trailing-volume", "withdrawals/fee-estimate", "conversions/{conversion_id}", "conversions", "conversions/fees", "loans/lending-overview", "loans/lending-overview-xm", "loans/loan-preview", "loans/loan-preview-xm", "loans/repayment-preview", "loans/repayment-preview-xm", "loans/interest/{loan_id}", "loans/interest/history/{loan_id}", "loans/interest", "loans/assets", "loans"} },
+                    { "post", new List<object>() {"conversions", "deposits/coinbase-account", "deposits/payment-method", "coinbase-accounts/{id}/addresses", "funding/repay", "orders", "position/close", "profiles", "profiles/margin-transfer", "profiles/transfer", "reports", "withdrawals/coinbase", "withdrawals/coinbase-account", "withdrawals/crypto", "withdrawals/payment-method", "loans/open", "loans/repay-interest", "loans/repay-principal"} },
                     { "delete", new List<object>() {"orders", "orders/client:{client_oid}", "orders/{id}"} },
+                    { "put", new List<object>() {"profiles/{id}/deactivate", "profiles/{id}"} },
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -218,6 +272,42 @@ public partial class coinbaseexchange : Exchange
                     { "inverse", null },
                 } },
             } },
+            { "options", new Dictionary<string, object>() {
+                { "networks", new Dictionary<string, object>() {
+                    { "BTC", "bitcoin" },
+                    { "ETH", "ethereum" },
+                    { "SOL", "solana" },
+                    { "ARBONE", "arbitrum" },
+                    { "AVAXC", "avacchain" },
+                    { "MATIC", "polygon" },
+                    { "BASE", "base" },
+                    { "SUI", "sui" },
+                    { "OP", "optimism" },
+                    { "NEAR", "near" },
+                    { "APT", "aptos" },
+                    { "KAVA", "kava" },
+                    { "BLAST", "blast" },
+                    { "XLM", "stellar" },
+                    { "SEI", "sei" },
+                    { "ADA", "cardano" },
+                    { "CORE", "coredao" },
+                    { "ALGO", "algorand" },
+                    { "OSMO", "osmosis" },
+                    { "CELO", "celo" },
+                    { "HBAR", "hedera" },
+                    { "ZKSYNC", "zksync" },
+                    { "STX", "stacks" },
+                    { "XTZ", "tezos" },
+                    { "EGLD", "elrond" },
+                    { "LTC", "litecoin" },
+                    { "ATOM", "cosmos" },
+                    { "FIL", "filecoin" },
+                    { "DOT", "polkadot" },
+                    { "DOGE", "dogecoin" },
+                    { "XRP", "ripple" },
+                    { "DASH", "dash" },
+                } },
+            } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
                     { "Insufficient funds", typeof(InsufficientFunds) },
@@ -256,66 +346,104 @@ public partial class coinbaseexchange : Exchange
         parameters ??= new Dictionary<string, object>();
         object response = await this.publicGetCurrencies(parameters);
         //
-        //     [
-        //         {
-        //             "id": "XTZ",
-        //             "name": "Tezos",
-        //             "min_size": "0.000001",
-        //             "status": "online",
-        //             "message": '',
-        //             "max_precision": "0.000001",
-        //             "convertible_to": [],
-        //             "details": {
-        //                 "type": "crypto",
-        //                 "symbol": "Τ",
-        //                 "network_confirmations": 60,
-        //                 "sort_order": 53,
-        //                 "crypto_address_link": "https://tzstats.com/{{address}}",
-        //                 "crypto_transaction_link": "https://tzstats.com/{{txId}}",
-        //                 "push_payment_methods": [ "crypto" ],
-        //                 "group_types": [],
-        //                 "display_name": '',
-        //                 "processing_time_seconds": 0,
-        //                 "min_withdrawal_amount": 1
-        //             }
-        //         }
-        //     ]
+        //   {
+        //     "id": "USDT",
+        //     "name": "Tether",
+        //     "min_size": "0.000001",
+        //     "status": "online",
+        //     "message": "",
+        //     "max_precision": "0.000001",
+        //     "convertible_to": [],
+        //     "details": {
+        //       "type": "crypto",
+        //       "symbol": null,
+        //       "network_confirmations": 14,
+        //       "sort_order": 0,
+        //       "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        //       "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        //       "push_payment_methods": [],
+        //       "group_types": [],
+        //       "display_name": null,
+        //       "processing_time_seconds": null,
+        //       "min_withdrawal_amount": 0.000001,
+        //       "max_withdrawal_amount": 20000000
+        //     },
+        //     "default_network": "ethereum",
+        //     "supported_networks": [
+        //       {
+        //         "id": "ethereum",
+        //         "name": "Ethereum",
+        //         "status": "online",
+        //         "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //         "crypto_address_link": "https://etherscan.io/token/0xdac17f958d2ee523a2206206994597c13d831ec7?a={{address}}",
+        //         "crypto_transaction_link": "https://etherscan.io/tx/0x{{txId}}",
+        //         "min_withdrawal_amount": 0.000001,
+        //         "max_withdrawal_amount": 20000000,
+        //         "network_confirmations": 14,
+        //         "processing_time_seconds": null
+        //       }
+        //     ],
+        //     "display_name": "USDT"
+        //   }
         //
-        object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        return this.parseCurrencies(response);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, "id");
+        object name = this.safeString(rawCurrency, "name");
+        object code = this.safeCurrencyCode(id);
+        object details = this.safeDict(rawCurrency, "details", new Dictionary<string, object>() {});
+        object networks = new Dictionary<string, object>() {};
+        object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(supportedNetworks)); postFixIncrement(ref j))
         {
-            object currency = getValue(response, i);
-            object id = this.safeString(currency, "id");
-            object name = this.safeString(currency, "name");
-            object code = this.safeCurrencyCode(id);
-            object details = this.safeValue(currency, "details", new Dictionary<string, object>() {});
-            object status = this.safeString(currency, "status");
-            object active = (isEqual(status, "online"));
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "id", id },
-                { "code", code },
-                { "info", currency },
-                { "type", this.safeString(details, "type") },
-                { "name", name },
-                { "active", active },
-                { "deposit", null },
+            object network = getValue(supportedNetworks, j);
+            object networkId = this.safeString(network, "id");
+            object networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "id", networkId },
+                { "name", this.safeString(network, "name") },
+                { "network", networkCode },
+                { "active", isEqual(this.safeString(network, "status"), "online") },
                 { "withdraw", null },
+                { "deposit", null },
                 { "fee", null },
-                { "precision", this.safeNumber(currency, "max_precision") },
+                { "precision", null },
                 { "limits", new Dictionary<string, object>() {
-                    { "amount", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(details, "min_size") },
-                        { "max", null },
-                    } },
                     { "withdraw", new Dictionary<string, object>() {
-                        { "min", this.safeNumber(details, "min_withdrawal_amount") },
-                        { "max", null },
+                        { "min", this.safeNumber(network, "min_withdrawal_amount") },
+                        { "max", this.safeNumber(network, "max_withdrawal_amount") },
                     } },
                 } },
-                { "networks", new Dictionary<string, object>() {} },
+                { "contract", this.safeString(network, "contract_address") },
+                { "info", network },
             };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "id", id },
+            { "code", code },
+            { "info", rawCurrency },
+            { "type", this.safeString(details, "type") },
+            { "name", name },
+            { "active", isEqual(this.safeString(rawCurrency, "status"), "online") },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "precision", this.safeNumber(rawCurrency, "max_precision") },
+            { "limits", new Dictionary<string, object>() {
+                { "amount", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(details, "min_size") },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", this.safeNumber(details, "min_withdrawal_amount") },
+                    { "max", this.safeNumber(details, "max_withdrawal_amount") },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -383,7 +511,7 @@ public partial class coinbaseexchange : Exchange
         {
             object market = getValue(response, i);
             object id = this.safeString(market, "id");
-            var baseIdquoteIdVariable = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
+            var baseIdquoteIdVariable = ((string)((string)id)).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
             var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
             // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
@@ -451,12 +579,15 @@ public partial class coinbaseexchange : Exchange
      * @description fetch all the accounts associated with a profile
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+     * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAccounts(parameters);
         //
         //     [
@@ -527,12 +658,15 @@ public partial class coinbaseexchange : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getaccounts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAccounts(parameters);
         return this.parseBalance(response);
     }
@@ -545,12 +679,15 @@ public partial class coinbaseexchange : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // level 1 - only the best bid and ask
         // level 2 - top 50 bids and asks (aggregated)
         // level 3 - full order book (non aggregated)
@@ -670,12 +807,15 @@ public partial class coinbaseexchange : Exchange
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getproduct
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         object response = await this.publicGetProductsSparkLines(this.extend(request, parameters));
@@ -721,12 +861,15 @@ public partial class coinbaseexchange : Exchange
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "id", getValue(market, "id") },
@@ -819,13 +962,14 @@ public partial class coinbaseexchange : Exchange
         }
         object price = this.safeString(trade, "price");
         object amount = this.safeString(trade, "size");
+        object symbol = getValue(market, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
             { "info", trade },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
-            { "symbol", getValue(market, "symbol") },
+            { "symbol", symbol },
             { "type", null },
             { "takerOrMaker", takerOrMaker },
             { "side", side },
@@ -847,7 +991,7 @@ public partial class coinbaseexchange : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -864,7 +1008,10 @@ public partial class coinbaseexchange : Exchange
         {
             return await this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters, 100);
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "product_id", getValue(market, "id") },
@@ -896,12 +1043,15 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "id", getValue(market, "id") },
@@ -931,12 +1081,15 @@ public partial class coinbaseexchange : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getfees
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetFees(parameters);
         //
         //    {
@@ -948,9 +1101,9 @@ public partial class coinbaseexchange : Exchange
         object maker = this.safeNumber(response, "maker_fee_rate");
         object taker = this.safeNumber(response, "taker_fee_rate");
         object result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(((object)this.symbols))); postFixIncrement(ref i))
         {
-            object symbol = getValue(this.symbols, i);
+            object symbol = getValue(((object)this.symbols), i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", response },
                 { "symbol", symbol },
@@ -996,7 +1149,10 @@ public partial class coinbaseexchange : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1086,7 +1242,7 @@ public partial class coinbaseexchange : Exchange
             { "canceled", "canceled" },
             { "canceling", "open" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1175,12 +1331,15 @@ public partial class coinbaseexchange : Exchange
      * @param {string} id the order id
      * @param {string} symbol not used by coinbaseexchange fetchOrder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
         object method = null;
@@ -1207,12 +1366,15 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchOrderTrades(object id, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1235,7 +1397,7 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch open orders for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1257,12 +1419,15 @@ public partial class coinbaseexchange : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch open orders for
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1306,7 +1471,7 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch open orders for
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1328,12 +1493,15 @@ public partial class coinbaseexchange : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", type },
@@ -1417,12 +1585,15 @@ public partial class coinbaseexchange : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
         object method = null;
@@ -1442,7 +1613,10 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     /**
@@ -1452,12 +1626,15 @@ public partial class coinbaseexchange : Exchange
      * @description cancel all open orders
      * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1465,7 +1642,10 @@ public partial class coinbaseexchange : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["product_id"] = getValue(market, "symbol"); // the request will be more performant if you include it
         }
-        return await this.privateDeleteOrders(this.extend(request, parameters));
+        object response = await this.privateDeleteOrders(this.extend(request, parameters));
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchPaymentMethods(object parameters = null)
@@ -1485,7 +1665,7 @@ public partial class coinbaseexchange : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -1494,7 +1674,10 @@ public partial class coinbaseexchange : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1624,7 +1807,7 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] the latest time in ms to fetch trades for
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1634,7 +1817,10 @@ public partial class coinbaseexchange : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchLedger() requires a code param")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         object currency = this.currency(code);
         object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
@@ -1679,12 +1865,15 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.id] account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         object currency = null;
         object id = this.safeString(parameters, "id"); // account id
@@ -1746,7 +1935,7 @@ public partial class coinbaseexchange : Exchange
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object account_id = this.safeString(getValue(response, i), "account_id");
-                object account = this.safeValue(this.accountsById, account_id);
+                object account = this.safeValue(this.accountsById, ((string)account_id));
                 object codeInner = this.safeString(account, "code");
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = codeInner;
             }
@@ -1797,7 +1986,7 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1817,7 +2006,7 @@ public partial class coinbaseexchange : Exchange
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1915,7 +2104,7 @@ public partial class coinbaseexchange : Exchange
             { "txid", this.safeString(details, "crypto_transaction_hash") },
             { "type", type },
             { "currency", code },
-            { "network", this.networkIdToCode(networkId) },
+            { "network", this.networkIdToCode(networkId, code) },
             { "amount", amount },
             { "status", this.parseTransactionStatus(transaction) },
             { "timestamp", timestamp },
@@ -1940,12 +2129,15 @@ public partial class coinbaseexchange : Exchange
      * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_postcoinbaseaccountaddresses
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object accounts = this.safeValue(this.options, "coinbaseAccounts");
         if (isTrue(isEqual(accounts, null)))

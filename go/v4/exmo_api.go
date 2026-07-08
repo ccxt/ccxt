@@ -7,818 +7,206 @@
 
 package ccxt
 
-func (this *exmo) WebGetCtrlFeesAndLimits (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("webGetCtrlFeesAndLimits", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) WebGetCtrlFeesAndLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("webGetCtrlFeesAndLimits", args...)
 }
 
-func (this *exmo) WebGetEnDocsFees (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("webGetEnDocsFees", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) WebGetEnDocsFees(args ...any) <-chan any {
+	return this.callEndpointAsync("webGetEnDocsFees", args...)
 }
 
-func (this *exmo) PublicGetCurrency (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrency", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCurrency", args...)
 }
 
-func (this *exmo) PublicGetCurrencyListExtended (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCurrencyListExtended", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetCurrencyListExtended(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCurrencyListExtended", args...)
 }
 
-func (this *exmo) PublicGetOrderBook (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetOrderBook", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetOrderBook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrderBook", args...)
 }
 
-func (this *exmo) PublicGetPairSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPairSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetPairSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPairSettings", args...)
 }
 
-func (this *exmo) PublicGetTicker (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTicker", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
-func (this *exmo) PublicGetTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTrades", args...)
 }
 
-func (this *exmo) PublicGetCandlesHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetCandlesHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetCandlesHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCandlesHistory", args...)
 }
 
-func (this *exmo) PublicGetRequiredAmount (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetRequiredAmount", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetRequiredAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetRequiredAmount", args...)
 }
 
-func (this *exmo) PublicGetPaymentsProvidersCryptoList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("publicGetPaymentsProvidersCryptoList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PublicGetPaymentsProvidersCryptoList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPaymentsProvidersCryptoList", args...)
 }
 
-func (this *exmo) PrivatePostUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostUserInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserInfo", args...)
 }
 
-func (this *exmo) PrivatePostOrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostOrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderCreate", args...)
 }
 
-func (this *exmo) PrivatePostOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderCancel", args...)
 }
 
-func (this *exmo) PrivatePostStopMarketOrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostStopMarketOrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostStopMarketOrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostStopMarketOrderCreate", args...)
 }
 
-func (this *exmo) PrivatePostStopMarketOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostStopMarketOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostStopMarketOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostStopMarketOrderCancel", args...)
 }
 
-func (this *exmo) PrivatePostUserOpenOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserOpenOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostUserOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserOpenOrders", args...)
 }
 
-func (this *exmo) PrivatePostUserTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostUserTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserTrades", args...)
 }
 
-func (this *exmo) PrivatePostUserCancelledOrders (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostUserCancelledOrders", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostUserCancelledOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserCancelledOrders", args...)
 }
 
-func (this *exmo) PrivatePostOrderTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostOrderTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostOrderTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderTrades", args...)
 }
 
-func (this *exmo) PrivatePostDepositAddress (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostDepositAddress", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDepositAddress", args...)
 }
 
-func (this *exmo) PrivatePostWithdrawCrypt (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawCrypt", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostWithdrawCrypt(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawCrypt", args...)
 }
 
-func (this *exmo) PrivatePostWithdrawGetTxid (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWithdrawGetTxid", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostWithdrawGetTxid(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawGetTxid", args...)
 }
 
-func (this *exmo) PrivatePostExcodeCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExcodeCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostExcodeCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExcodeCreate", args...)
 }
 
-func (this *exmo) PrivatePostExcodeLoad (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostExcodeLoad", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostExcodeLoad(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostExcodeLoad", args...)
 }
 
-func (this *exmo) PrivatePostCodeCheck (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostCodeCheck", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostCodeCheck(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCodeCheck", args...)
 }
 
-func (this *exmo) PrivatePostWalletHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWalletHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostWalletHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletHistory", args...)
 }
 
-func (this *exmo) PrivatePostWalletOperations (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostWalletOperations", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostWalletOperations(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletOperations", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderCreate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderCreate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderCreate", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderUpdate (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderUpdate", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderUpdate", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderCancel (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderCancel", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderCancel", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserPositionClose (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserPositionClose", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserPositionClose(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserPositionClose", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserPositionMarginAdd (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserPositionMarginAdd", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAdd(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginAdd", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserPositionMarginRemove (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserPositionMarginRemove", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemove(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemove", args...)
 }
 
-func (this *exmo) PrivatePostMarginCurrencyList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginCurrencyList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginCurrencyList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginCurrencyList", args...)
 }
 
-func (this *exmo) PrivatePostMarginPairList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginPairList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginPairList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginPairList", args...)
 }
 
-func (this *exmo) PrivatePostMarginSettings (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginSettings", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginSettings", args...)
 }
 
-func (this *exmo) PrivatePostMarginFundingList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginFundingList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginFundingList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginFundingList", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserInfo", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderList", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderHistory", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderTrades", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserOrderMaxQuantity (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserOrderMaxQuantity", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserOrderMaxQuantity(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserOrderMaxQuantity", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserPositionList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserPositionList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserPositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserPositionList", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserPositionMarginRemoveInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserPositionMarginRemoveInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginRemoveInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginRemoveInfo", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserPositionMarginAddInfo (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserPositionMarginAddInfo", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserPositionMarginAddInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserPositionMarginAddInfo", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserWalletList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserWalletList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserWalletList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserWalletList", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserWalletHistory (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserWalletHistory", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserWalletHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserWalletHistory", args...)
 }
 
-func (this *exmo) PrivatePostMarginUserTradeList (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginUserTradeList", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginUserTradeList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginUserTradeList", args...)
 }
 
-func (this *exmo) PrivatePostMarginTrades (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginTrades", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginTrades", args...)
 }
 
-func (this *exmo) PrivatePostMarginLiquidationFeed (args ...interface{}) <-chan interface{} {
-   parameters := GetArg(args, 0, nil)
-   ch := make(chan interface{})
-   go func() {
-       defer close(ch)
-       defer func() {
-           if r := recover(); r != nil {
-               ch <- "panic:" + ToString(r)
-           }
-       }()
-       ch <- (<-this.callEndpoint ("privatePostMarginLiquidationFeed", parameters))
-       PanicOnError(ch)
-   }()
-   return ch
+func (this *ExmoCore) PrivatePostMarginLiquidationFeed(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostMarginLiquidationFeed", args...)
 }

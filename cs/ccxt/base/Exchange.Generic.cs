@@ -12,7 +12,7 @@ public partial class Exchange
         desc2 ??= false;
         var defaultValue = defaultValue2 ?? "";
         var desc = (bool)desc2;
-        var list = (List<object>)array;
+        var list = (IList<object>)array;
 
         if (value1.GetType() == typeof(string))
         {
@@ -45,7 +45,7 @@ public partial class Exchange
         // todo :: check this later
         desc2 ??= false;
         var desc = (bool)desc2;
-        var list = (List<object>)array;
+        var list = (IList<object>)array;
 
         if (key1.GetType() == typeof(string))
         {
@@ -174,14 +174,7 @@ public partial class Exchange
                     }
                     else
                     {
-                        if (arg2 != null)
-                        {
-                            ((dict)outObj)[k] = arg2;
-                        }
-                        else
-                        {
-                            ((dict)outObj)[k] = arg1;
-                        }
+                        ((dict)outObj)[k] = arg2;
                     }
                 }
             }
@@ -216,6 +209,11 @@ public partial class Exchange
     public bool isArray(object a)
     {
         return a is IList<object>;
+    }
+
+    public Dictionary<string, object> indexBySafe(object a, object key2)
+    {
+        return indexBy(a, key2); // this is needed for go
     }
 
     public Dictionary<string, object> indexBy(object a, object key2)
@@ -269,7 +267,10 @@ public partial class Exchange
                 var elem2 = (dict)elem;
                 if (elem2.ContainsKey((string)key2))
                 {
-                    outDict[elem2[(string)key2].ToString()] = elem2;
+                    var elem2Value = elem2[(string)key2];
+                    if (elem2Value == null)
+                        continue;
+                    outDict[elem2Value.ToString()] = elem2;
                 }
             }
             else if (elem.GetType() == typeof(List<string>) || elem.GetType() == typeof(List<object>))
@@ -280,7 +281,10 @@ public partial class Exchange
                     var elem2 = (List<string>)elem;
                     if (elem2.Count > 0)
                     {
-                        outDict[elem2[index].ToString()] = elem2;
+                        var elem2IndexValue = elem2[index];
+                        if (elem2IndexValue == null)
+                            continue;
+                        outDict[elem2IndexValue.ToString()] = elem2;
                     }
                 }
                 if (elem.GetType() == typeof(List<object>))
@@ -288,7 +292,10 @@ public partial class Exchange
                     var elem2 = (List<object>)elem;
                     if (elem2.Count > 0)
                     {
-                        outDict[elem2[index].ToString()] = elem2;
+                        var elem2IndexValue = elem2[index];
+                        if (elem2IndexValue == null)
+                            continue;
+                        outDict[elem2IndexValue.ToString()] = elem2;
                     }
                 }
 
@@ -309,6 +316,8 @@ public partial class Exchange
             if (elemDict.ContainsKey(key))
             {
                 var elem2 = (string)elemDict[key];
+                if (elem2 == null)
+                    continue;
                 if (outDict.ContainsKey(elem2))
                 {
                     var list2 = (List<object>)outDict[elem2];

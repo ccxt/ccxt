@@ -7,10 +7,9 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\async\abstract\binanceusdm as binance;
-use \React\Async;
+use React\Async;
 
 class binanceusdm extends binance {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'binanceusdm',
@@ -33,7 +32,10 @@ class binanceusdm extends binance {
                 'createStopMarketOrder' => true,
             ),
             'options' => array(
-                'fetchMarkets' => array( 'linear' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'linear' ),
+                ),
+                'defaultType' => 'swap',
                 'defaultSubType' => 'linear',
                 // https://www.binance.com/en/support/faq/360033162192
                 // tier amount, maintenance margin, initial margin,
@@ -53,17 +55,17 @@ class binanceusdm extends binance {
         ));
     }
 
-    public function transfer_in(string $code, $amount, $params = array ()) {
+    public function transfer_in(string $code, $amount, $params = array()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from spot wallet to usdm futures wallet
-            return Async\await($this->futuresTransfer ($code, $amount, 1, $params));
-        }) ();
+            return Async\await($this->futuresTransfer($code, $amount, 1, $params));
+        })();
     }
 
-    public function transfer_out(string $code, $amount, $params = array ()) {
+    public function transfer_out(string $code, $amount, $params = array()) {
         return Async\async(function () use ($code, $amount, $params) {
             // transfer from usdm futures wallet to spot wallet
-            return Async\await($this->futuresTransfer ($code, $amount, 2, $params));
-        }) ();
+            return Async\await($this->futuresTransfer($code, $amount, 2, $params));
+        })();
     }
 }

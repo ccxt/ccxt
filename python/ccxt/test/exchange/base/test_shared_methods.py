@@ -12,7 +12,6 @@ sys.path.append(root)
 # ----------------------------------------------------------------------------
 # -*- coding: utf-8 -*-
 
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES  # noqa E402
 from ccxt.base.decimal_to_precision import TICK_SIZE  # noqa E402
 import numbers  # noqa E402
 import json  # noqa E402
@@ -24,7 +23,7 @@ def log_template(exchange, method, entry):
     # there are cases when exchange is undefined (eg. base tests)
     id = exchange.id if (exchange is not None) else 'undefined'
     method_string = method if (method is not None) else 'undefined'
-    entry_string = exchange.json(entry) if (exchange is not None) else ''
+    entry_string = exchange.json(entry) if (exchange is not None and entry is not None) else ''
     return ' <<< ' + id + ' ' + method_string + ' ::: ' + entry_string + ' >>> '
 
 
@@ -53,7 +52,7 @@ def assert_type(exchange, skipped_properties, entry, key, format):
     same_numeric = (isinstance(entry_key_val, numbers.Real)) and (isinstance(format_key_val, numbers.Real))
     same_boolean = ((entry_key_val) or (entry_key_val is False)) and ((format_key_val) or (format_key_val is False))
     same_array = isinstance(entry_key_val, list) and isinstance(format_key_val, list)
-    same_object = (isinstance(entry_key_val, dict)) and (isinstance(format_key_val, dict))
+    same_object = exchange.is_dictionary(entry_key_val) and exchange.is_dictionary(format_key_val)
     result = (entry_key_val is None) or same_string or same_numeric or same_boolean or same_array or same_object
     return result
 
@@ -85,7 +84,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
             type_assertion = assert_type(exchange, skipped_properties, entry, i, format)
             assert type_assertion, str(i) + ' index does not have an expected type ' + log_text
     else:
-        assert isinstance(entry, dict), 'entry is not an object' + log_text
+        assert exchange.is_dictionary(entry), 'entry is not a dict' + log_text
         keys = list(format.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -108,7 +107,7 @@ def assert_structure(exchange, skipped_properties, method, entry, format, empty_
                 type_assertion = assert_type(exchange, skipped_properties, entry, key, format)
                 assert type_assertion, '"' + string_value(key) + '" key is neither undefined, neither of expected type' + log_text
                 if deep:
-                    if isinstance(value, dict):
+                    if exchange.is_dictionary(value) or isinstance(value, list):
                         assert_structure(exchange, skipped_properties, method, value, format[key], empty_allowed_for, deep)
 
 
@@ -156,9 +155,12 @@ def assert_timestamp_and_datetime(exchange, skipped_properties, method, entry, n
             #    assert (dt === exchange.iso8601 (entry['timestamp']))
             # so, we have to compare with millisecond accururacy
             dt_parsed = exchange.parse8601(dt)
-            dt_parsed_string = exchange.iso8601(dt_parsed)
-            dt_entry_string = exchange.iso8601(entry['timestamp'])
-            assert dt_parsed_string == dt_entry_string, 'datetime is not iso8601 of timestamp:' + dt_parsed_string + '(string) != ' + dt_entry_string + '(from ts)' + log_text
+            ts_ms = entry['timestamp']
+            diff = abs(dt_parsed - ts_ms)
+            if diff >= 500:
+                dt_parsed_string = exchange.iso8601(dt_parsed)
+                dt_entry_string = exchange.iso8601(ts_ms)
+                assert False, 'datetime is not iso8601 of timestamp:' + dt_parsed_string + '(string) != ' + dt_entry_string + '(from ts)' + log_text
 
 
 def assert_currency_code(exchange, skipped_properties, method, entry, actual_code, expected_code=None, allow_null=True):
@@ -285,11 +287,10 @@ def assert_fee_structure(exchange, skipped_properties, method, entry, key, allow
     log_text = log_template(exchange, method, entry)
     key_string = string_value(key)
     if isinstance(key, int):
-        key = key
         assert isinstance(entry, list), 'fee container is expected to be an array' + log_text
         assert key < len(entry), 'fee key ' + key_string + ' was expected to be present in entry' + log_text
     else:
-        assert isinstance(entry, dict), 'fee container is expected to be an object' + log_text
+        assert exchange.is_dictionary(entry), 'fee container is expected to be a dict' + log_text
         assert key in entry, 'fee key "' + key + '" was expected to be present in entry' + log_text
     fee_object = exchange.safe_value(entry, key)
     assert fee_object is not None or allow_null, 'fee object is null' + log_text
@@ -333,8 +334,10 @@ def check_precision_accuracy(exchange, skipped_properties, method, entry, key):
     if exchange.is_tick_precision():
         # TICK_SIZE should be above zero
         assert_greater(exchange, skipped_properties, method, entry, key, '0')
-        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so their existence in our case indicates to incorrectly implemented tick-sizes, which might mistakenly be implemented with DECIMAL_PLACES, so we throw error
+        # the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
         decimal_numbers = ['2', '3', '4', '5', '6', '7', '8', '9', '11', '12', '13', '14', '15', '16']
+        if key == 'amount' and 'precisionAmountAbnormal' in skipped_properties:
+            return
         for i in range(0, len(decimal_numbers)):
             num = decimal_numbers[i]
             num_str = num
@@ -477,6 +480,14 @@ def assert_order_state(exchange, skipped_properties, method, order, asserted_sta
         return
 
 
+def get_active_markets(exchange, include_unknown=True):
+    filtered_active = exchange.filter_by(exchange.markets, 'active', True)
+    if include_unknown:
+        filtered_undefined = exchange.filter_by(exchange.markets, 'active', None)
+        return exchange.array_concat(filtered_active, filtered_undefined)
+    return filtered_active
+
+
 def remove_proxy_options(exchange, skipped_properties):
     proxy_url = exchange.check_proxy_url_settings()
     [http_proxy, https_proxy, socks_proxy] = exchange.check_proxy_settings()
@@ -532,10 +543,37 @@ def assert_round_minute_timestamp(exchange, skipped_properties, method, entry, k
     assert Precise.string_mod(ts, '60000') == '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + log_text
 
 
-def deep_equal(a, b):
+def deep_equal(exchange, a, b):
     return json.dumps(a) == json.dumps(b)
 
 
 def assert_deep_equal(exchange, skipped_properties, method, a, b):
     log_text = log_template(exchange, method, {})
-    assert deep_equal(a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+    assert deep_equal(exchange, a, b), 'two dicts do not match: ' + json.dumps(a) + ' != ' + json.dumps(b) + log_text
+
+
+def exchange_prop(exchange, key, default_value=None):
+    value = exchange.get_property(exchange, str(key))
+    if value is not None:
+        return value
+    # try UpperCase key also, for other langs
+    key_upper = exchange.capitalize(str(key))
+    return exchange.get_property(exchange, key_upper, default_value)
+
+
+def validate_ticker_exception_for_percentage(ex, exchange, ticker):
+    # only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    e_message = exchange.exception_message(ex, False)
+    if 'percentage should be above' in e_message or 'percentage should be below' in e_message:
+        symbol = ticker['symbol']
+        if symbol is not None:
+            # if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if not (symbol in exchange.markets):
+                return
+            # if OHLCV supported
+            if exchange.feature_value(symbol, 'fetchOHLCV') is not None:
+                ohlcv = exchange.fetch_ohlcv(symbol, '1d', None, 5)
+                if len(ohlcv) <= 1:
+                    # if only 1 day, then allow it
+                    return
+    assert e_message == '', e_message  # trigger error

@@ -6,6 +6,8 @@
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "฿",
             "account_top_order": "1",
             "crypto_payment_id_name": "",
@@ -15,7 +17,7 @@
             "networks": [
                 {
                     "code": "BTC",
-                    "network_name": "BTC",
+                    "network_name": "Bitcoin",
                     "network": "BTC",
                     "protocol": "BTC",
                     "default": true,
@@ -23,29 +25,36 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.00000001",
-                    "payout_fee": "0.001050000000",
+                    "payout_fee": "0.001300000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "1",
-                    "low_processing_time": "30.214",
-                    "high_processing_time": "3632.819",
-                    "avg_processing_time": "1078.5871604938266",
-                    "is_multichain": false
+                    "address_regex": "^([13][a-km-zA-HJ-NP-Z1-9A-HJ-NP-Z]{25,34}|[bB][cC]1[a-zA-HJ-NP-Z0-9]{39,59})$",
+                    "low_processing_time": "52.684",
+                    "high_processing_time": "704.61",
+                    "avg_processing_time": "305.9103645833334",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 }
             ]
         },
-        "code": "BTC",
         "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
         "precision": 1e-8,
+        "type": null,
         "name": "Bitcoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.0013,
+        "fees": {},
         "networks": {
-            "BTC": {
+            "OMNI": {
                 "info": {
                     "code": "BTC",
-                    "network_name": "BTC",
+                    "network_name": "Bitcoin",
                     "network": "BTC",
                     "protocol": "BTC",
                     "default": true,
@@ -53,110 +62,611 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.00000001",
-                    "payout_fee": "0.001050000000",
+                    "payout_fee": "0.001300000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "1",
-                    "low_processing_time": "30.214",
-                    "high_processing_time": "3632.819",
-                    "avg_processing_time": "1078.5871604938266",
-                    "is_multichain": false
+                    "address_regex": "^([13][a-km-zA-HJ-NP-Z1-9A-HJ-NP-Z]{25,34}|[bB][cC]1[a-zA-HJ-NP-Z0-9]{39,59})$",
+                    "low_processing_time": "52.684",
+                    "high_processing_time": "704.61",
+                    "avg_processing_time": "305.9103645833334",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 },
                 "id": "BTC",
-                "network": "BTC",
-                "fee": 0.00105,
+                "network": "OMNI",
                 "active": true,
+                "fee": 0.0013,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 1e-8,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 0.00105,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USDT": {
         "info": {
-            "full_name": "Tether Omni",
+            "full_name": "Tether",
             "crypto": true,
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "₮",
             "account_top_order": "3",
             "crypto_payment_id_name": "",
             "crypto_explorer": "http://omniexplorer.info/lookuptx.aspx?txid={tx}",
-            "precision_transfer": "0.01",
+            "precision_transfer": "0.000001",
             "delisted": false,
             "networks": [
                 {
-                    "code": "BTC",
-                    "network_name": "BTC",
-                    "network": "BTC",
-                    "protocol": "OMNI",
-                    "default": true,
+                    "code": "AVAC",
+                    "network_name": "Avalanche C-Chain",
+                    "network": "AVAC",
+                    "protocol": "ERC-20",
+                    "default": false,
                     "is_ens_available": false,
                     "payin_enabled": true,
                     "payout_enabled": true,
-                    "precision_payout": "0.01",
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "contract_address": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7",
+                    "low_processing_time": "6.252",
+                    "high_processing_time": "26.35",
+                    "avg_processing_time": "13.19842105263158",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x9702230a8ea53601f5cd2dc00fdbc13d4df4a8c7"
+                    }
+                },
+                {
+                    "code": "BSC",
+                    "network_name": "Binance Smart Chain",
+                    "network": "BSC",
+                    "protocol": "BEP-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "contract_address": "0x55d398326f99059ff775485246999027b3197955",
+                    "low_processing_time": "2.847",
+                    "high_processing_time": "1029.318",
+                    "avg_processing_time": "29.264989795918368",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://bscscan.com/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x55d398326f99059ff775485246999027b3197955"
+                    }
+                },
+                {
+                    "code": "BTC",
+                    "network_name": "Bitcoin",
+                    "network": "BTC",
+                    "protocol": "OMNI",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": false,
+                    "payout_enabled": false,
+                    "precision_payout": "0.00000001",
                     "payout_fee": "50.000000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "2",
-                    "low_processing_time": "5.706",
-                    "high_processing_time": "1689.427",
-                    "avg_processing_time": "138.65135714285714",
-                    "is_multichain": false
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
+                },
+                {
+                    "code": "ETH",
+                    "network_name": "Ethereum",
+                    "network": "ETH",
+                    "protocol": "ERC-20",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "19.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "low_processing_time": "19.963",
+                    "high_processing_time": "7832.583",
+                    "avg_processing_time": "591.6112631578948",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                    }
+                },
+                {
+                    "code": "NEAR",
+                    "network_name": "Near",
+                    "network": "NEAR",
+                    "protocol": "NEP141",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "60",
+                    "contract_address": "usdt.tether-token.near",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "usdt.tether-token.near"
+                    }
+                },
+                {
+                    "code": "SOL",
+                    "network_name": "Solana",
+                    "network": "SOL",
+                    "protocol": "SPL",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "low_processing_time": "1.491",
+                    "high_processing_time": "6076.44",
+                    "avg_processing_time": "276.17768749999993",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://solscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                    }
+                },
+                {
+                    "code": "TON",
+                    "network_name": "Toncoin",
+                    "network": "TON",
+                    "protocol": "JETTON",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": true,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "address_regex": "^(?:(?:EQ|UQ|kQ)[A-Za-z0-9_-]{46}|0:[0-9a-fA-F]{64})$",
+                    "low_processing_time": "24.741",
+                    "high_processing_time": "24.741",
+                    "avg_processing_time": "24.74099999999999",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                    }
+                },
+                {
+                    "code": "TRX",
+                    "network_name": "Tron",
+                    "network": "TRX",
+                    "protocol": "TRC-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "3",
+                    "low_processing_time": "0.859",
+                    "high_processing_time": "1622.715",
+                    "avg_processing_time": "42.53982653061226",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://tronscan.org/#/transaction/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                    }
+                },
+                {
+                    "code": "XTZ",
+                    "network_name": "Tezos",
+                    "network": "XTZ",
+                    "protocol": "FA2",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "30",
+                    "contract_address": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                        "id": "0"
+                    }
                 }
             ]
         },
-        "code": "USDT",
         "id": "USDT",
-        "precision": 0.01,
-        "name": "Tether Omni",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": null,
+        "name": "Tether",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 10,
+        "fees": {},
         "networks": {
+            "ERC-20": {
+                "info": {
+                    "code": "ETH",
+                    "network_name": "Ethereum",
+                    "network": "ETH",
+                    "protocol": "ERC-20",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "19.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+                    "low_processing_time": "19.963",
+                    "high_processing_time": "7832.583",
+                    "avg_processing_time": "591.6112631578948",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                    }
+                },
+                "id": "ERC-20",
+                "network": "ERC-20",
+                "active": true,
+                "fee": 19,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BEP-20": {
+                "info": {
+                    "code": "BSC",
+                    "network_name": "Binance Smart Chain",
+                    "network": "BSC",
+                    "protocol": "BEP-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "contract_address": "0x55d398326f99059ff775485246999027b3197955",
+                    "low_processing_time": "2.847",
+                    "high_processing_time": "1029.318",
+                    "avg_processing_time": "29.264989795918368",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://bscscan.com/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x55d398326f99059ff775485246999027b3197955"
+                    }
+                },
+                "id": "BEP-20",
+                "network": "BEP-20",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
             "OMNI": {
                 "info": {
                     "code": "BTC",
-                    "network_name": "BTC",
+                    "network_name": "Bitcoin",
                     "network": "BTC",
                     "protocol": "OMNI",
-                    "default": true,
+                    "default": false,
                     "is_ens_available": false,
-                    "payin_enabled": true,
-                    "payout_enabled": true,
-                    "precision_payout": "0.01",
+                    "payin_enabled": false,
+                    "payout_enabled": false,
+                    "precision_payout": "0.00000001",
                     "payout_fee": "50.000000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "2",
-                    "low_processing_time": "5.706",
-                    "high_processing_time": "1689.427",
-                    "avg_processing_time": "138.65135714285714",
-                    "is_multichain": false
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 },
                 "id": "OMNI",
                 "network": "OMNI",
+                "active": false,
                 "fee": 50,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "NEP141": {
+                "info": {
+                    "code": "NEAR",
+                    "network_name": "Near",
+                    "network": "NEAR",
+                    "protocol": "NEP141",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "60",
+                    "contract_address": "usdt.tether-token.near",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "usdt.tether-token.near"
+                    }
+                },
+                "id": "NEP141",
+                "network": "NEP141",
                 "active": true,
+                "fee": 10,
                 "deposit": true,
                 "withdraw": true,
-                "precision": 0.01,
+                "precision": 0.000001,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SPL": {
+                "info": {
+                    "code": "SOL",
+                    "network_name": "Solana",
+                    "network": "SOL",
+                    "protocol": "SPL",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "low_processing_time": "1.491",
+                    "high_processing_time": "6076.44",
+                    "avg_processing_time": "276.17768749999993",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://solscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                    }
+                },
+                "id": "SPL",
+                "network": "SPL",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "JETTON": {
+                "info": {
+                    "code": "TON",
+                    "network_name": "Toncoin",
+                    "network": "TON",
+                    "protocol": "JETTON",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": true,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs",
+                    "address_regex": "^(?:(?:EQ|UQ|kQ)[A-Za-z0-9_-]{46}|0:[0-9a-fA-F]{64})$",
+                    "low_processing_time": "24.741",
+                    "high_processing_time": "24.741",
+                    "avg_processing_time": "24.74099999999999",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "EQCxE6mUtQJKFnGfaROTKOt1lZbDiiX1kCixRv7Nw2Id_sDs"
+                    }
+                },
+                "id": "JETTON",
+                "network": "JETTON",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TRC-20": {
+                "info": {
+                    "code": "TRX",
+                    "network_name": "Tron",
+                    "network": "TRX",
+                    "protocol": "TRC-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "3",
+                    "low_processing_time": "0.859",
+                    "high_processing_time": "1622.715",
+                    "avg_processing_time": "42.53982653061226",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://tronscan.org/#/transaction/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                    }
+                },
+                "id": "TRC-20",
+                "network": "TRC-20",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "FA2": {
+                "info": {
+                    "code": "XTZ",
+                    "network_name": "Tezos",
+                    "network": "XTZ",
+                    "protocol": "FA2",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "30",
+                    "contract_address": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "KT1XnTn74bUtxHfDtBmm2bGZAQfhPbvKWR8o",
+                        "id": "0"
+                    }
+                },
+                "id": "FA2",
+                "network": "FA2",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 50,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "LTC": {
@@ -166,6 +676,8 @@
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "Ł",
             "account_top_order": "16",
             "crypto_payment_id_name": "",
@@ -175,7 +687,7 @@
             "networks": [
                 {
                     "code": "LTC",
-                    "network_name": "LTC",
+                    "network_name": "Litecoin",
                     "network": "LTC",
                     "protocol": "LTC",
                     "default": true,
@@ -183,29 +695,35 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.00000001",
-                    "payout_fee": "0.001000000000",
+                    "payout_fee": "0.106000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "5",
-                    "low_processing_time": "11.13",
-                    "high_processing_time": "2058.896",
-                    "avg_processing_time": "278.47855",
-                    "is_multichain": false
+                    "low_processing_time": "14.468",
+                    "high_processing_time": "869.384",
+                    "avg_processing_time": "189.78533999999993",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 }
             ]
         },
-        "code": "LTC",
         "id": "LTC",
+        "numericId": null,
+        "code": "LTC",
         "precision": 1e-8,
+        "type": null,
         "name": "Litecoin",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.106,
+        "fees": {},
         "networks": {
             "LTC": {
                 "info": {
                     "code": "LTC",
-                    "network_name": "LTC",
+                    "network_name": "Litecoin",
                     "network": "LTC",
                     "protocol": "LTC",
                     "default": true,
@@ -213,30 +731,45 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.00000001",
-                    "payout_fee": "0.001000000000",
+                    "payout_fee": "0.106000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "5",
-                    "low_processing_time": "11.13",
-                    "high_processing_time": "2058.896",
-                    "avg_processing_time": "278.47855",
-                    "is_multichain": false
+                    "low_processing_time": "14.468",
+                    "high_processing_time": "869.384",
+                    "avg_processing_time": "189.78533999999993",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 },
                 "id": "LTC",
                 "network": "LTC",
-                "fee": 0.001,
                 "active": true,
+                "fee": 0.106,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 1e-8,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 0.001,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "ETH": {
@@ -246,6 +779,8 @@
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "E",
             "account_top_order": "2",
             "crypto_payment_id_name": "",
@@ -255,7 +790,7 @@
             "networks": [
                 {
                     "code": "ETH",
-                    "network_name": "ETH",
+                    "network_name": "Ethereum",
                     "network": "ETH",
                     "protocol": "ETH",
                     "default": true,
@@ -263,29 +798,35 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000000000000000001",
-                    "payout_fee": "0.003440000000",
+                    "payout_fee": "0.004500000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
-                    "payin_confirmations": "4",
-                    "low_processing_time": "13.145",
-                    "high_processing_time": "529.177",
-                    "avg_processing_time": "118.81709375000004",
-                    "is_multichain": false
+                    "payin_confirmations": "2",
+                    "low_processing_time": "7.425",
+                    "high_processing_time": "64.919",
+                    "avg_processing_time": "30.14794999999999",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+                    "is_multichain": true
                 }
             ]
         },
-        "code": "ETH",
         "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
         "precision": 1e-12,
+        "type": null,
         "name": "Ethereum",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 0.0045,
+        "fees": {},
         "networks": {
-            "ETH": {
+            "ERC20": {
                 "info": {
                     "code": "ETH",
-                    "network_name": "ETH",
+                    "network_name": "Ethereum",
                     "network": "ETH",
                     "protocol": "ETH",
                     "default": true,
@@ -293,30 +834,45 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000000000000000001",
-                    "payout_fee": "0.003440000000",
+                    "payout_fee": "0.004500000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
-                    "payin_confirmations": "4",
-                    "low_processing_time": "13.145",
-                    "high_processing_time": "529.177",
-                    "avg_processing_time": "118.81709375000004",
-                    "is_multichain": false
+                    "payin_confirmations": "2",
+                    "low_processing_time": "7.425",
+                    "high_processing_time": "64.919",
+                    "avg_processing_time": "30.14794999999999",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+                    "is_multichain": true
                 },
                 "id": "ETH",
-                "network": "ETH",
-                "fee": 0.00344,
+                "network": "ERC20",
                 "active": true,
+                "fee": 0.0045,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 1e-18,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 0.00344,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "ADA": {
@@ -326,6 +882,8 @@
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "A",
             "crypto_payment_id_name": "",
             "crypto_explorer": "https://cardanoexplorer.com/tx/{tx}",
@@ -334,7 +892,7 @@
             "networks": [
                 {
                     "code": "ADA",
-                    "network_name": "ADA",
+                    "network_name": "Cardano",
                     "network": "ADA",
                     "protocol": "ADA",
                     "default": true,
@@ -342,29 +900,35 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000001",
-                    "payout_fee": "28.000000000000",
+                    "payout_fee": "13.400000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "30",
-                    "low_processing_time": "40.676",
-                    "high_processing_time": "4640.318",
-                    "avg_processing_time": "369.66745",
-                    "is_multichain": false
+                    "low_processing_time": "24.932",
+                    "high_processing_time": "1662.666",
+                    "avg_processing_time": "332.560696969697",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 }
             ]
         },
-        "code": "ADA",
         "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
         "precision": 0.000001,
+        "type": null,
         "name": "Cardano",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 13.4,
+        "fees": {},
         "networks": {
             "ADA": {
                 "info": {
                     "code": "ADA",
-                    "network_name": "ADA",
+                    "network_name": "Cardano",
                     "network": "ADA",
                     "protocol": "ADA",
                     "default": true,
@@ -372,30 +936,45 @@
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000001",
-                    "payout_fee": "28.000000000000",
+                    "payout_fee": "13.400000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
                     "payin_confirmations": "30",
-                    "low_processing_time": "40.676",
-                    "high_processing_time": "4640.318",
-                    "avg_processing_time": "369.66745",
-                    "is_multichain": false
+                    "low_processing_time": "24.932",
+                    "high_processing_time": "1662.666",
+                    "avg_processing_time": "332.560696969697",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 },
                 "id": "ADA",
                 "network": "ADA",
-                "fee": 28,
                 "active": true,
+                "fee": 13.4,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 28,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "XRP": {
@@ -405,6 +984,8 @@
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "R",
             "account_top_order": "15",
             "crypto_payment_id_name": "DestinationTag",
@@ -414,77 +995,100 @@
             "networks": [
                 {
                     "code": "XRP",
-                    "network_name": "XRP",
+                    "network_name": "Ripple",
                     "network": "XRP",
-                    "protocol": "",
+                    "protocol": "XRP",
                     "default": true,
                     "is_ens_available": false,
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000001",
-                    "payout_fee": "2.000000000000",
+                    "payout_fee": "4.240000000000",
                     "payout_is_payment_id": true,
                     "payin_payment_id": true,
-                    "payin_confirmations": "20",
-                    "low_processing_time": "2.445",
-                    "high_processing_time": "36.04",
-                    "avg_processing_time": "17.662900000000004",
-                    "is_multichain": false
+                    "payin_confirmations": "1",
+                    "low_processing_time": "2.278",
+                    "high_processing_time": "62.292",
+                    "avg_processing_time": "26.557650000000002",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 }
             ]
         },
-        "code": "XRP",
         "id": "XRP",
+        "numericId": null,
+        "code": "XRP",
         "precision": 0.000001,
+        "type": null,
         "name": "Ripple",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 4.24,
+        "fees": {},
         "networks": {
             "XRP": {
                 "info": {
                     "code": "XRP",
-                    "network_name": "XRP",
+                    "network_name": "Ripple",
                     "network": "XRP",
-                    "protocol": "",
+                    "protocol": "XRP",
                     "default": true,
                     "is_ens_available": false,
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000001",
-                    "payout_fee": "2.000000000000",
+                    "payout_fee": "4.240000000000",
                     "payout_is_payment_id": true,
                     "payin_payment_id": true,
-                    "payin_confirmations": "20",
-                    "low_processing_time": "2.445",
-                    "high_processing_time": "36.04",
-                    "avg_processing_time": "17.662900000000004",
-                    "is_multichain": false
+                    "payin_confirmations": "1",
+                    "low_processing_time": "2.278",
+                    "high_processing_time": "62.292",
+                    "avg_processing_time": "26.557650000000002",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true
                 },
                 "id": "XRP",
                 "network": "XRP",
-                "fee": 2,
                 "active": true,
+                "fee": 4.24,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 2,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     },
     "USDC": {
         "info": {
-            "full_name": "USD Coin ERC20 Chain",
+            "full_name": "USD Coin",
             "crypto": true,
             "payin_enabled": true,
             "payout_enabled": true,
             "transfer_enabled": true,
+            "transfer_to_wallet_enabled": true,
+            "transfer_to_exchange_enabled": true,
             "sign": "U",
             "crypto_payment_id_name": "",
             "crypto_explorer": "https://etherscan.io/tx/{tx}",
@@ -492,71 +1096,487 @@
             "delisted": false,
             "networks": [
                 {
+                    "code": "ARB",
+                    "network_name": "Arbitrum One",
+                    "network": "ARB",
+                    "protocol": "ERC-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "contract_address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831",
+                    "low_processing_time": "4.419",
+                    "high_processing_time": "2105.429",
+                    "avg_processing_time": "1106.8960000000004",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0xaf88d065e77c8cc2239327c5edb3a432268e5831"
+                    }
+                },
+                {
+                    "code": "AVAC",
+                    "network_name": "Avalanche C-Chain",
+                    "network": "AVAC",
+                    "protocol": "ERC-20",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "contract_address": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0xb97ef9ef8734c71904d8002f8b6bc66dd9c48a6e"
+                    }
+                },
+                {
+                    "code": "BASE",
+                    "network_name": "Base",
+                    "network": "BASE",
+                    "protocol": "ERC-20",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "20",
+                    "contract_address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913",
+                    "low_processing_time": "848.862",
+                    "high_processing_time": "848.862",
+                    "avg_processing_time": "848.8619999999999",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x833589fcd6edb6e08f4c7c32d4f71b54bda02913"
+                    }
+                },
+                {
+                    "code": "BSC",
+                    "network_name": "Binance Smart Chain",
+                    "network": "BSC",
+                    "protocol": "BEP-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "low_processing_time": "5.659",
+                    "high_processing_time": "27.679",
+                    "avg_processing_time": "16.143756097560974",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://bscscan.com/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+                    }
+                },
+                {
                     "code": "ETH",
-                    "network_name": "ETH",
+                    "network_name": "Ethereum",
                     "network": "ETH",
-                    "protocol": "ERC20",
+                    "protocol": "ERC-20",
                     "default": true,
                     "is_ens_available": true,
                     "payin_enabled": true,
                     "payout_enabled": true,
-                    "precision_payout": "0.000001",
-                    "payout_fee": "14.000000000000",
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "26.000000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
-                    "payin_confirmations": "4",
+                    "payin_confirmations": "2",
                     "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                    "low_processing_time": "30.852",
-                    "high_processing_time": "999.163",
-                    "avg_processing_time": "383.9943505154639",
-                    "is_multichain": false
+                    "low_processing_time": "42.613",
+                    "high_processing_time": "743.01",
+                    "avg_processing_time": "313.0477282608694",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://etherscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
+                    }
+                },
+                {
+                    "code": "NEAR",
+                    "network_name": "Near",
+                    "network": "NEAR",
+                    "protocol": "NEP141",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.100000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "60",
+                    "contract_address": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1"
+                    }
+                },
+                {
+                    "code": "OP",
+                    "network_name": "Optimism",
+                    "network": "OP",
+                    "protocol": "ERC-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.100000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "contract_address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+                    "low_processing_time": "1064.515",
+                    "high_processing_time": "1064.515",
+                    "avg_processing_time": "1064.5149999999996",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85"
+                    }
+                },
+                {
+                    "code": "POLYGON",
+                    "network_name": "Polygon (Matic)",
+                    "network": "POLYGON",
+                    "protocol": "ERC-20",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "100",
+                    "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "low_processing_time": "5.392",
+                    "high_processing_time": "2825.277",
+                    "avg_processing_time": "1039.681457142857",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+                    }
+                },
+                {
+                    "code": "SOL",
+                    "network_name": "Solana",
+                    "network": "SOL",
+                    "protocol": "SPL",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "low_processing_time": "1.37",
+                    "high_processing_time": "3984.995",
+                    "avg_processing_time": "347.70007692307695",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://solscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                    }
+                },
+                {
+                    "code": "SUI",
+                    "network_name": "Sui",
+                    "network": "SUI",
+                    "protocol": "TOKEN",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.100000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "0xdba34672e30cb065b1f93e3ab55318768fd6fef66c15942c9f7cb846e2f900e7::usdc::USDC"
+                    }
+                },
+                {
+                    "code": "XLM",
+                    "network_name": "Stellar",
+                    "network": "XLM",
+                    "protocol": "TOKEN",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.0000001",
+                    "payout_fee": "10.100000000000",
+                    "payout_is_payment_id": true,
+                    "payin_payment_id": true,
+                    "payin_confirmations": "1",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "code": "USDC",
+                        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                    }
                 }
             ]
         },
-        "code": "USDC",
         "id": "USDC",
+        "numericId": null,
+        "code": "USDC",
         "precision": 0.000001,
-        "name": "USD Coin ERC20 Chain",
+        "type": null,
+        "name": "USD Coin",
         "active": true,
         "deposit": true,
         "withdraw": true,
+        "fee": 10,
+        "fees": {},
         "networks": {
-            "ERC20": {
+            "ERC-20": {
                 "info": {
-                    "code": "ETH",
-                    "network_name": "ETH",
-                    "network": "ETH",
-                    "protocol": "ERC20",
-                    "default": true,
-                    "is_ens_available": true,
+                    "code": "POLYGON",
+                    "network_name": "Polygon (Matic)",
+                    "network": "POLYGON",
+                    "protocol": "ERC-20",
+                    "default": false,
+                    "is_ens_available": false,
                     "payin_enabled": true,
                     "payout_enabled": true,
                     "precision_payout": "0.000001",
-                    "payout_fee": "14.000000000000",
+                    "payout_fee": "10.000000000000",
                     "payout_is_payment_id": false,
                     "payin_payment_id": false,
-                    "payin_confirmations": "4",
-                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
-                    "low_processing_time": "30.852",
-                    "high_processing_time": "999.163",
-                    "avg_processing_time": "383.9943505154639",
-                    "is_multichain": false
+                    "payin_confirmations": "100",
+                    "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "low_processing_time": "5.392",
+                    "high_processing_time": "2825.277",
+                    "avg_processing_time": "1039.681457142857",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359"
+                    }
                 },
-                "id": "ERC20",
-                "network": "ERC20",
-                "fee": 14,
+                "id": "ERC-20",
+                "network": "ERC-20",
                 "active": true,
+                "fee": 10,
                 "deposit": true,
                 "withdraw": true,
                 "precision": 0.000001,
                 "limits": {
-                    "withdraw": {}
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "BEP-20": {
+                "info": {
+                    "code": "BSC",
+                    "network_name": "Binance Smart Chain",
+                    "network": "BSC",
+                    "protocol": "BEP-20",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "10",
+                    "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+                    "low_processing_time": "5.659",
+                    "high_processing_time": "27.679",
+                    "avg_processing_time": "16.143756097560974",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://bscscan.com/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d"
+                    }
+                },
+                "id": "BEP-20",
+                "network": "BEP-20",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "NEP141": {
+                "info": {
+                    "code": "NEAR",
+                    "network_name": "Near",
+                    "network": "NEAR",
+                    "protocol": "NEP141",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.100000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "60",
+                    "contract_address": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "contract_address": "17208628f84f5d6ad33f0da3bbbeb27ffcb398eac501a31bd6ad2011e36133a1"
+                    }
+                },
+                "id": "NEP141",
+                "network": "NEP141",
+                "active": true,
+                "fee": 10.1,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "SPL": {
+                "info": {
+                    "code": "SOL",
+                    "network_name": "Solana",
+                    "network": "SOL",
+                    "protocol": "SPL",
+                    "default": false,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "low_processing_time": "1.37",
+                    "high_processing_time": "3984.995",
+                    "avg_processing_time": "347.70007692307695",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "https://solscan.io/tx/{tx}",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "id": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"
+                    }
+                },
+                "id": "SPL",
+                "network": "SPL",
+                "active": true,
+                "fee": 10,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                }
+            },
+            "TOKEN": {
+                "info": {
+                    "code": "XLM",
+                    "network_name": "Stellar",
+                    "network": "XLM",
+                    "protocol": "TOKEN",
+                    "default": false,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.0000001",
+                    "payout_fee": "10.100000000000",
+                    "payout_is_payment_id": true,
+                    "payin_payment_id": true,
+                    "payin_confirmations": "1",
+                    "crypto_payment_id_name": "",
+                    "crypto_explorer": "",
+                    "is_multichain": true,
+                    "asset_id": {
+                        "code": "USDC",
+                        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                    }
+                },
+                "id": "TOKEN",
+                "network": "TOKEN",
+                "active": true,
+                "fee": 10.1,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-7,
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
                 }
             }
         },
-        "fee": 14,
         "limits": {
-            "amount": {}
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
         }
     }
 }

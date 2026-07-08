@@ -9,6 +9,10 @@ public partial class testMainClass : BaseTest
 {
     public static void testCurrency(Exchange exchange, object skippedProperties, object method, object entry)
     {
+        if (isTrue(isEqual(entry, null)))
+        {
+            return;
+        }
         object format = new Dictionary<string, object>() {
             { "id", "btc" },
             { "code", "BTC" },
@@ -53,8 +57,33 @@ public partial class testMainClass : BaseTest
                 ((IList<object>)emptyAllowedFor).Add("precision");
             }
         }
-        testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        //
         testSharedMethods.assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(entry, "code"));
+        // check if empty networks should be skipped
+        object networks = exchange.safeDict(entry, "networks", new Dictionary<string, object>() {});
+        object networkKeys = new List<object>(((IDictionary<string,object>)networks).Keys);
+        object networkKeysLength = getArrayLength(networkKeys);
+        if (isTrue(isTrue(isEqual(networkKeysLength, 0)) && isTrue((inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
+        {
+            return;
+        }
+        try
+        {
+            testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+        } catch(Exception e)
+        {
+            object message = exchange.exceptionMessage(e);
+            // check structure if key is numeric, not string
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(message, "\"id\" key"), 0)))
+            {
+                // @ts-ignore
+                ((IDictionary<string,object>)format)["id"] = 123;
+                testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
+            } else
+            {
+                assert(isEqual(message, ""), message);
+            }
+        }
         //
         testSharedMethods.checkPrecisionAccuracy(exchange, skippedProperties, method, entry, "precision");
         testSharedMethods.assertGreaterOrEqual(exchange, skippedProperties, method, entry, "fee", "0");

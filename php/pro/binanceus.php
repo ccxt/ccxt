@@ -8,11 +8,10 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class binanceus extends \ccxt\pro\binance {
-
     public function describe(): mixed {
         // eslint-disable-next-line new-cap
-        $restInstance = new \ccxt\async\binanceus ();
-        $restDescribe = $restInstance->describe ();
+        $restInstance = new \ccxt\async\binanceus();
+        $restDescribe = $restInstance->describe();
         $parentWsDescribe = parent::describe_data();
         $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(
@@ -39,11 +38,31 @@ class binanceus extends \ccxt\pro\binance {
                 'doc' => 'https://github.com/binance-us/binance-official-api-docs',
                 'fees' => 'https://www.binance.us/en/fee/schedule',
             ),
+            'has' => array(
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createReduceOnlyOrderWs' => false,
+                'createStopLossOrderWs' => false,
+                'createTakeProfitOrderWs' => false,
+                'fetchPositionForSymbolWs' => false,
+                'fetchPositionsForSymbolWs' => false,
+                'fetchPositionsWs' => false,
+                'fetchPositionWs' => false,
+                'unWatchPositions' => false,
+                'watchLiquidations' => false,
+                'watchLiquidationsForSymbols' => false,
+                'watchMarkPrice' => false,
+                'watchMarkPrices' => false,
+                'watchMyLiquidations' => false,
+                'watchMyLiquidationsForSymbols' => false,
+                'watchPosition' => false,
+                'watchPositions' => false,
+            ),
             'options' => array(
-                'fetchCurrencies' => false,
                 'quoteOrderQty' => false,
                 'defaultType' => 'spot',
-                'fetchMarkets' => array( 'spot' ),
+                'fetchMarkets' => array(
+                    'types' => array( 'spot' ),
+                ),
             ),
         ));
     }

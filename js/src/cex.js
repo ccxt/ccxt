@@ -5,11 +5,11 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
+import { sha256 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/cex.js';
-import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, NullResponse, PermissionDenied, InsufficientFunds, BadRequest, AuthenticationError, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class cex
@@ -21,47 +21,108 @@ export default class cex extends Exchange {
             'id': 'cex',
             'name': 'CEX.IO',
             'countries': ['GB', 'EU', 'CY', 'RU'],
-            'rateLimit': 300,
+            'rateLimit': 300, // 200 req/min
             'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
-                'margin': false,
+                'margin': false, // has, but not through api
                 'swap': false,
                 'future': false,
                 'option': false,
+                'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'closeAllPositions': false,
+                'closePosition': false,
                 'createOrder': true,
+                'createOrderWithTakeProfitAndStopLoss': false,
+                'createOrderWithTakeProfitAndStopLossWs': false,
+                'createPostOnlyOrder': false,
                 'createReduceOnlyOrder': false,
                 'createStopOrder': true,
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrder': true,
                 'fetchClosedOrders': true,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDepositsWithdrawals': true,
                 'fetchFundingHistory': false,
+                'fetchFundingInterval': false,
+                'fetchFundingIntervals': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
+                'fetchGreeks': false,
+                'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
+                'fetchIsolatedPositions': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverages': false,
+                'fetchLeverageTiers': false,
+                'fetchLiquidations': false,
+                'fetchLongShortRatio': false,
+                'fetchLongShortRatioHistory': false,
+                'fetchMarginAdjustmentHistory': false,
+                'fetchMarginMode': false,
+                'fetchMarginModes': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
+                'fetchMarkPrices': false,
+                'fetchMyLiquidations': false,
+                'fetchMySettlementHistory': false,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': false,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenInterests': false,
                 'fetchOpenOrder': true,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrderBook': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
+                'fetchSettlementHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
+                'fetchVolatilityHistory': false,
+                'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
+                'repayMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg',
+                'logo': 'https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99',
                 'api': {
                     'public': 'https://trade.cex.io/api/spot/rest-public',
                     'private': 'https://trade.cex.io/api/spot/rest',
@@ -122,19 +183,19 @@ export default class cex extends Exchange {
                         'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
-                        'stopLossPrice': false,
-                        'takeProfitPrice': false,
+                        'stopLossPrice': false, // todo
+                        'takeProfitPrice': false, // todo
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
                             'IOC': true,
                             'FOK': true,
-                            'PO': false,
+                            'PO': false, // todo check
                             'GTD': true,
                         },
                         'hedged': false,
                         'leverage': false,
                         'marketBuyRequiresPrice': false,
-                        'marketBuyByCost': true,
+                        'marketBuyByCost': true, // todo check
                         'selfTradePrevention': false,
                         'trailing': false,
                         'iceberg': false,
@@ -183,8 +244,9 @@ export default class cex extends Exchange {
                     'check failed': BadRequest,
                     'Insufficient funds': InsufficientFunds,
                     'Get deposit address for main account is not allowed': PermissionDenied,
-                    'Market Trigger orders are not allowed': BadRequest,
+                    'Market Trigger orders are not allowed': BadRequest, // for some reason, triggerPrice does not work for market orders
                     'key not passed or incorrect': AuthenticationError,
+                    'API rate limit reached': RateLimitExceeded, // {"error":"API rate limit reached"}
                 },
             },
             'timeframes': {
@@ -213,7 +275,7 @@ export default class cex extends Exchange {
                     'THETA': 'theta',
                     'XTZ': 'tezos',
                     'TIA': 'celestia',
-                    'CRONOS': 'cronos',
+                    'CRONOS': 'cronos', // CRC20
                     'MATIC': 'polygon',
                     'TON': 'ton',
                     'TRC20': 'tron',
@@ -305,8 +367,6 @@ export default class cex extends Exchange {
         const id = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(id);
         const type = this.safeBool(rawCurrency, 'fiat') ? 'fiat' : 'crypto';
-        const currencyDepositEnabled = this.safeBool(rawCurrency, 'walletDeposit');
-        const currencyWithdrawEnabled = this.safeBool(rawCurrency, 'walletWithdrawal');
         const currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 'precision')));
         const networks = {};
         const rawNetworks = this.safeDict(rawCurrency, 'blockchains', {});
@@ -314,7 +374,7 @@ export default class cex extends Exchange {
         for (let j = 0; j < keys.length; j++) {
             const networkId = keys[j];
             const rawNetwork = rawNetworks[networkId];
-            const networkCode = this.networkIdToCode(networkId);
+            const networkCode = this.networkIdToCode(networkId, code);
             const deposit = this.safeString(rawNetwork, 'deposit') === 'enabled';
             const withdraw = this.safeString(rawNetwork, 'withdrawal') === 'enabled';
             networks[networkCode] = {
@@ -345,8 +405,8 @@ export default class cex extends Exchange {
             'name': undefined,
             'type': type,
             'active': undefined,
-            'deposit': currencyDepositEnabled,
-            'withdraw': currencyWithdrawEnabled,
+            'deposit': this.safeBool(rawCurrency, 'walletDeposit'),
+            'withdraw': this.safeBool(rawCurrency, 'walletWithdrawal'),
             'fee': undefined,
             'precision': currencyPrecision,
             'limits': {
@@ -461,6 +521,7 @@ export default class cex extends Exchange {
      * @method
      * @name cex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -486,10 +547,12 @@ export default class cex extends Exchange {
      * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
      * @param {string} symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.fetchTickers([symbol], params);
         return this.safeDict(response, symbol, {});
     }
@@ -500,10 +563,12 @@ export default class cex extends Exchange {
      * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (symbols !== undefined) {
             request['pairs'] = this.marketIds(symbols);
@@ -553,7 +618,7 @@ export default class cex extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': undefined,
-            'close': this.safeString(ticker, 'last'),
+            'close': this.safeString(ticker, 'last'), // last indicative price per api docs (difference also seen here: https://github.com/ccxt/ccxt/actions/runs/14593899575/job/40935513901?pr=25767#step:11:456 )
             'previousClose': undefined,
             'change': this.safeNumber(ticker, 'priceChange'),
             'percentage': this.safeNumber(ticker, 'priceChangePercentage'),
@@ -573,10 +638,12 @@ export default class cex extends Exchange {
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -651,10 +718,12 @@ export default class cex extends Exchange {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -701,7 +770,9 @@ export default class cex extends Exchange {
         if (dataType === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchOHLCV requires a parameter "dataType" to be either "bestBid" or "bestAsk"');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -766,10 +837,12 @@ export default class cex extends Exchange {
      * @description fetch the trading fees for multiple markets
      * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetMyCurrentFee(params);
         //
         //    {
@@ -817,7 +890,9 @@ export default class cex extends Exchange {
         };
     }
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostGetMyAccountStatusV3(params);
         //
         //    {
@@ -860,7 +935,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
      * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
         let accountName = undefined;
@@ -933,10 +1008,12 @@ export default class cex extends Exchange {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersByStatus(status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const isClosedOrders = (status === 'closed');
         if (isClosedOrders) {
@@ -1015,7 +1092,7 @@ export default class cex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStatus('closed', symbol, since, limit, params);
@@ -1029,7 +1106,7 @@ export default class cex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         return await this.fetchOrdersByStatus('open', symbol, since, limit, params);
@@ -1042,10 +1119,12 @@ export default class cex extends Exchange {
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': parseInt(id),
         };
@@ -1060,10 +1139,12 @@ export default class cex extends Exchange {
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': parseInt(id),
         };
@@ -1176,7 +1257,7 @@ export default class cex extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         let accountId = undefined;
@@ -1184,7 +1265,9 @@ export default class cex extends Exchange {
         if (accountId === undefined) {
             throw new ArgumentsRequired(this.id + ' createOrder() : API trading is now allowed from main account, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'clientOrderId': this.uuid(),
@@ -1268,10 +1351,12 @@ export default class cex extends Exchange {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'orderId': parseInt(id),
             'cancelRequestId': 'c_' + (this.milliseconds()).toString(),
@@ -1291,10 +1376,12 @@ export default class cex extends Exchange {
      * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
      * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostDoCancelAllOrders(params);
         //
         //    {
@@ -1325,10 +1412,12 @@ export default class cex extends Exchange {
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1416,10 +1505,12 @@ export default class cex extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let currency = undefined;
         if (code !== undefined) {
@@ -1509,7 +1600,7 @@ export default class cex extends Exchange {
      * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
      * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     async transfer(code, amount, fromAccount, toAccount, params = {}) {
         let transfer = undefined;
@@ -1527,7 +1618,9 @@ export default class cex extends Exchange {
         return transfer;
     }
     async transferBetweenMainAndSubAccount(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const fromMain = (fromAccount === '');
         const targetAccount = fromMain ? toAccount : fromAccount;
@@ -1562,7 +1655,9 @@ export default class cex extends Exchange {
         return this.parseTransfer(data, currency);
     }
     async transferBetweenSubAccounts(code, amount, fromAccount, toAccount, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1627,7 +1722,7 @@ export default class cex extends Exchange {
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress(code, params = {}) {
         let accountId = undefined;
@@ -1635,14 +1730,16 @@ export default class cex extends Exchange {
         if (accountId === undefined) {
             throw new ArgumentsRequired(this.id + ' fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params["accountId"] or .options["createOrder"]["accountId"] to the name of your sub-account');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
         const currency = this.currency(code);
         const request = {
             'accountId': accountId,
-            'currency': currency['id'],
-            'blockchain': this.networkCodeToId(networkCode),
+            'currency': currency['id'], // documentation is wrong about this param
+            'blockchain': this.networkCodeToId(networkCode, currency['code']),
         };
         const response = await this.privatePostGetDepositAddress(this.extend(request, params));
         //
@@ -1667,7 +1764,7 @@ export default class cex extends Exchange {
         return {
             'info': depositAddress,
             'currency': currency['code'],
-            'network': this.networkIdToCode(this.safeString(depositAddress, 'blockchain')),
+            'network': this.networkIdToCode(this.safeString(depositAddress, 'blockchain'), currency['code']),
             'address': address,
             'tag': undefined,
         };

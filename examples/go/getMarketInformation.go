@@ -8,7 +8,7 @@ func GetMarket() {
 	// instantiate the exchange
 	exchange := ccxt.NewBinance(nil)
 
-	<-exchange.LoadMarkets() // loading markets first
+	exchange.LoadMarkets() // loading markets first
 
 	symbol := "BTC/USDT"
 

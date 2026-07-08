@@ -10,10 +10,15 @@ export { decodeBase58, encodeBase58 } from "./base58.js";
 
 export { decodeBase64, encodeBase64 } from "./base64.js";
 
-export {
+import {
     getBytes, getBytesCopy, isHexString, isBytesLike, hexlify, concat, dataLength, dataSlice,
     stripZerosLeft, zeroPadValue, zeroPadBytes
 } from "./data.js";
+
+export {
+    getBytes, getBytesCopy, isHexString, isBytesLike, hexlify, concat, dataLength, dataSlice,
+    stripZerosLeft, zeroPadValue, zeroPadBytes
+};
 
 export {
     isCallException, isError,
@@ -85,17 +90,23 @@ export type {
 } from "./utf8.js";
 
 import { hash } from '../../../base/functions.js';
-import { keccak_256 } from '../../noble-hashes/sha3.js';
-import { sha256 as sha_256 } from '../../noble-hashes/sha256.js';
+import { keccak_256 } from '@noble/hashes/sha3.js';
+import { sha256 as sha_256 } from '@noble/hashes/sha2.js';
 
 export function id(value: any): string {
     return '0x' + hash(value, keccak_256, 'hex');
 }
 
 export function keccak256(value: any): string {
+    if (isHexString(value)) {
+        return '0x' + hash(getBytes(value), keccak_256, 'hex');
+    }
     return '0x' + hash(value, keccak_256, 'hex');
 }
 
 export function sha256(value: any): string {
+    if (isHexString(value)) {
+        return '0x' + hash(getBytes(value), sha_256, 'hex');
+    }
     return '0x' + hash(value, sha_256, 'hex');
 }

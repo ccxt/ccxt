@@ -84,8 +84,10 @@ public partial class phemex : ccxt.phemex
 
     public virtual object requestId()
     {
+        this.lockId();
         object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
         ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        this.unlockId();
         return requestId;
     }
 
@@ -126,7 +128,7 @@ public partial class phemex : ccxt.phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        object result = new Dictionary<string, object>() {
+        return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
@@ -149,8 +151,7 @@ public partial class phemex : ccxt.phemex
             { "markPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "markPrice"), market)) },
             { "indexPrice", this.parseNumber(this.fromEp(this.safeString(ticker, "indexPrice"), market)) },
             { "info", ticker },
-        };
-        return result;
+        });
     }
 
     public virtual object parsePerpetualTicker(object ticker, object market = null)
@@ -189,7 +190,7 @@ public partial class phemex : ccxt.phemex
             average = this.parseNumber(Precise.stringDiv(Precise.stringAdd(lastString, openString), "2"));
             percentage = this.parseNumber(Precise.stringMul(Precise.stringSub(Precise.stringDiv(lastString, openString), "1"), "100"));
         }
-        object result = new Dictionary<string, object>() {
+        return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -210,8 +211,7 @@ public partial class phemex : ccxt.phemex
             { "baseVolume", baseVolume },
             { "quoteVolume", quoteVolume },
             { "info", ticker },
-        };
-        return result;
+        });
     }
 
     public virtual void handleTicker(WebSocketClient client, object message)
@@ -330,12 +330,15 @@ public partial class phemex : ccxt.phemex
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.settle] set to USDT to use hedged perpetual api
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -545,12 +548,15 @@ public partial class phemex : ccxt.phemex
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object isSwap = getValue(market, "swap");
@@ -583,12 +589,15 @@ public partial class phemex : ccxt.phemex
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object first = getValue(symbols, 0);
         object market = this.market(first);
@@ -634,12 +643,15 @@ public partial class phemex : ccxt.phemex
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -674,12 +686,15 @@ public partial class phemex : ccxt.phemex
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -717,7 +732,10 @@ public partial class phemex : ccxt.phemex
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -844,12 +862,15 @@ public partial class phemex : ccxt.phemex
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object type = null;
         object messageHash = "trades:";
@@ -1023,12 +1044,15 @@ public partial class phemex : ccxt.phemex
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "orders:";
         object market = null;
         object type = null;
@@ -1240,6 +1264,11 @@ public partial class phemex : ccxt.phemex
             }
         } else
         {
+            object messageLength = getArrayLength(message);
+            if (isTrue(isEqual(messageLength, 0)))
+            {
+                return;
+            }
             for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
             {
                 object update = getValue(message, i);
@@ -1636,7 +1665,10 @@ public partial class phemex : ccxt.phemex
     public async virtual Task<object> subscribePrivate(object type, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(this.urls, "api"), "ws");
         object requestId = this.seconds();

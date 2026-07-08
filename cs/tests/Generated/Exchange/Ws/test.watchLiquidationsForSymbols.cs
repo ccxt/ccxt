@@ -8,6 +8,51 @@ namespace Tests;
 
 public partial class testMainClass : BaseTest
 {
-
+    async static public Task<object> testWatchLiquidationsForSymbols(Exchange exchange, object skippedProperties, object symbol)
+    {
+        object method = "watchLiquidationsForSymbols";
+        // we have to skip some exchanges here due to the frequency of trading
+        object skippedExchanges = new List<object>() {};
+        if (isTrue(exchange.inArray(exchange.id, skippedExchanges)))
+        {
+            object m1 = (add(add(add(exchange.id, " "), method), "() test skipped"));
+            Console.WriteLine(m1);
+            return false;
+        }
+        if (!isTrue(getValue(exchange.has, method)))
+        {
+            object m2 = (add(add(add(exchange.id, " does not support "), method), "() method"));
+            Console.WriteLine(m2);
+            return false;
+        }
+        object response = null;
+        object now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
+        object ends = add(now, 10000);
+        while (isLessThan(now, ends))
+        {
+            try
+            {
+                response = await exchange.watchLiquidationsForSymbols(new List<object>() {symbol});
+                now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
+                object isArray = ((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
+                assert(isArray, "response must be an array");
+                object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
+                Console.WriteLine(m3);
+                // log.noLocate (asTable (response))
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    testLiquidation(exchange, skippedProperties, method, getValue(response, i), symbol);
+                }
+            } catch(Exception e)
+            {
+                if (!isTrue((e is NetworkError)))
+                {
+                    throw e;
+                }
+                now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
+            }
+        }
+        return response;
+    }
 
 }

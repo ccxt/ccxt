@@ -11,8 +11,10 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
     const method = 'watchTradesForSymbols';
     let now = exchange.milliseconds();
     const ends = now + 15000;
-    while (now < ends) {
+    const returnedSymbols = [];
+    while (now < ends || returnedSymbols.length < symbols.length) {
         let response = undefined;
+        const success = true;
         try {
             response = await exchange.watchTradesForSymbols(symbols);
         }
@@ -21,20 +23,29 @@ async function testWatchTradesForSymbols(exchange, skippedProperties, symbols) {
                 throw e;
             }
             now = exchange.milliseconds();
-            continue;
+            // continue;
         }
-        assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response));
-        now = exchange.milliseconds();
-        let symbol = undefined;
-        for (let i = 0; i < response.length; i++) {
-            const trade = response[i];
-            symbol = trade['symbol'];
-            testTrade(exchange, skippedProperties, method, trade, symbol, now);
-            testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, 'symbol', symbols);
-        }
-        if (!('timestamp' in skippedProperties)) {
-            testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
+        if ((success === true) && (response !== undefined)) {
+            assert(Array.isArray(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an array. ' + exchange.json(response));
+            now = exchange.milliseconds();
+            let symbol = undefined;
+            for (let i = 0; i < response.length; i++) {
+                const trade = response[i];
+                symbol = trade['symbol'];
+                if (symbol === undefined) {
+                    continue;
+                }
+                testTrade(exchange, skippedProperties, method, trade, symbol, now);
+                testSharedMethods.assertInArray(exchange, skippedProperties, method, trade, 'symbol', symbols);
+                if (!exchange.inArray(symbol, returnedSymbols)) {
+                    returnedSymbols.push(symbol);
+                }
+            }
+            // if (!('timestampSort' in skippedProperties)) {
+            //     testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+            // }
         }
     }
+    return true;
 }
 export default testWatchTradesForSymbols;

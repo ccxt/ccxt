@@ -16,6 +16,8 @@ from ccxt.base.decimal_to_precision import SIGNIFICANT_DIGITS  # noqa E402
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 def test_currency(exchange, skipped_properties, method, entry):
+    if entry is None:
+        return
     format = {
         'id': 'btc',
         'code': 'BTC',
@@ -52,8 +54,25 @@ def test_currency(exchange, skipped_properties, method, entry):
             empty_allowed_for.append('withdraw')
         if currency_type == 'leveraged' or currency_type == 'other':
             empty_allowed_for.append('precision')
-    test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    #
     test_shared_methods.assert_currency_code(exchange, skipped_properties, method, entry, entry['code'])
+    # check if empty networks should be skipped
+    networks = exchange.safe_dict(entry, 'networks', {})
+    network_keys = list(networks.keys())
+    network_keys_length = len(network_keys)
+    if network_keys_length == 0 and ('skipCurrenciesWithoutNetworks' in skipped_properties):
+        return
+    try:
+        test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+    except Exception as e:
+        message = exchange.exception_message(e)
+        # check structure if key is numeric, not string
+        if '"id" key' in message:
+            # @ts-ignore
+            format['id'] = 123
+            test_shared_methods.assert_structure(exchange, skipped_properties, method, entry, format, empty_allowed_for)
+        else:
+            assert message == '', message
     #
     test_shared_methods.check_precision_accuracy(exchange, skipped_properties, method, entry, 'precision')
     test_shared_methods.assert_greater_or_equal(exchange, skipped_properties, method, entry, 'fee', '0')

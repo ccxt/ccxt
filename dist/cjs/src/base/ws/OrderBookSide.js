@@ -40,12 +40,12 @@ class OrderBookSide extends Array {
         super();
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty(this, 'index', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Float64Array(SEED),
             writable: true,
         });
         Object.defineProperty(this, 'depth', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         });
@@ -150,17 +150,17 @@ class IndexedOrderBookSide extends Array {
         super(deltas.length);
         // a string-keyed dictionary of price levels / ids / indices
         Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Map(),
             writable: true,
         });
         Object.defineProperty(this, 'index', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: new Float64Array(SEED),
             writable: true,
         });
         Object.defineProperty(this, 'depth', {
-            __proto__: null,
+            __proto__: null, // make it invisible
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         });

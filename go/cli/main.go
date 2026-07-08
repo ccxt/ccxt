@@ -7,10 +7,12 @@ import (
 	"log"
 	"math/rand/v2"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
 	ccxt "github.com/ccxt/ccxt/go/v4"
+	ccxtpro "github.com/ccxt/ccxt/go/v4/pro"
 )
 
 var Red = "\033[31m"
@@ -30,9 +32,7 @@ func getRandomKeyFromList(list []string) string {
 	return list[randomIndex]
 }
 
-func benchmarks() {
-	exchange := ccxt.NewBinanceCore()
-	exchange.Init(nil)
+func benchmarks(exchangeName string) {
 
 	dir := GetRootDir()
 
@@ -51,16 +51,30 @@ func benchmarks() {
 	orderBookContent := IoFileRead(orderBookFile, true)
 	tradesContent := IoFileRead(tradesFile, true)
 
-	exchange.Markets = marketsContent.(map[string]interface{})
+	var exchange ccxt.ICoreExchange
+	settings := make(map[string]any)
+	settings["markets"] = marketsContent.(map[string]any)
+	suc := true
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		exchange, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, settings)
+	} else {
+		exchange, suc = ccxt.DynamicallyCreateInstance(exchangeName, settings)
+	}
+	if !suc {
+		panic(suc)
+	}
+	var derivedExchange ccxt.IDerivedExchange
+	derivedExchange = exchange.(ccxt.IDerivedExchange)
+	// exchange.Markets = exchange.MapToSafeMap(marketsContent.(map[string]any))
 
 	beforeTickerNs := time.Now().UnixNano()
-	_ = exchange.ParseTickers(tickersContent)
+	_ = derivedExchange.ParseTickers(tickersContent)
 	afterTickerNs := time.Now().UnixNano()
-	_ = exchange.ParseOHLCV(ohlcvContent)
+	_ = derivedExchange.ParseOHLCV(ohlcvContent, nil)
 	afterOHLCV := time.Now().UnixNano()
-	ob := exchange.ParseOrderBook(orderBookContent, "BTC/USDT")
+	ob := derivedExchange.ParseOrderBook(orderBookContent, "BTC/USDT", nil)
 	afterOrderBook := time.Now().UnixNano()
-	_ = exchange.ParseTrades(tradesContent)
+	_ = derivedExchange.ParseTrades(tradesContent, nil)
 	afterTrades := time.Now().UnixNano()
 
 	tickerNs := afterTickerNs - beforeTickerNs
@@ -74,7 +88,7 @@ func benchmarks() {
 	fmt.Println("| [1000]  parseTrades:    ", afterTrades-afterOrderBook, "ns ", tradesNs/1000000, "ms")
 	fmt.Println("|--------------------------------------------|")
 
-	testMap := map[string]interface{}{
+	testMap := map[string]any{
 		"first":  1,
 		"second": "2",
 		"third":  3.0,
@@ -82,15 +96,15 @@ func benchmarks() {
 
 	testMapKeys := []string{"first", "second", "third"}
 
-	toExtendMap := map[string]interface{}{
+	toExtendMap := map[string]any{
 		"fourth": 4,
 		"first":  2,
-		"third": map[string]interface{}{
+		"third": map[string]any{
 			"nested": 3,
 		},
 	}
 
-	testArr := []interface{}{
+	testArr := []any{
 		1,
 		"2",
 		3.0,
@@ -253,7 +267,7 @@ func benchmarks() {
 	fmt.Println("|--------------------------------------------|")
 }
 
-func contains(arr []interface{}, item interface{}) bool {
+func contains(arr []any, item any) bool {
 	for _, a := range arr {
 		if a == item {
 			return true
@@ -271,9 +285,9 @@ func containsStr(arr []string, item string) bool {
 	return false
 }
 
-func JsonParse(jsonStr2 interface{}) interface{} {
+func JsonParse(jsonStr2 any) any {
 	jsonStr := jsonStr2.(string)
-	var result interface{}
+	var result any
 	err := json.Unmarshal([]byte(jsonStr), &result)
 	if err != nil {
 		return nil
@@ -293,7 +307,7 @@ func GetRootDir() string {
 	return res
 }
 
-func IoFileRead(path interface{}, decode ...interface{}) interface{} {
+func IoFileRead(path any, decode ...any) any {
 	var shouldDecode bool
 	if len(decode) > 0 {
 		shouldDecode = decode[0].(bool)
@@ -307,7 +321,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 		}
 
 		if shouldDecode {
-			var result interface{}
+			var result any
 			err := json.Unmarshal(content, &result)
 			if err != nil {
 				log.Fatal(err)
@@ -323,7 +337,7 @@ func IoFileRead(path interface{}, decode ...interface{}) interface{} {
 	}
 }
 
-func IoFileExists(path interface{}) bool {
+func IoFileExists(path any) bool {
 	switch p := path.(type) {
 	case string:
 		_, err := os.Stat(p)
@@ -334,8 +348,8 @@ func IoFileExists(path interface{}) bool {
 	}
 }
 
-func InitOptions(flags []string) map[string]interface{} {
-	settings := make(map[string]interface{})
+func InitOptions(flags []string) map[string]any {
+	settings := make(map[string]any)
 	if containsStr(flags, "--verbose") {
 		settings["verbose"] = true
 	}
@@ -345,7 +359,7 @@ func InitOptions(flags []string) map[string]interface{} {
 	}
 
 	if containsStr(flags, "--sandbox") {
-		settings["options"] = map[string]interface{}{
+		settings["options"] = map[string]any{
 			"sandbox": true,
 		}
 	}
@@ -357,14 +371,14 @@ func InitOptions(flags []string) map[string]interface{} {
 	return settings
 }
 
-func PrettyPrintData(data interface{}) {
+func PrettyPrintData(data any) {
 	if prettyOutput, err := json.MarshalIndent(data, "", "  "); err == nil {
 		fmt.Println(Blue + string(prettyOutput) + Reset)
 	} else {
 	}
 }
 
-func SetCredential(instance ccxt.IExchange, key string, value string) {
+func SetCredential(instance ccxt.ICoreExchange, key string, value string) {
 	switch key {
 	case "apiKey":
 		instance.SetApiKey(value)
@@ -381,7 +395,7 @@ func SetCredential(instance ccxt.IExchange, key string, value string) {
 	}
 }
 
-func SetCredentials(instance ccxt.IExchange) {
+func SetCredentials(instance ccxt.ICoreExchange) {
 	credentials := instance.GetRequiredCredentials()
 
 	for key, value := range credentials {
@@ -398,11 +412,6 @@ func SetCredentials(instance ccxt.IExchange) {
 }
 
 func main() {
-
-	if containsStr(os.Args, "--bench") {
-		benchmarks()
-		return
-	}
 
 	args := os.Args
 	if len(args) < 3 {
@@ -423,11 +432,16 @@ func main() {
 	}
 
 	exchangeIds := IoFileRead(exchangeFile, true)
-	exchangeIdsMap := exchangeIds.(map[string]interface{})
-	exchangeIdsList := exchangeIdsMap["ids"].([]interface{})
+	exchangeIdsMap := exchangeIds.(map[string]any)
+	exchangeIdsList := exchangeIdsMap["ids"].([]any)
 
 	if !contains(exchangeIdsList, exchangeName) {
 		panic(Red + "Exchange not found in exchanges.json" + Reset)
+	}
+
+	if containsStr(os.Args, "--bench") {
+		benchmarks(exchangeName)
+		return
 	}
 
 	var flags []string
@@ -437,7 +451,7 @@ func main() {
 		}
 	}
 
-	var parameters []interface{}
+	var parameters []any
 	for _, arg := range args[3:] {
 		if !strings.HasPrefix(arg, "--") {
 			// parameters = append(parameters, arg)
@@ -457,7 +471,7 @@ func main() {
 		}
 	}
 
-	var settings interface{}
+	var settings any
 	keyFile := rootDir + "keys.local.json"
 	if IoFileExists(keyFile) {
 		settings = IoFileRead(keyFile)
@@ -467,15 +481,22 @@ func main() {
 			settings = IoFileRead(keyFile)
 		}
 	}
-	settingsMap := settings.(map[string]interface{})
-	exchangeSettings, hasSettings := settingsMap[exchangeName].(map[string]interface{})
+	settingsMap := settings.(map[string]any)
+	exchangeSettings, hasSettings := settingsMap[exchangeName].(map[string]any)
 	if !hasSettings {
 		exchangeSettings = nil
 	}
 
 	exchange := ccxt.Exchange{}
 	cmdSettings := InitOptions(flags)
-	instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	var instance ccxt.ICoreExchange
+	suc := true
+	if slices.Contains(ccxtpro.Exchanges, exchangeName) {
+		instance, suc = ccxtpro.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	} else {
+		instance, suc = ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
+	}
+	// instance, suc := ccxt.DynamicallyCreateInstance(exchangeName, exchange.DeepExtend(cmdSettings, exchangeSettings))
 
 	if !suc {
 		panic(suc)
@@ -488,12 +509,15 @@ func main() {
 	<-instance.LoadMarkets()
 
 	before := time.Now().UnixMilli()
+	for true {
+		res := <-instance.CallInternal(method, parameters...)
+		PrettyPrintData(res)
 
-	res := <-instance.CallInternal(method, parameters...)
-
+		if !strings.HasPrefix(method, "watch") {
+			break
+		}
+	}
 	after := time.Now().UnixMilli()
-
-	PrettyPrintData(res)
 
 	fmt.Println("Execution time: ", Yellow, after-before, "ms", Reset)
 

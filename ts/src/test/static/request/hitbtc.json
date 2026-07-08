@@ -3,6 +3,15 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.hitbtc.com/api/3/public/currency",
+                "input": [],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Spot market buy",

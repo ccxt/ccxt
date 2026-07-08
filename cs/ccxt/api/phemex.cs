@@ -196,9 +196,14 @@ public partial class phemex : Exchange
         return await this.callAsync ("privateGetGAccountsAccountPositions",parameters);
     }
 
-    public async Task<object> privateGetAccountsPositions (object parameters = null)
+    public async Task<object> privateGetGAccountsPositions (object parameters = null)
     {
-        return await this.callAsync ("privateGetAccountsPositions",parameters);
+        return await this.callAsync ("privateGetGAccountsPositions",parameters);
+    }
+
+    public async Task<object> privateGetGAccountsRiskUnit (object parameters = null)
+    {
+        return await this.callAsync ("privateGetGAccountsRiskUnit",parameters);
     }
 
     public async Task<object> privateGetApiDataFuturesFundingFees (object parameters = null)
@@ -254,6 +259,11 @@ public partial class phemex : Exchange
     public async Task<object> privateGetApiDataFuturesV2TradeAccountDetail (object parameters = null)
     {
         return await this.callAsync ("privateGetApiDataFuturesV2TradeAccountDetail",parameters);
+    }
+
+    public async Task<object> privateGetApiDataGFuturesClosedPosition (object parameters = null)
+    {
+        return await this.callAsync ("privateGetApiDataGFuturesClosedPosition",parameters);
     }
 
     public async Task<object> privateGetGOrdersActiveList (object parameters = null)
@@ -509,6 +519,11 @@ public partial class phemex : Exchange
     public async Task<object> privatePutGOrdersReplace (object parameters = null)
     {
         return await this.callAsync ("privatePutGOrdersReplace",parameters);
+    }
+
+    public async Task<object> privatePutGOrdersCreate (object parameters = null)
+    {
+        return await this.callAsync ("privatePutGOrdersCreate",parameters);
     }
 
     public async Task<object> privatePutPositionsLeverage (object parameters = null)

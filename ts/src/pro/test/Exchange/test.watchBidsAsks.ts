@@ -3,8 +3,8 @@ import assert from 'assert';
 import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
-import { Ticker } from '../../../base/types.js';
-import { Exchange } from "../../../../ccxt";
+import { Ticker, Tickers, Str, Strings } from '../../../base/types.js';
+import { Exchange } from "../../../../ccxt.js";
 
 async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, undefined);
@@ -12,12 +12,14 @@ async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object,
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: object, argSymbols: string[], argParams = {}) {
+async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: object, argSymbols: Strings, argParams = {}) {
     const method = 'watchBidsAsks';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let success = true;
+        let shouldReturn = false;
+        let response: Tickers = {};
         try {
             response = await exchange.watchBidsAsks (argSymbols, argParams);
         } catch (e) {
@@ -26,27 +28,35 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             // because tests will make a second call of this method with symbols array
             if ((e instanceof ArgumentsRequired) && (argSymbols === undefined || argSymbols.length === 0)) {
                 // todo: provide random symbols to try
-                return;
+                // return false;
+                shouldReturn = true;
             }
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
             now = exchange.milliseconds ();
-            continue;
+            // continue;
+            success = false;
         }
-        assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
-        const values = Object.values (response);
-        let checkedSymbol = undefined;
-        if (argSymbols !== undefined && argSymbols.length === 1) {
-            checkedSymbol = argSymbols[0];
+        if (shouldReturn) {
+            return false;
         }
-        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
-        for (let i = 0; i < values.length; i++) {
-            const ticker = values[i] as Ticker;
-            testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+        if (success === true) {
+            assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return an object. ' + exchange.json (response));
+            const values = Object.values (response);
+            let checkedSymbol: Str = undefined;
+            if (argSymbols !== undefined && argSymbols.length === 1) {
+                checkedSymbol = argSymbols[0];
+            }
+            testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, values, checkedSymbol);
+            for (let i = 0; i < values.length; i++) {
+                const ticker = values[i] as Ticker;
+                testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
+            }
+            now = exchange.milliseconds ();
         }
-        now = exchange.milliseconds ();
     }
+    return true;
 }
 
 export default testWatchBidsAsks;

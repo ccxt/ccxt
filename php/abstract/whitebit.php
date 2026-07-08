@@ -82,6 +82,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_public_get_fee($params = array()) {
         return $this->request('fee', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4_public_get_funding_history_market($params = array()) {
+        return $this->request('funding-history/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4_public_get_orderbook_depth_market($params = array()) {
         return $this->request('orderbook/depth/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
     }
@@ -193,11 +196,11 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4_private_post_trade_account_executed_history($params = array()) {
         return $this->request('trade-account/executed-history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
-    public function v4_private_post_trade_account_order($params = array()) {
-        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
-    }
     public function v4_private_post_trade_account_order_history($params = array()) {
         return $this->request('trade-account/order/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4_private_post_trade_account_order($params = array()) {
+        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4_private_post_order_collateral_limit($params = array()) {
         return $this->request('order/collateral/limit', array('v4', 'private'), 'POST', $params, null, null, array());
@@ -412,6 +415,9 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4PublicGetFee($params = array()) {
         return $this->request('fee', array('v4', 'public'), 'GET', $params, null, null, array());
     }
+    public function v4PublicGetFundingHistoryMarket($params = array()) {
+        return $this->request('funding-history/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
+    }
     public function v4PublicGetOrderbookDepthMarket($params = array()) {
         return $this->request('orderbook/depth/{market}', array('v4', 'public'), 'GET', $params, null, null, array());
     }
@@ -523,11 +529,11 @@ abstract class whitebit extends \ccxt\Exchange {
     public function v4PrivatePostTradeAccountExecutedHistory($params = array()) {
         return $this->request('trade-account/executed-history', array('v4', 'private'), 'POST', $params, null, null, array());
     }
-    public function v4PrivatePostTradeAccountOrder($params = array()) {
-        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
-    }
     public function v4PrivatePostTradeAccountOrderHistory($params = array()) {
         return $this->request('trade-account/order/history', array('v4', 'private'), 'POST', $params, null, null, array());
+    }
+    public function v4PrivatePostTradeAccountOrder($params = array()) {
+        return $this->request('trade-account/order', array('v4', 'private'), 'POST', $params, null, null, array());
     }
     public function v4PrivatePostOrderCollateralLimit($params = array()) {
         return $this->request('order/collateral/limit', array('v4', 'private'), 'POST', $params, null, null, array());

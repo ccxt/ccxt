@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -36,6 +36,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'createOrderWs': True,
                 'cancelOrderWs': True,
                 'cancelAllOrders': True,
+                'editOrderWs': True,
             },
             'urls': {
                 'api': {
@@ -71,7 +72,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         try:
             await client.send({'id': self.safe_integer(message, 'id'), 'method': 'public/respond-heartbeat'})
         except Exception as e:
-            error = NetworkError(self.id + ' pong failed with error ' + self.json(e))
+            error = NetworkError(self.id + ' pong failed with error ' + self.exception_message(e))
             client.reset(error)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -85,7 +86,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
@@ -99,7 +100,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         return await self.un_watch_order_book_for_symbols([symbol], params)
 
@@ -114,9 +115,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
@@ -157,9 +159,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [params.limit]: orderbook limit, default is 50
         :param str [params.bookSubscriptionType]: The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
         :param int [params.bookUpdateFrequency]: Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         subMessageHashes = []
@@ -299,7 +302,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -311,7 +314,7 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         return await self.un_watch_trades_for_symbols([symbol], params)
 
@@ -325,9 +328,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         for i in range(0, len(symbols)):
@@ -350,9 +354,10 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str[] [symbols]: list of unified market symbols to unwatch trades for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         topics = []
         messageHashes = []
@@ -418,9 +423,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -440,9 +446,10 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker' + '.' + market['id']
         return await self.watch_public(messageHash, params)
@@ -455,9 +462,10 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         subMessageHash = 'ticker' + '.' + market['id']
         messageHash = 'unsubscribe:ticker:' + market['symbol']
@@ -471,9 +479,10 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         marketIds = self.market_ids(symbols)
@@ -482,7 +491,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             messageHashes.append('ticker.' + marketId)
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': messageHashes,
@@ -491,7 +500,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         }
         ticker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            result: dict = {}
+            result = {}
             result[ticker['symbol']] = ticker
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
@@ -504,9 +513,10 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         subMessageHashes = []
@@ -609,9 +619,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, False)
         messageHashes = []
         topics = []
@@ -622,7 +633,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             topics.append('ticker.' + marketId)
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -631,7 +642,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         }
         newTickers = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
-            tickers: dict = {}
+            tickers = {}
             tickers[newTickers['symbol']] = newTickers
             return tickers
         return self.filter_by_array(self.bidsasks, 'symbol', symbols)
@@ -661,7 +672,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -674,7 +685,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -684,7 +696,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
-    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+    async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -695,7 +707,8 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
@@ -746,9 +759,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -820,11 +834,12 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param dict params: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': ['user.position_balance'],
@@ -867,9 +882,10 @@ class cryptocom(ccxt.async_support.cryptocom):
             if contracts > 0:
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'positions')
 
     def handle_positions(self, client, message):
         #
@@ -928,7 +944,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#user-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         messageHash = 'user.balance'
         return await self.watch_private_subscribe(messageHash, params)
@@ -994,7 +1010,8 @@ class cryptocom(ccxt.async_support.cryptocom):
             self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, messageHash)
         messageHashRequest = self.safe_string(message, 'id')
-        client.resolve(self.balance, messageHashRequest)
+        if messageHashRequest is not None:
+            client.resolve(self.balance, messageHashRequest)
 
     async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
@@ -1008,12 +1025,39 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         params = self.create_order_request(symbol, type, side, amount, price, params)
-        request: dict = {
+        request = {
             'method': 'private/create-order',
+            'params': params,
+        }
+        messageHash = self.nonce()
+        return await self.watch_private_request(messageHash, request)
+
+    async def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
+        """
+        edit a trade order
+
+        https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-amend-order
+
+        :param str id: order id
+        :param str symbol: unified market symbol of the order to edit
+        :param str [type]: not used by cryptocom editOrder
+        :param str [side]: not used by cryptocom editOrder
+        :param float amount:(mandatory) how much of the currency you want to trade in units of the base currency
+        :param float price:(mandatory) the price for the order, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: the original client order id of the order to edit, required if id is not provided
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        params = self.edit_order_request(id, symbol, amount, price, params)
+        request = {
+            'method': 'private/amend-order',
             'params': params,
         }
         messageHash = self.nonce()
@@ -1045,13 +1089,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str id: the order id of the order to cancel
         :param str [symbol]: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         params = self.extend({
             'order_id': id,
         }, params)
-        request: dict = {
+        request = {
             'method': 'private/cancel-order',
             'params': params,
         }
@@ -1066,11 +1111,12 @@ class cryptocom(ccxt.async_support.cryptocom):
 
         :param str symbol: unified market symbol of the orders to cancel
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/#/?id=order-structure:
+        :returns dict} Returns exchange raw message {@link https://docs.ccxt.com/?id=order-structure:
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = None
-        request: dict = {
+        request = {
             'method': 'private/cancel-all-orders',
             'params': self.extend({}, params),
         }
@@ -1094,7 +1140,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -1107,7 +1153,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public_multiple(self, messageHashes, topics, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -1120,7 +1166,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def un_watch_public_multiple(self, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics: List[str], params={}, subExtend={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'unsubscribe',
             'params': {
                 'channels': topics,
@@ -1141,7 +1187,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_private_request(self, nonce, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        request: dict = {
+        request = {
             'id': nonce,
             'nonce': nonce,
         }
@@ -1152,7 +1198,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request: dict = {
+        request = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -1162,7 +1208,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #    {
         #        "id": 0,
@@ -1193,7 +1239,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return True
 
     def handle_subscribe(self, client: Client, message):
-        methods: dict = {
+        methods = {
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
@@ -1253,11 +1299,12 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.handle_error_message(client, message):
             return
         method = self.safe_string(message, 'method')
-        methods: dict = {
+        methods = {
             '': self.handle_ping,
             'public/heartbeat': self.handle_ping,
             'public/auth': self.handle_authenticate,
             'private/create-order': self.handle_order,
+            'private/amend-order': self.handle_order,
             'private/cancel-order': self.handle_order,
             'private/cancel-all-orders': self.handle_cancel_all_orders,
             'private/close-position': self.handle_order,
@@ -1273,14 +1320,14 @@ class cryptocom(ccxt.async_support.cryptocom):
         url = self.urls['api']['ws']['private']
         client = self.client(url)
         messageHash = 'authenticated'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             method = 'public/auth'
             nonce = str(self.nonce())
             auth = method + nonce + self.apiKey + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request: dict = {
+            request = {
                 'id': nonce,
                 'nonce': nonce,
                 'method': method,

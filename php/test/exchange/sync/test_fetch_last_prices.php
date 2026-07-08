@@ -12,7 +12,7 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_last_price.php';
 function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
     $method = 'fetchLastprices';
     // log ('fetching all tickers at once...')
-    $response = null;
+    $response = array();
     $checked_symbol = null;
     try {
         $response = $exchange->fetch_last_prices();
@@ -20,7 +20,7 @@ function test_fetch_last_prices($exchange, $skipped_properties, $symbol) {
         $response = $exchange->fetch_last_prices([$symbol]);
         $checked_symbol = $symbol;
     }
-    assert(is_array($response), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return an object. ' . $exchange->json($response));
+    assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $checked_symbol . ' must return a dict. ' . $exchange->json($response));
     $values = is_array($response) ? array_values($response) : array();
     assert_non_emtpy_array($exchange, $skipped_properties, $method, $values, $checked_symbol);
     $at_least_one_passed = false;

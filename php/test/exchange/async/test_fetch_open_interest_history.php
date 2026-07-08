@@ -10,12 +10,11 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_open_interest.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_open_interest_history($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchOpenInterestHistory';
-        $open_interest_history = Async\await($exchange->fetch_open_interest_history($symbol));
+        $open_interest_history = \React\Async\await($exchange->fetch_open_interest_history($symbol));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $open_interest_history, $symbol);
         for ($i = 0; $i < count($open_interest_history); $i++) {
             test_open_interest($exchange, $skipped_properties, $method, $open_interest_history[$i]);

@@ -20,38 +20,99 @@ public partial class cex : Exchange
                 { "swap", false },
                 { "future", false },
                 { "option", false },
+                { "addMargin", false },
+                { "borrowCrossMargin", false },
+                { "borrowIsolatedMargin", false },
+                { "borrowMargin", false },
                 { "cancelAllOrders", true },
                 { "cancelOrder", true },
+                { "closeAllPositions", false },
+                { "closePosition", false },
                 { "createOrder", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
+                { "createOrderWithTakeProfitAndStopLossWs", false },
+                { "createPostOnlyOrder", false },
                 { "createReduceOnlyOrder", false },
                 { "createStopOrder", true },
                 { "createTriggerOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBorrowInterest", false },
+                { "fetchBorrowRate", false },
+                { "fetchBorrowRateHistories", false },
+                { "fetchBorrowRateHistory", false },
+                { "fetchBorrowRates", false },
+                { "fetchBorrowRatesPerSymbol", false },
                 { "fetchClosedOrder", true },
                 { "fetchClosedOrders", true },
+                { "fetchCrossBorrowRate", false },
+                { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", true },
                 { "fetchDepositsWithdrawals", true },
                 { "fetchFundingHistory", false },
+                { "fetchFundingInterval", false },
+                { "fetchFundingIntervals", false },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", false },
+                { "fetchGreeks", false },
+                { "fetchIndexOHLCV", false },
+                { "fetchIsolatedBorrowRate", false },
+                { "fetchIsolatedBorrowRates", false },
+                { "fetchIsolatedPositions", false },
                 { "fetchLedger", true },
+                { "fetchLeverage", false },
+                { "fetchLeverages", false },
+                { "fetchLeverageTiers", false },
+                { "fetchLiquidations", false },
+                { "fetchLongShortRatio", false },
+                { "fetchLongShortRatioHistory", false },
+                { "fetchMarginAdjustmentHistory", false },
+                { "fetchMarginMode", false },
+                { "fetchMarginModes", false },
+                { "fetchMarketLeverageTiers", false },
                 { "fetchMarkets", true },
+                { "fetchMarkOHLCV", false },
+                { "fetchMarkPrices", false },
+                { "fetchMyLiquidations", false },
+                { "fetchMySettlementHistory", false },
                 { "fetchOHLCV", true },
+                { "fetchOpenInterest", false },
+                { "fetchOpenInterestHistory", false },
+                { "fetchOpenInterests", false },
                 { "fetchOpenOrder", true },
                 { "fetchOpenOrders", true },
+                { "fetchOption", false },
+                { "fetchOptionChain", false },
                 { "fetchOrderBook", true },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
+                { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
+                { "fetchPremiumIndexOHLCV", false },
+                { "fetchSettlementHistory", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
                 { "fetchTradingFees", true },
+                { "fetchVolatilityHistory", false },
+                { "reduceMargin", false },
+                { "repayCrossMargin", false },
+                { "repayIsolatedMargin", false },
+                { "repayMargin", false },
+                { "setLeverage", false },
+                { "setMargin", false },
+                { "setMarginMode", false },
+                { "setPositionMode", false },
                 { "transfer", true },
             } },
             { "urls", new Dictionary<string, object>() {
-                { "logo", "https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg" },
+                { "logo", "https://github.com/user-attachments/assets/6105a195-3bae-4a08-a1bd-b2a86e3e8f99" },
                 { "api", new Dictionary<string, object>() {
                     { "public", "https://trade.cex.io/api/spot/rest-public" },
                     { "private", "https://trade.cex.io/api/spot/rest" },
@@ -172,6 +233,7 @@ public partial class cex : Exchange
                     { "Get deposit address for main account is not allowed", typeof(PermissionDenied) },
                     { "Market Trigger orders are not allowed", typeof(BadRequest) },
                     { "key not passed or incorrect", typeof(AuthenticationError) },
+                    { "API rate limit reached", typeof(RateLimitExceeded) },
                 } },
             } },
             { "timeframes", new Dictionary<string, object>() {
@@ -293,8 +355,6 @@ public partial class cex : Exchange
         object id = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(id);
         object type = ((bool) isTrue(this.safeBool(rawCurrency, "fiat"))) ? "fiat" : "crypto";
-        object currencyDepositEnabled = this.safeBool(rawCurrency, "walletDeposit");
-        object currencyWithdrawEnabled = this.safeBool(rawCurrency, "walletWithdrawal");
         object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         object networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
@@ -303,7 +363,7 @@ public partial class cex : Exchange
         {
             object networkId = getValue(keys, j);
             object rawNetwork = getValue(rawNetworks, networkId);
-            object networkCode = this.networkIdToCode(networkId);
+            object networkCode = this.networkIdToCode(networkId, code);
             object deposit = isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
             object withdraw = isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -334,8 +394,8 @@ public partial class cex : Exchange
             { "name", null },
             { "type", type },
             { "active", null },
-            { "deposit", currencyDepositEnabled },
-            { "withdraw", currencyWithdrawEnabled },
+            { "deposit", this.safeBool(rawCurrency, "walletDeposit") },
+            { "withdraw", this.safeBool(rawCurrency, "walletWithdrawal") },
             { "fee", null },
             { "precision", currencyPrecision },
             { "limits", new Dictionary<string, object>() {
@@ -455,6 +515,7 @@ public partial class cex : Exchange
      * @method
      * @name cex#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
+     * @see https://trade.cex.io/docs/#rest-public-api-calls-server-time
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -483,12 +544,15 @@ public partial class cex : Exchange
      * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
      * @param {string} symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.fetchTickers(new List<object>() {symbol}, parameters);
         return this.safeDict(response, symbol, new Dictionary<string, object>() {});
     }
@@ -500,12 +564,15 @@ public partial class cex : Exchange
      * @see https://trade.cex.io/docs/#rest-public-api-calls-ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -579,12 +646,15 @@ public partial class cex : Exchange
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -667,12 +737,15 @@ public partial class cex : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -726,7 +799,10 @@ public partial class cex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -793,12 +869,15 @@ public partial class cex : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://trade.cex.io/docs/#rest-public-api-calls-candles
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetMyCurrentFee(parameters);
         //
         //    {
@@ -858,7 +937,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetMyAccountStatusV3(parameters);
         //
         //    {
@@ -904,7 +986,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.method] 'privatePostGetMyWalletBalance' or 'privatePostGetMyAccountStatusV3'
      * @param {object} [params.account]  in case 'privatePostGetMyAccountStatusV3' is chosen, this can specify the account name (default is empty string)
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
@@ -988,12 +1070,15 @@ public partial class cex : Exchange
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest entry
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object isClosedOrders = (isEqual(status, "closed"));
         if (isTrue(isClosedOrders))
@@ -1080,7 +1165,7 @@ public partial class cex : Exchange
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1097,7 +1182,7 @@ public partial class cex : Exchange
      * @param {int} [since] timestamp in ms of the earliest order, default is undefined
      * @param {int} [limit] max number of orders to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1113,12 +1198,15 @@ public partial class cex : Exchange
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
@@ -1134,12 +1222,15 @@ public partial class cex : Exchange
      * @param {string} id order id
      * @param {string} [symbol] unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
@@ -1259,7 +1350,7 @@ public partial class cex : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id to use (default is empty string)
      * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
@@ -1272,7 +1363,10 @@ public partial class cex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
@@ -1363,12 +1457,15 @@ public partial class cex : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
             { "cancelRequestId", add("c_", ((object)(this.milliseconds())).ToString()) },
@@ -1389,12 +1486,15 @@ public partial class cex : Exchange
      * @see https://trade.cex.io/docs/#rest-private-api-calls-cancel-all-orders
      * @param {string} symbol alpaca cancelAllOrders cannot setting symbol, it will cancel all open orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostDoCancelAllOrders(parameters);
         //
         //    {
@@ -1429,12 +1529,15 @@ public partial class cex : Exchange
      * @param {int} [limit] max number of ledger entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest ledger entry
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -1534,12 +1637,15 @@ public partial class cex : Exchange
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1640,7 +1746,7 @@ public partial class cex : Exchange
      * @param {string} fromAccount 'SPOT', 'FUND', or 'CONTRACT'
      * @param {string} toAccount 'SPOT', 'FUND', or 'CONTRACT'
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
@@ -1665,7 +1771,10 @@ public partial class cex : Exchange
     public async virtual Task<object> transferBetweenMainAndSubAccount(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object fromMain = (isEqual(fromAccount, ""));
         object targetAccount = ((bool) isTrue(fromMain)) ? toAccount : fromAccount;
@@ -1704,7 +1813,10 @@ public partial class cex : Exchange
     public async virtual Task<object> transferBetweenSubAccounts(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1772,7 +1884,7 @@ public partial class cex : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.accountId] account-id (default to empty string) to refer to (at this moment, only sub-accounts allowed by exchange)
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
@@ -1785,7 +1897,10 @@ public partial class cex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
@@ -1794,7 +1909,7 @@ public partial class cex : Exchange
         object request = new Dictionary<string, object>() {
             { "accountId", accountId },
             { "currency", getValue(currency, "id") },
-            { "blockchain", this.networkCodeToId(networkCode) },
+            { "blockchain", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
         object response = await this.privatePostGetDepositAddress(this.extend(request, parameters));
         //
@@ -1821,7 +1936,7 @@ public partial class cex : Exchange
         return new Dictionary<string, object>() {
             { "info", depositAddress },
             { "currency", getValue(currency, "code") },
-            { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain")) },
+            { "network", this.networkIdToCode(this.safeString(depositAddress, "blockchain"), getValue(currency, "code")) },
             { "address", address },
             { "tag", null },
         };

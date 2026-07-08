@@ -1,0 +1,49 @@
+{
+    "ETH": null,
+    "USDT": {
+        "info": {},
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.000001,
+        "type": "fiat",
+        "name": "USDT",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": null,
+        "fees": {},
+        "networks": {
+            "ARBITRUM": {
+                "id": "ARBITRUM",
+                "network": "ARBITRUM",
+                "limits": {
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    },
+                    "deposit": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "active": null,
+                "deposit": null,
+                "withdraw": null,
+                "info": {}
+            }
+        },
+        "limits": {
+            "deposit": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": null,
+                "max": null
+            }
+        }
+    },
+    "SOL": null,
+    "BTC": null
+}

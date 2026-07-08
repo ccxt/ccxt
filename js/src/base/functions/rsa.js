@@ -4,18 +4,32 @@
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
-import { JSEncrypt } from "../../static_dependencies/jsencrypt/JSEncrypt.js";
-import { base16, utf8 } from '../../static_dependencies/scure-base/index.js';
-import { urlencodeBase64, base16ToBinary, base64ToBinary } from './encode.js';
-import { hmac } from './crypto.js';
-import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import crypto from 'crypto';
+import { utf8 } from '@scure/base';
+import { urlencodeBase64, base16ToBinary, base64ToBinary, base64ToBase64Url } from './encode.js';
+import { eddsa, hmac } from './crypto.js';
+import { p256 as P256 } from '@noble/curves/nist.js';
 import { ecdsa } from '../../base/functions/crypto.js';
+import { ed25519 } from "@noble/curves/ed25519.js";
+// RSASSA-PKCS1-v1_5 signing via Node's built-in `crypto` module. This is synchronous
+// and works in Node.js / Bun / Deno (anything exposing node:crypto). It is NOT available
+// in the browser bundle (rspack stubs the `crypto` module), so rsa throws there: RSA
+// signing is currently unsupported in the browser.
 function rsa(request, secret, hash) {
-    const RSA = new JSEncrypt();
-    const digester = (input) => base16.encode(hash(input));
-    RSA.setPrivateKey(secret);
-    const name = (hash.create()).constructor.name.toLowerCase();
-    return RSA.sign(request, digester, name);
+    if (crypto === undefined || crypto.createSign === undefined) {
+        throw new Error('rsa is currently not supported in the browser');
+    }
+    // @noble/hashes v2 renamed the digest classes from SHA256 to _SHA256, etc
+    const name = (hash.create()).constructor.name.toLowerCase().replace('_', '');
+    const algorithms = {
+        'sha256': 'RSA-SHA256',
+        'sha384': 'RSA-SHA384',
+        'sha512': 'RSA-SHA512',
+    };
+    const algorithm = algorithms[name];
+    const signer = crypto.createSign(algorithm);
+    signer.update(request);
+    return signer.sign(secret, 'base64');
 }
 function jwt(request, secret, hash, isRSA = false, opts = {}) {
     let alg = (isRSA ? 'RS' : 'HS') + (hash.outputLen * 8);
@@ -29,7 +43,7 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
     }
     const encodedHeader = urlencodeBase64(JSON.stringify(header));
     const encodedData = urlencodeBase64(JSON.stringify(request));
-    const token = [encodedHeader, encodedData].join('.');
+    let token = [encodedHeader, encodedData].join('.');
     const algoType = alg.slice(0, 2);
     let signature = undefined;
     if (algoType === 'HS') {
@@ -44,6 +58,18 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
         const s = signedHash.s.padStart(64, '0');
         signature = urlencodeBase64(base16ToBinary(r + s));
     }
+    else if (algoType === 'ED') {
+        const base64str = eddsa(toHex(token), secret, ed25519);
+        // we need urlencoded64 not base64
+        signature = base64ToBase64Url(base64str);
+    }
     return [token, signature].join('.');
+}
+function toHex(str) {
+    var result = '';
+    for (var i = 0; i < str.length; i++) {
+        result += str.charCodeAt(i).toString(16);
+    }
+    return result;
 }
 export { rsa, jwt };

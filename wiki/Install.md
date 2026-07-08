@@ -10,6 +10,7 @@ This library is shipped as an all-in-one module implementation with minimalistic
 - [ccxt.js](https://github.com/ccxt/ccxt/blob/master/js/ccxt.js) in JavaScript
 - [./python/](https://github.com/ccxt/ccxt/blob/master/python/) in Python (generated from JS)
 - [ccxt.php](https://github.com/ccxt/ccxt/blob/master/ccxt.php) in PHP (generated from JS)
+- [./java/](https://github.com/ccxt/ccxt/blob/master/java/) in Java (generated from TS)
 
 You can also clone it into your project directory from [ccxt GitHub repository](https://github.com/ccxt/ccxt) and copy files
 manually into your working directory with language extension appropriate for your environment.
@@ -22,7 +23,7 @@ An alternative way of installing this library is to build a custom bundle from s
 
 ### JavaScript (NPM)
 
-JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 15+). When compiling with Webpack and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
+JavaScript version of ccxt works both in Node and web browsers. Requires ES6 and `async/await` syntax support (Node 18+). When compiling with Rspack (or Webpack) and Babel, make sure it is [not excluded](https://github.com/ccxt-dev/ccxt/issues/225#issuecomment-331582275) in your `babel-loader` config.
 
 [ccxt crypto trading library in npm](http://npmjs.com/package/ccxt)
 
@@ -40,72 +41,14 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.4.78/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.4.78/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.5.64/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.5.64/dist/ccxt.browser.min.js
 * ccxt: https://cdn.ccxt.com/latest/ccxt.min.js
 
 You can obtain a live-updated version of the bundle by removing the version number from the URL (the `@a.b.c` thing) or the /latest/ on our cdn — however, we do not recommend to do that, as it may break your app eventually. Also, please keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```html
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.4.78/dist/ccxt.browser.min.js"></script>
-```
-
-We also provide webpack minified and tree-shaken versions of the library starting from version 3.0.35 - Visit https://cdn.ccxt.com to browse the prebundled versions we distribute.
-
-| name           | size   |
-|----------------|--------|
-| binance.min.js | ~300kb |
-| bitget.min.js  | ~200kb |
-| bitmart.min.js | ~200kb |
-| bybit.min.js   | ~300kb |
-| ccxt.min.js    | ~3mb   |
-| huobi.min.js   | ~300kb |
-| kucoin.min.js  | ~200kb |
-| mexc.min.js    | ~200kb |
-| okx.min.js     | ~250kb |
-
-Note: the file sizes are subject to change.
-
-```html
-<script type="text/javascript" src="https://cdn.ccxt.com/3.0.35/ccxt.min.js"></script>
-```
-
-Here is an [example](https://cdn.ccxt.com/example.html) using a custom bybit bundle from our cdn in the browser
-
-```html
-<html>
-<head>
-<script type="text/javascript" src="https://cdn.ccxt.com/latest/bybit.min.js"></script>
-<script>
-async function update () {
-    const bid = document.querySelector ('#bid')
-    const ask = document.querySelector ('#ask')
-    const updates = document.querySelector ('#updates')
-
-    const bybit = new ccxt.pro.bybit ()
-    window.bybit = bybit
-    const ticker = await bybit.fetchTicker ('BTC/USDT:USDT')
-    bid.innerText = ticker.bid.toFixed (2)
-    ask.innerText = ticker.ask.toFixed (2)
-    while (true) {
-        const trades = await bybit.watchTrades ('BTC/USDT:USDT')
-        // const trades = await bybit.fetchTrades ('BTC/USDT:USDT', 1)
-        const trade = trades[0]
-
-        const notify = document.createElement ('li')
-        notify.innerHTML = `<strong>${trade.datetime.slice (11, 19)}</strong> &nbsp; ${trade.amount.toFixed (3)} btc was bought at ${trade.price.toFixed (1)}`
-        notify.style = 'padding-top: 8px;'
-        updates.appendChild (notify)
-    }
-}
-</script>
-</head>
-
-<body onload="update()">
-<h3>The current bitcoin bid on bybit is <span id="bid"></span><br><br>and the best ask is <span id="ask"></span></h3>
-<ul id="updates" style="color: red;"></ul>
-</body>
-</html>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.5.64/dist/ccxt.browser.min.js"></script>
 ```
 
 The default entry point for the browser is `window.ccxt` and it creates a global ccxt object:
@@ -116,7 +59,7 @@ console.log (ccxt.exchanges) // print all available exchanges
 
 ### Custom JavaScript Builds
 
-It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need. CCXT uses webpack to remove dead code paths to make the package smaller.
+It takes time to load all scripts and resources. The problem with in-browser usage is that the entire CCXT library weighs a few megabytes which is a lot for a web application. Sometimes it is also critical for a Node app. Therefore to lower the loading time you might want to make your own custom build of CCXT for your app with just the exchanges you need. CCXT uses rspack to remove dead code paths to make the package smaller.
 
 Follow these steps:
 
@@ -211,6 +154,39 @@ The library supports concurrent asynchronous mode using tools from [ReactPHP](ht
 using ccxt;
 Console.WriteLine(ccxt.Exchanges) // check this later
 ```
+
+### Java
+
+Java version of CCXT requires Java 21+ and uses Gradle as its build system.
+
+Clone and build from source:
+
+```shell
+git clone https://github.com/ccxt/ccxt.git --depth 1
+cd ccxt/java
+./gradlew :lib:build
+```
+
+```Java
+import io.github.ccxt.exchanges.Binance;
+import io.github.ccxt.types.Ticker;
+
+Binance exchange = new Binance();
+exchange.loadMarkets(false);
+
+Ticker ticker = exchange.fetchTicker("BTC/USDT");
+System.out.println(ticker.symbol + " " + ticker.last);
+```
+
+Run the examples:
+
+```shell
+cd java
+./gradlew :examples:run -PmainClass=examples.FetchTicker
+./gradlew :examples:run -PmainClass=examples.WatchOrderBook
+```
+
+See [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) for the full list of examples.
 
 ### Docker
 

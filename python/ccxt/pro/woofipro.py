@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -82,11 +82,11 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_public(self, messageHash, message):
         # the default id
         id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY'
-        if self.accountId is not None:
+        if self.accountId is not None and self.accountId != '':
             id = self.accountId
         url = self.urls['api']['ws']['public'] + '/' + id
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -95,19 +95,20 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/orderbook
 
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return.
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'orderbook'
         market = self.market(symbol)
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -153,26 +154,27 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-ticker
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         name = 'ticker'
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@' + name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
         message = self.extend(request, params)
         return await self.watch_public(topic, message)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDC",
@@ -240,18 +242,19 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/24-hour-tickers
 
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'tickers'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -294,18 +297,19 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_bids_asks(self, symbols: Strings = None, params={}) -> Tickers:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/bbos
 
         watches best bid & ask for symbols
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
         name = 'bbos'
         topic = name
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -339,7 +343,7 @@ class woofipro(ccxt.async_support.woofipro):
             result.append(ticker)
         client.resolve(result, topic)
 
-    def parse_ws_bid_ask(self, ticker, market=None):
+    def parse_ws_bid_ask(self, ticker, market: Market = None):
         marketId = self.safe_string(ticker, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = self.safe_string(market, 'symbol')
@@ -355,11 +359,11 @@ class woofipro(ccxt.async_support.woofipro):
             'info': ticker,
         }, market)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/k-line
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -368,14 +372,15 @@ class woofipro(ccxt.async_support.woofipro):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if (timeframe != '1m') and (timeframe != '5m') and (timeframe != '15m') and (timeframe != '30m') and (timeframe != '1h') and (timeframe != '1d') and (timeframe != '1w') and (timeframe != '1M'):
             raise NotSupported(self.id + ' watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M')
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'kline'
         topic = market['id'] + '@' + name + '_' + interval
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -433,19 +438,20 @@ class woofipro(ccxt.async_support.woofipro):
         """
         watches information on multiple trades made in a market
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/public/trade
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         topic = market['id'] + '@trade'
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -484,7 +490,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.trades[symbol] = trades
         client.resolve(trades, topic)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ADA_USDC",
@@ -583,7 +589,7 @@ class woofipro(ccxt.async_support.woofipro):
         client = self.client(url)
         messageHash = 'authenticated'
         event = 'auth'
-        future = client.future(messageHash)
+        future = client.reusableFuture(messageHash)
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             ts = str(self.nonce())
@@ -593,7 +599,7 @@ class woofipro(ccxt.async_support.woofipro):
                 parts = secret.split('ed25519:')
                 secret = parts[1]
             signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
-            request: dict = {
+            request = {
                 'event': event,
                 'params': {
                     'orderly_key': self.apiKey,
@@ -609,7 +615,7 @@ class woofipro(ccxt.async_support.woofipro):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -619,7 +625,7 @@ class woofipro(ccxt.async_support.woofipro):
         await self.authenticate(params)
         url = self.urls['api']['ws']['private'] + '/' + self.accountId
         requestId = self.request_id(url)
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
         request = self.extend(subscribe, message)
@@ -629,17 +635,18 @@ class woofipro(ccxt.async_support.woofipro):
         """
         watches information on multiple orders made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreport' if (trigger) else 'executionreport'
         params = self.omit(params, ['stop', 'trigger'])
@@ -648,7 +655,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -662,17 +669,18 @@ class woofipro(ccxt.async_support.woofipro):
         """
         watches information on multiple trades made by the user
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/execution-report
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/algo-execution-report
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.trigger]: True if trigger order
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         trigger = self.safe_bool_2(params, 'stop', 'trigger', False)
         topic = 'algoexecutionreport' if (trigger) else 'executionreport'
         params = self.omit(params, 'stop')
@@ -681,7 +689,7 @@ class woofipro(ccxt.async_support.woofipro):
             market = self.market(symbol)
             symbol = market['symbol']
             messageHash += ':' + symbol
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -691,7 +699,7 @@ class woofipro(ccxt.async_support.woofipro):
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
 
-    def parse_ws_order(self, order, market=None):
+    def parse_ws_order(self, order, market: Market = None):
         #
         #     {
         #         "symbol": "PERP_BTC_USDT",
@@ -712,7 +720,7 @@ class woofipro(ccxt.async_support.woofipro):
         #         "orderTag": "default",
         #         "totalFee": 0,
         #         "visible": 0.01,
-        #         "timestamp": 1657515556799,
+        #         "timestamp": 1657515556798,
         #         "reduceOnly": False,
         #         "maker": False
         #     }
@@ -928,16 +936,17 @@ class woofipro(ccxt.async_support.woofipro):
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/position-push
 
         watch all open positions
         :param str[] [symbols]: list of unified market symbols
- @param since timestamp in ms of the earliest position to fetch
- @param limit the maximum number of positions to fetch
-        :param dict params: extra parameters specific to the exchange API endpoint
+        :param int [since]: timestamp in ms of the earliest position to fetch
+        :param int [limit]: the maximum number of positions to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHashes = []
         symbols = self.market_symbols(symbols)
         if not self.is_empty(symbols):
@@ -954,7 +963,7 @@ class woofipro(ccxt.async_support.woofipro):
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': 'position',
         }
@@ -983,9 +992,10 @@ class woofipro(ccxt.async_support.woofipro):
             if Precise.string_gt(contracts, '0'):
                 cache.append(position)
         # don't remove the future from the .futures cache
-        future = client.futures[messageHash]
-        future.resolve(cache)
-        client.resolve(cache, 'positions')
+        if messageHash in client.futures:
+            future = client.futures[messageHash]
+            future.resolve(cache)
+            client.resolve(cache, 'positions')
 
     def handle_positions(self, client, message):
         #
@@ -1037,7 +1047,7 @@ class woofipro(ccxt.async_support.woofipro):
             client.resolve(position, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def parse_ws_position(self, position, market=None):
+    def parse_ws_position(self, position, market: Market = None):
         #
         #     {
         #         "symbol":"PERP_ETH_USDC",
@@ -1065,7 +1075,7 @@ class woofipro(ccxt.async_support.woofipro):
         contract = self.safe_string(position, 'symbol')
         market = self.safe_market(contract, market)
         size = self.safe_string(position, 'positionQty')
-        side: Str = None
+        side = None
         if Precise.string_gt(size, '0'):
             side = 'long'
         else:
@@ -1112,15 +1122,16 @@ class woofipro(ccxt.async_support.woofipro):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
-        https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+        https://orderly.network/docs/build-on-omnichain/evm-api/websocket-api/private/balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         topic = 'balance'
         messageHash = topic
-        request: dict = {
+        request = {
             'event': 'subscribe',
             'topic': topic,
         }
@@ -1176,7 +1187,7 @@ class woofipro(ccxt.async_support.woofipro):
         self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         # {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         #
@@ -1204,7 +1215,7 @@ class woofipro(ccxt.async_support.woofipro):
     def handle_message(self, client: Client, message):
         if self.handle_error_message(client, message):
             return
-        methods: dict = {
+        methods = {
             'ping': self.handle_ping,
             'pong': self.handle_pong,
             'subscribe': self.handle_subscribe,
@@ -1249,8 +1260,11 @@ class woofipro(ccxt.async_support.woofipro):
     def ping(self, client: Client):
         return {'event': 'ping'}
 
+    async def pong(self, client: Client, message):
+        await client.send({'event': 'pong'})
+
     def handle_ping(self, client: Client, message):
-        return {'event': 'pong'}
+        self.spawn(self.pong, client, message)
 
     def handle_pong(self, client: Client, message):
         #

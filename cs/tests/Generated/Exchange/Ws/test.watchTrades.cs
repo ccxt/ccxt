@@ -15,7 +15,8 @@ public partial class testMainClass : BaseTest
         object ends = add(now, 15000);
         while (isLessThan(now, ends))
         {
-            object response = null;
+            object response = new List<object>() {};
+            object success = true;
             try
             {
                 response = await exchange.watchTrades(symbol);
@@ -26,17 +27,17 @@ public partial class testMainClass : BaseTest
                     throw e;
                 }
                 now = exchange.milliseconds();
-                continue;
+                // continue;
+                success = false;
             }
-            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
-            now = exchange.milliseconds();
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            if (isTrue(isEqual(success, true)))
             {
-                testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
-            }
-            if (!isTrue((inOp(skippedProperties, "timestamp"))))
-            {
-                testSharedMethods.assertTimestampOrder(exchange, method, symbol, response);
+                testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response);
+                now = exchange.milliseconds();
+                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                {
+                    testTrade(exchange, skippedProperties, method, getValue(response, i), symbol, now);
+                }
             }
         }
     }

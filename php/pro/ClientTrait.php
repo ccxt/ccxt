@@ -4,7 +4,6 @@ namespace ccxt\pro;
 
 use ccxt\async\Throttler;
 use ccxt\BaseError;
-use ccxt\ExchangeClosedByUser;
 use ccxt\ExchangeError;
 use Exception;
 use React\Async;
@@ -26,10 +25,6 @@ trait ClientTrait {
 
     public function inflate($data) {
         return \ccxt\pro\inflate($data); // zlib_decode($data);
-    }
-
-    public function inflate64($data) {
-        return \ccxt\pro\inflate64($data); // zlib_decode(base64_decode($data));
     }
 
     public function gunzip($data) {
@@ -59,6 +54,7 @@ trait ClientTrait {
                 'log' => array($this, 'log'),
                 'verbose' => $this->verbose,
                 'throttle' => new Throttler($this->tokenBucket),
+                'decompressBinary' => $this->safe_bool($this->options, 'decompressBinary', true),
             ), $this->streaming, $ws_options);
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
             $this->configure_proxy_client($this->clients[$url]);
@@ -216,7 +212,7 @@ trait ClientTrait {
 
     public function on_close(Client $client, $message) {
         if ($client->error) {
-            // connection closed by the user or due to an error, do nothing
+            // connection closed due to an error, do nothing
         } else {
             // server disconnected a working connection
             if (array_key_exists($client->url, $this->clients)) {
@@ -225,20 +221,14 @@ trait ClientTrait {
         }
     }
 
-    public function close() {
+    public function close_ws_clients() {
         // make sure to close the exchange once you are finished using the websocket connections
         // so that the event loop can complete it's work and go to sleep
         foreach ($this->clients as $client) {
-            $client->error = new ExchangeClosedByUser ($this->id . ' closed by user');
             $client->close();
-            $url = $client->url;
-            unset($this->clients[$url]);
         }
-    }
-
-    public function __destruct() {
-        parent::__destruct();
-        $this->close();
+        // empty the array
+        array_splice($this->clients, 0);
     }
 
     public function load_order_book($client, $messageHash, $symbol, $limit = null, $params = array()) {

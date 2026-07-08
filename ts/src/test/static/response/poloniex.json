@@ -2,6 +2,660 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "id": 214,
+                        "coin": "USDT",
+                        "delisted": false,
+                        "tradeEnable": true,
+                        "name": "Tether USD",
+                        "networkList": [
+                            {
+                                "id": 582,
+                                "coin": "USDTBSC",
+                                "name": "Binance smart chain",
+                                "currencyType": "address",
+                                "blockchain": "BSC",
+                                "withdrawalEnable": false,
+                                "depositEnable": true,
+                                "depositAddress": null,
+                                "withdrawMin": "-1",
+                                "decimals": 8,
+                                "withdrawFee": "0.00000000",
+                                "minConfirm": 15,
+                                "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                            },
+                            {
+                                "id": 318,
+                                "coin": "USDTETH",
+                                "name": "Ethereum",
+                                "currencyType": "address",
+                                "blockchain": "ETH",
+                                "withdrawalEnable": true,
+                                "depositEnable": true,
+                                "depositAddress": null,
+                                "withdrawMin": "-1",
+                                "decimals": 8,
+                                "withdrawFee": "0.42600600",
+                                "minConfirm": 64,
+                                "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                            },
+                            {
+                                "id": 1936,
+                                "coin": "USDTSOL",
+                                "name": "Solana",
+                                "currencyType": "address",
+                                "blockchain": "SOL",
+                                "withdrawalEnable": false,
+                                "depositEnable": true,
+                                "depositAddress": null,
+                                "withdrawMin": "1.70000000",
+                                "decimals": 8,
+                                "withdrawFee": "0.83000000",
+                                "minConfirm": 300,
+                                "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                            },
+                            {
+                                "id": 316,
+                                "coin": "USDTTRON",
+                                "name": "Tron",
+                                "currencyType": "address",
+                                "blockchain": "TRX",
+                                "withdrawalEnable": true,
+                                "depositEnable": true,
+                                "depositAddress": null,
+                                "withdrawMin": "0.01000000",
+                                "decimals": 8,
+                                "withdrawFee": "1.20000000",
+                                "minConfirm": 1,
+                                "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                            },
+                            {
+                                "id": 214,
+                                "coin": "USDT",
+                                "name": "Omni",
+                                "currencyType": "address",
+                                "blockchain": "OMNI",
+                                "withdrawalEnable": false,
+                                "depositEnable": false,
+                                "depositAddress": null,
+                                "withdrawMin": "-1",
+                                "decimals": 8,
+                                "withdrawFee": "0.00000000",
+                                "minConfirm": 2,
+                                "contractAddress": null
+                            }
+                        ],
+                        "supportCollateral": true,
+                        "supportBorrow": true
+                    }
+                ],
+                "parsedResponse": {
+                    "USDT": {
+                        "info": {
+                            "id": 214,
+                            "coin": "USDT",
+                            "delisted": false,
+                            "tradeEnable": true,
+                            "name": "Tether USD",
+                            "networkList": [
+                                {
+                                    "id": 582,
+                                    "coin": "USDTBSC",
+                                    "name": "Binance smart chain",
+                                    "currencyType": "address",
+                                    "blockchain": "BSC",
+                                    "withdrawalEnable": false,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "-1",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.00000000",
+                                    "minConfirm": 15,
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                {
+                                    "id": 318,
+                                    "coin": "USDTETH",
+                                    "name": "Ethereum",
+                                    "currencyType": "address",
+                                    "blockchain": "ETH",
+                                    "withdrawalEnable": true,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "-1",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.42600600",
+                                    "minConfirm": 64,
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                {
+                                    "id": 1936,
+                                    "coin": "USDTSOL",
+                                    "name": "Solana",
+                                    "currencyType": "address",
+                                    "blockchain": "SOL",
+                                    "withdrawalEnable": false,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "1.70000000",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.83000000",
+                                    "minConfirm": 300,
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                {
+                                    "id": 316,
+                                    "coin": "USDTTRON",
+                                    "name": "Tron",
+                                    "currencyType": "address",
+                                    "blockchain": "TRX",
+                                    "withdrawalEnable": true,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "0.01000000",
+                                    "decimals": 8,
+                                    "withdrawFee": "1.20000000",
+                                    "minConfirm": 1,
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                {
+                                    "id": 214,
+                                    "coin": "USDT",
+                                    "name": "Omni",
+                                    "currencyType": "address",
+                                    "blockchain": "OMNI",
+                                    "withdrawalEnable": false,
+                                    "depositEnable": false,
+                                    "depositAddress": null,
+                                    "withdrawMin": "-1",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.00000000",
+                                    "minConfirm": 2,
+                                    "contractAddress": null
+                                }
+                            ],
+                            "supportCollateral": true,
+                            "supportBorrow": true
+                        },
+                        "id": "USDT",
+                        "numericId": null,
+                        "code": "USDT",
+                        "precision": 1e-8,
+                        "type": null,
+                        "name": "Tether USD",
+                        "active": null,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0,
+                        "fees": {},
+                        "networks": {
+                            "BEP20": {
+                                "info": {
+                                    "id": 582,
+                                    "coin": "USDTBSC",
+                                    "name": "Binance smart chain",
+                                    "currencyType": "address",
+                                    "blockchain": "BSC",
+                                    "withdrawalEnable": false,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "-1",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.00000000",
+                                    "minConfirm": 15,
+                                    "contractAddress": "0x55d398326f99059ff775485246999027b3197955"
+                                },
+                                "id": "BSC",
+                                "name": null,
+                                "code": "BEP20",
+                                "active": null,
+                                "fee": 0,
+                                "deposit": true,
+                                "withdraw": false,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": -1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "ERC20": {
+                                "info": {
+                                    "id": 318,
+                                    "coin": "USDTETH",
+                                    "name": "Ethereum",
+                                    "currencyType": "address",
+                                    "blockchain": "ETH",
+                                    "withdrawalEnable": true,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "-1",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.42600600",
+                                    "minConfirm": 64,
+                                    "contractAddress": "0xdac17f958d2ee523a2206206994597c13d831ec7"
+                                },
+                                "id": "ETH",
+                                "name": null,
+                                "code": "ERC20",
+                                "active": null,
+                                "fee": 0.426006,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": -1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "SOL": {
+                                "info": {
+                                    "id": 1936,
+                                    "coin": "USDTSOL",
+                                    "name": "Solana",
+                                    "currencyType": "address",
+                                    "blockchain": "SOL",
+                                    "withdrawalEnable": false,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "1.70000000",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.83000000",
+                                    "minConfirm": 300,
+                                    "contractAddress": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+                                },
+                                "id": "SOL",
+                                "name": null,
+                                "code": "SOL",
+                                "active": null,
+                                "fee": 0.83,
+                                "deposit": true,
+                                "withdraw": false,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 1.7,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "TRC20": {
+                                "info": {
+                                    "id": 316,
+                                    "coin": "USDTTRON",
+                                    "name": "Tron",
+                                    "currencyType": "address",
+                                    "blockchain": "TRX",
+                                    "withdrawalEnable": true,
+                                    "depositEnable": true,
+                                    "depositAddress": null,
+                                    "withdrawMin": "0.01000000",
+                                    "decimals": 8,
+                                    "withdrawFee": "1.20000000",
+                                    "minConfirm": 1,
+                                    "contractAddress": "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+                                },
+                                "id": "TRX",
+                                "name": null,
+                                "code": "TRC20",
+                                "active": null,
+                                "fee": 1.2,
+                                "deposit": true,
+                                "withdraw": true,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": 0.01,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            },
+                            "OMNI": {
+                                "info": {
+                                    "id": 214,
+                                    "coin": "USDT",
+                                    "name": "Omni",
+                                    "currencyType": "address",
+                                    "blockchain": "OMNI",
+                                    "withdrawalEnable": false,
+                                    "depositEnable": false,
+                                    "depositAddress": null,
+                                    "withdrawMin": "-1",
+                                    "decimals": 8,
+                                    "withdrawFee": "0.00000000",
+                                    "minConfirm": 2,
+                                    "contractAddress": null
+                                },
+                                "id": "OMNI",
+                                "name": null,
+                                "code": "OMNI",
+                                "active": null,
+                                "fee": 0,
+                                "deposit": false,
+                                "withdraw": false,
+                                "precision": 1e-8,
+                                "limits": {
+                                    "withdraw": {
+                                        "min": -1,
+                                        "max": null
+                                    },
+                                    "deposit": {
+                                        "min": null,
+                                        "max": null
+                                    }
+                                }
+                            }
+                        },
+                        "limits": {
+                            "deposit": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": -1,
+                                "max": null
+                            }
+                        },
+                        "margin": true
+                    }
+                }
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "ETH",
+                    "network": "ETH",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTTRON": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTTRON": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "USDTETH": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "BTC": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "BTC": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla",
+                    "tag": null
+                }
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create ETH on ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "ETH",
+                    "network": "ETH",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create BTC",
+                "method": "createDepositAddress",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla"
+                    },
+                    "currency": "BTC",
+                    "network": "BTC",
+                    "address": "1Da5szYQXyWxNEZo4tThewzKRi5fdkYPla",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ETH",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create ERC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22"
+                    },
+                    "currency": "USDT",
+                    "network": "ERC20",
+                    "address": "0xe55fbe593113c1e9ed3175e304a27555689a5e22",
+                    "tag": null
+                }
+            },
+            {
+                "description": "create TRC20",
+                "method": "createDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "httpResponse": {
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD"
+                    },
+                    "currency": "USDT",
+                    "network": "TRC20",
+                    "address": "TXae5onz4UzHXwHjwHWUPxrwfxNqBZ5efD",
+                    "tag": null
+                }
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "ethereum",
+                "method": "withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "httpResponse": {
+                    "withdrawalRequestsId": 19165155
+                },
+                "parsedResponse": {
+                    "info": {
+                        "withdrawalRequestsId": 19165155
+                    },
+                    "id": "19165155",
+                    "currency": null,
+                    "amount": null,
+                    "network": null,
+                    "address": null,
+                    "addressTo": null,
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "status": "pending",
+                    "type": "withdrawal",
+                    "updated": null,
+                    "txid": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "comment": null,
+                    "internal": null,
+                    "fee": {
+                        "currency": null,
+                        "cost": null,
+                        "rate": null
+                    }
+                }
+            }
+        ],
         "fetchClosedOrders": [
             {
                 "description": "linear",
@@ -317,7 +971,7 @@
                         "liquidationPrice": 86347.44574614352,
                         "entryPrice": 88186.58666666667,
                         "unrealizedPnl": 0.14704,
-                        "percentage": null,
+                        "percentage": 4.16,
                         "contracts": 3,
                         "contractSize": 0.001,
                         "markPrice": 88232.54,

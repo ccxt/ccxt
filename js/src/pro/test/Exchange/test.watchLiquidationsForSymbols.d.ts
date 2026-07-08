@@ -1,3 +1,4 @@
-import { Exchange } from "../../../../ccxt";
-declare const _default: (exchange: Exchange, skippedProperties: object, symbol: string) => Promise<any>;
-export default _default;
+import { Exchange } from "../../../../ccxt.js";
+import { Liquidation } from '../../../base/types.js';
+declare function testWatchLiquidationsForSymbols(exchange: Exchange, skippedProperties: object, symbol: string): Promise<false | Liquidation[]>;
+export default testWatchLiquidationsForSymbols;

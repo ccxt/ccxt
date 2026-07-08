@@ -1,15 +1,15 @@
 
 // ---------------------------------------------------------------------------
 
+import { ed25519 } from '@noble/curves/ed25519.js';
+import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
+import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/woofipro.js';
 import { AuthenticationError, RateLimitExceeded, BadRequest, ExchangeError, InvalidOrder, InsufficientFunds, ArgumentsRequired, NetworkError, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { ecdsa, eddsa } from './base/functions/crypto.js';
-import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
-import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
-import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, Position } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int, LedgerEntry, FundingRate, FundingRates, FundingHistory, Position, NullableDict } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -28,7 +28,6 @@ export default class woofipro extends Exchange {
             'certified': true,
             'pro': true,
             'dex': true,
-            'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -37,6 +36,9 @@ export default class woofipro extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
+                'borrowCrossMargin': false,
+                'borrowIsolatedMargin': false,
+                'borrowMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -61,12 +63,21 @@ export default class woofipro extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': true,
                 'fetchAccounts': false,
+                'fetchAllGreeks': false,
                 'fetchBalance': true,
+                'fetchBorrowInterest': false,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': true,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
+                'fetchCrossBorrowRate': false,
+                'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': true,
@@ -77,7 +88,10 @@ export default class woofipro extends Exchange {
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
+                'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
+                'fetchIsolatedBorrowRate': false,
+                'fetchIsolatedBorrowRates': false,
                 'fetchLedger': true,
                 'fetchLeverage': true,
                 'fetchMarginAdjustmentHistory': false,
@@ -89,6 +103,8 @@ export default class woofipro extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': true,
+                'fetchOption': false,
+                'fetchOptionChain': false,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
@@ -106,8 +122,11 @@ export default class woofipro extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': false,
+                'fetchVolatilityHistory': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'repayCrossMargin': false,
+                'repayIsolatedMargin': false,
                 'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': false,
@@ -139,7 +158,7 @@ export default class woofipro extends Exchange {
                 },
                 'www': 'https://dex.woo.org',
                 'doc': [
-                    'https://orderly.network/docs/build-on-evm/building-on-evm',
+                    'https://orderly.network/docs/build-on-omnichain/building-on-evm',
                 ],
                 'fees': [
                     'https://dex.woo.org/en/orderly',
@@ -436,9 +455,9 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchStatus
      * @description the latest known information on the availability of the exchange API
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
      */
     async fetchStatus (params = {}) {
         const response = await this.v1PublicGetPublicSystemInfo (params);
@@ -474,7 +493,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchTime
      * @description fetches the current integer timestamp in milliseconds from the exchange server
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-system-maintenance-status
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int} the current integer timestamp in milliseconds from the exchange server
      */
@@ -586,7 +605,7 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchMarkets
      * @description retrieves data on all markets for woofipro
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-available-symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -636,13 +655,14 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-collateral-info#get-supported-collateral-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-supported-chains-per-builder#get-supported-chains-per-builder
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
     async fetchCurrencies (params = {}): Promise<Currencies> {
         const result: Dict = {};
-        const response = await this.v1PublicGetPublicToken (params);
+        const tokenPromise = this.v1PublicGetPublicToken (params);
         //
         // {
         //     "success": true,
@@ -665,73 +685,82 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        const data = this.safeDict (response, 'data', {});
-        const tokenRows = this.safeList (data, 'rows', []);
+        const chainPromise = this.v1PublicGetPublicChainInfo (params);
+        const [ tokenResponse, chainResponse ] = await Promise.all ([ tokenPromise, chainPromise ]);
+        const tokenData = this.safeDict (tokenResponse, 'data', {});
+        const tokenRows = this.safeList (tokenData, 'rows', []);
+        const chainData = this.safeDict (chainResponse, 'data', {});
+        const chainRows = this.safeList (chainData, 'rows', []);
+        const indexedChains = this.indexBy (chainRows, 'chain_id');
         for (let i = 0; i < tokenRows.length; i++) {
             const token = tokenRows[i];
-            const currencyId = this.safeString (token, 'token');
-            const networks = this.safeList (token, 'chain_details');
-            const code = this.safeCurrencyCode (currencyId);
-            let minPrecision = undefined;
-            const resultingNetworks: Dict = {};
-            for (let j = 0; j < networks.length; j++) {
-                const network = networks[j];
-                // TODO: transform chain id to human readable name
-                const networkId = this.safeString (network, 'chain_id');
-                const precision = this.parsePrecision (this.safeString (network, 'decimals'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
-                }
-                resultingNetworks[networkId] = {
-                    'id': networkId,
-                    'network': networkId,
-                    'limits': {
-                        'withdraw': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                        'deposit': {
-                            'min': undefined,
-                            'max': undefined,
-                        },
-                    },
-                    'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber (network, 'withdrawal_fee'),
-                    'precision': this.parseNumber (precision),
-                    'info': network,
-                };
-            }
-            result[code] = {
-                'id': currencyId,
-                'name': currencyId,
-                'code': code,
-                'precision': this.parseNumber (minPrecision),
-                'active': undefined,
-                'fee': undefined,
-                'networks': resultingNetworks,
-                'deposit': undefined,
-                'withdraw': undefined,
-                'limits': {
-                    'deposit': {
-                        'min': undefined,
-                        'max': undefined,
-                    },
-                    'withdraw': {
-                        'min': this.safeNumber (token, 'minimum_withdraw_amount'),
-                        'max': undefined,
-                    },
-                },
-                'info': token,
-            };
+            const parsed = this.parseCurrency ({ '_token': token, '_indexedChains': indexedChains });
+            result[parsed['code']] = parsed;
         }
         return result;
     }
 
+    parseCurrency (rawCurrency: Dict): Currency {
+        const token = this.safeDict (rawCurrency, '_token', {});
+        const currencyId = this.safeString (token, 'token');
+        const networks = this.safeList (token, 'chain_details', []);
+        const code = this.safeCurrencyCode (currencyId);
+        const indexedChains = this.safeDict (rawCurrency, '_indexedChains', {});
+        const resultingNetworks: Dict = {};
+        for (let j = 0; j < networks.length; j++) {
+            const networkEntry = networks[j];
+            const networkId = this.safeString (networkEntry, 'chain_id');
+            const networkRow = this.safeDict (indexedChains, networkId);
+            const networkName = this.safeString (networkRow, 'name');
+            const networkCode = this.networkIdToCode (networkName, code);
+            resultingNetworks[networkCode] = {
+                'id': networkId,
+                'network': networkCode,
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': undefined,
+                'fee': this.safeNumber (networkEntry, 'withdrawal_fee'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (networkEntry, 'decimals'))),
+                'info': { 'network': networkEntry, 'networkRow': networkRow },
+            };
+        }
+        return this.safeCurrencyStructure ({
+            'id': currencyId,
+            'name': undefined,
+            'code': code,
+            'precision': undefined,
+            'active': undefined,
+            'fee': undefined,
+            'networks': resultingNetworks,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'limits': {
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': this.safeNumber (token, 'minimum_withdraw_amount'),
+                    'max': undefined,
+                },
+            },
+            'info': token,
+        });
+    }
+
     parseTokenAndFeeTemp (item, feeTokenKey, feeAmountKey) {
         const feeCost = this.safeString (item, feeAmountKey);
-        let fee = undefined;
+        let fee: Dict = undefined;
         if (feeCost !== undefined) {
             const feeCurrencyId = this.safeString (item, feeTokenKey);
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -813,15 +842,17 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-market-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -907,10 +938,10 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingInterval
      * @description fetch the current funding rate interval
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingInterval (symbol: string, params = {}): Promise<FundingRate> {
         return await this.fetchFundingRate (symbol, params);
@@ -920,13 +951,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingRate
      * @description fetch the current funding rate
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -955,13 +988,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingRates
      * @description fetch the current funding rate for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
      * @param {string[]} symbols unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+     * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingRates (symbols: Strings = undefined, params = {}): Promise<FundingRates> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const response = await this.v1PublicGetPublicFundingRates (params);
         //
@@ -990,17 +1025,19 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchFundingRateHistory
      * @description fetches historical funding rate prices
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/public/get-funding-rate-history-for-one-market
      * @param {string} symbol unified symbol of the market to fetch the funding rate history for
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
-     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+     * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'paginate');
         if (paginate) {
@@ -1055,16 +1092,118 @@ export default class woofipro extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
     }
 
+    parseIncome (income, market: Market = undefined) {
+        //
+        // {
+        //         "symbol": "PERP_ETH_USDC",
+        //         "funding_rate": 0.00046875,
+        //         "mark_price": 2100,
+        //         "funding_fee": 0.000016,
+        //         "payment_type": "Pay",
+        //         "status": "Accrued",
+        //         "created_time": 1682235722003,
+        //         "updated_time": 1682235722003
+        // }
+        //
+        const marketId = this.safeString (income, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        let amount = this.safeString (income, 'funding_fee');
+        const code = this.safeCurrencyCode ('USDC');
+        const timestamp = this.safeInteger (income, 'updated_time');
+        const rate = this.safeNumber (income, 'funding_rate');
+        const paymentType = this.safeString (income, 'payment_type');
+        amount = (paymentType === 'Pay') ? Precise.stringNeg (amount) : amount;
+        return {
+            'info': income,
+            'symbol': symbol,
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'id': undefined,
+            'amount': this.parseNumber (amount),
+            'rate': rate,
+        };
+    }
+
+    /**
+     * @method
+     * @name woofipro#fetchFundingHistory
+     * @description fetch the history of funding payments paid and received on this account
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+     * @param {string} [symbol] unified market symbol
+     * @param {int} [since] the earliest time in ms to fetch funding history for
+     * @param {int} [limit] the maximum number of funding history structures to retrieve
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+     * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
+     */
+    async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallIncremental ('fetchFundingHistory', symbol, since, limit, params, 'page', 500) as FundingHistory[];
+        }
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_t'] = since;
+        }
+        const until = this.safeInteger (params, 'until'); // unified in milliseconds
+        params = this.omit (params, [ 'until' ]);
+        if (until !== undefined) {
+            request['end_t'] = until;
+        }
+        if (limit !== undefined) {
+            request['size'] = Math.min (limit, 500);
+        }
+        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        //
+        // {
+        //     "success": true,
+        //     "timestamp": 1702989203989,
+        //     "data": {
+        //         "meta": {
+        //             "total": 9,
+        //             "records_per_page": 25,
+        //             "current_page": 1
+        //         },
+        //         "rows": [{
+        //                 "symbol": "PERP_ETH_USDC",
+        //                 "funding_rate": 0.00046875,
+        //                 "mark_price": 2100,
+        //                 "funding_fee": 0.000016,
+        //                 "payment_type": "Pay",
+        //                 "status": "Accrued",
+        //                 "created_time": 1682235722003,
+        //                 "updated_time": 1682235722003
+        //         }]
+        //     }
+        // }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const rows = this.safeList (data, 'rows', []);
+        return this.parseIncomes (rows, market, since, limit);
+    }
+
     /**
      * @method
      * @name woofipro#fetchTradingFees
      * @description fetch the trading fees for multiple markets
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PrivateGetClientInfo (params);
         //
         // {
@@ -1115,14 +1254,16 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/orderbook-snapshot
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1168,7 +1309,7 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchOHLCV
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-kline
      * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
@@ -1177,8 +1318,10 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+    async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1335,7 +1478,7 @@ export default class woofipro extends Exchange {
             'fok': 'FOK',
             'post_only': 'PO',
         };
-        return this.safeString (timeInForces, timeInForce, undefined);
+        return this.safeString (timeInForces, timeInForce);
     }
 
     parseOrderStatus (status: Str) {
@@ -1390,8 +1533,10 @@ export default class woofipro extends Exchange {
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
+        const hasStopLoss = (stopLoss !== undefined);
+        const hasTakeProfit = (takeProfit !== undefined);
         const algoType = this.safeString (params, 'algoType');
-        const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
+        const isConditional = triggerPrice !== undefined || hasStopLoss || hasTakeProfit || (this.safeValue (params, 'childOrders') !== undefined);
         const isMarket = orderType === 'MARKET';
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         const postOnly = this.isPostOnly (isMarket, undefined, params);
@@ -1426,7 +1571,7 @@ export default class woofipro extends Exchange {
         if (triggerPrice !== undefined) {
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
             request['algo_type'] = 'STOP';
-        } else if ((stopLoss !== undefined) || (takeProfit !== undefined)) {
+        } else if (hasStopLoss || hasTakeProfit) {
             request['algo_type'] = 'TP_SL';
             const outterOrder: Dict = {
                 'symbol': market['id'],
@@ -1436,7 +1581,7 @@ export default class woofipro extends Exchange {
             };
             const childOrders = outterOrder['child_orders'];
             const closeSide = (orderSide === 'BUY') ? 'SELL' : 'BUY';
-            if (stopLoss !== undefined) {
+            if (hasStopLoss) {
                 const stopLossPrice = this.safeNumber2 (stopLoss, 'triggerPrice', 'price', stopLoss);
                 const stopLossOrder: Dict = {
                     'side': closeSide,
@@ -1447,7 +1592,7 @@ export default class woofipro extends Exchange {
                 };
                 childOrders.push (stopLossOrder);
             }
-            if (takeProfit !== undefined) {
+            if (hasTakeProfit) {
                 const takeProfitPrice = this.safeNumber2 (takeProfit, 'triggerPrice', 'price', takeProfit);
                 const takeProfitOrder: Dict = {
                     'side': closeSide,
@@ -1468,8 +1613,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#createOrder
      * @description create a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
      * @param {string} side 'buy' or 'sell'
@@ -1484,17 +1629,19 @@ export default class woofipro extends Exchange {
      * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
         const isConditional = triggerPrice !== undefined || stopLoss !== undefined || takeProfit !== undefined || (this.safeValue (params, 'childOrders') !== undefined);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isConditional) {
             response = await this.v1PrivatePostAlgoOrder (request);
             //
@@ -1527,7 +1674,7 @@ export default class woofipro extends Exchange {
             // }
             //
         }
-        const data = this.safeDict (response, 'data');
+        const data = this.safeDict (response, 'data', {});
         data['timestamp'] = this.safeInteger (response, 'timestamp');
         const order = this.parseOrder (data, market);
         order['type'] = type;
@@ -1538,13 +1685,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#createOrders
      * @description *contract only* create a list of trade orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-create-order
      * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrders (orders: OrderRequest[], params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const ordersRequests = [];
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = orders[i];
@@ -1594,8 +1743,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#editOrder
      * @description edit a trade order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/edit-algo-order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -1606,10 +1755,12 @@ export default class woofipro extends Exchange {
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'order_id': id,
@@ -1628,7 +1779,7 @@ export default class woofipro extends Exchange {
             request[orderQtyKey] = this.amountToPrecision (symbol, amount);
         }
         params = this.omit (params, [ 'stopPrice', 'triggerPrice', 'takeProfitPrice', 'stopLossPrice', 'trailingTriggerPrice', 'trailingAmount', 'trailingPercent' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isConditional) {
             response = await this.v1PrivatePutAlgoOrder (this.extend (request, params));
         } else {
@@ -1673,17 +1824,17 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#cancelOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
      * @description cancels an open order
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
@@ -1691,18 +1842,20 @@ export default class woofipro extends Exchange {
         if (!trigger && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': this.safeString (market, 'id'),
         };
         const clientOrderIdUnified = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         const clientOrderIdExchangeSpecific = this.safeString (params, 'client_order_id', clientOrderIdUnified);
         const isByClientOrder = clientOrderIdExchangeSpecific !== undefined;
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             if (isByClientOrder) {
                 request['client_order_id'] = clientOrderIdExchangeSpecific;
@@ -1744,30 +1897,32 @@ export default class woofipro extends Exchange {
             extendParams['id'] = id;
         }
         if (trigger) {
-            return this.extend (this.parseOrder (response), extendParams);
+            return this.extend (this.parseOrder (response), extendParams) as Order;
         }
         const data = this.safeDict (response, 'data', {});
-        return this.extend (this.parseOrder (data), extendParams);
+        return this.extend (this.parseOrder (data), extendParams) as Order;
     }
 
     /**
      * @method
      * @name woofipro#cancelOrders
      * @description cancel multiple orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
      * @param {string[]} ids order ids
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string[]} [params.client_order_ids] max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const clientOrderIds = this.safeListN (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         params = this.omit (params, [ 'clOrdIDs', 'clientOrderIds', 'client_order_ids' ]);
         const request: Dict = {};
-        let response = undefined;
+        let response: Dict = undefined;
         if (clientOrderIds) {
             request['client_order_ids'] = clientOrderIds.join (',');
             response = await this.v1PrivateDeleteClientBatchOrder (this.extend (request, params));
@@ -1792,16 +1947,18 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#cancelAllOrders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-all-pending-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/cancel-orders-in-bulk
      * @description cancel all open orders in a market
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
-     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const trigger = this.safeBool2 (params, 'stop', 'trigger');
         params = this.omit (params, [ 'stop', 'trigger' ]);
         const request: Dict = {};
@@ -1809,7 +1966,7 @@ export default class woofipro extends Exchange {
             const market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             response = await this.v1PrivateDeleteAlgoOrders (this.extend (request, params));
         } else {
@@ -1831,30 +1988,32 @@ export default class woofipro extends Exchange {
         // }
         //
         return [
-            {
+            this.safeOrder ({
                 'info': response,
-            },
+            }),
         ];
     }
 
     /**
      * @method
      * @name woofipro#fetchOrder
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-order-by-client_order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-order_id
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-order-by-client_order_id
      * @description fetches information on an order made by the user
      * @param {string} id the order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {string} [params.clientOrderId] a unique id for the order
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
-        let market = undefined;
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
@@ -1862,7 +2021,7 @@ export default class woofipro extends Exchange {
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         params = this.omit (params, [ 'stop', 'trigger', 'clOrdID', 'clientOrderId', 'client_order_id' ]);
-        let response = undefined;
+        let response: Dict = undefined;
         if (trigger) {
             if (clientOrderId) {
                 request['client_order_id'] = clientOrderId;
@@ -1915,8 +2074,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1926,10 +2085,12 @@ export default class woofipro extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @param {int} params.until timestamp in ms of the latest order to fetch
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         const isTrigger = this.safeBool2 (params, 'stop', 'trigger', false);
         const maxLimit = (isTrigger) ? 100 : 500;
@@ -1956,7 +2117,7 @@ export default class woofipro extends Exchange {
             request['algo_type'] = 'STOP';
         }
         [ request, params ] = this.handleUntilOption ('end_t', request, params);
-        let response = undefined;
+        let response: Dict = undefined;
         if (isTrigger) {
             response = await this.v1PrivateGetAlgoOrders (this.extend (request, params));
         } else {
@@ -1965,7 +2126,7 @@ export default class woofipro extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "timestamp": 1702989203989,
+        //         "timestamp": 1702989203988,
         //         "data": {
         //             "meta": {
         //                 "total": 9,
@@ -2005,8 +2166,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOpenOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2016,10 +2177,12 @@ export default class woofipro extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'INCOMPLETE' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -2028,8 +2191,8 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchClosedOrders
      * @description fetches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-orders
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -2039,10 +2202,12 @@ export default class woofipro extends Exchange {
      * @param {string} [params.side] 'buy' or 'sell'
      * @param {int} params.until timestamp in ms of the latest order to fetch
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const extendedParams = this.extend (params, { 'status': 'COMPLETED' });
         return await this.fetchOrders (symbol, since, limit, extendedParams);
     }
@@ -2051,16 +2216,18 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchOrderTrades
      * @description fetch all the trades made from a single order
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-trades-of-specific-order
      * @param {string} id order id
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2098,7 +2265,7 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchMyTrades
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-trades
      * @description fetch all trades made by the user
      * @param {string} symbol unified market symbol
      * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2106,10 +2273,12 @@ export default class woofipro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.paginate] set to true if you want to fetch trades with pagination
      * @param {int} params.until timestamp in ms of the latest trade to fetch
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
         if (paginate) {
@@ -2182,12 +2351,14 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-current-holding
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PrivateGetClientHolding (params);
         //
         // {
@@ -2209,7 +2380,9 @@ export default class woofipro extends Exchange {
     }
 
     async getAssetHistoryRows (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<any> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = { };
         let currency: Currency = undefined;
         if (code !== undefined) {
@@ -2297,12 +2470,12 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchLedger
      * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code, default is undefined
      * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
      * @param {int} [limit] max number of ledger entries to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger}
+     * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
     async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
         const currencyRows = await this.getAssetHistoryRows (code, since, limit, params);
@@ -2361,12 +2534,12 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchDeposits
      * @description fetch all deposits made to an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch deposits for
      * @param {int} [limit] the maximum number of deposits structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
@@ -2379,12 +2552,12 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchWithdrawals
      * @description fetch all withdrawals made from an account
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} code unified currency code
      * @param {int} [since] the earliest time in ms to fetch withdrawals for
      * @param {int} [limit] the maximum number of withdrawals structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {
@@ -2397,12 +2570,12 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchDepositsWithdrawals
      * @description fetch history of deposits and withdrawals
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-asset-history
      * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         const request: Dict = {};
@@ -2458,16 +2631,18 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#withdraw
      * @description make a withdrawal
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/create-withdraw-request
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}): Promise<Transaction> {
-        await this.loadMarkets ();
+    async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         this.checkAddress (address);
         if (code !== undefined) {
             code = code.toUpperCase ();
@@ -2539,7 +2714,7 @@ export default class woofipro extends Exchange {
         const leverageValue = this.safeInteger (leverage, 'max_leverage');
         return {
             'info': leverage,
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'marginMode': undefined,
             'longLeverage': leverageValue,
             'shortLeverage': leverageValue,
@@ -2550,13 +2725,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchLeverage
      * @description fetch the set leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-account-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+     * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
     async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const response = await this.v1PrivateGetClientInfo (params);
         //
@@ -2594,14 +2771,16 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#setLeverage
      * @description set the level of leverage for a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/update-leverage-setting
      * @param {int} [leverage] the rate of leverage
      * @param {string} [symbol] unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+    async setLeverage (leverage: int, symbol: Str = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         if ((leverage < 1) || (leverage > 50)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 50');
         }
@@ -2685,14 +2864,16 @@ export default class woofipro extends Exchange {
     /**
      * @method
      * @name woofipro#fetchPosition
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-one-position-info
      * @description fetch data on an open position
      * @param {string} symbol unified market symbol of the market the position is held in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPosition (symbol: Str, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2732,13 +2913,15 @@ export default class woofipro extends Exchange {
      * @method
      * @name woofipro#fetchPositions
      * @description fetch all open positions
-     * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+     * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-all-positions-info
      * @param {string[]} [symbols] list of unified market symbols
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+     * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.v1PrivateGetPositions (params);
         //
         // {
@@ -2787,12 +2970,11 @@ export default class woofipro extends Exchange {
         return this.milliseconds ();
     }
 
-    sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign (path, section = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
         const version = section[0];
         const access = section[1];
         const pathWithParams = this.implodeParams (path, params);
-        let url = this.implodeHostname (this.urls['api'][access]);
-        url += '/' + version + '/';
+        let url = this.urls['api'][access] + '/' + version + '/';
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {

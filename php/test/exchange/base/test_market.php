@@ -8,9 +8,11 @@ namespace ccxt;
 
 // -----------------------------------------------------------------------------
 use \ccxt\Precise;
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_market($exchange, $skipped_properties, $method, $market) {
+    if ($market === null) {
+        return;
+    }
     $format = array(
         'id' => 'btcusd',
         'symbol' => 'BTC/USD',
@@ -78,6 +80,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     $inverse = $market['inverse'];
     $quanto = $exchange->safe_bool($market, 'quanto'); // todo: unify
     $is_quanto = ($quanto !== null) && $quanto;
+    $is_inactive_market = $market['active'] === false;
     //
     $empty_allowed_for = ['margin'];
     if (!$contract) {
@@ -96,10 +99,20 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         $empty_allowed_for[] = 'optionType';
         $empty_allowed_for[] = 'strike';
     }
+    if ($is_inactive_market) {
+        $empty_allowed_for[] = 'contractSize';
+        $empty_allowed_for[] = 'settle';
+        $empty_allowed_for[] = 'settleId';
+        $empty_allowed_for[] = 'baseId';
+        $empty_allowed_for[] = 'quoteId';
+        $empty_allowed_for[] = 'base';
+        $empty_allowed_for[] = 'quote';
+    }
     assert_structure($exchange, $skipped_properties, $method, $market, $format, $empty_allowed_for);
     assert_symbol($exchange, $skipped_properties, $method, $market, 'symbol');
     $log_text = log_template($exchange, $method, $market);
     // check taker/maker
+    // todo: check not all to be within 0-1.0
     assert_greater($exchange, $skipped_properties, $method, $market, 'taker', '-100');
     assert_less($exchange, $skipped_properties, $method, $market, 'taker', '100');
     assert_greater($exchange, $skipped_properties, $method, $market, 'maker', '-100');
@@ -145,7 +158,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
     }
     $contract_size = $exchange->safe_string($market, 'contractSize');
     // contract fields
-    if ($contract) {
+    if ($contract && !$is_inactive_market) {
         if ($is_quanto) {
             assert($linear === false, 'linear must be false when "quanto" is true' . $log_text);
             assert($inverse === false, 'inverse must be false when "quanto" is true' . $log_text);
@@ -161,7 +174,7 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert((is_array($skipped_properties) && array_key_exists('contractSize', $skipped_properties)) || Precise::string_gt($contract_size, '0'), '"contractSize" must be > 0 when "contract" is true' . $log_text);
         // settle should be defined
         assert((is_array($skipped_properties) && array_key_exists('settle', $skipped_properties)) || ($market['settle'] !== null && $market['settleId'] !== null), '"settle" & "settleId" must be defined when "contract" is true' . $log_text);
-    } else {
+    } elseif (!$contract) {
         // linear & inverse needs to be undefined
         assert($linear === null && $inverse === null && $quanto === null, 'market linear and inverse (and quanto) must be undefined when "contract" is false' . $log_text);
         // contract size should be undefined
@@ -188,17 +201,17 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         assert_greater($exchange, $skipped_properties, $method, $market, 'expiry', '0');
         if ($option) {
             // strike should be defined
-            assert($market['strike'] !== null, '"strike" must be defined when "option" is true' . $log_text);
+            assert(((is_array($skipped_properties) && array_key_exists('strike', $skipped_properties)) || $market['strike'] !== null), '"strike" must be defined when "option" is true' . $log_text);
             assert_greater($exchange, $skipped_properties, $method, $market, 'strike', '0');
             // optionType should be defined
-            assert($market['optionType'] !== null, '"optionType" must be defined when "option" is true' . $log_text);
+            assert(((is_array($skipped_properties) && array_key_exists('optionType', $skipped_properties)) || $market['optionType'] !== null), '"optionType" must be defined when "option" is true' . $log_text);
             assert_in_array($exchange, $skipped_properties, $method, $market, 'optionType', ['put', 'call']);
         } else {
             // if not option, then strike and optionType should be undefined
             assert($market['strike'] === null, '"strike" must be undefined when "option" is false' . $log_text);
             assert($market['optionType'] === null, '"optionType" must be undefined when "option" is false' . $log_text);
         }
-    } else {
+    } elseif ($spot) {
         // otherwise, expiry needs to be undefined
         assert(($market['expiry'] === null) && ($market['expiryDatetime'] === null), '"expiry" and "expiryDatetime" must be undefined when it is not future|option market' . $log_text);
     }
@@ -220,7 +233,6 @@ function test_market($exchange, $skipped_properties, $method, $market) {
             check_precision_accuracy($exchange, $skipped_properties, $method, $market['precision'], $price_or_amount_key);
         }
     }
-    $is_inactive_market = $market['active'] === false;
     // check limits
     $limits_keys = is_array($market['limits']) ? array_keys($market['limits']) : array();
     $limits_keys_length = count($limits_keys);
@@ -244,14 +256,16 @@ function test_market($exchange, $skipped_properties, $method, $market) {
         }
     }
     // check currencies
-    assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
-    assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
-    assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
+    if (!$is_inactive_market) {
+        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['baseId'], $market['base']);
+        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['quoteId'], $market['quote']);
+        assert_valid_currency_id_and_code($exchange, $skipped_properties, $method, $market, $market['settleId'], $market['settle']);
+    }
     // check ts
     assert_timestamp($exchange, $skipped_properties, $method, $market, null, 'created');
     // margin modes
     if (!(is_array($skipped_properties) && array_key_exists('marginModes', $skipped_properties))) {
-        $margin_modes = $exchange->safe_dict($market, 'marginModes'); // in future, remove safeDict
+        $margin_modes = $exchange->safe_dict($market, 'marginModes', array()); // in future, remove safeDict
         assert(is_array($margin_modes) && array_key_exists('cross', $margin_modes), 'marginModes should have "cross" key' . $log_text);
         assert(is_array($margin_modes) && array_key_exists('isolated', $margin_modes), 'marginModes should have "isolated" key' . $log_text);
         assert_in_array($exchange, $skipped_properties, $method, $margin_modes, 'cross', [true, false, null]);

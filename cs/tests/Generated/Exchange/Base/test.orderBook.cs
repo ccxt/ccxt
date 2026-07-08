@@ -24,11 +24,6 @@ public partial class testMainClass : BaseTest
         // testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
         object logText = testSharedMethods.logTemplate(exchange, method, orderbook);
-        //
-        if (isTrue(isTrue((inOp(skippedProperties, "bid"))) || isTrue((inOp(skippedProperties, "ask")))))
-        {
-            return;
-        }
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         object bids = getValue(orderbook, "bids");
         object bidsLength = getArrayLength(bids);

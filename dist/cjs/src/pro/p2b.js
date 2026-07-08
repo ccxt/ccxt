@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var p2b$1 = require('../p2b.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class p2b extends p2b$1 {
+class p2b extends p2b$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -91,7 +93,9 @@ class p2b extends p2b$1 {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const timeframes = this.safeValue(this.options, 'timeframes', {});
         const channel = this.safeInteger(timeframes, timeframe);
         if (channel === undefined) {
@@ -118,10 +122,12 @@ class p2b extends p2b$1 {
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.method] 'state' (default) or 'price'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
         [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
@@ -142,10 +148,12 @@ class p2b extends p2b$1 {
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.method] 'state' (default) or 'price'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
         const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
@@ -175,7 +183,7 @@ class p2b extends p2b$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         return await this.watchTradesForSymbols([symbol], since, limit, params);
@@ -189,10 +197,12 @@ class p2b extends p2b$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false, true, true);
         const messageHashes = [];
         if (symbols !== undefined) {
@@ -225,10 +235,12 @@ class p2b extends p2b$1 {
      * @param {int} [limit] 1-100, default=100
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {float} [params.interval] 0, 0.00000001, 0.0000001, 0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, interval of precision for order, default=0.001
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const name = 'depth.subscribe';
         const messageHash = 'orderbook::' + market['symbol'];
@@ -368,7 +380,7 @@ class p2b extends p2b$1 {
         const splitMethod = method.split('.');
         const messageHashStart = this.safeString(splitMethod, 0);
         const tickerData = this.safeDict(data, 1);
-        let ticker = undefined;
+        let ticker;
         if (method === 'price.update') {
             const lastPrice = this.safeString(data, 1);
             ticker = this.safeTicker({
@@ -489,7 +501,7 @@ class p2b extends p2b$1 {
         //        id: 1706539608030
         //    }
         //
-        client.lastPong = this.safeInteger(message, 'id');
+        client.lastPong = this.safeInteger(message, 'id', this.milliseconds());
         return message;
     }
     onError(client, error) {
@@ -502,4 +514,4 @@ class p2b extends p2b$1 {
     }
 }
 
-module.exports = p2b;
+exports["default"] = p2b;

@@ -10,22 +10,24 @@ import testCamelCase from './test.camelcase.js';
 import testUnCamelCase from './test.uncamelcase.js';
 import testThrottle from './test.throttle.js';
 import testCalculateFee from './test.calculateFee.js';
-import testAggregate from './test.aggregate.js';
 import testSafeBalance from './test.safeBalance.js';
 import testLegacyHas from './test.legacyHas.js';
 import testTypes from './test.type.js';
+import testThrottlerPerformance from './test.throttlerPerformance.js';
+import testOnJsonResponse from './test.onJsonResponse.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 // import './test.timeout_hang.js' :todo
-function testLanguageSpecific() {
+async function testLanguageSpecific() {
     testCamelCase();
     testUnCamelCase();
     testThrottle();
     testCalculateFee();
-    testAggregate();
     testSafeBalance();
     testLegacyHas();
     testTypes();
+    testOnJsonResponse();
+    await testThrottlerPerformance();
     // testConfig ();
 }
 export default testLanguageSpecific;

@@ -10,7 +10,6 @@ namespace ccxt;
 use React\Async;
 use React\Promise;
 include_once PATH_TO_CCXT . '/test/exchange/base/test_ohlcv.php';
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_fetch_ohlcv($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
@@ -25,7 +24,7 @@ function test_fetch_ohlcv($exchange, $skipped_properties, $symbol) {
         $limit = 10;
         $duration = $exchange->parse_timeframe($chosen_timeframe_key);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
-        $ohlcvs = Async\await($exchange->fetch_ohlcv($symbol, $chosen_timeframe_key, $since, $limit));
+        $ohlcvs = \React\Async\await($exchange->fetch_ohlcv($symbol, $chosen_timeframe_key, $since, $limit));
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $ohlcvs, $symbol);
         $now = $exchange->milliseconds();
         for ($i = 0; $i < count($ohlcvs); $i++) {

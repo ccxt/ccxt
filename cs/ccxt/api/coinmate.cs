@@ -41,6 +41,16 @@ public partial class coinmate : Exchange
         return await this.callAsync ("publicGetTradingPairs",parameters);
     }
 
+    public async Task<object> publicGetSystemTime (object parameters = null)
+    {
+        return await this.callAsync ("publicGetSystemTime",parameters);
+    }
+
+    public async Task<object> privatePostCurrencies (object parameters = null)
+    {
+        return await this.callAsync ("privatePostCurrencies",parameters);
+    }
+
     public async Task<object> privatePostBalances (object parameters = null)
     {
         return await this.callAsync ("privatePostBalances",parameters);
@@ -299,6 +309,11 @@ public partial class coinmate : Exchange
     public async Task<object> privatePostUnconfirmedSolDeposits (object parameters = null)
     {
         return await this.callAsync ("privatePostUnconfirmedSolDeposits",parameters);
+    }
+
+    public async Task<object> privatePostBankWireWithdrawal (object parameters = null)
+    {
+        return await this.callAsync ("privatePostBankWireWithdrawal",parameters);
     }
 
 }

@@ -3,6 +3,38 @@
     "skipKeys": ["end", "start"],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.delta.exchange/v2/assets",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "Fetch Order",
+                "method": "fetchOrder",
+                "url": "https://api.delta.exchange/v2/orders/123",
+                "input": [
+                    "123",
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch Order by clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.delta.exchange/v2/orders/client_order_id/123",
+                "input": [
+                    "123",
+                    "BTC/USDT",
+                    {
+                        "clientOrderId": "123"
+                    }
+                ]
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "Fetch Open Orders",
@@ -31,6 +63,21 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set the margin mode",
+                "method": "setMarginMode",
+                "url": "https://api.delta.exchange/v2/users/margin_mode",
+                "input": [
+                    "isolated",
+                    null,
+                    {
+                        "subaccount_user_id": "30084879"
+                    }
+                ],
+                "output": "{\"margin_mode\":\"isolated\",\"subaccount_user_id\":\"30084879\"}"
             }
         ],
         "fetchTime": [
@@ -232,6 +279,16 @@
                 "url": "https://api.delta.exchange/v2/tickers/P-BTC-65000-290324",
                 "input": [
                   "BTC/USDT:USDT-240329-65000-P"
+                ]
+            }
+        ],
+        "fetchPositionADLRank": [
+            {
+                "description": "linear swap fetchPositionADLRank",
+                "method": "fetchPositionADLRank",
+                "url": "https://testnet-api.delta.exchange/v2/positions/margined",
+                "input": [
+                    "BTC/USDT:USDT"
                 ]
             }
         ]

@@ -9,14 +9,14 @@ import (
 )
 
 type PreciseStruct struct {
-	Decimals   interface{}
+	Decimals   any
 	integer    *big.Int
 	baseNumber int64
 }
 
 var Precise = &PreciseStruct{}
 
-func NewPrecise(number2 interface{}, dec2 ...interface{}) *PreciseStruct {
+func NewPrecise(number2 any, dec2 ...any) *PreciseStruct {
 	var dec int
 	if len(dec2) > 0 {
 		dec = int(ParseInt(dec2[0]))
@@ -64,7 +64,7 @@ func (p *PreciseStruct) Mul(other *PreciseStruct) *PreciseStruct {
 	return NewPrecise(integer.String(), decimals)
 }
 
-func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...interface{}) *PreciseStruct {
+func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...any) *PreciseStruct {
 	precision := int64(18)
 	if len(precision2) > 0 {
 		precision = ParseInt(precision2[0])
@@ -76,12 +76,13 @@ func (p *PreciseStruct) Div(other *PreciseStruct, precision2 ...interface{}) *Pr
 		numerator = p.integer
 	} else if distance < 0 {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(-distance)), nil)
-		numerator = new(big.Int).Div(p.integer, exponent)
+		// Quo truncates toward zero, matching JS BigInt division (big.Int.Div is Euclidean and rounds toward -inf for negatives)
+		numerator = new(big.Int).Quo(p.integer, exponent)
 	} else {
 		exponent := new(big.Int).Exp(big.NewInt(p.baseNumber), big.NewInt(int64(distance)), nil)
 		numerator = new(big.Int).Mul(p.integer, exponent)
 	}
-	result := new(big.Int).Div(numerator, other.integer)
+	result := new(big.Int).Quo(numerator, other.integer)
 	return NewPrecise(result.String(), precision)
 }
 
@@ -186,11 +187,11 @@ func (p *PreciseStruct) Reduce() *PreciseStruct {
 			break
 		}
 	}
-	difference := start - i
+	difference := int64(start - i)
 	if difference == 0 {
 		return p
 	}
-	p.Decimals = int(ParseInt(p.Decimals)) - difference
+	p.Decimals = int(ParseInt(p.Decimals) - difference) // TODO: loss of precision by converting to int, should be int64
 	p.integer = new(big.Int)
 	p.integer.SetString(str[:i+1], 10)
 	return p
@@ -213,18 +214,25 @@ func (p *PreciseStruct) String() string {
 		abs = p.integer
 	}
 	absParsed := abs.String()
-	padSize := p.Decimals.(int)
+	var intDecimals int
+	switch v := p.Decimals.(type) {
+	case int:
+		intDecimals = v
+	case int64:
+		intDecimals = int(v) // TODO: loss of precsion by converting to int, should be int64
+	}
+	padSize := intDecimals
 	if padSize < 0 {
 		padSize = 0
 	}
 	integerArray := strings.Split(fmt.Sprintf("%0*s", padSize, absParsed), "")
-	index := len(integerArray) - p.Decimals.(int)
+	index := len(integerArray) - intDecimals
 	item := ""
 	if index == 0 {
 		item = "0."
-	} else if p.Decimals.(int) < 0 {
-		item = strings.Repeat("0", -p.Decimals.(int))
-	} else if p.Decimals.(int) == 0 {
+	} else if intDecimals < 0 {
+		item = strings.Repeat("0", -intDecimals)
+	} else if intDecimals == 0 {
 		item = ""
 	} else {
 		item = "."
@@ -237,129 +245,123 @@ func (p *PreciseStruct) String() string {
 	return sign + strings.Join(integerArray, "")
 }
 
-func StringMul(string1, string2 interface{}) string {
+func StringMul(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Mul(NewPrecise(string2.(string))).String()
 }
 
-func StringDiv(string1, string2 interface{}, precision ...interface{}) string {
+func StringDiv(string1, string2 any, precision ...any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	string2Precise := NewPrecise(string2.(string))
 	if string2Precise.integer.Cmp(big.NewInt(0)) == 0 {
-		return ""
+		return nil
 	}
 	stringDiv := NewPrecise(string1.(string)).Div(string2Precise, precision...)
 	return stringDiv.String()
 }
 
-func StringSub(string1, string2 interface{}) string {
+func StringSub(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Sub(NewPrecise(string2.(string))).String()
 }
 
-// func (this *PreciseStruct) stringSub(string1, string2 interface{}) string {
+// func (this *PreciseStruct) stringSub(string1, string2 any) string {
 // 	return StringSub(string1, string2)
 // }
 
-func StringAdd(string1, string2 interface{}) string {
-	if string1 == nil && string2 == nil {
-		return ""
-	}
-	if string1 == nil {
-		return string2.(string)
-	}
-	if string2 == nil {
-		return string1.(string)
+func StringAdd(string1, string2 any) any {
+	if string1 == nil || string2 == nil {
+		return nil
 	}
 	return NewPrecise(string1.(string)).Add(NewPrecise(string2.(string))).String()
 }
 
-func StringOr(string1, string2 interface{}) string {
+func StringOr(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Or(NewPrecise(string2.(string))).String()
 }
 
-func StringGt(a, b interface{}) bool {
+func StringGt(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	return NewPrecise(a.(string)).Gt(NewPrecise(b.(string)))
 }
 
-func StringEq(a, b interface{}) bool {
+func StringEq(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMax(a, b interface{}) string {
+func StringMax(a, b any) any {
 	if a == nil || b == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Max(NewPrecise(b.(string))).String()
 }
 
-func StringEquals(a, b interface{}) bool {
+func StringEquals(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	return NewPrecise(a.(string)).Equals(NewPrecise(b.(string)))
 }
 
-func StringMin(string1, string2 interface{}) string {
+func StringMin(string1, string2 any) any {
 	if string1 == nil || string2 == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(string1.(string)).Min(NewPrecise(string2.(string))).String()
 }
 
-func StringLt(a, b interface{}) bool {
+func StringLt(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	return NewPrecise(a.(string)).Lt(NewPrecise(b.(string)))
 }
 
-func StringAbs(a interface{}) string {
+func StringAbs(a any) any {
 	if a == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Abs().String()
 }
 
-func StringNeg(a interface{}) string {
+func StringNeg(a any) any {
 	if a == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Neg().String()
 }
 
-func StringLe(a, b interface{}) bool {
+func StringLe(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	return NewPrecise(a.(string)).Le(NewPrecise(b.(string)))
 }
 
-func StringGe(a, b interface{}) bool {
+func StringGe(a, b any) bool {
 	if a == nil || b == nil {
 		return false
 	}
 	return NewPrecise(a.(string)).Ge(NewPrecise(b.(string)))
 }
 
-func StringMod(a, b interface{}) string {
+func StringMod(a, b any) any {
 	if a == nil || b == nil {
-		return ""
+		return nil
 	}
 	return NewPrecise(a.(string)).Mod(NewPrecise(b.(string))).String()
 }
@@ -418,66 +420,66 @@ func (p *PreciseStruct) ToString() string {
 
 // wrappers
 
-func (e *PreciseStruct) StringMul(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringMul(string1, string2 any) any {
 	return StringMul(string1, string2)
 }
 
-func (e *PreciseStruct) StringDiv(string1, string2 interface{}, precision ...interface{}) string {
+func (e *PreciseStruct) StringDiv(string1, string2 any, precision ...any) any {
 	return StringDiv(string1, string2, precision...)
 }
 
-func (e *PreciseStruct) StringSub(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringSub(string1, string2 any) any {
 	return StringSub(string1, string2)
 }
 
-func (e *PreciseStruct) StringAdd(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringAdd(string1, string2 any) any {
 	return StringAdd(string1, string2)
 }
 
-func (e *PreciseStruct) StringOr(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringOr(string1, string2 any) any {
 	return StringOr(string1, string2)
 }
 
-func (e *PreciseStruct) StringGt(a, b interface{}) bool {
+func (e *PreciseStruct) StringGt(a, b any) bool {
 	return StringGt(a, b)
 }
 
-func (e *PreciseStruct) StringEq(a, b interface{}) bool {
+func (e *PreciseStruct) StringEq(a, b any) bool {
 	return StringEq(a, b)
 }
 
-func (e *PreciseStruct) StringMax(a, b interface{}) string {
+func (e *PreciseStruct) StringMax(a, b any) any {
 	return StringMax(a, b)
 }
 
-func (e *PreciseStruct) StringEquals(a, b interface{}) bool {
+func (e *PreciseStruct) StringEquals(a, b any) bool {
 	return StringEquals(a, b)
 }
 
-func (e *PreciseStruct) StringMin(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringMin(string1, string2 any) any {
 	return StringMin(string1, string2)
 }
 
-func (e *PreciseStruct) StringLt(a, b interface{}) bool {
+func (e *PreciseStruct) StringLt(a, b any) bool {
 	return StringLt(a, b)
 }
 
-func (e *PreciseStruct) StringAbs(a interface{}) string {
+func (e *PreciseStruct) StringAbs(a any) any {
 	return StringAbs(a)
 }
 
-func (e *PreciseStruct) StringNeg(a interface{}) string {
+func (e *PreciseStruct) StringNeg(a any) any {
 	return StringNeg(a)
 }
 
-func (e *PreciseStruct) StringLe(a, b interface{}) bool {
+func (e *PreciseStruct) StringLe(a, b any) bool {
 	return StringLe(a, b)
 }
 
-func (e *PreciseStruct) StringGe(a, b interface{}) bool {
+func (e *PreciseStruct) StringGe(a, b any) bool {
 	return StringGe(a, b)
 }
 
-func (e *PreciseStruct) StringMod(a, b interface{}) string {
+func (e *PreciseStruct) StringMod(a, b any) any {
 	return StringMod(a, b)
 }

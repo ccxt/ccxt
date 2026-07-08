@@ -1,12 +1,14 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
 var independentreserve$1 = require('../independentreserve.js');
 var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
-class independentreserve extends independentreserve$1 {
+class independentreserve extends independentreserve$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'has': {
@@ -43,10 +45,12 @@ class independentreserve extends independentreserve$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const url = this.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote'];
@@ -126,10 +130,12 @@ class independentreserve extends independentreserve$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         if (limit === undefined) {
@@ -223,6 +229,7 @@ class independentreserve extends independentreserve$1 {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
+                return;
             }
         }
         if (receivedSnapshot) {
@@ -238,7 +245,7 @@ class independentreserve extends independentreserve$1 {
         return result;
     }
     handleDelta(bookside, delta) {
-        const bidAsk = this.parseBidAsk(delta, 'Price', 'Volume');
+        const bidAsk = this.parseOrderBookBidAsk(delta, 'Price', 'Volume');
         bookside.storeArray(bidAsk);
     }
     handleDeltas(bookside, deltas) {
@@ -274,7 +281,7 @@ class independentreserve extends independentreserve$1 {
             'OrderBookSnapshot': this.handleOrderBook,
             'OrderBookChange': this.handleOrderBook,
         };
-        const handler = this.safeValue(handlers, event);
+        const handler = (event === undefined) ? undefined : this.safeValue(handlers, event);
         if (handler !== undefined) {
             handler.call(this, client, message);
             return;
@@ -283,4 +290,4 @@ class independentreserve extends independentreserve$1 {
     }
 }
 
-module.exports = independentreserve;
+exports["default"] = independentreserve;

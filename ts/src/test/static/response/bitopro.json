@@ -2,6 +2,283 @@
     "exchange": "bitopro",
     "skipKeys": [],
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "currency": "USDT (Kaia)",
+                            "withdrawFee": "0.2",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "120"
+                        },
+                        {
+                            "currency": "USDT (TRC20)",
+                            "withdrawFee": "1.8",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "1"
+                        },
+                        {
+                            "currency": "USDT (Polygon)",
+                            "withdrawFee": "0.1",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "300"
+                        },
+                        {
+                            "currency": "USDT (Omni Layer)",
+                            "withdrawFee": "10",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": false,
+                            "deposit": false,
+                            "depositConfirmation": "3"
+                        },
+                        {
+                            "currency": "USDT (ERC20)",
+                            "withdrawFee": "2",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "64"
+                        },
+                        {
+                            "currency": "USDT (BEP20)",
+                            "withdrawFee": "0.1",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "15"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "USDT (KAIA)": {
+                        "info": {
+                            "currency": "USDT (Kaia)",
+                            "withdrawFee": "0.2",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "120"
+                        },
+                        "id": "USDT (Kaia)",
+                        "numericId": null,
+                        "code": "USDT (KAIA)",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.2,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "withdraw": {
+                                "min": 10,
+                                "max": 300000
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT (TRC20)": {
+                        "info": {
+                            "currency": "USDT (TRC20)",
+                            "withdrawFee": "1.8",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "1"
+                        },
+                        "id": "USDT (TRC20)",
+                        "numericId": null,
+                        "code": "USDT (TRC20)",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 1.8,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "withdraw": {
+                                "min": 10,
+                                "max": 300000
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT (POLYGON)": {
+                        "info": {
+                            "currency": "USDT (Polygon)",
+                            "withdrawFee": "0.1",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "300"
+                        },
+                        "id": "USDT (Polygon)",
+                        "numericId": null,
+                        "code": "USDT (POLYGON)",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.1,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "withdraw": {
+                                "min": 10,
+                                "max": 300000
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT (OMNI LAYER)": {
+                        "info": {
+                            "currency": "USDT (Omni Layer)",
+                            "withdrawFee": "10",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": false,
+                            "deposit": false,
+                            "depositConfirmation": "3"
+                        },
+                        "id": "USDT (Omni Layer)",
+                        "numericId": null,
+                        "code": "USDT (OMNI LAYER)",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": null,
+                        "active": false,
+                        "deposit": false,
+                        "withdraw": false,
+                        "fee": 10,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "withdraw": {
+                                "min": 10,
+                                "max": 300000
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT (ERC20)": {
+                        "info": {
+                            "currency": "USDT (ERC20)",
+                            "withdrawFee": "2",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "64"
+                        },
+                        "id": "USDT (ERC20)",
+                        "numericId": null,
+                        "code": "USDT (ERC20)",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 2,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "withdraw": {
+                                "min": 10,
+                                "max": 300000
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    },
+                    "USDT (BEP20)": {
+                        "info": {
+                            "currency": "USDT (BEP20)",
+                            "withdrawFee": "0.1",
+                            "minWithdraw": "10",
+                            "maxWithdraw": "300000",
+                            "maxDailyWithdraw": "500000",
+                            "withdraw": true,
+                            "deposit": true,
+                            "depositConfirmation": "15"
+                        },
+                        "id": "USDT (BEP20)",
+                        "numericId": null,
+                        "code": "USDT (BEP20)",
+                        "precision": null,
+                        "type": "crypto",
+                        "name": null,
+                        "active": true,
+                        "deposit": true,
+                        "withdraw": true,
+                        "fee": 0.1,
+                        "fees": {},
+                        "networks": null,
+                        "limits": {
+                            "withdraw": {
+                                "min": 10,
+                                "max": 300000
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
+                    }
+                }
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "public spot trades",
@@ -78,13 +355,13 @@
                     "ask": null,
                     "askVolume": null,
                     "vwap": null,
-                    "open": null,
+                    "open": 72107.2499506806,
                     "close": 73102.33,
                     "last": 73102.33,
                     "previousClose": null,
-                    "change": null,
+                    "change": 995.0800493193924,
                     "percentage": 1.38,
-                    "average": null,
+                    "average": 72604.78,
                     "baseVolume": 43.5725531,
                     "quoteVolume": null,
                     "markPrice": null,

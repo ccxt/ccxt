@@ -66,6 +66,11 @@ public partial class luno : Exchange
         return await this.callAsync ("privateGetBeneficiaries",parameters);
     }
 
+    public async Task<object> privateGetSendNetworks (object parameters = null)
+    {
+        return await this.callAsync ("privateGetSendNetworks",parameters);
+    }
+
     public async Task<object> privateGetFeeInfo (object parameters = null)
     {
         return await this.callAsync ("privateGetFeeInfo",parameters);

@@ -3,6 +3,7 @@ package ccxt
 import (
 	"crypto"
 	"crypto/ecdsa"
+	ed25 "crypto/ed25519"
 	"crypto/elliptic"
 	"crypto/hmac"
 	md5Hash "crypto/md5"
@@ -15,6 +16,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/pem"
+	"fmt"
 	"hash/crc32"
 	"math/big"
 	"strings"
@@ -40,12 +42,12 @@ func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
 
-func (this *Exchange) Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, args ...interface{}) string {
+func (this *Exchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
 }
 
-func Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest string) string {
+func Hmac(request2 any, secret2 any, algorithm2 func() string, digest string) string {
 	var request []byte
 	switch v := request2.(type) {
 	case string:
@@ -109,12 +111,12 @@ func signHMACMD5(data, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Exchange) Hash(request2 interface{}, hash func() string, args ...interface{}) interface{} {
+func (this *Exchange) Hash(request2 any, hash func() string, args ...any) any {
 	digest2 := GetArg(args, 0, "hex")
 	return Hash(request2, hash, digest2)
 }
 
-func Hash(request2 interface{}, hash func() string, digest2 interface{}) interface{} {
+func Hash(request2 any, hash func() string, digest2 any) any {
 	var request string
 	switch v := request2.(type) {
 	case string:
@@ -154,7 +156,7 @@ func Hash(request2 interface{}, hash func() string, digest2 interface{}) interfa
 	return base64.StdEncoding.EncodeToString(signature)
 }
 
-func (this *Exchange) Axolotl(a interface{}, b interface{}, c interface{}) string {
+func (this *Exchange) Axolotl(a any, b any, c any) string {
 	return ""
 }
 
@@ -188,7 +190,7 @@ func signMD5(data string) []byte {
 	return h.Sum(nil)
 }
 
-func signKeccak(data interface{}) []byte {
+func signKeccak(data any) []byte {
 	var input []byte
 
 	switch v := data.(type) {
@@ -205,15 +207,15 @@ func signKeccak(data interface{}) []byte {
 	return hash.Sum(nil)
 }
 
-func Jwt(data interface{}, secret interface{}, hash func() string, optionalArgs ...interface{}) string {
+func Jwt(data any, secret any, hash func() string, optionalArgs ...any) string {
 	isRsa := GetArg(optionalArgs, 0, false).(bool)
-	params := GetArg(optionalArgs, 2, map[string]interface{}{}).(map[string]interface{})
+	params := GetArg(optionalArgs, 1, map[string]any{}).(map[string]any)
 	return JwtFull(data, secret, hash, isRsa, params)
 }
 
-func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa bool, options map[string]interface{}) string {
+func JwtFull(data any, secret any, hash func() string, isRsa bool, options map[string]any) string {
 	if options == nil {
-		options = make(map[string]interface{})
+		options = make(map[string]any)
 	}
 	algorithm := hash()
 	algPrefix := "HS"
@@ -224,7 +226,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	if algOpt, ok := options["alg"]; ok {
 		alg = algOpt.(string)
 	}
-	header := map[string]interface{}{
+	header := map[string]any{
 		"alg": alg,
 		"typ": "JWT",
 	}
@@ -233,7 +235,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	}
 
 	if iat, ok := header["iat"]; ok {
-		if dataMap, ok := data.(map[string]interface{}); ok {
+		if dataMap, ok := data.(map[string]any); ok {
 			dataMap["iat"] = iat
 		}
 		delete(header, "iat")
@@ -247,7 +249,13 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	if isRsa {
 		signature = Rsa(token, secret, hash)
 	} else if alg[:2] == "ES" {
-		// Ecdsa signing logic here (omitted for simplicity)
+		ec := Ecdsa(token, secret, P256, hash)
+		r := ec["r"].(string)
+		s := ec["s"].(string)
+		converted, _ := convertHexStringToByteArray(r + s)
+		signature = Base64urlencode(converted)
+	} else if alg[:2] == "Ed" {
+		signature = Eddsa(token, secret, "ed25519")
 	} else {
 		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
 	}
@@ -258,7 +266,7 @@ func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa boo
 	return token + "." + signature
 }
 
-func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) string {
+func Rsa(data2 any, privateKey2 any, algorithm2 func() string) string {
 	data := data2.(string)
 	publicKey := privateKey2.(string)
 	// hashAlgorithm := hashAlgorithm2.(string)
@@ -330,13 +338,61 @@ func Rsa(data2 interface{}, privateKey2 interface{}, algorithm2 func() string) s
 	return base64.StdEncoding.EncodeToString(signData)
 }
 
-func Eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
-	return "" // to do
+func Base64ToBase64URL(base64Str string, stripPadding bool) string {
+	base64URL := strings.NewReplacer("+", "-", "/", "_").Replace(base64Str)
+
+	if stripPadding {
+		base64URL = strings.TrimRight(base64URL, "=")
+	}
+
+	return base64URL
 }
 
-// func Ecdsa(request interface{}, secret interface{}, alg interface{}, hash interface{}) string {
+func Eddsa(data2 any, secret any, curve any) string {
+	// it should use ed25519 and return a base64 string
+	data := data2.(string)
+	secretsBytes := []uint8{}
+	if s, ok := secret.([]uint8); ok {
+		secretsBytes = s
+	} else {
+		bytes, err := interfacesToBytes(secret.([]any))
+		if err != nil {
+			panic(err)
+		}
+		secretsBytes = bytes
+	}
+
+	if len(secretsBytes) == 0 {
+		return ""
+	}
+
+	key := ed25.NewKeyFromSeed(secretsBytes)
+	if key == nil {
+		panic("invalid ed25519 secret")
+	}
+	signature := ed25.Sign(key, []byte(data))
+	if signature == nil {
+		return ""
+	}
+	base64Str := base64.StdEncoding.EncodeToString(signature)
+	return base64Str
+}
+
+// func Ecdsa(request any, secret any, alg any, hash any) string {
 // 	return "" // to do
 // }
+
+func interfacesToBytes(input []any) ([]uint8, error) {
+	result := make([]uint8, len(input))
+	for i, v := range input {
+		b, ok := v.(uint8) // type assertion
+		if !ok {
+			return nil, fmt.Errorf("element at index %d is not uint8 (got %T)", i, v)
+		}
+		result[i] = b
+	}
+	return result, nil
+}
 
 func stringToPrivateKey(privKeyStr string) *ecdsa.PrivateKey {
 	// Decode PEM formatted private key
@@ -428,28 +484,28 @@ func enforceLowS(s *big.Int) *big.Int {
 // }
 
 // Helper function to sign with P256 (Go's native implementation)
-func signP256(message []byte, seckey []byte) ([]byte, int, bool) {
-	curve := elliptic.P256()
-	privKey := new(ecdsa.PrivateKey)
-	privKey.PublicKey.Curve = curve
-	privKey.D = new(big.Int).SetBytes(seckey)
+// func signP256(message []byte, seckey []byte) ([]byte, int, bool) {
+// 	curve := elliptic.P256()
+// 	privKey := new(ecdsa.PrivateKey)
+// 	privKey.PublicKey.Curve = curve
+// 	privKey.D = new(big.Int).SetBytes(seckey)
 
-	r, s, err := ecdsa.Sign(rand.Reader, privKey, message)
-	if err != nil {
-		return nil, 0, false
-	}
+// 	r, s, err := ecdsa.Sign(rand.Reader, privKey, message)
+// 	if err != nil {
+// 		return nil, 0, false
+// 	}
 
-	rBytes := r.Bytes()
-	sBytes := s.Bytes()
-	signature := append(rBytes, sBytes...)
+// 	rBytes := r.Bytes()
+// 	sBytes := s.Bytes()
+// 	signature := append(rBytes, sBytes...)
 
-	return signature, 0, true // P256 does not need a recovery ID
-}
+// 	return signature, 0, true // P256 does not need a recovery ID
+// }
 
 // Main Ecdsa function
-func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, hashFunc func() string) map[string]interface{} {
+func Ecdsa(request any, secret any, curveFunc func() string, hashFunc func() string) map[string]any {
 	// Initialize return structure
-	result := map[string]interface{}{
+	result := map[string]any{
 		"r": "",
 		"s": "",
 		"v": 0,
@@ -492,19 +548,36 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	if !ok {
 		return result
 	}
-	secretKeyBytes, ok := hexToBytes(secretStr)
-	if !ok {
-		return result
-	}
+
+	// if strings.HasPrefix(secretStr, "-----BEGIN EC PRIVATE KEY-----") {
+	// 	block, _ := pem.Decode([]byte(secretStr))
+	// 	if block == nil || block.Type != "EC PRIVATE KEY" {
+	// 		panic("failed to decode PEM block containing EC private key")
+	// 	}
+
+	// 	// Step 2: Parse EC private key
+	// 	key, err := x509.ParseECPrivateKey(block.Bytes)
+	// 	if err != nil {
+	// 		panic(err)
+	// 	}
+
+	// 	hexKey := hex.EncodeToString(key.D.Bytes())
+	// 	secretStr = strings.ToLower(hexKey)
+	// }
 
 	// Sign the message depending on the curve
 	var signature []byte
 	var recoveryId int
 	success := false
 	if curveName == "secp256k1" {
+		secretKeyBytes, ok := hexToBytes(secretStr)
+		if !ok {
+			return result
+		}
 		signature, recoveryId, success = signSecp256k1(messageHash, secretKeyBytes)
 	} else {
-		signature, recoveryId, success = signP256(messageHash, secretKeyBytes)
+		signature, recoveryId, success = signP256(messageHash, []byte(secretStr))
+
 	}
 	if !success {
 		return result
@@ -523,6 +596,50 @@ func Ecdsa(request interface{}, secret interface{}, curveFunc func() string, has
 	result["v"] = recoveryId
 
 	return result
+}
+
+func parseECPrivateKey(pemPriv []byte) *ecdsa.PrivateKey {
+	block, _ := pem.Decode(pemPriv)
+	if block == nil {
+		return nil
+	}
+	switch block.Type {
+	case "EC PRIVATE KEY":
+		p, err := x509.ParseECPrivateKey(block.Bytes)
+		if err != nil {
+			return nil
+		}
+		return p
+	case "PRIVATE KEY": // PKCS#8
+		k, err := x509.ParsePKCS8PrivateKey(block.Bytes)
+		if err != nil {
+			return nil
+		}
+		pk, ok := k.(*ecdsa.PrivateKey)
+		if !ok {
+			return nil
+		}
+		return pk
+	default:
+		// (Encrypted keys like "ENCRYPTED PRIVATE KEY" aren’t handled here.)
+		return nil
+	}
+}
+
+func signP256(message, seckey []byte) ([]byte, int, bool) {
+
+	priv := parseECPrivateKey(seckey)
+
+	ri, si, err := ecdsa.Sign(rand.Reader, priv, message)
+	if err != nil {
+		return nil, 0, false
+	}
+
+	r := ri.FillBytes(make([]byte, 32))
+	s := si.FillBytes(make([]byte, 32))
+	raw := append(r, s...)
+
+	return raw, 0, true
 }
 
 func Crc32(str string, signed2 ...bool) int64 {

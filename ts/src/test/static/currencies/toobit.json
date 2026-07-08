@@ -1,0 +1,1040 @@
+{
+    "BTC": {
+        "info": {
+            "orgId": "9001",
+            "coinId": "BTC",
+            "coinName": "BTC",
+            "coinFullName": "Bitcoin",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "chainTypes": [
+                {
+                    "chainType": "BTC",
+                    "withdrawFee": "0.00005",
+                    "minWithdrawQuantity": "0.00045",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ],
+            "isVirtual": false
+        },
+        "id": "BTC",
+        "numericId": null,
+        "code": "BTC",
+        "precision": null,
+        "type": null,
+        "name": "Bitcoin",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.00005,
+        "fees": {},
+        "networks": {
+            "BTC": {
+                "id": "BTC",
+                "network": "BTC",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.00005,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.0001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.00045,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BTC",
+                    "withdrawFee": "0.00005",
+                    "minWithdrawQuantity": "0.00045",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.00045,
+                "max": 0
+            },
+            "deposit": {
+                "min": 0.0001,
+                "max": null
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "orgId": "9001",
+            "coinId": "USDT",
+            "coinName": "USDT",
+            "coinFullName": "TetherUS",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "chainTypes": [
+                {
+                    "chainType": "ETH",
+                    "withdrawFee": "7.5",
+                    "minWithdrawQuantity": "15.5",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "TRX",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.3",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "SOL",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "MATIC",
+                    "withdrawFee": "0.35",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "TON",
+                    "withdrawFee": "0.15",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "AVAXC",
+                    "withdrawFee": "0.23005",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "OPTIMISM",
+                    "withdrawFee": "0.0006",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ],
+            "isVirtual": false
+        },
+        "id": "USDT",
+        "numericId": null,
+        "code": "USDT",
+        "precision": null,
+        "type": null,
+        "name": "TetherUS",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0006,
+        "fees": {},
+        "networks": {
+            "ETH": {
+                "id": "ETH",
+                "network": "ETH",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 7.5,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 15.5,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "ETH",
+                    "withdrawFee": "7.5",
+                    "minWithdrawQuantity": "15.5",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "TRC20": {
+                "id": "TRX",
+                "network": "TRC20",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "TRX",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.3,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.3",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "SOL": {
+                "id": "SOL",
+                "network": "SOL",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "SOL",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "MATIC": {
+                "id": "MATIC",
+                "network": "MATIC",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.35,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "MATIC",
+                    "withdrawFee": "0.35",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "TON": {
+                "id": "TON",
+                "network": "TON",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.15,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "TON",
+                    "withdrawFee": "0.15",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "AVAXC": {
+                "id": "AVAXC",
+                "network": "AVAXC",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.23005,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "AVAXC",
+                    "withdrawFee": "0.23005",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "OPTIMISM": {
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.0006,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "OPTIMISM",
+                    "withdrawFee": "0.0006",
+                    "minWithdrawQuantity": "10",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": 0
+            },
+            "deposit": {
+                "min": 1,
+                "max": null
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "orgId": "9001",
+            "coinId": "ETH",
+            "coinName": "ETH",
+            "coinFullName": "Ethereum",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "chainTypes": [
+                {
+                    "chainType": "ETH",
+                    "withdrawFee": "0.0015",
+                    "minWithdrawQuantity": "0.0048",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "OPTIMISM",
+                    "withdrawFee": "0.0001",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "ARBITRUM",
+                    "withdrawFee": "0.0012",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.00026",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "BASE",
+                    "withdrawFee": "0.000003",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "MANTA",
+                    "withdrawFee": "0.000055",
+                    "minWithdrawQuantity": "0.003",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00039564",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            ],
+            "isVirtual": false
+        },
+        "id": "ETH",
+        "numericId": null,
+        "code": "ETH",
+        "precision": null,
+        "type": null,
+        "name": "Ethereum",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.000003,
+        "fees": {},
+        "networks": {
+            "ETH": {
+                "id": "ETH",
+                "network": "ETH",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.0015,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0048,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "ETH",
+                    "withdrawFee": "0.0015",
+                    "minWithdrawQuantity": "0.0048",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "OPTIMISM": {
+                "id": "OPTIMISM",
+                "network": "OPTIMISM",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.0001,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0015,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "OPTIMISM",
+                    "withdrawFee": "0.0001",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "ARBONE": {
+                "id": "ARBITRUM",
+                "network": "ARBONE",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.0012,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0015,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "ARBITRUM",
+                    "withdrawFee": "0.0012",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.00026,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0015,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.00026",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "BASE": {
+                "id": "BASE",
+                "network": "BASE",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.000003,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.001,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0015,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BASE",
+                    "withdrawFee": "0.000003",
+                    "minWithdrawQuantity": "0.0015",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.001",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "MANTA": {
+                "id": "MANTA",
+                "network": "MANTA",
+                "margin": null,
+                "deposit": "false",
+                "withdraw": "false",
+                "active": null,
+                "fee": 0.000055,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.00039564,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.003,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "MANTA",
+                    "withdrawFee": "0.000055",
+                    "minWithdrawQuantity": "0.003",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00039564",
+                    "allowDeposit": false,
+                    "allowWithdraw": false
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0015,
+                "max": 0
+            },
+            "deposit": {
+                "min": 0.00039564,
+                "max": null
+            }
+        }
+    },
+    "SOL": {
+        "info": {
+            "orgId": "9001",
+            "coinId": "SOL",
+            "coinName": "SOL",
+            "coinFullName": "Solana",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "chainTypes": [
+                {
+                    "chainType": "SOL",
+                    "withdrawFee": "0.02",
+                    "minWithdrawQuantity": "0.035",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00442203",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.005",
+                    "minWithdrawQuantity": "0.035",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00442125",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ],
+            "isVirtual": false
+        },
+        "id": "SOL",
+        "numericId": null,
+        "code": "SOL",
+        "precision": null,
+        "type": null,
+        "name": "Solana",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.005,
+        "fees": {},
+        "networks": {
+            "SOL": {
+                "id": "SOL",
+                "network": "SOL",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.02,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.00442203,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.035,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "SOL",
+                    "withdrawFee": "0.02",
+                    "minWithdrawQuantity": "0.035",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00442203",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.005,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.00442125,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.035,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.005",
+                    "minWithdrawQuantity": "0.035",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.00442125",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.035,
+                "max": 0
+            },
+            "deposit": {
+                "min": 0.00442125,
+                "max": null
+            }
+        }
+    },
+    "LINK": {
+        "info": {
+            "orgId": "9001",
+            "coinId": "LINK",
+            "coinName": "LINK",
+            "coinFullName": "Chainlink",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "chainTypes": [
+                {
+                    "chainType": "ETH",
+                    "withdrawFee": "0.5",
+                    "minWithdrawQuantity": "0.8",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.04132231",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.05",
+                    "minWithdrawQuantity": "0.22",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0413736",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ],
+            "isVirtual": false
+        },
+        "id": "LINK",
+        "numericId": null,
+        "code": "LINK",
+        "precision": null,
+        "type": null,
+        "name": "Chainlink",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.05,
+        "fees": {},
+        "networks": {
+            "ETH": {
+                "id": "ETH",
+                "network": "ETH",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.5,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.04132231,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.8,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "ETH",
+                    "withdrawFee": "0.5",
+                    "minWithdrawQuantity": "0.8",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.04132231",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 0.05,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 0.0413736,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.22,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BSC",
+                    "withdrawFee": "0.05",
+                    "minWithdrawQuantity": "0.22",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "0.0413736",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.22,
+                "max": 0
+            },
+            "deposit": {
+                "min": 0.04132231,
+                "max": null
+            }
+        }
+    },
+    "ADA": {
+        "info": {
+            "orgId": "9001",
+            "coinId": "ADA",
+            "coinName": "ADA",
+            "coinFullName": "ADA(Cardano)",
+            "allowWithdraw": true,
+            "allowDeposit": true,
+            "chainTypes": [
+                {
+                    "chainType": "ADA",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "9",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1.132502",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                },
+                {
+                    "chainType": "BSC",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "9",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1.13327289",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            ],
+            "isVirtual": false
+        },
+        "id": "ADA",
+        "numericId": null,
+        "code": "ADA",
+        "precision": null,
+        "type": null,
+        "name": "ADA(Cardano)",
+        "active": null,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "fees": {},
+        "networks": {
+            "ADA": {
+                "id": "ADA",
+                "network": "ADA",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1.132502,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 9,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "ADA",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "9",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1.132502",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            },
+            "BEP20": {
+                "id": "BSC",
+                "network": "BEP20",
+                "margin": null,
+                "deposit": "true",
+                "withdraw": "true",
+                "active": null,
+                "fee": 1,
+                "precision": null,
+                "limits": {
+                    "deposit": {
+                        "min": 1.13327289,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 9,
+                        "max": 0
+                    }
+                },
+                "info": {
+                    "chainType": "BSC",
+                    "withdrawFee": "1",
+                    "minWithdrawQuantity": "9",
+                    "maxWithdrawQuantity": "0",
+                    "minDepositQuantity": "1.13327289",
+                    "allowDeposit": true,
+                    "allowWithdraw": true
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "withdraw": {
+                "min": 9,
+                "max": 0
+            },
+            "deposit": {
+                "min": 1.132502,
+                "max": null
+            }
+        }
+    }
+}

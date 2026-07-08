@@ -21,13 +21,17 @@ async def test_watch_position(exchange, skipped_properties, symbol):
     ends = now + 15000
     while now < ends:
         response = None
+        success = True
         try:
             response = await exchange.watch_position(symbol)
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e
             now = exchange.milliseconds()
-            continue
-        assert isinstance(response, dict), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
-        now = exchange.milliseconds()
-        test_position(exchange, skipped_properties, method, response, None, now)
+            # continue;
+            success = False
+        if (success) and (response is not None):
+            assert exchange.is_dictionary(response), exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json(response)
+            now = exchange.milliseconds()
+            test_position(exchange, skipped_properties, method, response, symbol, now)
+    return True

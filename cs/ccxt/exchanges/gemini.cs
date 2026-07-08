@@ -17,7 +17,7 @@ public partial class gemini : Exchange
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
-                { "margin", false },
+                { "margin", null },
                 { "swap", true },
                 { "future", false },
                 { "option", false },
@@ -108,19 +108,29 @@ public partial class gemini : Exchange
                     { "get", new Dictionary<string, object>() {
                         { "v1/symbols", 5 },
                         { "v1/symbols/details/{symbol}", 5 },
+                        { "v1/network/{token}", 5 },
                         { "v1/staking/rates", 5 },
                         { "v1/pubticker/{symbol}", 5 },
+                        { "v1/feepromos", 5 },
                         { "v2/ticker/{symbol}", 5 },
                         { "v2/candles/{symbol}/{timeframe}", 5 },
                         { "v1/trades/{symbol}", 5 },
                         { "v1/auction/{symbol}", 5 },
                         { "v1/auction/{symbol}/history", 5 },
                         { "v1/pricefeed", 5 },
+                        { "v1/fundingamount/{symbol}", 5 },
+                        { "v1/fundingamountreport/records.xlsx", 5 },
                         { "v1/book/{symbol}", 5 },
                         { "v1/earn/rates", 5 },
+                        { "v2/derivatives/candles/{symbol}/{time_frame}", 5 },
+                        { "v2/fxrate/{symbol}/{timestamp}", 5 },
+                        { "v1/riskstats/{symbol}", 5 },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "v1/perpetuals/fundingpaymentreport/records.xlsx", 1 },
+                    } },
                     { "post", new Dictionary<string, object>() {
                         { "v1/staking/unstake", 1 },
                         { "v1/staking/stake", 1 },
@@ -163,6 +173,25 @@ public partial class gemini : Exchange
                         { "v1/account/list", 1 },
                         { "v1/heartbeat", 1 },
                         { "v1/roles", 1 },
+                        { "v1/custodyaccountfees", 1 },
+                        { "v1/withdraw/{currencyCodeLowerCase}/feeEstimate", 1 },
+                        { "v1/payments/addbank/cad", 1 },
+                        { "v1/transactions", 1 },
+                        { "v1/margin/account", 1 },
+                        { "v1/margin/rates", 1 },
+                        { "v1/margin/order/preview", 1 },
+                        { "v1/clearing/list", 1 },
+                        { "v1/clearing/broker/list", 1 },
+                        { "v1/clearing/broker/new", 1 },
+                        { "v1/clearing/trades", 1 },
+                        { "v1/instant/quote", 1 },
+                        { "v1/instant/execute", 1 },
+                        { "v1/account/rename", 1 },
+                        { "v1/oauth/revokeByToken", 1 },
+                        { "v1/margin", 1 },
+                        { "v1/perpetuals/fundingPayment", 1 },
+                        { "v1/perpetuals/fundingpaymentreport/records.json", 1 },
+                        { "v1/positions", 1 },
                     } },
                 } },
             } },
@@ -237,7 +266,7 @@ public partial class gemini : Exchange
                 { "fetchMarketFromWebRetries", 10 },
                 { "fetchMarketsFromAPI", new Dictionary<string, object>() {
                     { "fetchDetailsForAllSymbols", false },
-                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH"} },
+                    { "quoteCurrencies", new List<object>() {"USDT", "GUSD", "USD", "DAI", "EUR", "GBP", "SGD", "BTC", "ETH", "LTC", "BCH", "SOL", "USDC"} },
                 } },
                 { "fetchMarkets", new Dictionary<string, object>() {
                     { "webApiEnable", true },
@@ -271,6 +300,7 @@ public partial class gemini : Exchange
                         { "quote", "USD" },
                     } },
                 } },
+                { "brokenPairs", new List<object>() {"efilusd", "maticrlusd", "maticusdc", "eurusdc", "maticgusd", "maticusd", "efilfil", "eurusd"} },
             } },
             { "features", new Dictionary<string, object>() {
                 { "default", new Dictionary<string, object>() {
@@ -368,7 +398,7 @@ public partial class gemini : Exchange
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>");
         if (isTrue(isEqual(data, null)))
         {
-            return null;
+            return new Dictionary<string, object>() {};
         }
         //
         //    {
@@ -390,56 +420,31 @@ public partial class gemini : Exchange
         //        ]
         //    }
         //
-        object result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
         object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesArray)); postFixIncrement(ref i))
+        return this.parseCurrencies(currenciesArray);
+    }
+
+    public override object parseCurrency(object rawCurrency)
+    {
+        object id = this.safeString(rawCurrency, 0);
+        object code = this.safeCurrencyCode(id);
+        object type = ((bool) isTrue(this.safeString(rawCurrency, 7))) ? "fiat" : "crypto";
+        object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        object networks = new Dictionary<string, object>() {};
+        object networkId = this.safeString(rawCurrency, 9);
+        object networkCode = null;
+        if (isTrue(!isEqual(networkId, null)))
         {
-            object currency = getValue(currenciesArray, i);
-            object id = this.safeString(currency, 0);
-            object code = this.safeCurrencyCode(id);
-            object type = ((bool) isTrue(this.safeString(currency, 7))) ? "fiat" : "crypto";
-            object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, 5)));
-            object networks = new Dictionary<string, object>() {};
-            object networkId = this.safeString(currency, 9);
-            object networkCode = null;
-            if (isTrue(!isEqual(networkId, null)))
-            {
-                networkCode = this.networkIdToCode(networkId);
-            }
-            if (isTrue(!isEqual(networkCode, null)))
-            {
-                ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
-                    { "info", currency },
-                    { "id", networkId },
-                    { "network", networkCode },
-                    { "active", null },
-                    { "deposit", null },
-                    { "withdraw", null },
-                    { "fee", null },
-                    { "precision", precision },
-                    { "limits", new Dictionary<string, object>() {
-                        { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                        { "withdraw", new Dictionary<string, object>() {
-                            { "min", null },
-                            { "max", null },
-                        } },
-                    } },
-                };
-            }
-            ((IDictionary<string,object>)result)[(string)code] = new Dictionary<string, object>() {
-                { "info", currency },
-                { "id", id },
-                { "code", code },
-                { "name", this.safeString(currency, 1) },
+            networkCode = this.networkIdToCode(networkId, code);
+            ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
+                { "info", rawCurrency },
+                { "id", networkId },
+                { "network", networkCode },
                 { "active", null },
                 { "deposit", null },
                 { "withdraw", null },
                 { "fee", null },
-                { "type", type },
                 { "precision", precision },
                 { "limits", new Dictionary<string, object>() {
                     { "deposit", new Dictionary<string, object>() {
@@ -451,10 +456,31 @@ public partial class gemini : Exchange
                         { "max", null },
                     } },
                 } },
-                { "networks", networks },
             };
         }
-        return result;
+        return this.safeCurrencyStructure(new Dictionary<string, object>() {
+            { "info", rawCurrency },
+            { "id", id },
+            { "code", code },
+            { "name", this.safeString(rawCurrency, 1) },
+            { "active", null },
+            { "deposit", null },
+            { "withdraw", null },
+            { "fee", null },
+            { "type", type },
+            { "precision", precision },
+            { "limits", new Dictionary<string, object>() {
+                { "deposit", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "withdraw", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+            { "networks", networks },
+        });
     }
 
     /**
@@ -637,11 +663,11 @@ public partial class gemini : Exchange
         //
         object result = new List<object>() {};
         object options = this.safeDict(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
-        object bugSymbol = "efilfil"; // we skip this inexistent test symbol, which bugs other functions
+        object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
         object marketIds = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIdsRaw)); postFixIncrement(ref i))
         {
-            if (isTrue(!isEqual(getValue(marketIdsRaw, i), bugSymbol)))
+            if (!isTrue(this.inArray(getValue(marketIdsRaw, i), brokenPairs)))
             {
                 ((IList<object>)marketIds).Add(getValue(marketIdsRaw, i));
             }
@@ -672,17 +698,20 @@ public partial class gemini : Exchange
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
-                    object tradingPair = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
-                    if (isTrue(!isEqual(tradingPair, null)))
+                    object pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
+                    if (isTrue(isTrue(!isEqual(pairInfo, null)) && !isTrue(this.inArray(marketId, brokenPairs))))
                     {
-                        ((IList<object>)result).Add(this.parseMarket(tradingPair));
+                        ((IList<object>)result).Add(this.parseMarket(pairInfo));
                     }
                 }
             } else
             {
                 for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
-                    ((IList<object>)result).Add(this.parseMarket(getValue(marketIds, i)));
+                    if (!isTrue(this.inArray(getValue(marketIds, i), brokenPairs)))
+                    {
+                        ((IList<object>)result).Add(this.parseMarket(getValue(marketIds, i)));
+                    }
                 }
             }
         }
@@ -700,8 +729,8 @@ public partial class gemini : Exchange
         //
         //     [
         //         'BTCUSD',   // symbol
-        //         2,          // priceTickDecimalPlaces
-        //         8,          // quantityTickDecimalPlaces
+        //         2,          // tick precision (priceTickDecimalPlaces)
+        //         8,          // amount precision (quantityTickDecimalPlaces)
         //         '0.00001',  // quantityMinimum
         //         10,         // quantityRoundDecimalPlaces
         //         true        // minimumsAreInclusive
@@ -720,7 +749,7 @@ public partial class gemini : Exchange
         //         "wrap_enabled": false
         //         "product_type": "swap", // only in perps
         //         "contract_type": "linear", // only in perps
-        //         "contract_price_currency": "GUSD" // only in perps
+        //         "contract_price_currency": "GUSD"
         //     }
         //
         object marketId = null;
@@ -760,7 +789,7 @@ public partial class gemini : Exchange
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            object marketIdUpper = ((string)marketId).ToUpper();
+            object marketIdUpper = ((string)((string)marketId)).ToUpper();
             object isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
             object marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
             object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
@@ -807,6 +836,7 @@ public partial class gemini : Exchange
             inverse = false;
         }
         object type = ((bool) isTrue(swap)) ? "swap" : "spot";
+        object isSpot = !isTrue(swap);
         return new Dictionary<string, object>() {
             { "id", marketId },
             { "symbol", symbol },
@@ -817,7 +847,7 @@ public partial class gemini : Exchange
             { "quoteId", quoteId },
             { "settleId", settleId },
             { "type", type },
-            { "spot", !isTrue(swap) },
+            { "spot", isSpot },
             { "margin", false },
             { "swap", swap },
             { "future", false },
@@ -866,12 +896,15 @@ public partial class gemini : Exchange
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -888,7 +921,10 @@ public partial class gemini : Exchange
     public async virtual Task<object> fetchTickerV1(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -912,7 +948,10 @@ public partial class gemini : Exchange
     public async virtual Task<object> fetchTickerV2(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -962,7 +1001,7 @@ public partial class gemini : Exchange
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
@@ -1052,8 +1091,8 @@ public partial class gemini : Exchange
         object last = this.safeString2(ticker, "last", "close", price);
         object percentage = this.safeString(ticker, "percentChange24h");
         object open = this.safeString(ticker, "open");
-        object baseVolume = this.safeString(volume, baseId);
-        object quoteVolume = this.safeString(volume, quoteId);
+        object baseVolume = this.safeString(volume, ((string)baseId));
+        object quoteVolume = this.safeString(volume, ((string)quoteId));
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1085,12 +1124,15 @@ public partial class gemini : Exchange
      * @see https://docs.gemini.com/rest-api/#price-feed
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetV1Pricefeed(parameters);
         //
         //     [
@@ -1106,7 +1148,9 @@ public partial class gemini : Exchange
         //         },
         //     ]
         //
-        return this.parseTickers(response, symbols);
+        object result = this.parseTickers(response, symbols);
+        object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
+        return this.removeKeysFromDict(result, brokenPairs);
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1183,12 +1227,15 @@ public partial class gemini : Exchange
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1242,12 +1289,15 @@ public partial class gemini : Exchange
      * @description fetch the trading fees for multiple markets
      * @see https://docs.gemini.com/rest-api/#get-notional-volume
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+     * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostV1Notionalvolume(parameters);
         //
         //      {
@@ -1305,12 +1355,15 @@ public partial class gemini : Exchange
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://docs.gemini.com/rest-api/#get-available-balances
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostV1Balances(parameters);
         return this.parseBalance(response);
     }
@@ -1498,12 +1551,15 @@ public partial class gemini : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1524,7 +1580,7 @@ public partial class gemini : Exchange
         //          "is_hidden":false,
         //          "was_forced":false,
         //          "executed_amount":"0",
-        //          "client_order_id":"1650398445709",
+        //          "client_order_id":"1650398445701",
         //          "options":[],
         //          "price":"2000.00",
         //          "original_amount":"0.01",
@@ -1543,12 +1599,15 @@ public partial class gemini : Exchange
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of  open orders structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostV1Orders(parameters);
         //
         //      [
@@ -1594,12 +1653,15 @@ public partial class gemini : Exchange
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(!isEqual(type, "limit")))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
@@ -1699,12 +1761,15 @@ public partial class gemini : Exchange
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
@@ -1745,7 +1810,7 @@ public partial class gemini : Exchange
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trades structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
@@ -1754,7 +1819,10 @@ public partial class gemini : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1781,7 +1849,7 @@ public partial class gemini : Exchange
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)
     {
@@ -1790,7 +1858,10 @@ public partial class gemini : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1848,12 +1919,15 @@ public partial class gemini : Exchange
      * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
      * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -1933,7 +2007,7 @@ public partial class gemini : Exchange
             { "Advanced", "ok" },
             { "Complete", "ok" },
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString(statuses, ((string)status), status);
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -1964,18 +2038,21 @@ public partial class gemini : Exchange
      * @param {string} code unified currency code
      * @param {object} [params] extra parameters specific to the endpoint
      * @param {string} [params.network]  *required* The chain of currency
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object groupedByNetwork = await this.fetchDepositAddressesByNetwork(code, parameters);
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
+        object networkGroup = this.indexBy(this.safeValue(groupedByNetwork, ((string)networkCode)), "currency");
         return this.safeValue(networkGroup, code);
     }
 
@@ -1987,12 +2064,15 @@ public partial class gemini : Exchange
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.network]  *required* The chain of currency
-     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure} indexed by the network
+     * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         code = getValue(currency, "code");
         object networkCode = null;
@@ -2003,7 +2083,7 @@ public partial class gemini : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
         }
-        object networkId = this.networkCodeToId(networkCode);
+        object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
         object request = new Dictionary<string, object>() {
             { "network", networkId },
         };
@@ -2031,8 +2111,9 @@ public partial class gemini : Exchange
                 throw new AuthenticationError ((string)add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
             object nonce = ((object)this.nonce()).ToString();
+            object finalUrl = url;
             object request = this.extend(new Dictionary<string, object>() {
-                { "request", url },
+                { "request", finalUrl },
                 { "nonce", nonce },
             }, query);
             object payload = this.json(request);
@@ -2103,12 +2184,15 @@ public partial class gemini : Exchange
      * @see https://docs.gemini.com/rest-api/#new-deposit-address
      * @param {string} code unified currency code of the currency for the deposit address
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+     * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     public async override Task<object> createDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -2141,7 +2225,10 @@ public partial class gemini : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
         object request = new Dictionary<string, object>() {
@@ -2157,5 +2244,59 @@ public partial class gemini : Exchange
         //     ]
         //
         return this.parseOHLCVs(response, market, timeframe, since, limit);
+    }
+
+    /**
+     * @method
+     * @name gemini#fetchOpenInterest
+     * @description retrieves the open interest of a contract trading pair
+     * @see https://docs.gemini.com/rest/derivatives#get-risk-stats
+     * @param {string} symbol unified CCXT market symbol
+     * @param {object} [params] exchange specific parameters
+     * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
+     */
+    public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = await this.publicGetV1RiskstatsSymbol(this.extend(request, parameters));
+        //
+        //    {
+        //        product_type: 'PerpetualSwapContract',
+        //        mark_price: '9.023',
+        //        index_price: '9.02072',
+        //        open_interest: '4681.9',
+        //        open_interest_notional: '42244.7837'
+        //    }
+        //
+        return this.parseOpenInterest(response, market);
+    }
+
+    public override object parseOpenInterest(object interest, object market = null)
+    {
+        //
+        //    {
+        //        product_type: 'PerpetualSwapContract',
+        //        mark_price: '9.023',
+        //        index_price: '9.02072',
+        //        open_interest: '4681.9',
+        //        open_interest_notional: '42244.7837'
+        //    }
+        //
+        return this.safeOpenInterest(new Dictionary<string, object>() {
+            { "info", interest },
+            { "symbol", this.safeString(market, "symbol") },
+            { "openInterestAmount", this.safeString(interest, "open_interest") },
+            { "openInterestValue", this.safeString(interest, "open_interest_notional") },
+            { "timestamp", null },
+            { "datetime", null },
+        }, market);
     }
 }

@@ -7,9 +7,12 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 // -----------------------------------------------------------------------------
-include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
+
 
 function test_currency($exchange, $skipped_properties, $method, $entry) {
+    if ($entry === null) {
+        return;
+    }
     $format = array(
         'id' => 'btc',
         'code' => 'BTC',
@@ -50,8 +53,28 @@ function test_currency($exchange, $skipped_properties, $method, $entry) {
             $empty_allowed_for[] = 'precision';
         }
     }
-    assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    //
     assert_currency_code($exchange, $skipped_properties, $method, $entry, $entry['code']);
+    // check if empty networks should be skipped
+    $networks = $exchange->safe_dict($entry, 'networks', array());
+    $network_keys = is_array($networks) ? array_keys($networks) : array();
+    $network_keys_length = count($network_keys);
+    if ($network_keys_length === 0 && (is_array($skipped_properties) && array_key_exists('skipCurrenciesWithoutNetworks', $skipped_properties))) {
+        return;
+    }
+    try {
+        assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+    } catch(\Throwable $e) {
+        $message = $exchange->exception_message($e);
+        // check structure if key is numeric, not string
+        if (mb_strpos($message, '"id" key') !== false) {
+            // @ts-ignore
+            $format['id'] = 123;
+            assert_structure($exchange, $skipped_properties, $method, $entry, $format, $empty_allowed_for);
+        } else {
+            assert($message === '', $message);
+        }
+    }
     //
     check_precision_accuracy($exchange, $skipped_properties, $method, $entry, 'precision');
     assert_greater_or_equal($exchange, $skipped_properties, $method, $entry, 'fee', '0');

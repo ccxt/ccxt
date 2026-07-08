@@ -13,7 +13,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: ${{ !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
+    if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     steps:
     - uses: actions/checkout@v4
       if: github.ref == 'refs/heads/master'
@@ -101,6 +101,8 @@ jobs:
       with:
           name: shared_env
           path: shared_env.txt
+    - name: Copy Python files
+      run: npm run copy-python-files
 
     - name: Upload Python Files
       uses: actions/upload-artifact@v4
@@ -114,7 +116,9 @@ jobs:
       run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add python/
+          git checkout HEAD README.md wiki  # only JS does wiki pushback
+          git pull origin master
+          git add python/ examples/py
           git commit -m "[Automated changes] Python files" || echo "No changes to commit."
           git remote set-url origin https://${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git config --global pull.rebase false

@@ -15,7 +15,19 @@ class Helper
         if (data.ContainsKey("info"))
         {
             var info = data["info"];
-            if (info is IDictionary<string, object>)
+            if (info is ccxt.pro.IOrderBook)
+            {
+                var copy = (info as ccxt.pro.IOrderBook).Copy();
+                // return new Dictionary<string, object> { concurrentDict as IDictionary<string, object> };
+                var newInfo = new Dictionary<string, object>();
+                foreach (var kvp in copy)
+                {
+                    newInfo.Add(kvp.Key, kvp.Value);
+                }
+                return newInfo;
+
+            }
+            else if (info is IDictionary<string, object>)
             {
                 return new Dictionary<string, object>(info as IDictionary<string, object>);
             }
@@ -1017,6 +1029,11 @@ public struct Liquidation
     public double? baseValue;
     public Int64? timestamp;
     public string? datetime;
+    public string? side;
+
+    public double? contractSize;
+
+    public double? contracts;
     public Dictionary<string, object> info;
 
     public Liquidation(object openInterest)
@@ -1026,6 +1043,9 @@ public struct Liquidation
         baseValue = Exchange.SafeFloat(openInterest, "baseValue");
         timestamp = Exchange.SafeInteger(openInterest, "timestamp");
         datetime = Exchange.SafeString(openInterest, "datetime");
+        side = Exchange.SafeString(openInterest, "side");
+        contractSize = Exchange.SafeFloat(openInterest, "contractSize");
+        contracts = Exchange.SafeFloat(openInterest, "contracts");
         info = Helper.GetInfo(openInterest);
     }
 }
@@ -1553,6 +1573,9 @@ public struct Greeks
     public double? theta;
     public double? vega;
     public double? rho;
+    public double? vanna;
+    public double? volga;
+    public double? charm;
     public double? bidSize;
     public double? askSize;
     public double? bidImpliedVolatility;
@@ -1574,6 +1597,9 @@ public struct Greeks
         theta = Exchange.SafeFloat(greeks, "theta");
         vega = Exchange.SafeFloat(greeks, "vega");
         rho = Exchange.SafeFloat(greeks, "rho");
+        vanna = Exchange.SafeFloat(greeks, "vanna");
+        volga = Exchange.SafeFloat(greeks, "volga");
+        charm = Exchange.SafeFloat(greeks, "charm");
         bidSize = Exchange.SafeFloat(greeks, "bidSize");
         askSize = Exchange.SafeFloat(greeks, "askSize");
         bidImpliedVolatility = Exchange.SafeFloat(greeks, "bidImpliedVolatility");
@@ -1654,6 +1680,9 @@ public struct MarketInterface
 
     public Int64? created;
 
+    public Precision? precision;
+    public MarketMarginModes? marginModes;
+
     public MarketInterface(object market)
     {
         info = Helper.GetInfo(market);
@@ -1685,7 +1714,10 @@ public struct MarketInterface
         taker = Exchange.SafeFloat(market, "taker");
         maker = Exchange.SafeFloat(market, "maker");
         created = Exchange.SafeInteger(market, "created");
-        limits = (market as IDictionary<string, object>).ContainsKey("limits") ? new Limits((market as IDictionary<string, object>)["limits"]) : null;
+        precision = Exchange.SafeValue(market, "precision") != null ? new Precision(Exchange.SafeValue(market, "precision")) : null;
+        marginModes = Exchange.SafeValue(market, "marginModes") != null ? new MarketMarginModes(Exchange.SafeValue(market, "marginModes")) : null;
+        limits = Exchange.SafeValue(market, "limits") != null ? new Limits(Exchange.SafeValue(market, "limits")) : null;
+
     }
 
 }
@@ -1995,5 +2027,27 @@ public struct LongShortRatio
         datetime = Exchange.SafeString(lsRatio, "datetime");
         timeframe = Exchange.SafeString(lsRatio, "timeframe");
         longShortRatio = Exchange.SafeFloat(lsRatio, "longShortRatio");
+    }
+}
+
+public struct ADL
+{
+    public Dictionary<string, object>? info;
+    public string? symbol;
+    public Int64? rank;
+    public string? rating;
+    public double? percentage;
+    public Int64? timestamp;
+    public string? datetime;
+
+    public ADL(object ADLObj)
+    {
+        info = Helper.GetInfo(ADLObj);
+        symbol = Exchange.SafeString(ADLObj, "symbol");
+        rank = Exchange.SafeInteger(ADLObj, "rank");
+        rating = Exchange.SafeString(ADLObj, "rating");
+        percentage = Exchange.SafeFloat(ADLObj, "percentage");
+        timestamp = Exchange.SafeInteger(ADLObj, "timestamp");
+        datetime = Exchange.SafeString(ADLObj, "datetime");
     }
 }

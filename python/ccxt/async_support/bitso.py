@@ -36,6 +36,9 @@ class bitso(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': True,
@@ -43,13 +46,20 @@ class bitso(Exchange, ImplicitAPI):
                 'closePosition': False,
                 'createDepositAddress': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
                 'createReduceOnlyOrder': False,
                 'fetchAccounts': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
+                'fetchCurrencies': False,
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
@@ -59,21 +69,40 @@ class bitso(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLedger': True,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
+                'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrderTrades': True,
@@ -85,6 +114,7 @@ class bitso(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': False,
                 'fetchTime': False,
@@ -96,15 +126,19 @@ class bitso(Exchange, ImplicitAPI):
                 'fetchTransactions': False,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
+                'fetchVolatilityHistory': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'transfer': False,
                 'withdraw': True,
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/178c8e56-9054-4107-b192-5e5053d4f975',
+                'logo': 'https://github.com/user-attachments/assets/3d0c1e5e-8aaa-419f-968a-2b7409381ce4',
                 'api': {
                     'rest': 'https://bitso.com/api',
                 },
@@ -271,9 +305,9 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entries to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger>`
+        :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        request: dict = {}
+        request = {}
         if limit is not None:
             request['limit'] = limit
         response = await self.privateGetLedger(self.extend(request, params))
@@ -305,7 +339,7 @@ class bitso(Exchange, ImplicitAPI):
         return self.parse_ledger(payload, currency, since, limit)
 
     def parse_ledger_entry_type(self, type):
-        types: dict = {
+        types = {
             'funding': 'transaction',
             'withdrawal': 'transaction',
             'trade': 'trade',
@@ -491,7 +525,7 @@ class bitso(Exchange, ImplicitAPI):
                 if j == 0:
                     fee['taker'] = takerFee
                     fee['maker'] = makerFee
-            tiers: dict = {
+            tiers = {
                 'taker': takerFees,
                 'maker': makerFees,
             }
@@ -554,7 +588,7 @@ class bitso(Exchange, ImplicitAPI):
     def parse_balance(self, response) -> Balances:
         payload = self.safe_value(response, 'payload', {})
         balances = self.safe_value(payload, 'balances', [])
-        result: dict = {
+        result = {
             'info': response,
             'timestamp': None,
             'datetime': None,
@@ -577,9 +611,10 @@ class bitso(Exchange, ImplicitAPI):
         https://docs.bitso.com/bitso-api/docs/get-account-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetBalance(params)
         #
         #     {
@@ -617,11 +652,12 @@ class bitso(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
         }
         response = await self.publicGetOrderBook(self.extend(request, params))
@@ -681,11 +717,12 @@ class bitso(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
         }
         response = await self.publicGetTicker(self.extend(request, params))
@@ -709,7 +746,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         return self.parse_ticker(ticker, market)
 
-    async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -719,9 +756,10 @@ class bitso(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
             'time_bucket': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -742,7 +780,7 @@ class bitso(Exchange, ImplicitAPI):
         #             {
         #                 "bucket_start_time":1648219140000,
         #                 "first_trade_time":1648219154990,
-        #                 "last_trade_time":1648219189441,
+        #                 "last_trade_time":1648219189442,
         #                 "first_rate":"44958.60",
         #                 "last_rate":"44979.88",
         #                 "min_rate":"44957.33",
@@ -890,11 +928,12 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
         }
         response = await self.publicGetTrades(self.extend(request, params))
@@ -907,9 +946,10 @@ class bitso(Exchange, ImplicitAPI):
         https://docs.bitso.com/bitso-api/docs/list-fees
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetFees(params)
         #
         #    {
@@ -956,7 +996,7 @@ class bitso(Exchange, ImplicitAPI):
         #
         payload = self.safe_value(response, 'payload', {})
         fees = self.safe_value(payload, 'fees', [])
-        result: dict = {}
+        result = {}
         for i in range(0, len(fees)):
             fee = fees[i]
             marketId = self.safe_string(fee, 'book')
@@ -981,9 +1021,10 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
@@ -995,10 +1036,11 @@ class bitso(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
+            marker = int(params['marker'])
             params = self.extend(params, {
-                'marker': int(params['marker']),
+                'marker': marker,
             })
-        request: dict = {
+        request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
             # 'sort': 'desc',  # default = desc
@@ -1019,11 +1061,12 @@ class bitso(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'book': market['id'],
             'side': side,
             'type': type,
@@ -1047,10 +1090,11 @@ class bitso(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: not used by bitso cancelOrder()
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'oid': id,
         }
         response = await self.privateDeleteOrdersOid(self.extend(request, params))
@@ -1067,7 +1111,7 @@ class bitso(Exchange, ImplicitAPI):
             'id': orderId,
         })
 
-    async def cancel_orders(self, ids, symbol: Str = None, params={}) -> List[Order]:
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}) -> List[Order]:
         """
         cancel multiple orders
 
@@ -1076,7 +1120,7 @@ class bitso(Exchange, ImplicitAPI):
         :param str[] ids: order ids
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if not isinstance(ids, list):
             raise ArgumentsRequired(self.id + ' cancelOrders() ids argument should be an array')
@@ -1084,7 +1128,7 @@ class bitso(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
         oids = ','.join(ids)
-        request: dict = {
+        request = {
             'oids': oids,
         }
         response = await self.privateDeleteOrders(self.extend(request, params))
@@ -1109,7 +1153,7 @@ class bitso(Exchange, ImplicitAPI):
 
         :param None symbol: bitso does not support canceling orders for only a specific market
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is not None:
             raise NotSupported(self.id + ' cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.')
@@ -1128,7 +1172,7 @@ class bitso(Exchange, ImplicitAPI):
         return canceledOrders
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'partial-fill': 'open',  # self is a common substitution in ccxt
             'partially filled': 'open',
             'queued': 'open',
@@ -1191,9 +1235,10 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         # the don't support fetching trades starting from a date yet
         # use the `marker` extra param for that
@@ -1205,10 +1250,11 @@ class bitso(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id')
         # convert it to an integer unconditionally
         if markerInParams:
+            marker = int(params['marker'])
             params = self.extend(params, {
-                'marker': int(params['marker']),
+                'marker': marker,
             })
-        request: dict = {
+        request = {
             'book': market['id'],
             'limit': limit,  # default = 25, max = 100
             # 'sort': 'desc',  # default = desc
@@ -1227,9 +1273,10 @@ class bitso(Exchange, ImplicitAPI):
         :param str id: the order id
         :param str symbol: not used by bitso fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetOrdersOid({
             'oid': id,
         })
@@ -1251,11 +1298,12 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'oid': id,
         }
         response = await self.privateGetOrderTradesOid(self.extend(request, params))
@@ -1270,10 +1318,11 @@ class bitso(Exchange, ImplicitAPI):
         :param str id: deposit id
         :param str code: bitso does not support filtering by currency code and will ignore self argument
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'fid': id,
         }
         response = await self.privateGetFundingsFid(self.extend(request, params))
@@ -1314,9 +1363,10 @@ class bitso(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = None
         if code is not None:
             currency = self.currency(code)
@@ -1352,11 +1402,12 @@ class bitso(Exchange, ImplicitAPI):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `address structure <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         currency = self.currency(code)
-        request: dict = {
+        request = {
             'fund_currency': currency['id'],
         }
         response = await self.privateGetFundingDestination(self.extend(request, params))
@@ -1384,9 +1435,10 @@ class bitso(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict[]: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetFees(params)
         #
         #    {
@@ -1431,7 +1483,7 @@ class bitso(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {}
+        result = {}
         payload = self.safe_value(response, 'payload', {})
         depositFees = self.safe_value(payload, 'deposit_fees', [])
         for i in range(0, len(depositFees)):
@@ -1473,9 +1525,10 @@ class bitso(Exchange, ImplicitAPI):
 
         :param str[]|None codes: list of unified currency codes
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>`
+        :returns dict[]: a list of `fee structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.privateGetFees(params)
         #
         #    {
@@ -1523,7 +1576,7 @@ class bitso(Exchange, ImplicitAPI):
         payload = self.safe_list(response, 'payload', [])
         return self.parse_deposit_withdraw_fees(payload, codes)
 
-    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+    def parse_deposit_withdraw_fees(self, response, codes: Strings = None, currencyIdKey=None):
         #
         #    {
         #        "fees": [
@@ -1564,7 +1617,7 @@ class bitso(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        result: dict = {}
+        result = {}
         depositResponse = self.safe_value(response, 'deposit_fees', [])
         withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
         for i in range(0, len(depositResponse)):
@@ -1597,7 +1650,7 @@ class bitso(Exchange, ImplicitAPI):
                 result[code]['info'][code] = withdrawFee
         return result
 
-    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}) -> Transaction:
+    async def withdraw(self, code: str, amount: float, address: str, tag: Str = None, params={}) -> Transaction:
         """
         make a withdrawal
         :param str code: unified currency code
@@ -1605,12 +1658,13 @@ class bitso(Exchange, ImplicitAPI):
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
+        :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        await self.load_markets()
-        methods: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        methods = {
             'BTC': 'Bitcoin',
             'ETH': 'Ether',
             'XRP': 'Ripple',
@@ -1621,7 +1675,7 @@ class bitso(Exchange, ImplicitAPI):
         method = methods[code] if (code in methods) else None
         if method is None:
             raise ExchangeError(self.id + ' not valid withdraw coin: ' + code)
-        request: dict = {
+        request = {
             'amount': amount,
             'address': address,
             'destination_tag': tag,
@@ -1697,7 +1751,7 @@ class bitso(Exchange, ImplicitAPI):
         networkId = self.safe_string_2(transaction, 'network', 'method')
         status = self.safe_string(transaction, 'status')
         withdrawId = self.safe_string(transaction, 'wid')
-        networkCode = self.network_id_to_code(networkId)
+        networkCode = self.network_id_to_code(networkId, currency['code'])
         networkCodeUpper = networkCode.upper() if (networkCode is not None) else None
         return {
             'id': self.safe_string_2(transaction, 'wid', 'fid'),
@@ -1723,7 +1777,7 @@ class bitso(Exchange, ImplicitAPI):
         }
 
     def parse_transaction_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'pending': 'pending',
             'in_progress': 'pending',
             'complete': 'ok',
@@ -1734,7 +1788,7 @@ class bitso(Exchange, ImplicitAPI):
     def nonce(self):
         return self.milliseconds()
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Any = None):
         endpoint = '/' + self.version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if method == 'GET' or method == 'DELETE':
@@ -1745,7 +1799,8 @@ class bitso(Exchange, ImplicitAPI):
             self.check_required_credentials()
             nonce = str(self.nonce())
             endpoint = '/api' + endpoint
-            request = ''.join([nonce, method, endpoint])
+            content = [nonce, method, endpoint]
+            request = ''.join(content)
             if method != 'GET' and method != 'DELETE':
                 if query:
                     body = self.json(query)

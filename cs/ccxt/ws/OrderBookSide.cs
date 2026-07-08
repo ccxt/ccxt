@@ -144,7 +144,7 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
             // debug
             var index_price = (this.side) ? -price : price;
             var index = bisectLeft(this._index, index_price);
-            if (amount != null && amount != 0)
+            if (amount != 0)
             { // check this out does not make sense right now we have to consider null amounts?
                 if (index < this._index.Count && this._index[index] == index_price)
                 {
@@ -443,12 +443,19 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 }
                 // insert new price Level
                 this.hasmap[stringId] = index_price;
-                var index = bisectLeft(this._index, index_price.Value);
-                while (index < this._index.Count && (this._index[index] == index_price) && (Convert.ToDecimal(((IList<object>)this[index])[2])) < Convert.ToDecimal(order_id))
+                var indexPriceValue = new decimal(-1);
+                if (index_price != null)
+                {
+                    indexPriceValue = index_price.Value;
+                }
+                var index = bisectLeft(this._index, indexPriceValue);
+                // var index2Val = ((IList<object>)this[index])[2];
+                // index might be a stringified number like '1' or an id like '11AABB'
+                while (index < this._index.Count && (this._index[index] == index_price) && this.isOrderIsBigger(order_id, index))
                 {
                     index++;
                 }
-                this._index.Insert(index, index_price.Value);
+                this._index.Insert(index, indexPriceValue);
                 this.Insert(index, delta);
             }
             else if (this.hasmap.ContainsKey(order_id.ToString()))
@@ -463,6 +470,26 @@ public class IndexedOrderBookSide : OrderBookSide, IOrderBookSide
                 this.RemoveAt(index3);
                 this.hasmap.Remove(order_id.ToString());
             }
+        }
+    }
+
+    private bool isOrderIsBigger(object orderId, int index)
+    {
+        // index might be a stringified number like '1' or an id like '11AABB'
+        var index2Val = ((IList<object>)this[index])[2];
+        try
+        {
+            // Try converting both to decimal
+            decimal orderIdDecimal = Convert.ToDecimal(orderId);
+            decimal indexDecimal = Convert.ToDecimal(index2Val);
+            return orderIdDecimal > indexDecimal;
+        }
+        catch
+        {
+            // Fall back to string comparison if decimal conversion fails
+            string orderIdStr = orderId?.ToString() ?? "";
+            string indexStr = index2Val?.ToString() ?? "";
+            return string.Compare(orderIdStr, indexStr, StringComparison.Ordinal) > 0;
         }
     }
 

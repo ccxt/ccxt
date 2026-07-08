@@ -6,7 +6,10 @@ using Newtonsoft.Json;
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Runtime.InteropServices;
+
 namespace Tests;
+
 using dict = Dictionary<string, object>;
 
 public partial class testMainClass : BaseTest
@@ -22,6 +25,7 @@ public partial class testMainClass : BaseTest
     public static string ROOT_DIR = Tests.ccxtBaseDir + "/";
     public static dict ENV_VARS = null;
     public static string NEW_LINE = "\n";
+    public int LOG_CHARS_LENGTH = 10000;
 
     //public bool info = Tests.info;
     //public bool verbose = Tests.verbose;
@@ -281,7 +285,14 @@ public partial class testMainClass : BaseTest
     public string exceptionMessage(object exc)
     {
         var e = exc as Exception;
-        return e.Message;
+        var message = e.StackTrace;
+        // if (e is AggregateException) {
+        //     foreach (var innerExc in e.InnerExceptions) {
+        //         message += innerExc.Message + '\n';
+        //     }
+        // }
+        // "[" + e.GetType().Name + "] " + message
+        return e?.ToString().Substring(0, Math.Min(LOG_CHARS_LENGTH, e.ToString().Length)) ?? "Exception occurred, but no message available.";
     }
 
     public System.Exception getRootException(Exception exc)
@@ -334,6 +345,21 @@ public partial class testMainClass : BaseTest
     public string getRootDir()
     {
         return ROOT_DIR;
+    }
+
+    public bool isWindows()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+    }
+
+    public bool isLinux()
+    {
+        return RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+    }
+
+    public bool isAmd64()
+    {
+        return RuntimeInformation.ProcessArchitecture == Architecture.X64;
     }
 
     public object convertAscii(object input)

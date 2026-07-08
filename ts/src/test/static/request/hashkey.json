@@ -31,7 +31,7 @@
         ],
         "fetchCurrencies": [
             {
-                "description": "Fetch all currencies",
+                "description": "default",
                 "method": "fetchCurrencies",
                 "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
                 "input": []
@@ -620,6 +620,48 @@
                     "ETH/USDT:USDT"
                 ],
                 "output": "timestamp=1722867878129&leverage=5&symbol=ETHUSDT-PERPETUAL&signature=f84182add630860e4e2a40b7ad5812822e4887758e56637918808f3f51101e39"
+            }
+        ],
+        "setMarginMode": [
+            {
+                "description": "Set margin mode to isolated",
+                "method": "setMarginMode",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/marginType",
+                "input": [
+                    "isolated",
+                    "ETH/USDT:USDT"
+                ],
+                "output": "timestamp=1722867878129&symbol=ETHUSDT-PERPETUAL&marginType=ISOLATED&signature=f84182add630860e4e2a40b7ad5812822e4887758e56637918808f3f51101e39"
+            }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin",
+                "method": "addMargin",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/positionMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    10,
+                    {
+                        "side": "long"
+                    }
+                ],
+                "output": "timestamp=1722867878129&symbol=ETHUSDT-PERPETUAL&side=LONG&amount=10&signature=f84182add630860e4e2a40b7ad5812822e4887758e56637918808f3f51101e39"
+            }
+        ],
+        "reduceMargin": [
+            {
+                "description": "Reduce margin",
+                "method": "reduceMargin",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/positionMargin",
+                "input": [
+                    "ETH/USDT:USDT",
+                    10,
+                    {
+                        "side": "long"
+                    }
+                ],
+                "output": "timestamp=1722867878129&symbol=ETHUSDT-PERPETUAL&side=LONG&amount=-10&signature=f84182add630860e4e2a40b7ad5812822e4887758e56637918808f3f51101e39"
             }
         ],
         "fetchTradingFee": [

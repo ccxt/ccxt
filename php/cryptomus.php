@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\cryptomus as Exchange;
 
 class cryptomus extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'cryptomus',
@@ -27,11 +26,15 @@ class cryptomus extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
+                'borrowMargin' => false,
                 'cancelAllOrders' => false,
                 'cancelAllOrdersAfter' => false,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
                 'cancelWithdraw' => false,
+                'closeAllPositions' => false,
                 'closePosition' => false,
                 'createConvertTrade' => false,
                 'createDepositAddress' => false,
@@ -41,6 +44,8 @@ class cryptomus extends Exchange {
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
                 'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
+                'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
                 'createStopLossOrder' => false,
@@ -52,6 +57,12 @@ class cryptomus extends Exchange {
                 'createTriggerOrder' => false,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
+                'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledAndClosedOrders' => true,
                 'fetchCanceledOrders' => false,
                 'fetchClosedOrder' => false,
@@ -60,27 +71,48 @@ class cryptomus extends Exchange {
                 'fetchConvertQuote' => false,
                 'fetchConvertTrade' => false,
                 'fetchConvertTradeHistory' => false,
+                'fetchCrossBorrowRate' => false,
+                'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchIsolatedBorrowRate' => false,
+                'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
+                'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => false,
                 'fetchOHLCV' => false,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => false,
@@ -91,7 +123,9 @@ class cryptomus extends Exchange {
                 'fetchPositions' => false,
                 'fetchPositionsForSymbol' => false,
                 'fetchPositionsHistory' => false,
+                'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => false,
                 'fetchTickers' => true,
@@ -101,18 +135,23 @@ class cryptomus extends Exchange {
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawals' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
+                'repayMargin' => false,
                 'sandbox' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
+                'setMarginMode' => false,
                 'setPositionMode' => false,
                 'transfer' => false,
                 'withdraw' => false,
             ),
             'timeframes' => array(),
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/8e0b1c48-7c01-4177-9224-f1b01d89d7e7',
+                'logo' => 'https://github.com/user-attachments/assets/cce42038-d22e-49bc-8a9a-b9c92a2859a0',
                 'api' => array(
                     'public' => 'https://api.cryptomus.com',
                     'private' => 'https://api.cryptomus.com',
@@ -222,7 +261,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all markets for the exchange
          *
@@ -231,7 +270,7 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetV2UserApiExchangeMarkets ($params);
+        $response = $this->publicGetV2UserApiExchangeMarkets($params);
         //
         //     {
         //         "result" => array(
@@ -334,7 +373,7 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available currencies on an exchange
          *
@@ -343,7 +382,7 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $response = $this->publicGetV1ExchangeMarketAssets ($params);
+        $response = $this->publicGetV1ExchangeMarketAssets($params);
         //
         //     {
         //         'state' => '0',
@@ -363,117 +402,55 @@ class cryptomus extends Exchange {
         //     }
         //
         $coins = $this->safe_list($response, 'result');
-        $result = array();
-        for ($i = 0; $i < count($coins); $i++) {
-            $currency = $coins[$i];
-            $currencyId = $this->safe_string($currency, 'currency_code');
-            $code = $this->safe_currency_code($currencyId);
-            $allowWithdraw = $this->safe_bool($currency, 'can_withdraw');
-            $allowDeposit = $this->safe_bool($currency, 'can_deposit');
-            $isActive = $allowWithdraw && $allowDeposit;
-            $networkId = $this->safe_string($currency, 'network_code');
-            $networksById = $this->safe_dict($this->options, 'networksById');
-            $networkName = $this->safe_string($networksById, $networkId, $networkId);
-            $minWithdraw = $this->safe_number($currency, 'min_withdraw');
-            $maxWithdraw = $this->safe_number($currency, 'max_withdraw');
-            $minDeposit = $this->safe_number($currency, 'min_deposit');
-            $maxDeposit = $this->safe_number($currency, 'max_deposit');
-            $network = array(
-                'id' => $networkId,
-                'network' => $networkName,
-                'limits' => array(
-                    'withdraw' => array(
-                        'min' => $minWithdraw,
-                        'max' => $maxWithdraw,
-                    ),
-                    'deposit' => array(
-                        'min' => $minDeposit,
-                        'max' => $maxDeposit,
-                    ),
-                ),
-                'active' => $isActive,
-                'deposit' => $allowDeposit,
-                'withdraw' => $allowWithdraw,
-                'fee' => null,
-                'precision' => null,
-                'info' => $currency,
-            );
-            $networks = array();
-            $networks[$networkName] = $network;
-            if (!(is_array($result) && array_key_exists($code, $result))) {
-                $result[$code] = array(
-                    'id' => $currencyId,
-                    'code' => $code,
-                    'precision' => null,
-                    'type' => null,
-                    'name' => null,
-                    'active' => $isActive,
-                    'deposit' => $allowDeposit,
-                    'withdraw' => $allowWithdraw,
-                    'fee' => null,
-                    'limits' => array(
-                        'withdraw' => array(
-                            'min' => $minWithdraw,
-                            'max' => $maxWithdraw,
-                        ),
-                        'deposit' => array(
-                            'min' => $minDeposit,
-                            'max' => $maxDeposit,
-                        ),
-                    ),
-                    'networks' => $networks,
-                    'info' => $currency,
-                );
-            } else {
-                $parsed = $result[$code];
-                $parsedNetworks = $this->safe_dict($parsed, 'networks');
-                $parsed['networks'] = $this->extend($parsedNetworks, $networks);
-                if ($isActive) {
-                    $parsed['active'] = true;
-                    $parsed['deposit'] = true;
-                    $parsed['withdraw'] = true;
-                } else {
-                    if ($allowWithdraw) {
-                        $parsed['withdraw'] = true;
-                    }
-                    if ($allowDeposit) {
-                        $parsed['deposit'] = true;
-                    }
-                }
-                $parsedLimits = $this->safe_dict($parsed, 'limits');
-                $withdrawLimits = array(
-                    'min' => null,
-                    'max' => null,
-                );
-                $parsedWithdrawLimits = $this->safe_dict($parsedLimits, 'withdraw', $withdrawLimits);
-                $depositLimits = array(
-                    'min' => null,
-                    'max' => null,
-                );
-                $parsedDepositLimits = $this->safe_dict($parsedLimits, 'deposit', $depositLimits);
-                if ($minWithdraw) {
-                    $withdrawLimits['min'] = $parsedWithdrawLimits['min'] ? min ($parsedWithdrawLimits['min'], $minWithdraw) : $minWithdraw;
-                }
-                if ($maxWithdraw) {
-                    $withdrawLimits['max'] = $parsedWithdrawLimits['max'] ? max ($parsedWithdrawLimits['max'], $maxWithdraw) : $maxWithdraw;
-                }
-                if ($minDeposit) {
-                    $depositLimits['min'] = $parsedDepositLimits['min'] ? min ($parsedDepositLimits['min'], $minDeposit) : $minDeposit;
-                }
-                if ($maxDeposit) {
-                    $depositLimits['max'] = $parsedDepositLimits['max'] ? max ($parsedDepositLimits['max'], $maxDeposit) : $maxDeposit;
-                }
-                $limits = array(
-                    'withdraw' => $withdrawLimits,
-                    'deposit' => $depositLimits,
-                );
-                $parsed['limits'] = $limits;
-            }
-        }
-        return $result;
+        $groupedById = $this->group_by($coins, 'currency_code');
+        $groupedArray = is_array($groupedById) ? array_values($groupedById) : array();
+        return $this->parse_currencies($groupedArray);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function parse_currency(array $rawCurrency): array {
+        // currency here is array of $networks
+        $id = null; // all entried have same $id, were grouped by
+        $code = null;
+        $networks = array();
+        for ($i = 0; $i < count($rawCurrency); $i++) {
+            $networkEntry = $rawCurrency[$i];
+            // set ID on first loop
+            if ($id === null) {
+                $id = $this->safe_string($networkEntry, 'currency_code');
+                $code = $this->safe_currency_code($id);
+            }
+            $networkId = $this->safe_string($networkEntry, 'network_code');
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
+                'limits' => array(
+                    'withdraw' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_withdraw'),
+                        'max' => $this->safe_number($networkEntry, 'max_withdraw'),
+                    ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($networkEntry, 'min_deposit'),
+                        'max' => $this->safe_number($networkEntry, 'max_deposit'),
+                    ),
+                ),
+                'active' => null,
+                'deposit' => $this->safe_bool($networkEntry, 'can_deposit'),
+                'withdraw' => $this->safe_bool($networkEntry, 'can_withdraw'),
+                'fee' => null,
+                'precision' => null,
+                'info' => $networkEntry,
+            );
+        }
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'code' => $code,
+            'networks' => $networks,
+            'info' => $rawCurrency,
+        ));
+    }
+
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
@@ -481,11 +458,13 @@ class cryptomus extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
-        $response = $this->publicGetV1ExchangeMarketTickers ($params);
+        $response = $this->publicGetV1ExchangeMarketTickers($params);
         //
         //     {
         //         "data" => [
@@ -506,7 +485,7 @@ class cryptomus extends Exchange {
         //
         //     {
         //         "currency_pair" => "XMR_USDT",
-        //         "last_price" => "158.04829771",
+        //         "last_price" => "158.04829772",
         //         "base_volume" => "0.35185785",
         //         "quote_volume" => "55.523761128544"
         //     }
@@ -539,7 +518,7 @@ class cryptomus extends Exchange {
         ), $market);
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
          *
@@ -549,9 +528,11 @@ class cryptomus extends Exchange {
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->level] 0 or 1 or 2 or 3 or 4 or 5 - the $level of volume
-         * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+         * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
@@ -559,7 +540,7 @@ class cryptomus extends Exchange {
         $level = 0;
         list($level, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'level', $level);
         $request['level'] = $level;
-        $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair ($this->extend($request, $params));
+        $response = $this->publicGetV1ExchangeMarketOrderBookCurrencyPair($this->extend($request, $params));
         //
         //     {
         //         "data" => {
@@ -584,7 +565,7 @@ class cryptomus extends Exchange {
         return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -594,14 +575,16 @@ class cryptomus extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest trade to fetch
          * @param {int} [$limit] the maximum amount of trades to fetch (maximum value is 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+         * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'currencyPair' => $market['id'],
         );
-        $response = $this->publicGetV1ExchangeMarketTradesCurrencyPair ($this->extend($request, $params));
+        $response = $this->publicGetV1ExchangeMarketTradesCurrencyPair($this->extend($request, $params));
         //
         //     {
         //         "data" => array(
@@ -636,7 +619,7 @@ class cryptomus extends Exchange {
             'id' => $this->safe_string($trade, 'trade_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'side' => $this->safe_string($trade, 'type'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'quote_volume'), // quote_volume is amount
@@ -652,18 +635,20 @@ class cryptomus extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
          * @see https://doc.cryptomus.com/personal/converts/balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
-        $response = $this->privateGetV2UserApiExchangeAccountBalance ($this->extend($request, $params));
+        $response = $this->privateGetV2UserApiExchangeAccountBalance($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -702,7 +687,7 @@ class cryptomus extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()): array {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
          * create a trade order
          *
@@ -717,9 +702,11 @@ class cryptomus extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
-         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'market' => $market['id'],
@@ -736,7 +723,6 @@ class cryptomus extends Exchange {
         $priceToString = $this->number_to_string($price);
         $cost = null;
         list($cost, $params) = $this->handle_param_string($params, 'cost');
-        $response = null;
         if ($type === 'market') {
             if ($sideBuy) {
                 $createMarketBuyOrderRequiresPrice = true;
@@ -754,26 +740,26 @@ class cryptomus extends Exchange {
             } else {
                 $request['quantity'] = $amountToString;
             }
-            $response = $this->privatePostV2UserApiExchangeOrdersMarket ($this->extend($request, $params));
+            $response = $this->privatePostV2UserApiExchangeOrdersMarket($this->extend($request, $params));
         } elseif ($type === 'limit') {
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price parameter for a ' . $type . ' order');
             }
             $request['quantity'] = $amountToString;
             $request['price'] = $price;
-            $response = $this->privatePostV2UserApiExchangeOrders ($this->extend($request, $params));
+            $response = $this->privatePostV2UserApiExchangeOrders($this->extend($request, $params));
         } else {
             throw new ArgumentsRequired($this->id . ' createOrder() requires a $type parameter (limit or $market)');
         }
         //
         //     {
-        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBNG"
+        //         "order_id" => "01JEXAFCCC5ZVJPZAAHHDKQBMG"
         //     }
         //
         return $this->parse_order($response, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open limit order
          *
@@ -782,21 +768,23 @@ class cryptomus extends Exchange {
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the market the order was made in (not used in cryptomus)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $request['orderId'] = $id;
-        $response = $this->privateDeleteV2UserApiExchangeOrdersOrderId ($this->extend($request, $params));
+        $response = $this->privateDeleteV2UserApiExchangeOrdersOrderId($this->extend($request, $params));
         //
         //     {
         //         "success" => true
         //     }
         //
-        return $response;
+        return $this->safe_order(array( 'info' => $response ));
     }
 
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -811,9 +799,11 @@ class cryptomus extends Exchange {
          * @param {string} [$params->client_order_id] client $order id
          * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -823,7 +813,7 @@ class cryptomus extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetV2UserApiExchangeOrdersHistory ($this->extend($request, $params));
+        $response = $this->privateGetV2UserApiExchangeOrdersHistory($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -872,7 +862,7 @@ class cryptomus extends Exchange {
         return $orders;
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -887,9 +877,11 @@ class cryptomus extends Exchange {
          * @param {string} [$params->client_order_id] client order id
          * @param {string} [$params->limit] A special parameter that sets the maximum number of records the $request will return
          * @param {string} [$params->offset] A special parameter that sets the number of records from the beginning of the list
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -899,7 +891,7 @@ class cryptomus extends Exchange {
         if ($market !== null) {
             $request['market'] = $market['id'];
         }
-        $response = $this->privateGetV2UserApiExchangeOrders ($this->extend($request, $params));
+        $response = $this->privateGetV2UserApiExchangeOrders($this->extend($request, $params));
         //
         //     {
         //         "result" => array(
@@ -1045,16 +1037,16 @@ class cryptomus extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_trading_fees($params = array ()): array {
+    public function fetch_trading_fees($params = array()): array {
         /**
          * fetch the trading fees for multiple markets
          *
          * @see https://trade-docs.coinlist.co/?javascript--nodejs#list-fees
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
-        $response = $this->privateGetV2UserApiExchangeAccountTariffs ($params);
+        $response = $this->privateGetV2UserApiExchangeAccountTariffs($params);
         //
         //     {
         //         $result => {
@@ -1112,8 +1104,12 @@ class cryptomus extends Exchange {
         $feeTiers = $this->safe_list($data, 'tariff_steps', array());
         $result = array();
         $tiers = $this->parse_fee_tiers($feeTiers);
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
+        $symbols = $this->symbols;
+        if ($symbols === null) {
+            return $result;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbol = $symbols[$i];
             $result[$symbol] = array(
                 'info' => $response,
                 'symbol' => $symbol,
@@ -1146,7 +1142,7 @@ class cryptomus extends Exchange {
         );
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $endpoint = $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $url = $this->urls['api'][$api] . '/' . $endpoint;

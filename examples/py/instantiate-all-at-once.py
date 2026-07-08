@@ -15,4 +15,4 @@ for id in ccxt.exchanges:
     exchanges[id] = exchange()
 
 # now exchanges dictionary contains all exchange instances...
-exchanges['bittrex'].fetch_order_book('ETH/BTC')
+exchanges['kucoin'].fetch_order_book('ETH/BTC')

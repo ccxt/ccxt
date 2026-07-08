@@ -9,7 +9,6 @@ use Exception; // a common import
 use ccxt\abstract\bitteam as Exchange;
 
 class bitteam extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'bitteam',
@@ -27,12 +26,18 @@ class bitteam extends Exchange {
                 'future' => false,
                 'option' => false,
                 'addMargin' => false,
+                'borrowCrossMargin' => false,
+                'borrowIsolatedMargin' => false,
                 'borrowMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => false,
+                'closeAllPositions' => false,
+                'closePosition' => false,
                 'createDepositAddress' => false,
                 'createOrder' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
+                'createOrderWithTakeProfitAndStopLossWs' => false,
                 'createPostOnlyOrder' => false,
                 'createReduceOnlyOrder' => false,
                 'createStopLimitOrder' => false,
@@ -44,8 +49,11 @@ class bitteam extends Exchange {
                 'fetchBalance' => true,
                 'fetchBidsAsks' => false,
                 'fetchBorrowInterest' => false,
+                'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => false,
                 'fetchClosedOrders' => true,
@@ -61,24 +69,42 @@ class bitteam extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
+                'fetchFundingInterval' => false,
+                'fetchFundingIntervals' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
+                'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
+                'fetchIsolatedPositions' => false,
                 'fetchL3OrderBook' => false,
                 'fetchLedger' => false,
                 'fetchLeverage' => false,
+                'fetchLeverages' => false,
                 'fetchLeverageTiers' => false,
+                'fetchLiquidations' => false,
+                'fetchLongShortRatio' => false,
+                'fetchLongShortRatioHistory' => false,
+                'fetchMarginAdjustmentHistory' => false,
+                'fetchMarginMode' => false,
+                'fetchMarginModes' => false,
                 'fetchMarketLeverageTiers' => false,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
+                'fetchMarkPrices' => false,
+                'fetchMyLiquidations' => false,
+                'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => false,
                 'fetchOpenInterestHistory' => false,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrder' => false,
                 'fetchOpenOrders' => true,
+                'fetchOption' => false,
+                'fetchOptionChain' => false,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
@@ -92,6 +118,7 @@ class bitteam extends Exchange {
                 'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchSettlementHistory' => false,
                 'fetchStatus' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -104,10 +131,13 @@ class bitteam extends Exchange {
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => true,
                 'fetchTransfers' => false,
+                'fetchVolatilityHistory' => false,
                 'fetchWithdrawal' => false,
                 'fetchWithdrawals' => false,
                 'fetchWithdrawalWhitelist' => false,
                 'reduceMargin' => false,
+                'repayCrossMargin' => false,
+                'repayIsolatedMargin' => false,
                 'repayMargin' => false,
                 'setLeverage' => false,
                 'setMargin' => false,
@@ -319,7 +349,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_markets($params = array ()): array {
+    public function fetch_markets($params = array()): array {
         /**
          * retrieves data on all $markets for bitteam
          *
@@ -328,7 +358,7 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange api endpoint
          * @return {array[]} an array of objects representing market data
          */
-        $response = $this->publicGetTradeApiCcxtPairs ($params);
+        $response = $this->publicGetTradeApiCcxtPairs($params);
         //
         //     {
         //         "ok" => true,
@@ -490,7 +520,7 @@ class bitteam extends Exchange {
         ));
     }
 
-    public function fetch_currencies($params = array ()): ?array {
+    public function fetch_currencies($params = array()): array {
         /**
          * fetches all available $currencies on an exchange
          *
@@ -499,7 +529,7 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} an associative dictionary of $currencies
          */
-        $response = $this->publicGetTradeApiCurrencies ($params);
+        $response = $this->publicGetTradeApiCurrencies($params);
         //
         //     {
         //         "ok" => true,
@@ -592,8 +622,8 @@ class bitteam extends Exchange {
         //
         $responseResult = $this->safe_value($response, 'result', array());
         $currencies = $this->safe_value($responseResult, 'currencies', array());
-        // usding another endpoint to fetch $statuses of deposits and withdrawals
-        $statusesResponse = $this->publicGetTradeApiCmcAssets ();
+        // usding another endpoint to fetch statuses of deposits and withdrawals
+        $statusesResponse = $this->publicGetTradeApiCmcAssets();
         //
         //     {
         //         "ZNX" => array(
@@ -615,75 +645,53 @@ class bitteam extends Exchange {
         //     }
         //
         $statusesResponse = $this->index_by($statusesResponse, 'unified_cryptoasset_id');
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $numericId = $this->safe_integer($currency, 'id');
-            $code = $this->safe_currency_code($id);
-            $active = $this->safe_bool($currency, 'active', false);
-            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
-            $txLimits = $this->safe_value($currency, 'txLimits', array());
-            $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
-            $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
-            $minDeposit = $this->safe_string($txLimits, 'minDeposit');
-            $fee = null;
-            $withdrawCommissionFixed = $this->safe_value($txLimits, 'withdrawCommissionFixed', array());
-            $feesByNetworkId = array();
-            $blockChain = $this->safe_string($currency, 'blockChain');
-            // if only one $blockChain
-            if (($blockChain !== null) && ($blockChain !== '')) {
-                $fee = $this->parse_number($withdrawCommissionFixed);
-                $feesByNetworkId[$blockChain] = $fee;
-            } else {
-                $feesByNetworkId = $withdrawCommissionFixed;
-            }
-            $statuses = $this->safe_value($statusesResponse, $numericId, array());
-            $deposit = $this->safe_value($statuses, 'depositStatus');
-            $withdraw = $this->safe_value($statuses, 'withdrawStatus');
-            $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
-            $networks = array();
-            $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
-            for ($j = 0; $j < count($networkIds); $j++) {
-                $networkId = $networkIds[$j];
-                $networkCode = $this->network_id_to_code($networkId, $code);
-                $networkFee = $this->safe_number($feesByNetworkId, $networkId);
-                $networks[$networkCode] = array(
-                    'id' => $networkId,
-                    'network' => $networkCode,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'active' => $active,
-                    'fee' => $networkFee,
-                    'precision' => $networkPrecision,
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => $this->parse_number($minWithdraw),
-                            'max' => $this->parse_number($maxWithdraw),
-                        ),
-                        'deposit' => array(
-                            'min' => $this->parse_number($minDeposit),
-                            'max' => null,
-                        ),
-                    ),
-                    'info' => $currency,
-                );
-            }
-            $result[$code] = array(
-                'id' => $id,
-                'numericId' => $numericId,
-                'code' => $code,
-                'name' => $code,
-                'info' => $currency,
-                'active' => $active,
+        $this->options['_temp_currencies_statuses'] = $statusesResponse;
+        $result = $this->parse_currencies($currencies);
+        unset($this->options['_temp_currencies_statuses']);
+        return $result;
+    }
+
+    public function parse_currency(array $currency): array {
+        $statusesResponse = $this->safe_value($this->options, '_temp_currencies_statuses', array());
+        $id = $this->safe_string($currency, 'symbol');
+        $numericId = $this->safe_integer($currency, 'id');
+        $code = $this->safe_currency_code($id);
+        $active = $this->safe_bool($currency, 'active', false);
+        $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision')));
+        $txLimits = $this->safe_value($currency, 'txLimits', array());
+        $minWithdraw = $this->safe_string($txLimits, 'minWithdraw');
+        $maxWithdraw = $this->safe_string($txLimits, 'maxWithdraw');
+        $minDeposit = $this->safe_string($txLimits, 'minDeposit');
+        $fee = null;
+        $withdrawCommissionFixed = $this->safe_value($txLimits, 'withdrawCommissionFixed', array());
+        $feesByNetworkId = array();
+        $blockChain = $this->safe_string($currency, 'blockChain');
+        // if only one $blockChain
+        if (($blockChain !== null) && ($blockChain !== '')) {
+            $fee = $this->parse_number($withdrawCommissionFixed);
+            $feesByNetworkId[$blockChain] = $fee;
+        } else {
+            $feesByNetworkId = $withdrawCommissionFixed;
+        }
+        $statuses = $this->safe_value($statusesResponse, $numericId, array());
+        $deposit = $this->safe_value($statuses, 'depositStatus');
+        $withdraw = $this->safe_value($statuses, 'withdrawStatus');
+        $networkIds = is_array($feesByNetworkId) ? array_keys($feesByNetworkId) : array();
+        $networks = array();
+        $networkPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimals')));
+        $typeRaw = $this->safe_string($currency, 'type');
+        for ($j = 0; $j < count($networkIds); $j++) {
+            $networkId = $networkIds[$j];
+            $networkCode = $this->network_id_to_code($networkId, $code);
+            $networkFee = $this->safe_number($feesByNetworkId, $networkId);
+            $networks[$networkCode] = array(
+                'id' => $networkId,
+                'network' => $networkCode,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
-                'fee' => $fee,
-                'precision' => $precision,
+                'active' => $active,
+                'fee' => $networkFee,
+                'precision' => $networkPrecision,
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -698,13 +706,40 @@ class bitteam extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'networks' => $networks,
+                'info' => $currency,
             );
         }
-        return $result;
+        return $this->safe_currency_structure(array(
+            'id' => $id,
+            'numericId' => $numericId,
+            'code' => $code,
+            'name' => $code,
+            'info' => $currency,
+            'active' => $active,
+            'deposit' => $deposit,
+            'withdraw' => $withdraw,
+            'fee' => $fee,
+            'precision' => $precision,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => $this->parse_number($minWithdraw),
+                    'max' => $this->parse_number($maxWithdraw),
+                ),
+                'deposit' => array(
+                    'min' => $this->parse_number($minDeposit),
+                    'max' => null,
+                ),
+            ),
+            'type' => $typeRaw, // 'crypto' or 'fiat'
+            'networks' => $networks,
+        ));
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -714,14 +749,16 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
             'pairName' => $market['id'],
             'resolution' => $resolution,
         );
-        $response = $this->historyGetApiTwHistoryPairNameResolution ($this->extend($request, $params));
+        $response = $this->historyGetApiTwHistoryPairNameResolution($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -775,7 +812,7 @@ class bitteam extends Exchange {
         );
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): array {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          *
@@ -786,15 +823,17 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} A dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure order book structures} indexed by $market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradeApiCmcOrderbookPair ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiCmcOrderbookPair($this->extend($request, $params));
         //
         //     {
-        //         "timestamp" => 1701166703285,
+        //         "timestamp" => 1701166703284,
         //         "bids" => array(
         //             array(
         //                 2019.334988,
@@ -824,7 +863,7 @@ class bitteam extends Exchange {
         return $orderbook;
     }
 
-    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple $orders made by the user
          *
@@ -837,7 +876,9 @@ class bitteam extends Exchange {
          * @param {string} [$params->type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = $this->safe_string($params, 'type', 'all');
         $request = array(
             'type' => $type,
@@ -850,7 +891,7 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiCcxtOrdersOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtOrdersOfUser($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -938,7 +979,7 @@ class bitteam extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()): array {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an order
          *
@@ -949,7 +990,9 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
@@ -957,7 +1000,7 @@ class bitteam extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $response = $this->privateGetTradeApiCcxtOrderId ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtOrderId($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -995,11 +1038,11 @@ class bitteam extends Exchange {
         //         }
         //     }
         //
-        $result = $this->safe_dict($response, 'result');
+        $result = $this->safe_dict($response, 'result', array());
         return $this->parse_order($result, $market);
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch all unfilled currently open orders
          *
@@ -1011,14 +1054,16 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'active',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches information on multiple closed orders made by the user
          *
@@ -1030,14 +1075,16 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {Order[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'closed',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetches information on multiple canceled orders made by the user
          *
@@ -1049,14 +1096,16 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'type' => 'cancelled',
         );
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
          * create a trade $order
          *
@@ -1070,10 +1119,12 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#$order-structure $order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
-            'pairId' => (string) $market['numericId'],
+            'pairId' => $this->safe_string($market, 'numericId'),
             'type' => $type,
             'side' => $side,
             'amount' => $this->amount_to_precision($symbol, $amount),
@@ -1085,7 +1136,7 @@ class bitteam extends Exchange {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
         }
-        $response = $this->privatePostTradeApiCcxtOrdercreate ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtOrdercreate($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1113,7 +1164,7 @@ class bitteam extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
          * cancels an open order
          *
@@ -1124,11 +1175,13 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} An {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'id' => $id,
         );
-        $response = $this->privatePostTradeApiCcxtCancelorder ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtCancelorder($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1141,7 +1194,7 @@ class bitteam extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         /**
          * cancel open $orders of $market
          *
@@ -1151,16 +1204,18 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['pairId'] = (string) $market['numericId'];
+            $request['pairId'] = $this->safe_string($market, 'numericId');
         } else {
             $request['pairId'] = '0'; // '0' for all markets
         }
-        $response = $this->privatePostTradeApiCcxtCancelAllOrder ($this->extend($request, $params));
+        $response = $this->privatePostTradeApiCcxtCancelAllOrder($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1348,7 +1403,7 @@ class bitteam extends Exchange {
         return Precise::string_mul($valueRawString, $precisionString);
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+    public function fetch_tickers(?array $symbols = null, $params = array()): array {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          *
@@ -1358,8 +1413,10 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} a dictionary of {@link https://github.com/ccxt/ccxt/wiki/Manual#$ticker-structure $ticker structures}
          */
-        $this->load_markets();
-        $response = $this->publicGetTradeApiCmcSummary ();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->publicGetTradeApiCmcSummary();
         //
         //     array(
         //         array(
@@ -1392,7 +1449,7 @@ class bitteam extends Exchange {
         //     )
         //
         $tickers = array();
-        if (gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response))) {
+        if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
             $response = array();
         }
         for ($i = 0; $i < count($response); $i++) {
@@ -1403,7 +1460,7 @@ class bitteam extends Exchange {
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): array {
+    public function fetch_ticker(string $symbol, $params = array()): array {
         /**
          * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
@@ -1413,12 +1470,14 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure ticker structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'name' => $market['id'],
         );
-        $response = $this->publicGetTradeApiPairName ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiPairName($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -1695,7 +1754,7 @@ class bitteam extends Exchange {
         $bestAskVolume = null;
         $bids = $this->safe_value($ticker, 'bids');
         $asks = $this->safe_value($ticker, 'asks');
-        if (($bids !== null) && (gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids))) && ($asks !== null) && (gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks)))) {
+        if (($bids !== null) && ((gettype($bids) === 'array' && array_keys($bids) === array_keys(array_keys($bids)))) && ($asks !== null) && ((gettype($asks) === 'array' && array_keys($asks) === array_keys(array_keys($asks))))) {
             $bestBid = $this->safe_value($bids, 0, array());
             $bestBidPrice = $this->safe_string($bestBid, 'price');
             $bestBidVolume = $this->safe_string($bestBid, 'quantity');
@@ -1735,7 +1794,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * get the list of most recent trades for a particular $symbol
          *
@@ -1747,12 +1806,14 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades trade structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
         );
-        $response = $this->publicGetTradeApiCmcTradesPair ($this->extend($request, $params));
+        $response = $this->publicGetTradeApiCmcTradesPair($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -1777,7 +1838,7 @@ class bitteam extends Exchange {
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * fetch all $trades made by the user
          *
@@ -1789,7 +1850,9 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {Trade[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure trade structures}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1799,7 +1862,7 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiCcxtTradesOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiCcxtTradesOfUser($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -2045,7 +2108,7 @@ class bitteam extends Exchange {
         ), $market);
     }
 
-    public function fetch_balance($params = array ()): array {
+    public function fetch_balance($params = array()): array {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
          *
@@ -2054,8 +2117,10 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the betteam api endpoint
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure balance structure}
          */
-        $this->load_markets();
-        $response = $this->privateGetTradeApiCcxtBalance ($params);
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $response = $this->privateGetTradeApiCcxtBalance($params);
         return $this->parse_balance($response);
     }
 
@@ -2126,7 +2191,7 @@ class bitteam extends Exchange {
         return $this->safe_balance($balance);
     }
 
-    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetch history of deposits and withdrawals from external wallets and between CoinList Pro trading account and CoinList wallet
          *
@@ -2138,7 +2203,9 @@ class bitteam extends Exchange {
          * @param {array} [$params] extra parameters specific to the bitteam api endpoint
          * @return {array} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure transaction structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2148,7 +2215,7 @@ class bitteam extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetTradeApiTransactionsOfUser ($this->extend($request, $params));
+        $response = $this->privateGetTradeApiTransactionsOfUser($this->extend($request, $params));
         //
         //     {
         //         "ok" => true,
@@ -2315,7 +2382,7 @@ class bitteam extends Exchange {
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->network_id_to_code($networkId),
+            'network' => $this->network_id_to_code($networkId, $code),
             'addressFrom' => $addressFrom,
             'address' => null,
             'addressTo' => $addressTo,
@@ -2349,7 +2416,7 @@ class bitteam extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = $this->omit($params, $this->extract_params($path));
         $endpoint = '/' . $this->implode_params($path, $params);
         $url = $this->urls['api'][$api] . $endpoint;

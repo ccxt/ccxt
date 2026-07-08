@@ -46,6 +46,12 @@ abstract class delta extends \ccxt\Exchange {
     public function private_get_orders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_orders_order_id($params = array()) {
+        return $this->request('orders/{order_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_orders_client_order_id_client_oid($params = array()) {
+        return $this->request('orders/client_order_id/{client_oid}', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_products_product_id_orders_leverage($params = array()) {
         return $this->request('products/{product_id}/orders/leverage', 'private', 'GET', $params, null, null, array());
     }
@@ -85,11 +91,14 @@ abstract class delta extends \ccxt\Exchange {
     public function private_get_profile($params = array()) {
         return $this->request('profile', 'private', 'GET', $params, null, null, array());
     }
+    public function private_get_rate_limits_quota($params = array()) {
+        return $this->request('rate_limits/quota', 'private', 'GET', $params, null, null, array());
+    }
+    public function private_get_heartbeat($params = array()) {
+        return $this->request('heartbeat', 'private', 'GET', $params, null, null, array());
+    }
     public function private_get_deposits_address($params = array()) {
         return $this->request('deposits/address', 'private', 'GET', $params, null, null, array());
-    }
-    public function private_get_orders_leverage($params = array()) {
-        return $this->request('orders/leverage', 'private', 'GET', $params, null, null, array());
     }
     public function private_post_orders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array());
@@ -111,6 +120,12 @@ abstract class delta extends \ccxt\Exchange {
     }
     public function private_post_wallets_sub_account_balance_transfer($params = array()) {
         return $this->request('wallets/sub_account_balance_transfer', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_heartbeat_create($params = array()) {
+        return $this->request('heartbeat/create', 'private', 'POST', $params, null, null, array());
+    }
+    public function private_post_heartbeat($params = array()) {
+        return $this->request('heartbeat', 'private', 'POST', $params, null, null, array());
     }
     public function private_post_orders_cancel_after($params = array()) {
         return $this->request('orders/cancel_after', 'private', 'POST', $params, null, null, array());
@@ -135,6 +150,9 @@ abstract class delta extends \ccxt\Exchange {
     }
     public function private_put_users_reset_mmp($params = array()) {
         return $this->request('users/reset_mmp', 'private', 'PUT', $params, null, null, array());
+    }
+    public function private_put_users_margin_mode($params = array()) {
+        return $this->request('users/margin_mode', 'private', 'PUT', $params, null, null, array());
     }
     public function private_delete_orders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array());
@@ -184,6 +202,12 @@ abstract class delta extends \ccxt\Exchange {
     public function privateGetOrders($params = array()) {
         return $this->request('orders', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetOrdersOrderId($params = array()) {
+        return $this->request('orders/{order_id}', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetOrdersClientOrderIdClientOid($params = array()) {
+        return $this->request('orders/client_order_id/{client_oid}', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetProductsProductIdOrdersLeverage($params = array()) {
         return $this->request('products/{product_id}/orders/leverage', 'private', 'GET', $params, null, null, array());
     }
@@ -223,11 +247,14 @@ abstract class delta extends \ccxt\Exchange {
     public function privateGetProfile($params = array()) {
         return $this->request('profile', 'private', 'GET', $params, null, null, array());
     }
+    public function privateGetRateLimitsQuota($params = array()) {
+        return $this->request('rate_limits/quota', 'private', 'GET', $params, null, null, array());
+    }
+    public function privateGetHeartbeat($params = array()) {
+        return $this->request('heartbeat', 'private', 'GET', $params, null, null, array());
+    }
     public function privateGetDepositsAddress($params = array()) {
         return $this->request('deposits/address', 'private', 'GET', $params, null, null, array());
-    }
-    public function privateGetOrdersLeverage($params = array()) {
-        return $this->request('orders/leverage', 'private', 'GET', $params, null, null, array());
     }
     public function privatePostOrders($params = array()) {
         return $this->request('orders', 'private', 'POST', $params, null, null, array());
@@ -249,6 +276,12 @@ abstract class delta extends \ccxt\Exchange {
     }
     public function privatePostWalletsSubAccountBalanceTransfer($params = array()) {
         return $this->request('wallets/sub_account_balance_transfer', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostHeartbeatCreate($params = array()) {
+        return $this->request('heartbeat/create', 'private', 'POST', $params, null, null, array());
+    }
+    public function privatePostHeartbeat($params = array()) {
+        return $this->request('heartbeat', 'private', 'POST', $params, null, null, array());
     }
     public function privatePostOrdersCancelAfter($params = array()) {
         return $this->request('orders/cancel_after', 'private', 'POST', $params, null, null, array());
@@ -273,6 +306,9 @@ abstract class delta extends \ccxt\Exchange {
     }
     public function privatePutUsersResetMmp($params = array()) {
         return $this->request('users/reset_mmp', 'private', 'PUT', $params, null, null, array());
+    }
+    public function privatePutUsersMarginMode($params = array()) {
+        return $this->request('users/margin_mode', 'private', 'PUT', $params, null, null, array());
     }
     public function privateDeleteOrders($params = array()) {
         return $this->request('orders', 'private', 'DELETE', $params, null, null, array());

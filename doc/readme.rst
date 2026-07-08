@@ -35,7 +35,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :alt: Twitter Follow
 
 
-A JavaScript / Python / PHP library for cryptocurrency trading and e-commerce with support for many bitcoin/ether/altcoin exchange markets and merchant APIs.
+A cryptocurrency trading API with more than 100 exchanges in JavaScript / TypeScript / Python / C# / PHP / Go.
 
 :ref:`Install <install>` · :ref:`Usage <usage>` · `Manual <https://docs.ccxt.com/en/latest/manual.html>`__ · `FAQ <https://github.com/ccxt/ccxt/wiki/FAQ>`__ · `Examples <https://github.com/ccxt/ccxt/tree/master/examples>`__ · `Contributing <https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md>`__ · :ref:`Social <social>` · `CCXT Pro <https://ccxt.pro>`__
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1832,7 +1832,7 @@ You can also clone it into your project directory from `ccxt GitHub repository <
 JavaScript (NPM)
 ^^^^^^^^^^^^^^^^
 
-JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Webpack and Babel, make sure it is `not excluded <https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
+JavaScript version of CCXT works in both Node and web browsers. Requires ES6 and ``async/await`` syntax support (Node 7.6.0+). When compiling with Rspack (or Webpack) and Babel, make sure it is `not excluded <https://github.com/ccxt/ccxt/issues/225#issuecomment-331905178>`__ in your ``babel-loader`` config.
 
 `ccxt in **NPM** <https://www.npmjs.com/package/ccxt>`__
 

@@ -12,8 +12,10 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
     const method = 'watchOrderBookForSymbols';
     let now = exchange.milliseconds();
     const ends = now + 15000;
-    while (now < ends) {
+    const returnedSymbols = [];
+    while (now < ends || returnedSymbols.length < symbols.length) {
         let response = undefined;
+        let success = true;
         try {
             response = await exchange.watchOrderBookForSymbols(symbols);
         }
@@ -23,14 +25,22 @@ async function testWatchOrderBookForSymbols(exchange, skippedProperties, symbols
                 throw e;
             }
             now = exchange.milliseconds();
-            continue;
+            // continue;
+            success = false;
         }
-        // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
-        assert(typeof response === 'object', exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
-        now = exchange.milliseconds();
-        testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
-        testOrderBook(exchange, skippedProperties, method, response, undefined);
+        if ((success === true) && (response !== undefined)) {
+            // [ response, skippedProperties ] = fixPhpObjectArray (exchange, response, skippedProperties);
+            assert(exchange.isDictionary(response), exchange.id + ' ' + method + ' ' + exchange.json(symbols) + ' must return an object. ' + exchange.json(response));
+            now = exchange.milliseconds();
+            testSharedMethods.assertInArray(exchange, skippedProperties, method, response, 'symbol', symbols);
+            testOrderBook(exchange, skippedProperties, method, response, undefined);
+            const symbol = response['symbol'];
+            if ((symbol !== undefined) && !exchange.inArray(symbol, returnedSymbols)) {
+                returnedSymbols.push(symbol);
+            }
+        }
     }
+    return true;
 }
 // function fixPhpObjectArray (exchange, response, skippedProperties) {
 //     // temp fix for php 'Pro\OrderBook' object, to turn it into array

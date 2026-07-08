@@ -13,11 +13,10 @@ use ccxt\BadRequest;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\Precise;
-use \React\Async;
-use \React\Promise\PromiseInterface;
+use React\Async;
+use React\Promise\PromiseInterface;
 
 class deribit extends Exchange {
-
     public function describe(): mixed {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
@@ -31,7 +30,7 @@ class deribit extends Exchange {
             'pro' => true,
             'has' => array(
                 'CORS' => true,
-                'spot' => false,
+                'spot' => true,
                 'margin' => false,
                 'swap' => true,
                 'future' => true,
@@ -76,6 +75,8 @@ class deribit extends Exchange {
                 'fetchMySettlementHistory' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterests' => false,
                 'fetchOpenOrders' => true,
                 'fetchOption' => true,
                 'fetchOptionChain' => true,
@@ -530,9 +531,11 @@ class deribit extends Exchange {
         $optionType = $this->safe_string($optionParts, 3);
         $datetime = $this->convert_expire_date($expiry);
         $timestamp = $this->parse8601($datetime);
+        $id = $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType;
+        $symbolExpired = $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType;
         return array(
-            'id' => $base . '-' . $this->convert_expire_date_to_market_id_date($expiry) . '-' . $strike . '-' . $optionType,
-            'symbol' => $splitBase . '/' . $quote . ':' . $settle . '-' . $expiry . '-' . $strike . '-' . $optionType,
+            'id' => $id,
+            'symbol' => $symbolExpired,
             'base' => $base,
             'quote' => $quote,
             'settle' => $settle,
@@ -585,7 +588,7 @@ class deribit extends Exchange {
         return parent::safe_market($marketId, $market, $delimiter, $marketType);
     }
 
-    public function fetch_time($params = array ()): PromiseInterface {
+    public function fetch_time($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
@@ -595,7 +598,7 @@ class deribit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetGetTime ($params));
+            $response = Async\await($this->publicGetGetTime($params));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -607,10 +610,10 @@ class deribit extends Exchange {
             //     }
             //
             return $this->safe_integer($response, 'result');
-        }) ();
+        })();
     }
 
-    public function fetch_currencies($params = array ()): PromiseInterface {
+    public function fetch_currencies($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available currencies on an exchange
@@ -620,76 +623,76 @@ class deribit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetGetCurrencies ($params));
+            $response = Async\await($this->publicGetGetCurrencies($params));
             //
             //    {
-            //      "jsonrpc" => "2.0",
-            //      "result" => array(
-            //        array(
-            //          "withdrawal_priorities" => array(),
-            //          "withdrawal_fee" => 0.01457324,
-            //          "min_withdrawal_fee" => 0.000001,
-            //          "min_confirmations" => 1,
-            //          "fee_precision" => 8,
-            //          "currency_long" => "Solana",
-            //          "currency" => "SOL",
-            //          "coin_type" => "SOL"
+            //        "jsonrpc" => "2.0",
+            //        "result" => array(
+            //            array(
+            //                "currency" => "XRP",
+            //                "network_fee" => "1.5e-5",
+            //                "min_withdrawal_fee" => "0.0001",
+            //                "apr" => "0.0",
+            //                "withdrawal_fee" => "0.0001",
+            //                "network_currency" => "XRP",
+            //                "coin_type" => "XRP",
+            //                "withdrawal_priorities" => array(),
+            //                "min_confirmations" => "1",
+            //                "currency_long" => "XRP",
+            //                "in_cross_collateral_pool" => false
+            //            ),
             //        ),
-            //        ...
-            //      ),
-            //      "usIn" => 1688652701456124,
-            //      "usOut" => 1688652701456390,
-            //      "usDiff" => 266,
-            //      "testnet" => true
+            //        "usIn" => "1760110326693923",
+            //        "usOut" => "1760110326944891",
+            //        "usDiff" => "250968",
+            //        "testnet" => false
             //    }
             //
-            $data = $this->safe_value($response, 'result', array());
-            $result = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $currency = $data[$i];
-                $currencyId = $this->safe_string($currency, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $name = $this->safe_string($currency, 'currency_long');
-                $result[$code] = array(
-                    'info' => $currency,
-                    'code' => $code,
-                    'id' => $currencyId,
-                    'name' => $name,
-                    'active' => null,
-                    'deposit' => null,
-                    'withdraw' => null,
-                    'type' => 'crypto',
-                    'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'fee_precision'))),
-                    'limits' => array(
-                        'amount' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'withdraw' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                        'deposit' => array(
-                            'min' => null,
-                            'max' => null,
-                        ),
-                    ),
-                    'networks' => null,
-                );
-            }
-            return $result;
-        }) ();
+            $data = $this->safe_list($response, 'result', array());
+            return $this->parse_currencies($data);
+        })();
     }
 
-    public function code_from_options($methodName, $params = array ()) {
+    public function parse_currency(array $rawCurrency): array {
+        $currencyId = $this->safe_string($rawCurrency, 'currency');
+        $code = $this->safe_currency_code($currencyId);
+        return $this->safe_currency_structure(array(
+            'info' => $rawCurrency,
+            'code' => $code,
+            'id' => $currencyId,
+            'name' => $this->safe_string($rawCurrency, 'currency_long'),
+            'active' => null,
+            'deposit' => null,
+            'withdraw' => null,
+            'type' => 'crypto',
+            'fee' => $this->safe_number($rawCurrency, 'withdrawal_fee'),
+            'precision' => null,
+            'limits' => array(
+                'amount' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'withdraw' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'deposit' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'networks' => null,
+        ));
+    }
+
+    public function code_from_options($methodName, $params = array()) {
         $defaultCode = $this->safe_value($this->options, 'code', 'BTC');
         $options = $this->safe_value($this->options, $methodName, array());
         $code = $this->safe_value($options, 'code', $defaultCode);
         return $this->safe_value($params, 'code', $code);
     }
 
-    public function fetch_status($params = array ()) {
+    public function fetch_status($params = array()) {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
@@ -697,9 +700,9 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#public-status
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-status-structure status structure~
              */
-            $response = Async\await($this->publicGetStatus ($params));
+            $response = Async\await($this->publicGetStatus($params));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -722,10 +725,10 @@ class deribit extends Exchange {
                 'url' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_accounts($params = array ()): PromiseInterface {
+    public function fetch_accounts($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch all the accounts associated with a profile
@@ -733,10 +736,12 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-get_subaccounts
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=account-structure account structures~ indexed by the account type
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->privateGetGetSubaccounts ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->privateGetGetSubaccounts($params));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -773,7 +778,7 @@ class deribit extends Exchange {
             //
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_accounts($result);
-        }) ();
+        })();
     }
 
     public function parse_account($account) {
@@ -799,7 +804,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_markets($params = array ()): PromiseInterface {
+    public function fetch_markets($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for deribit
@@ -816,10 +821,10 @@ class deribit extends Exchange {
             $fetchAllMarkets = null;
             list($fetchAllMarkets, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'fetchAllMarkets', true);
             if ($fetchAllMarkets) {
-                $instrumentsResponse = Async\await($this->publicGetGetInstruments ($params));
+                $instrumentsResponse = Async\await($this->publicGetGetInstruments($params));
                 $instrumentsResponses[] = $instrumentsResponse;
             } else {
-                $currenciesResponse = Async\await($this->publicGetGetCurrencies ($params));
+                $currenciesResponse = Async\await($this->publicGetGetCurrencies($params));
                 //
                 //     {
                 //         "jsonrpc" => "2.0",
@@ -850,7 +855,7 @@ class deribit extends Exchange {
                     $request = array(
                         'currency' => $currencyId,
                     );
-                    $instrumentsResponse = Async\await($this->publicGetGetInstruments ($this->extend($request, $params)));
+                    $instrumentsResponse = Async\await($this->publicGetGetInstruments($this->extend($request, $params)));
                     //
                     //     {
                     //         "jsonrpc":"2.0",
@@ -1036,7 +1041,7 @@ class deribit extends Exchange {
                 }
             }
             return $result;
-        }) ();
+        })();
     }
 
     public function parse_balance($balance): array {
@@ -1062,7 +1067,7 @@ class deribit extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function fetch_balance($params = array ()): PromiseInterface {
+    public function fetch_balance($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * query for balance and get the amount of funds available for trading or funds locked in orders
@@ -1072,9 +1077,11 @@ class deribit extends Exchange {
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->code] unified currency $code of the currency for the balance, if defined 'privateGetGetAccountSummary' will be used, otherwise 'privateGetGetAccountSummaries' will be used
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $code = $this->safe_string($params, 'code');
             $params = $this->omit($params, 'code');
             $request = array(
@@ -1084,9 +1091,9 @@ class deribit extends Exchange {
             }
             $response = null;
             if ($code === null) {
-                $response = Async\await($this->privateGetGetAccountSummaries ($params));
+                $response = Async\await($this->privateGetGetAccountSummaries($params));
             } else {
-                $response = Async\await($this->privateGetGetAccountSummary ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetGetAccountSummary($this->extend($request, $params)));
             }
             //
             //     {
@@ -1132,10 +1139,10 @@ class deribit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_balance($result);
-        }) ();
+        })();
     }
 
-    public function create_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function create_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * create a $currency deposit $address
@@ -1144,14 +1151,16 @@ class deribit extends Exchange {
              *
              * @param {string} $code unified $currency $code of the $currency for the deposit $address
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetCreateDepositAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetCreateDepositAddress($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1174,10 +1183,10 @@ class deribit extends Exchange {
                 'network' => null,
                 'info' => $response,
             );
-        }) ();
+        })();
     }
 
-    public function fetch_deposit_address(string $code, $params = array ()): PromiseInterface {
+    public function fetch_deposit_address(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the deposit $address for a $currency associated with this account
@@ -1186,14 +1195,16 @@ class deribit extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$address-structure $address structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$address-structure $address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetGetCurrentDepositAddress ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetCurrentDepositAddress($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1221,7 +1232,7 @@ class deribit extends Exchange {
                 'address' => $address,
                 'tag' => null,
             );
-        }) ();
+        })();
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1302,7 +1313,7 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function fetch_ticker(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
@@ -1311,14 +1322,16 @@ class deribit extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1347,12 +1360,12 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_ticker($result, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
@@ -1362,9 +1375,11 @@ class deribit extends Exchange {
              * @param {string[]} [$symbols] unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->code] *required* the $currency $code to fetch the $tickers for, eg. 'BTC', 'ETH'
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $code = $this->safe_string_2($params, 'code', 'currency');
             $type = null;
@@ -1401,7 +1416,7 @@ class deribit extends Exchange {
                     $request['kind'] = $requestType;
                 }
             }
-            $response = Async\await($this->publicGetGetBookSummaryByCurrency ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetBookSummaryByCurrency($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1440,10 +1455,10 @@ class deribit extends Exchange {
                 $tickers[$symbol] = $ticker;
             }
             return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -1459,7 +1474,9 @@ class deribit extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch ohlcv for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
             if ($paginate) {
@@ -1479,7 +1496,7 @@ class deribit extends Exchange {
                 $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
                 $request['end_timestamp'] = $now;
             } else {
-                $since = max ($since - 1, 0);
+                $since = max($since - 1, 0);
                 $request['start_timestamp'] = $since;
                 if ($limit === null) {
                     $request['end_timestamp'] = $now;
@@ -1492,7 +1509,7 @@ class deribit extends Exchange {
                 $params = $this->omit($params, 'until');
                 $request['end_timestamp'] = $until;
             }
-            $response = Async\await($this->publicGetGetTradingviewChartData ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetTradingviewChartData($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1515,7 +1532,7 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $ohlcvs = $this->convert_trading_view_to_ohlcv($result, 'ticks', 'open', 'high', 'low', 'close', 'volume', true);
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
@@ -1608,7 +1625,7 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              *
@@ -1621,9 +1638,11 @@ class deribit extends Exchange {
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] the latest time in ms to fetch $trades for
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -1633,7 +1652,7 @@ class deribit extends Exchange {
                 $request['start_timestamp'] = $since;
             }
             if ($limit !== null) {
-                $request['count'] = min ($limit, 1000); // default 10
+                $request['count'] = min($limit, 1000); // default 10
             }
             $until = $this->safe_integer_2($params, 'until', 'end_timestamp');
             if ($until !== null) {
@@ -1642,9 +1661,9 @@ class deribit extends Exchange {
             }
             $response = null;
             if (($since === null) && !(is_array($request) && array_key_exists('end_timestamp', $request))) {
-                $response = Async\await($this->publicGetGetLastTradesByInstrument ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetGetLastTradesByInstrument($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime ($this->extend($request, $params)));
+                $response = Async\await($this->publicGetGetLastTradesByInstrumentAndTime($this->extend($request, $params)));
             }
             //
             //      {
@@ -1674,10 +1693,10 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_trading_fees($params = array ()): PromiseInterface {
+    public function fetch_trading_fees($params = array()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the trading $fees for multiple markets
@@ -1685,16 +1704,18 @@ class deribit extends Exchange {
              * @see https://docs.deribit.com/#private-get_account_summary
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market symbols
+             * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $code = $this->code_from_options('fetchTradingFees', $params);
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'extended' => true,
             );
-            $response = Async\await($this->privateGetGetAccountSummary ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetAccountSummary($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1794,10 +1815,10 @@ class deribit extends Exchange {
                 $parsedFees[$symbol] = $fee;
             }
             return $parsedFees;
-        }) ();
+        })();
     }
 
-    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -1807,9 +1828,11 @@ class deribit extends Exchange {
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -1817,7 +1840,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['depth'] = $limit;
             }
-            $response = Async\await($this->publicGetGetOrderBook ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetOrderBook($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -1836,20 +1859,20 @@ class deribit extends Exchange {
             //             "funding_8h" => 0.0000031,
             //             "current_funding" => 0,
             //             "change_id" => 17538025952,
-            //             "bids" => [
+            //             "bids" => array(
             //                 [7814, 351820],
             //                 [7813.5, 207490],
             //                 [7813, 32160],
-            //             ],
+            //             ),
             //             "best_bid_price" => 7814,
             //             "best_bid_amount" => 351820,
             //             "best_ask_price" => 7814.5,
             //             "best_ask_amount" => 11880,
-            //             "asks" => [
+            //             "asks" => array(
             //                 [7814.5, 11880],
             //                 [7815, 18100],
             //                 [7815.5, 2640],
-            //             ],
+            //             ),
             //         ),
             //         "usIn" => 1583781354745804,
             //         "usOut" => 1583781354745932,
@@ -1863,7 +1886,7 @@ class deribit extends Exchange {
             $orderbook = $this->parse_order_book($result, $market['symbol'], $timestamp);
             $orderbook['nonce'] = $nonce;
             return $orderbook;
-        }) ();
+        })();
     }
 
     public function parse_order_status(?string $status) {
@@ -1993,7 +2016,7 @@ class deribit extends Exchange {
         ), $market);
     }
 
-    public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function fetch_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * fetches information on an order made by the user
@@ -2003,9 +2026,11 @@ class deribit extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
             );
@@ -2013,7 +2038,7 @@ class deribit extends Exchange {
             if ($symbol !== null) {
                 $market = $this->market($symbol);
             }
-            $response = Async\await($this->privateGetGetOrderState ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetOrderState($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2042,12 +2067,12 @@ class deribit extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result, $market);
-        }) ();
+        })();
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade $order
@@ -2063,9 +2088,11 @@ class deribit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->trigger] the $trigger $type 'index_price', 'mark_price', or 'last_price', default is 'last_price'
              * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
@@ -2158,9 +2185,9 @@ class deribit extends Exchange {
             $params = $this->omit($params, array( 'timeInForce', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'trailingAmount' ));
             $response = null;
             if ($this->capitalize($side) === 'Buy') {
-                $response = Async\await($this->privateGetBuy ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetBuy($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetSell ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetSell($this->extend($request, $params)));
             }
             //
             //     {
@@ -2219,10 +2246,10 @@ class deribit extends Exchange {
             $trades = $this->safe_value($result, 'trades', array());
             $order['trades'] = $trades;
             return $this->parse_order($order, $market);
-        }) ();
+        })();
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
              * edit a trade $order
@@ -2237,12 +2264,14 @@ class deribit extends Exchange {
              * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->trailingAmount] the quote $amount to trail away from the current market $price
-             * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             if ($amount === null) {
                 throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
                 'amount' => $this->amount_to_precision($symbol, $amount),
@@ -2261,16 +2290,16 @@ class deribit extends Exchange {
                 $request['trigger_offset'] = $this->parse_to_numeric($trailingAmount);
                 $params = $this->omit($params, 'trigger_offset');
             }
-            $response = Async\await($this->privateGetEdit ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetEdit($this->extend($request, $params)));
             $result = $this->safe_value($response, 'result', array());
             $order = $this->safe_value($result, 'order');
             $trades = $this->safe_value($result, 'trades', array());
             $order['trades'] = $trades;
             return $this->parse_order($order);
-        }) ();
+        })();
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
@@ -2280,19 +2309,21 @@ class deribit extends Exchange {
              * @param {string} $id order $id
              * @param {string} $symbol not used by deribit cancelOrder ()
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+             * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetCancel($this->extend($request, $params)));
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_order($result);
-        }) ();
+        })();
     }
 
-    public function cancel_all_orders(?string $symbol = null, $params = array ()) {
+    public function cancel_all_orders(?string $symbol = null, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
@@ -2302,17 +2333,19 @@ class deribit extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $response = null;
             if ($symbol === null) {
-                $response = Async\await($this->privateGetCancelAll ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetCancelAll($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privateGetCancelAllByInstrument ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetCancelAllByInstrument($this->extend($request, $params)));
             }
             //
             //    {
@@ -2329,10 +2362,10 @@ class deribit extends Exchange {
                     'info' => $response,
                 )),
             );
-        }) ();
+        })();
     }
 
-    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all unfilled currently open orders
@@ -2344,9 +2377,11 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch open orders for
              * @param {int} [$limit] the maximum number of  open orders structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             $response = null;
@@ -2354,18 +2389,18 @@ class deribit extends Exchange {
                 $code = $this->code_from_options('fetchOpenOrders', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
-                $response = Async\await($this->privateGetGetOpenOrdersByCurrency ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetGetOpenOrdersByCurrency($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privateGetGetOpenOrdersByInstrument ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetGetOpenOrdersByInstrument($this->extend($request, $params)));
             }
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetches information on multiple closed orders made by the user
@@ -2377,28 +2412,35 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             $response = null;
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            } else {
+                $request['count'] = 1000; // max value
+            }
             if ($symbol === null) {
                 $code = $this->code_from_options('fetchClosedOrders', $params);
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
-                $response = Async\await($this->privateGetGetOrderHistoryByCurrency ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetGetOrderHistoryByCurrency($this->extend($request, $params)));
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
-                $response = Async\await($this->privateGetGetOrderHistoryByInstrument ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetGetOrderHistoryByInstrument($this->extend($request, $params)));
             }
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_orders($result, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
             /**
              * fetch all the trades made from a single order
@@ -2410,13 +2452,15 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trades to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?$id=trade-structure trade structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order_id' => $id,
             );
-            $response = Async\await($this->privateGetGetUserTradesByOrder ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetUserTradesByOrder($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2452,10 +2496,10 @@ class deribit extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_trades($result, null, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch all $trades made by the user
@@ -2469,9 +2513,11 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'include_old' => true,
             );
@@ -2485,19 +2531,19 @@ class deribit extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
                 if ($since === null) {
-                    $response = Async\await($this->privateGetGetUserTradesByCurrency ($this->extend($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByCurrency($this->extend($request, $params)));
                 } else {
                     $request['start_timestamp'] = $since;
-                    $response = Async\await($this->privateGetGetUserTradesByCurrencyAndTime ($this->extend($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByCurrencyAndTime($this->extend($request, $params)));
                 }
             } else {
                 $market = $this->market($symbol);
                 $request['instrument_name'] = $market['id'];
                 if ($since === null) {
-                    $response = Async\await($this->privateGetGetUserTradesByInstrument ($this->extend($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByInstrument($this->extend($request, $params)));
                 } else {
                     $request['start_timestamp'] = $since;
-                    $response = Async\await($this->privateGetGetUserTradesByInstrumentAndTime ($this->extend($request, $params)));
+                    $response = Async\await($this->privateGetGetUserTradesByInstrumentAndTime($this->extend($request, $params)));
                 }
             }
             //
@@ -2536,10 +2582,10 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $trades = $this->safe_list($result, 'trades', array());
             return $this->parse_trades($trades, $market, $since, $limit);
-        }) ();
+        })();
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
@@ -2550,12 +2596,14 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch deposits for
              * @param {int} [$limit] the maximum number of deposits structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -2563,7 +2611,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetDeposits ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetDeposits($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2587,10 +2635,10 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $data = $this->safe_list($result, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all withdrawals made from an account
@@ -2601,12 +2649,14 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch withdrawals for
              * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -2614,7 +2664,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetWithdrawals ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetWithdrawals($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2642,7 +2692,7 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $data = $this->safe_list($result, 'data', array());
             return $this->parse_transactions($data, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
     public function parse_transaction_status(?string $status) {
@@ -2757,25 +2807,26 @@ class deribit extends Exchange {
         $unrealizedPnl = $this->safe_string($position, 'floating_profit_loss');
         $initialMarginString = $this->safe_string($position, 'initial_margin');
         $notionalString = $this->safe_string($position, 'size_currency');
+        $notionalStringAbs = Precise::string_abs($notionalString);
         $maintenanceMarginString = $this->safe_string($position, 'maintenance_margin');
-        $currentTime = $this->milliseconds();
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
-            'timestamp' => $currentTime,
-            'datetime' => $this->iso8601($currentTime),
+            'timestamp' => null,
+            'datetime' => null,
             'lastUpdateTimestamp' => null,
             'initialMargin' => $this->parse_number($initialMarginString),
-            'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalString), '100')),
+            'initialMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($initialMarginString, $notionalStringAbs), '100')),
             'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
-            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($maintenanceMarginString, $notionalString), '100')),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_mul(Precise::string_div($maintenanceMarginString, $notionalStringAbs), '100')),
             'entryPrice' => $this->safe_number($position, 'average_price'),
-            'notional' => $this->parse_number($notionalString),
+            'notional' => $this->parse_number($notionalStringAbs),
             'leverage' => $this->safe_integer($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealizedPnl),
-            'contracts' => null,
-            'contractSize' => $this->safe_number($market, 'contractSize'),
+            'realizedPnl' => $this->safe_number($position, 'realized_profit_loss'),
+            'contracts' => $this->safe_number($position, 'size'),
+            'contractSize' => $this->safe_number($position, 'contractSize'),
             'marginRatio' => null,
             'liquidationPrice' => $this->safe_number($position, 'estimated_liquidation_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
@@ -2790,7 +2841,7 @@ class deribit extends Exchange {
         ));
     }
 
-    public function fetch_position(string $symbol, $params = array ()) {
+    public function fetch_position(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch data on a single open contract trade position
@@ -2799,14 +2850,16 @@ class deribit extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->privateGetGetPosition ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetPosition($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2833,12 +2886,12 @@ class deribit extends Exchange {
             //         }
             //     }
             //
-            $result = $this->safe_dict($response, 'result');
+            $result = $this->safe_dict($response, 'result', array());
             return $this->parse_position($result);
-        }) ();
+        })();
     }
 
-    public function fetch_positions(?array $symbols = null, $params = array ()): PromiseInterface {
+    public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open positions
@@ -2850,9 +2903,11 @@ class deribit extends Exchange {
              * @param {string} [$params->currency] $currency $code filter for positions
              * @param {string} [$params->kind] market type filter for positions 'future', 'option', 'spot', 'future_combo' or 'option_combo'
              * @param {int} [$params->subaccount_id] the user id for the subaccount
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $code = $this->safe_string($params, 'currency');
             $request = array();
             if ($code !== null) {
@@ -2860,7 +2915,7 @@ class deribit extends Exchange {
                 $currency = $this->currency($code);
                 $request['currency'] = $currency['id'];
             }
-            $response = Async\await($this->privateGetGetPositions ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetPositions($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -2892,10 +2947,10 @@ class deribit extends Exchange {
             //
             $result = $this->safe_list($response, 'result');
             return $this->parse_positions($result, $symbols);
-        }) ();
+        })();
     }
 
-    public function fetch_volatility_history(string $code, $params = array ()) {
+    public function fetch_volatility_history(string $code, $params = array()) {
         return Async\async(function () use ($code, $params) {
             /**
              * fetch the historical volatility of an option market based on an underlying asset
@@ -2904,22 +2959,24 @@ class deribit extends Exchange {
              *
              * @param {string} $code unified $currency $code
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=volatility-structure volatility history objects~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=volatility-structure volatility history objects~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->publicGetGetHistoricalVolatility ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetHistoricalVolatility($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
-            //         "result" => [
+            //         "result" => array(
             //             [1640142000000,63.828320460740585],
             //             [1640142000000,63.828320460740585],
             //             [1640145600000,64.03821964123213]
-            //         ],
+            //         ),
             //         "usIn" => 1641515379467734,
             //         "usOut" => 1641515379468095,
             //         "usDiff" => 361,
@@ -2927,18 +2984,18 @@ class deribit extends Exchange {
             //     }
             //
             return $this->parse_volatility_history($response);
-        }) ();
+        })();
     }
 
     public function parse_volatility_history($volatility) {
         //
         //     {
         //         "jsonrpc" => "2.0",
-        //         "result" => [
+        //         "result" => array(
         //             [1640142000000,63.828320460740585],
         //             [1640142000000,63.828320460740585],
         //             [1640145600000,64.03821964123213]
-        //         ],
+        //         ),
         //         "usIn" => 1641515379467734,
         //         "usOut" => 1641515379468095,
         //         "usDiff" => 361,
@@ -2960,7 +3017,7 @@ class deribit extends Exchange {
         return $result;
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal $transfers made on an account
@@ -2971,12 +3028,14 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch $transfers for
              * @param {int} [$limit] the maximum number of  $transfers structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
             if ($code === null) {
                 throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $currency $code argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -2984,7 +3043,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetTransfers ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetTransfers($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3021,10 +3080,10 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $transfers = $this->safe_list($result, 'data', array());
             return $this->parse_transfers($transfers, $currency, $since, $limit, $params);
-        }) ();
+        })();
     }
 
-    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array ()): PromiseInterface {
+    public function transfer(string $code, float $amount, string $fromAccount, string $toAccount, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
             /**
              * transfer $currency internally between wallets on the same account
@@ -3037,9 +3096,11 @@ class deribit extends Exchange {
              * @param {string} $fromAccount account to transfer from
              * @param {string} $toAccount account to transfer to
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transfer-structure transfer structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'amount' => $amount,
@@ -3054,9 +3115,9 @@ class deribit extends Exchange {
             }
             $response = null;
             if ($method === 'privateGetSubmitTransferToUser') {
-                $response = Async\await($this->privateGetSubmitTransferToUser ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetSubmitTransferToUser($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetSubmitTransferToSubaccount ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetSubmitTransferToSubaccount($this->extend($request, $params)));
             }
             //
             //     {
@@ -3077,7 +3138,7 @@ class deribit extends Exchange {
             //
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_transfer($result, $currency);
-        }) ();
+        })();
     }
 
     public function parse_transfer(array $transfer, ?array $currency = null): array {
@@ -3094,7 +3155,7 @@ class deribit extends Exchange {
         //         "amount" => 13.456
         //     }
         //
-        $timestamp = $this->safe_timestamp($transfer, 'created_timestamp');
+        $timestamp = $this->safe_integer($transfer, 'created_timestamp');
         $status = $this->safe_string($transfer, 'state');
         $account = $this->safe_string($transfer, 'other_side');
         $direction = $this->safe_string($transfer, 'direction');
@@ -3122,7 +3183,7 @@ class deribit extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()): PromiseInterface {
+    public function withdraw(string $code, float $amount, string $address, ?string $tag = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3134,11 +3195,13 @@ class deribit extends Exchange {
              * @param {string} $address the $address to withdraw to
              * @param {string} $tag
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -3150,9 +3213,9 @@ class deribit extends Exchange {
             if ($this->twofa !== null) {
                 $request['tfa'] = $this->totp($this->twofa);
             }
-            $response = Async\await($this->privateGetWithdraw ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetWithdraw($this->extend($request, $params)));
             return $this->parse_transaction($response, $currency);
-        }) ();
+        })();
     }
 
     public function parse_deposit_withdraw_fee($fee, ?array $currency = null) {
@@ -3182,7 +3245,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array ()) {
+    public function fetch_deposit_withdraw_fees(?array $codes = null, $params = array()) {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch deposit and withdraw fees
@@ -3191,10 +3254,12 @@ class deribit extends Exchange {
              *
              * @param {string[]|null} $codes list of unified currency $codes
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
-            Async\await($this->load_markets());
-            $response = Async\await($this->publicGetGetCurrencies ($params));
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $response = Async\await($this->publicGetGetCurrencies($params));
             //
             //    {
             //      "jsonrpc" => "2.0",
@@ -3219,10 +3284,10 @@ class deribit extends Exchange {
             //
             $data = $this->safe_list($response, 'result', array());
             return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
@@ -3233,9 +3298,11 @@ class deribit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->start_timestamp] fetch funding rate starting from this timestamp
              * @param {int} [$params->end_timestamp] fetch funding rate ending at this timestamp
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $time = $this->milliseconds();
             $request = array(
@@ -3243,7 +3310,7 @@ class deribit extends Exchange {
                 'start_timestamp' => $time - (8 * 60 * 60 * 1000), // 8h ago,
                 'end_timestamp' => $time,
             );
-            $response = Async\await($this->publicGetGetFundingRateValue ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetFundingRateValue($this->extend($request, $params)));
             //
             //   {
             //       "jsonrpc":"2.0",
@@ -3255,10 +3322,10 @@ class deribit extends Exchange {
             //   }
             //
             return $this->parse_funding_rate($response, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * fetch the current funding $rate
@@ -3271,9 +3338,11 @@ class deribit extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {int} [$params->until] fetch funding $rate ending at this timestamp
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-$rate-structure funding $rate structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=funding-$rate-structure funding $rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
@@ -3305,9 +3374,9 @@ class deribit extends Exchange {
             if (is_array($params) && array_key_exists('isDeribitPaginationCall', $params)) {
                 $params = $this->omit($params, 'isDeribitPaginationCall');
                 $maxUntil = $this->sum($since, $limit * $duration);
-                $request['end_timestamp'] = min ($request['end_timestamp'], $maxUntil);
+                $request['end_timestamp'] = min($request['end_timestamp'], $maxUntil);
             }
-            $response = Async\await($this->publicGetGetFundingRateHistory ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetFundingRateHistory($this->extend($request, $params)));
             //
             //    {
             //        "jsonrpc" => "2.0",
@@ -3331,7 +3400,7 @@ class deribit extends Exchange {
                 $rates[] = $rate;
             }
             return $this->filter_by_symbol_since_limit($rates, $symbol, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_funding_rate($contract, ?array $market = null): array {
@@ -3378,7 +3447,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the public liquidations of a trading pair
@@ -3390,9 +3459,11 @@ class deribit extends Exchange {
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the deribit api endpoint
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+             * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLiquidations', 'paginate');
             if ($paginate) {
@@ -3412,7 +3483,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->publicGetGetLastSettlementsByInstrument ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetLastSettlementsByInstrument($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3442,7 +3513,7 @@ class deribit extends Exchange {
             $settlements = $this->safe_value($result, 'settlements', array());
             $settlementsWithCursor = $this->add_pagination_cursor_to_result($cursor, $settlements);
             return $this->parse_liquidations($settlementsWithCursor, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function add_pagination_cursor_to_result($cursor, $data) {
@@ -3460,7 +3531,7 @@ class deribit extends Exchange {
         return $data;
     }
 
-    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * retrieves the users liquidated positions
@@ -3471,12 +3542,14 @@ class deribit extends Exchange {
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the deribit api endpoint
-             * @return {array} an array of ~@link https://docs.ccxt.com/#/?id=liquidation-structure liquidation structures~
+             * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if ($market['spot']) {
                 throw new NotSupported($this->id . ' fetchMyLiquidations() does not support ' . $market['type'] . ' markets');
@@ -3491,7 +3564,7 @@ class deribit extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit;
             }
-            $response = Async\await($this->privateGetGetSettlementHistoryByInstrument ($this->extend($request, $params)));
+            $response = Async\await($this->privateGetGetSettlementHistoryByInstrument($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3519,7 +3592,7 @@ class deribit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $settlements = $this->safe_list($result, 'settlements', array());
             return $this->parse_liquidations($settlements, $market, $since, $limit);
-        }) ();
+        })();
     }
 
     public function parse_liquidation($liquidation, ?array $market = null) {
@@ -3549,7 +3622,7 @@ class deribit extends Exchange {
         ));
     }
 
-    public function fetch_greeks(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_greeks(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
@@ -3558,14 +3631,16 @@ class deribit extends Exchange {
              *
              * @param {string} $symbol unified $symbol of the $market to fetch greeks for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a ~@link https://docs.ccxt.com/#/?id=greeks-structure greeks structure~
+             * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3614,7 +3689,7 @@ class deribit extends Exchange {
             //
             $result = $this->safe_value($response, 'result', array());
             return $this->parse_greeks($result, $market);
-        }) ();
+        })();
     }
 
     public function parse_greeks(array $greeks, ?array $market = null): array {
@@ -3684,7 +3759,7 @@ class deribit extends Exchange {
         );
     }
 
-    public function fetch_option(string $symbol, $params = array ()): PromiseInterface {
+    public function fetch_option(string $symbol, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches option data that is commonly found in an option $chain
@@ -3693,14 +3768,16 @@ class deribit extends Exchange {
              *
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/#/?id=option-$chain-structure option $chain structure~
+             * @return {array} an ~@link https://docs.ccxt.com/?id=option-$chain-structure option $chain structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'instrument_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetGetBookSummaryByInstrument ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetBookSummaryByInstrument($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3736,10 +3813,10 @@ class deribit extends Exchange {
             $result = $this->safe_list($response, 'result', array());
             $chain = $this->safe_dict($result, 0, array());
             return $this->parse_option($chain, null, $market);
-        }) ();
+        })();
     }
 
-    public function fetch_option_chain(string $code, $params = array ()): PromiseInterface {
+    public function fetch_option_chain(string $code, $params = array()): PromiseInterface {
         return Async\async(function () use ($code, $params) {
             /**
              * fetches data for an underlying asset that is commonly found in an option chain
@@ -3748,15 +3825,17 @@ class deribit extends Exchange {
              *
              * @param {string} $code base $currency to fetch an option chain for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=option-chain-structure option chain structures~
+             * @return {array} a list of ~@link https://docs.ccxt.com/?id=option-chain-structure option chain structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'kind' => 'option',
             );
-            $response = Async\await($this->publicGetGetBookSummaryByCurrency ($this->extend($request, $params)));
+            $response = Async\await($this->publicGetGetBookSummaryByCurrency($this->extend($request, $params)));
             //
             //     {
             //         "jsonrpc" => "2.0",
@@ -3791,10 +3870,10 @@ class deribit extends Exchange {
             //
             $result = $this->safe_list($response, 'result', array());
             return $this->parse_option_chain($result, 'base_currency', 'instrument_name');
-        }) ();
+        })();
     }
 
-    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): array {
         //
         //     {
         //         "mid_price" => 0.04025,
@@ -3844,11 +3923,116 @@ class deribit extends Exchange {
         );
     }
 
+    public function fetch_open_interest(string $symbol, $params = array()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a $symbol
+             *
+             * @see https://docs.deribit.com/?shell#public-get_book_summary_by_instrument
+             *
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {array} [$params] exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
+             */
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetGetBookSummaryByInstrument($this->extend($request, $params)));
+            //
+            //     {
+            //         "jsonrpc" => "2.0",
+            //         "result" => array(
+            //             {
+            //                 "high" => 93099.5,
+            //                 "low" => 81773.0,
+            //                 "last" => 87197.0,
+            //                 "instrument_name" => "BTC-PERPETUAL",
+            //                 "bid_price" => 87083.0,
+            //                 "ask_price" => 87149.5,
+            //                 "open_interest" => 9978911260,
+            //                 "mark_price" => 87102.01,
+            //                 "creation_timestamp" => 1763674177068,
+            //                 "price_change" => -3.2032,
+            //                 "volume" => 7377.18657991,
+            //                 "estimated_delivery_price" => 87047.2,
+            //                 "base_currency" => "BTC",
+            //                 "quote_currency" => "USD",
+            //                 "volume_usd" => 661040250.0,
+            //                 "volume_notional" => 661040250.0,
+            //                 "current_funding" => 1.2966e-4,
+            //                 "funding_8h" => -8.1069e-4,
+            //                 "mid_price" => 87116.25
+            //             }
+            //         ),
+            //         "usIn" => 1763674177068845,
+            //         "usOut" => 1763674177068996,
+            //         "usDiff" => 151,
+            //         "testnet" => true
+            //     }
+            //
+            $result = $this->safe_list($response, 'result', array());
+            $data = $this->safe_dict($result, 0, array());
+            return $this->parse_open_interest($data, $market);
+        })();
+    }
+
+    public function parse_open_interest($interest, ?array $market = null) {
+        //
+        //     {
+        //         "high" => 93099.5,
+        //         "low" => 81773.0,
+        //         "last" => 87197.0,
+        //         "instrument_name" => "BTC-PERPETUAL",
+        //         "bid_price" => 87083.0,
+        //         "ask_price" => 87149.5,
+        //         "open_interest" => 9978911260,
+        //         "mark_price" => 87102.01,
+        //         "creation_timestamp" => 1763674177068,
+        //         "price_change" => -3.2032,
+        //         "volume" => 7377.18657991,
+        //         "estimated_delivery_price" => 87047.2,
+        //         "base_currency" => "BTC",
+        //         "quote_currency" => "USD",
+        //         "volume_usd" => 661040250.0,
+        //         "volume_notional" => 661040250.0,
+        //         "current_funding" => 1.2966e-4,
+        //         "funding_8h" => -8.1069e-4,
+        //         "mid_price" => 87116.25
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'creation_timestamp');
+        $marketId = $this->safe_string($interest, 'instrument_name');
+        $market = $this->safe_market($marketId, $market);
+        $openInterest = $this->safe_number($interest, 'open_interest');
+        $openInterestAmount = null;
+        $openInterestValue = null;
+        if ($market['option'] || ($market['future'] && $market['linear'])) {
+            $openInterestAmount = $openInterest;
+        } else {
+            $openInterestValue = $openInterest;
+        }
+        return $this->safe_open_interest(array(
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'openInterestAmount' => $openInterestAmount,
+            'openInterestValue' => $openInterestValue,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $market);
+    }
+
     public function nonce() {
         return $this->milliseconds();
     }
 
-    public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
+    public function sign($path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
         $request = '/' . 'api/' . $this->version . '/' . $api . '/' . $path;
         if ($api === 'public') {
             if ($params) {

@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import math
-from ccxt.base.types import Any, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -22,7 +22,7 @@ class lbank(ccxt.async_support.lbank):
                 'fetchOrderBookWs': True,
                 'fetchTickerWs': True,
                 'fetchTradesWs': True,
-                'watchBalance': False,
+                'watchBalance': True,
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
@@ -60,12 +60,14 @@ class lbank(ccxt.async_support.lbank):
         })
 
     def request_id(self):
+        self.lock_id()
         previousValue = self.safe_integer(self.options, 'requestId', 0)
         newValue = self.sum(previousValue, 1)
         self.options['requestId'] = newValue
+        self.unlock_id()
         return newValue
 
-    async def fetch_ohlcv_ws(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv_ws(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
@@ -78,14 +80,15 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'fetchOHLCV:' + market['symbol'] + ':' + timeframeId
-        message: dict = {
+        message = {
             'action': 'request',
             'request': 'kbar',
             'kbar': timeframeId,
@@ -99,7 +102,7 @@ class lbank(ccxt.async_support.lbank):
         requestId = self.request_id()
         return await self.watch(url, messageHash, request, requestId, request)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
 
         https://www.lbank.com/en-US/docs/index.html#subscription-of-k-line-data
@@ -112,14 +115,15 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
         timeframeId = self.safe_string(timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + market['symbol'] + ':' + timeframeId
         url = self.urls['api']['ws']
-        subscribe: dict = {
+        subscribe = {
             'action': 'subscribe',
             'subscribe': 'kbar',
             'kbar': timeframeId,
@@ -240,13 +244,14 @@ class lbank(ccxt.async_support.lbank):
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the cex api endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchTicker:' + market['symbol']
-        message: dict = {
+        message = {
             'action': 'request',
             'request': 'tick',
             'pair': market['id'],
@@ -265,11 +270,12 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'ticker:' + market['symbol']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'tick',
             'pair': market['id'],
@@ -309,7 +315,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "tick":{
@@ -368,15 +374,16 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchTrades:' + market['symbol']
         if limit is None:
             limit = 10
-        message: dict = {
+        message = {
             'action': 'request',
             'request': 'trade',
             'pair': market['id'],
@@ -396,20 +403,22 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'trades:' + market['symbol']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'trade',
             'pair': market['id'],
         }
         request = self.deep_extend(message, params)
         trades = await self.watch(url, messageHash, request, messageHash, request)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        result = self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+        return self.sort_by(result, 'timestamp')  # needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
 
     def handle_trades(self, client, message):
         #
@@ -458,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # request
         #    ['timestamp', 'price', 'volume', 'direction']
@@ -509,9 +518,10 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict params: extra parameters specific to the lbank api endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         key = await self.authenticate(params)
         url = self.urls['api']['ws']
         messageHash = None
@@ -523,7 +533,7 @@ class lbank(ccxt.async_support.lbank):
             symbol = self.symbol(symbol)
             messageHash = 'orders:' + market['symbol']
             pair = market['id']
-        message: dict = {
+        message = {
             'action': 'subscribe',
             'subscribe': 'orderUpdate',
             'subscribeKey': key,
@@ -554,12 +564,10 @@ class lbank(ccxt.async_support.lbank):
         #
         marketId = self.safe_string(message, 'pair')
         symbol = self.safe_symbol(marketId, None, '_')
-        myOrders = None
+        myOrders = self.orders
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             myOrders = ArrayCacheBySymbolById(limit)
-        else:
-            myOrders = self.orders
         order = self.parse_ws_order(message)
         myOrders.append(order)
         self.orders = myOrders
@@ -649,7 +657,7 @@ class lbank(ccxt.async_support.lbank):
         }, market)
 
     def parse_ws_order_status(self, status):
-        statuses: dict = {
+        statuses = {
             '-1': 'canceled',  # Withdrawn
             '0': 'open',   # Unsettled
             '1': 'open',   # Partial sale
@@ -657,6 +665,60 @@ class lbank(ccxt.async_support.lbank):
             '4': 'closed',  # Withrawing
         }
         return self.safe_string(statuses, status, status)
+
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        watch balance and get the amount of funds available for trading or funds locked in orders
+
+        https://www.lbank.com/docs/index.html#update-subscribed-asset
+
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        key = await self.authenticate(params)
+        url = self.urls['api']['ws']
+        messageHash = 'balance'
+        message = {
+            'action': 'subscribe',
+            'subscribe': 'assetUpdate',
+            'subscribeKey': key,
+        }
+        request = self.deep_extend(message, params)
+        return await self.watch(url, messageHash, request, messageHash, request)
+
+    def handle_balance(self, client: Client, message):
+        #
+        #     {
+        #         "data": {
+        #             "asset": "114548.31881315",
+        #             "assetCode": "usdt",
+        #             "free": "97430.6739041",
+        #             "freeze": "17117.64490905",
+        #             "time": 1627300043270,
+        #             "type": "ORDER_CREATE"
+        #         },
+        #         "SERVER": "V2",
+        #         "type": "assetUpdate",
+        #         "TS": "2021-07-26T19:48:03.548"
+        #     }
+        #
+        data = self.safe_dict(message, 'data', {})
+        timestamp = self.parse8601(self.safe_string(message, 'TS'))
+        datetime = self.iso8601(timestamp)
+        self.balance['info'] = data
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = datetime
+        currencyId = self.safe_string(data, 'assetCode')
+        code = self.safe_currency_code(currencyId)
+        account = self.account()
+        account['free'] = self.safe_string(data, 'free')
+        account['used'] = self.safe_string(data, 'freeze')
+        account['total'] = self.safe_string(data, 'asset')
+        self.balance[code] = account
+        self.balance = self.safe_balance(self.balance)
+        client.resolve(self.balance, 'balance')
 
     async def fetch_order_book_ws(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -669,13 +731,14 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchOrderbook:' + market['symbol']
         if limit is None:
             limit = 100
-        subscribe: dict = {
+        subscribe = {
             'action': 'request',
             'request': 'depth',
             'depth': limit,
@@ -696,14 +759,15 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + market['symbol']
         params = self.omit(params, 'aggregation')
         if limit is None:
             limit = 100
-        subscribe: dict = {
+        subscribe = {
             'action': 'subscribe',
             'subscribe': 'depth',
             'depth': limit,
@@ -821,12 +885,13 @@ class lbank(ccxt.async_support.lbank):
         if type == 'ping':
             self.spawn(self.handle_ping, client, message)
             return
-        handlers: dict = {
+        handlers = {
             'kbar': self.handle_ohlcv,
             'depth': self.handle_order_book,
             'trade': self.handle_trades,
             'tick': self.handle_ticker,
             'orderUpdate': self.handle_orders,
+            'assetUpdate': self.handle_balance,
         }
         handler = self.safe_value(handlers, type)
         if handler is not None:
@@ -856,7 +921,7 @@ class lbank(ccxt.async_support.lbank):
         else:
             expires = self.safe_integer(authenticated, 'expires', 0)
             if expires < now:
-                request: dict = {
+                request = {
                     'subscribeKey': authenticated['key'],
                 }
                 response = await self.spotPrivatePostSubscribeRefreshKey(self.extend(request, params))

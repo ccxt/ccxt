@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinone import ImplicitAPI
 import hashlib
-from ccxt.base.types import Any, Balances, Currencies, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Balances, Currencies, Currency, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -36,18 +36,28 @@ class coinone(Exchange, ImplicitAPI):
                 'future': False,
                 'option': False,
                 'addMargin': False,
+                'borrowCrossMargin': False,
+                'borrowIsolatedMargin': False,
+                'borrowMargin': False,
                 'cancelOrder': True,
                 'closeAllPositions': False,
                 'closePosition': False,
                 'createMarketOrder': False,
                 'createOrder': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
+                'createOrderWithTakeProfitAndStopLossWs': False,
+                'createPostOnlyOrder': False,
                 'createReduceOnlyOrder': False,
                 'createStopLimitOrder': False,
                 'createStopMarketOrder': False,
                 'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowInterest': False,
+                'fetchBorrowRate': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': False,  # the endpoint that should return closed orders actually returns trades, https://github.com/ccxt/ccxt/pull/7067
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -56,20 +66,38 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchDepositAddresses': True,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchFundingHistory': False,
+                'fetchFundingInterval': False,
+                'fetchFundingIntervals': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
+                'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
+                'fetchIsolatedPositions': False,
                 'fetchLeverage': False,
+                'fetchLeverages': False,
                 'fetchLeverageTiers': False,
+                'fetchLiquidations': False,
+                'fetchLongShortRatio': False,
+                'fetchLongShortRatioHistory': False,
+                'fetchMarginAdjustmentHistory': False,
                 'fetchMarginMode': False,
+                'fetchMarginModes': False,
+                'fetchMarketLeverageTiers': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
+                'fetchMarkPrices': False,
+                'fetchMyLiquidations': False,
+                'fetchMySettlementHistory': False,
                 'fetchMyTrades': True,
+                'fetchOpenInterest': False,
                 'fetchOpenInterestHistory': False,
+                'fetchOpenInterests': False,
                 'fetchOpenOrders': True,
+                'fetchOption': False,
+                'fetchOptionChain': False,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
@@ -80,11 +108,17 @@ class coinone(Exchange, ImplicitAPI):
                 'fetchPositionsHistory': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchSettlementHistory': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
+                'fetchVolatilityHistory': False,
                 'reduceMargin': False,
+                'repayCrossMargin': False,
+                'repayIsolatedMargin': False,
+                'repayMargin': False,
                 'setLeverage': False,
+                'setMargin': False,
                 'setMarginMode': False,
                 'setPositionMode': False,
                 'ws': True,
@@ -298,40 +332,38 @@ class coinone(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        result: dict = {}
         currencies = self.safe_list(response, 'currencies', [])
-        for i in range(0, len(currencies)):
-            entry = currencies[i]
-            id = self.safe_string(entry, 'symbol')
-            name = self.safe_string(entry, 'name')
-            code = self.safe_currency_code(id)
-            withdrawStatus = self.safe_string(entry, 'withdraw_status', '')
-            depositStatus = self.safe_string(entry, 'deposit_status', '')
-            isWithdrawEnabled = withdrawStatus == 'normal'
-            isDepositEnabled = depositStatus == 'normal'
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': entry,
-                'name': name,
-                'active': isWithdrawEnabled and isDepositEnabled,
-                'deposit': isDepositEnabled,
-                'withdraw': isWithdrawEnabled,
-                'fee': self.safe_number(entry, 'withdrawal_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(entry, 'max_precision'))),
-                'limits': {
-                    'amount': {
-                        'min': None,
-                        'max': None,
-                    },
-                    'withdraw': {
-                        'min': self.safe_number(entry, 'withdrawal_min_amount'),
-                        'max': None,
-                    },
+        return self.parse_currencies(currencies)
+
+    def parse_currency(self, rawCurrency: dict) -> Currency:
+        id = self.safe_string(rawCurrency, 'symbol')
+        code = self.safe_currency_code(id)
+        isWithdrawEnabled = self.safe_string(rawCurrency, 'withdraw_status', '') == 'normal'
+        isDepositEnabled = self.safe_string(rawCurrency, 'deposit_status', '') == 'normal'
+        type = 'crypto' if (code != 'KRW') else 'fiat'
+        return self.safe_currency_structure({
+            'id': id,
+            'code': code,
+            'info': rawCurrency,
+            'name': self.safe_string(rawCurrency, 'name'),
+            'active': None,
+            'deposit': isDepositEnabled,
+            'withdraw': isWithdrawEnabled,
+            'fee': self.safe_number(rawCurrency, 'withdrawal_fee'),
+            'precision': self.parse_number(self.parse_precision(self.safe_string(rawCurrency, 'max_precision'))),
+            'limits': {
+                'amount': {
+                    'min': None,
+                    'max': None,
                 },
-                'networks': {},
-            }
-        return result
+                'withdraw': {
+                    'min': self.safe_number(rawCurrency, 'withdrawal_min_amount'),
+                    'max': None,
+                },
+            },
+            'networks': {},
+            'type': type,
+        })
 
     async def fetch_markets(self, params={}) -> List[Market]:
         """
@@ -342,7 +374,7 @@ class coinone(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        request: dict = {
+        request = {
             'quote_currency': 'KRW',
         }
         response = await self.v2PublicGetTickerNewQuoteCurrency(request)
@@ -441,7 +473,7 @@ class coinone(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result: dict = {'info': response}
+        result = {'info': response}
         balances = self.omit(response, [
             'errorCode',
             'result',
@@ -465,9 +497,10 @@ class coinone(Exchange, ImplicitAPI):
         https://docs.coinone.co.kr/v1.0/reference/v21
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v2PrivatePostAccountBalance(params)
         return self.parse_balance(response)
 
@@ -480,11 +513,12 @@ class coinone(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -526,11 +560,12 @@ class coinone(Exchange, ImplicitAPI):
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols)
-        request: dict = {
+        request = {
             'quote_currency': 'KRW',
         }
         market = None
@@ -587,11 +622,12 @@ class coinone(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -762,11 +798,12 @@ class coinone(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'quote_currency': market['quote'],
             'target_currency': market['base'],
         }
@@ -807,13 +844,14 @@ class coinone(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if type != 'limit':
             raise ExchangeError(self.id + ' createOrder() allows limit orders only')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'price': price,
             'currency': market['id'],
             'qty': amount,
@@ -835,13 +873,14 @@ class coinone(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'order_id': id,
             'currency': market['id'],
         }
@@ -870,7 +909,7 @@ class coinone(Exchange, ImplicitAPI):
         return self.parse_order(response, market)
 
     def parse_order_status(self, status: Str):
-        statuses: dict = {
+        statuses = {
             'live': 'open',
             'partially_filled': 'open',
             'partially_canceled': 'open',
@@ -992,15 +1031,16 @@ class coinone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch open orders for
         :param int [limit]: the maximum number of  open orders structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         # The returned amount might not be same ordered amount. If an order is partially filled, the returned amount means the remaining amount.
         # For the same reason, the returned amount and remaining are always same, and the returned filled and cost are always zero.
         if symbol is None:
             raise ExchangeError(self.id + ' fetchOpenOrders() allows fetching closed orders with a specific symbol')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = await self.privatePostOrderLimitOrders(self.extend(request, params))
@@ -1031,13 +1071,14 @@ class coinone(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
-        request: dict = {
+        request = {
             'currency': market['id'],
         }
         response = await self.v2PrivatePostOrderCompleteOrders(self.extend(request, params))
@@ -1070,19 +1111,18 @@ class coinone(Exchange, ImplicitAPI):
         :param str id: order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if symbol is None:
-            # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")
         price = self.safe_number(params, 'price')
         qty = self.safe_number(params, 'qty')
         isAsk = self.safe_integer(params, 'is_ask')
         if (price is None) or (qty is None) or (isAsk is None):
-            # eslint-disable-next-line quotes
             raise ArgumentsRequired(self.id + " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")
-        await self.load_markets()
-        request: dict = {
+        if self.markets is None:
+            await self.load_markets()
+        request = {
             'order_id': id,
             'price': price,
             'qty': qty,
@@ -1103,9 +1143,10 @@ class coinone(Exchange, ImplicitAPI):
         fetch deposit addresses for multiple currencies and chain types
         :param str[]|None codes: list of unified currency codes, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a list of `address structures <https://docs.ccxt.com/#/?id=address-structure>`
+        :returns dict: a list of `address structures <https://docs.ccxt.com/?id=address-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         response = await self.v2PrivatePostAccountDepositAddress(params)
         #
         #     {
@@ -1123,7 +1164,7 @@ class coinone(Exchange, ImplicitAPI):
         #
         walletAddress = self.safe_dict(response, 'walletAddress', {})
         keys = list(walletAddress.keys())
-        result: dict = {}
+        result = {}
         for i in range(0, len(keys)):
             key = keys[i]
             value = walletAddress[key]
@@ -1152,7 +1193,7 @@ class coinone(Exchange, ImplicitAPI):
             result[code] = depositAddress
         return result
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
+    def sign(self, path, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         request = self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         url = self.urls['api']['rest'] + '/'

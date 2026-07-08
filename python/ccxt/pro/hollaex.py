@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Any, Balances, Bool, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
@@ -68,9 +68,10 @@ class hollaex(ccxt.async_support.hollaex):
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'orderbook' + ':' + market['id']
         orderbook = await self.watch_public(messageHash, params)
@@ -126,9 +127,10 @@ class hollaex(ccxt.async_support.hollaex):
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade' + ':' + market['id']
@@ -180,9 +182,10 @@ class hollaex(ccxt.async_support.hollaex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'usertrade'
         market = None
         if symbol is not None:
@@ -228,7 +231,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         stored = self.myTrades
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(rawTrades)):
             trade = rawTrades[i]
             parsed = self.parse_trade(trade)
@@ -255,9 +258,10 @@ class hollaex(ccxt.async_support.hollaex):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'order'
         market = None
         if symbol is not None:
@@ -342,7 +346,7 @@ class hollaex(ccxt.async_support.hollaex):
             rawOrders = [data]
         else:
             rawOrders = data
-        marketIds: dict = {}
+        marketIds = {}
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             parsed = self.parse_order(order)
@@ -366,7 +370,7 @@ class hollaex(ccxt.async_support.hollaex):
         https://apidocs.hollaex.com/#sending-receiving-messages
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
         messageHash = 'wallet'
         return await self.watch_private(messageHash, params)
@@ -410,7 +414,7 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -430,20 +434,20 @@ class hollaex(ccxt.async_support.hollaex):
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        authParams: dict = {
+        authParams = {
             'api-key': self.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         }
         signedUrl = url + '?' + self.urlencode(authParams)
-        request: dict = {
+        request = {
             'op': 'subscribe',
             'args': [messageHash],
         }
         message = self.extend(request, params)
         return await self.watch(signedUrl, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message):
+    def handle_error_message(self, client: Client, message) -> Bool:
         #
         #     {error: "Bearer or HMAC authentication required"}
         #     {error: "Error: wrong input"}
@@ -456,7 +460,7 @@ class hollaex(ccxt.async_support.hollaex):
         except Exception as e:
             if isinstance(e, AuthenticationError):
                 return False
-        return message
+        return True
 
     def handle_message(self, client: Client, message):
         #
@@ -550,7 +554,7 @@ class hollaex(ccxt.async_support.hollaex):
         if content == 'pong':
             self.handle_pong(client, message)
             return
-        methods: dict = {
+        methods = {
             'trade': self.handle_trades,
             'orderbook': self.handle_order_book,
             'order': self.handle_order,

@@ -29,10 +29,12 @@ interface Exchange {
     privateGetApiV1FuturesRiskLimit(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1FuturesCommissionRate(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1FuturesGetBestOrder(params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1CoinInfo(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountVipInfo(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1Account(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountTrades(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountType(params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1AccountChainType(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountCheckApiKey(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountBalanceFlow(params?: {}): Promise<implicitReturnType>;
     privateGetApiV1SpotSubAccountOpenOrders(params?: {}): Promise<implicitReturnType>;
@@ -51,6 +53,8 @@ interface Exchange {
     privatePostApiV1SpotBatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostApiV1FuturesLeverage(params?: {}): Promise<implicitReturnType>;
     privatePostApiV1FuturesOrder(params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1FuturesMarginType(params?: {}): Promise<implicitReturnType>;
+    privatePostApiV1FuturesPositionMargin(params?: {}): Promise<implicitReturnType>;
     privatePostApiV1FuturesPositionTradingStop(params?: {}): Promise<implicitReturnType>;
     privatePostApiV1FuturesBatchOrders(params?: {}): Promise<implicitReturnType>;
     privatePostApiV1AccountAssetTransfer(params?: {}): Promise<implicitReturnType>;

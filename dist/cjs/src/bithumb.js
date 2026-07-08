@@ -1,10 +1,12 @@
 'use strict';
 
+Object.defineProperty(exports, '__esModule', { value: true });
+
+var sha2_js = require('@noble/hashes/sha2.js');
 var bithumb$1 = require('./abstract/bithumb.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
-var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
 
 // ----------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -12,12 +14,12 @@ var sha512 = require('./static_dependencies/noble-hashes/sha512.js');
  * @class bithumb
  * @augments Exchange
  */
-class bithumb extends bithumb$1 {
+class bithumb extends bithumb$1["default"] {
     describe() {
         return this.deepExtend(super.describe(), {
             'id': 'bithumb',
             'name': 'Bithumb',
-            'countries': ['KR'],
+            'countries': ['KR'], // South Korea
             'rateLimit': 500,
             'pro': true,
             'has': {
@@ -48,6 +50,7 @@ class bithumb extends bithumb$1 {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': false,
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
@@ -223,9 +226,9 @@ class bithumb extends bithumb$1 {
             'exceptions': {
                 'Bad Request(SSL)': errors.BadRequest,
                 'Bad Request(Bad Method)': errors.BadRequest,
-                'Bad Request.(Auth Data)': errors.AuthenticationError,
+                'Bad Request.(Auth Data)': errors.AuthenticationError, // { "status": "5100", "message": "Bad Request.(Auth Data)" }
                 'Not Member': errors.AuthenticationError,
-                'Invalid Apikey': errors.AuthenticationError,
+                'Invalid Apikey': errors.AuthenticationError, // {"status":"5300","message":"Invalid Apikey"}
                 'Method Not Allowed.(Access IP)': errors.PermissionDenied,
                 'Method Not Allowed.(BTC Adress)': errors.InvalidAddress,
                 'Method Not Allowed.(Access)': errors.PermissionDenied,
@@ -342,7 +345,7 @@ class bithumb extends bithumb$1 {
             const quote = quotes[i];
             const quoteId = quote;
             const response = results[i];
-            const data = this.safeDict(response, 'data');
+            const data = this.safeDict(response, 'data', {});
             const extension = this.safeDict(quoteCurrencies, quote, {});
             const currencyIds = Object.keys(data);
             for (let j = 0; j < currencyIds.length; j++) {
@@ -432,10 +435,12 @@ class bithumb extends bithumb$1 {
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
             'currency': 'ALL',
         };
@@ -450,10 +455,12 @@ class bithumb extends bithumb$1 {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -542,10 +549,12 @@ class bithumb extends bithumb$1 {
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const result = {};
         const quoteCurrencies = this.safeDict(this.options, 'quoteCurrencies', {});
         const quotes = Object.keys(quoteCurrencies);
@@ -604,10 +613,12 @@ class bithumb extends bithumb$1 {
      * @see https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -669,7 +680,9 @@ class bithumb extends bithumb$1 {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -790,10 +803,12 @@ class bithumb extends bithumb$1 {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'baseId': market['baseId'],
@@ -833,10 +848,12 @@ class bithumb extends bithumb$1 {
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_currency': market['id'],
@@ -872,13 +889,15 @@ class bithumb extends bithumb$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'order_id': id,
@@ -1032,13 +1051,15 @@ class bithumb extends bithumb$1 {
      * @param {int} [since] the earliest time in ms to fetch open orders for
      * @param {int} [limit] the maximum number of open order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOpenOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         if (limit === undefined) {
             limit = 100;
@@ -1080,7 +1101,7 @@ class bithumb extends bithumb$1 {
      * @param {string} id order id
      * @param {string} symbol unified symbol of the market the order was made in
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -1126,12 +1147,14 @@ class bithumb extends bithumb$1 {
      * @param {string} address the address to withdraw to
      * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'units': amount,
@@ -1213,7 +1236,7 @@ class bithumb extends bithumb$1 {
             }, query));
             const nonce = this.nonce().toString();
             const auth = endpoint + "\0" + body + "\0" + nonce; // eslint-disable-line quotes
-            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512.sha512);
+            const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha512);
             const signature64 = this.stringToBase64(signature);
             headers = {
                 'Accept': 'application/json',
@@ -1253,4 +1276,4 @@ class bithumb extends bithumb$1 {
     }
 }
 
-module.exports = bithumb;
+exports["default"] = bithumb;

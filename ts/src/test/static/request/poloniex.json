@@ -6,6 +6,156 @@
     ],
     "outputType": "json",
     "methods": {
+        "withdraw": [
+            {
+                "description": "ethereum",
+                "method": "withdraw",
+                "url": "https://api.poloniex.com/v2/wallets/withdraw",
+                "input": [
+                    "USDT",
+                    5,
+                    "0x883b79D31EA07AA200A4a83c50d444470A212eEE",
+                    null,
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"0x883b79D31EA07AA200A4a83c50d444470A212eEE\",\"network\":\"ETH\"}"
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress ETH on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=ETH",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on TRC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=USDTTRON",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ERC20",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=USDTETH",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress USDT on ETH",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=USDTETH",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "fetchDepositAddress BTC on BTC",
+                "method": "fetchDepositAddress",
+                "url": "https://api.poloniex.com/wallets/addresses?currency=BTC",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": null
+            }
+        ],
+        "createDepositAddress": [
+            {
+                "description": "create ETH on ETH",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "ETH",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"currency\":\"ETH\"}"
+            },
+            {
+                "description": "create BTC",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "BTC",
+                    {
+                        "network": "BTC"
+                    }
+                ],
+                "output": "{\"currency\":\"BTC\"}"
+            },
+            {
+                "description": "create ETH",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ETH"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTETH\"}"
+            },
+            {
+                "description": "create ERC20",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ERC20"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTETH\"}"
+            },
+            {
+                "description": "create TRC20",
+                "method": "createDepositAddress",
+                "url": "https://api.poloniex.com/wallets/address",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "TRC20"
+                    }
+                ],
+                "output": "{\"currency\":\"USDTTRON\"}"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.poloniex.com/v2/currencies",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchPositions": [
             {
                 "description": "linear",
@@ -397,6 +547,18 @@
             }
         ],
         "fetchOHLCV": [
+            {
+                "description": "non ascii symbol test",
+                "disabledCS": true,
+                "disabledGO": true,
+                "method": "fetchOHLCV",
+                "url": "https://api.poloniex.com/markets/%E7%B4%A2%E6%8B%89%E6%8B%89_USDT/candles?interval=HOUR_1",
+                "input": [
+                    "索拉拉/USDT",
+                    "1h"
+                ],
+                "output": null
+            },
             {
                 "description": "linear",
                 "method": "fetchOHLCV",

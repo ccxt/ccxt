@@ -1,11 +1,11 @@
 import coinexRest from '../coinex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
+import type { Balances, Dict, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinex extends coinexRest {
     describe(): any;
     requestId(): any;
     handleTicker(client: Client, message: any): void;
-    parseWSTicker(ticker: any, market?: any): Ticker;
+    parseWSTicker(ticker: any, market?: Market): Ticker;
     /**
      * @method
      * @name coinex#watchBalance
@@ -13,11 +13,11 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
      * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+     * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
-    parseWsBalance(balance: any, accountType?: any): void;
+    parseWsBalance(balance: any, accountType?: Str): void;
     /**
      * @method
      * @name coinex#watchMyTrades
@@ -28,12 +28,12 @@ export default class coinex extends coinexRest {
      * @param {int} [since] the earliest time in ms to watch trades
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleMyTrades(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
-    parseWsTrade(trade: any, market?: any): Trade;
+    parseWsTrade(trade: any, market?: Market): Trade;
     /**
      * @method
      * @name coinex#watchTicker
@@ -42,7 +42,7 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     /**
@@ -53,7 +53,7 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     /**
@@ -66,7 +66,7 @@ export default class coinex extends coinexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
@@ -79,7 +79,7 @@ export default class coinex extends coinexRest {
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     /**
@@ -91,7 +91,7 @@ export default class coinex extends coinexRest {
      * @param {string[]} symbols unified array of symbols
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     /**
@@ -103,7 +103,7 @@ export default class coinex extends coinexRest {
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleDelta(bookside: any, delta: any): void;
@@ -120,11 +120,11 @@ export default class coinex extends coinexRest {
      * @param {int} [limit] the maximum number of order structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
-     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+     * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrders(client: Client, message: any): void;
-    parseWsOrder(order: any, market?: any): Order;
+    parseWsOrder(order: any, market?: Market): Order;
     parseWsOrderStatus(status: any): string;
     /**
      * @method
@@ -134,11 +134,11 @@ export default class coinex extends coinexRest {
      * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
      * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleBidAsk(client: Client, message: any): void;
-    parseWsBidAsk(ticker: any, market?: any): Ticker;
+    parseWsBidAsk(ticker: any, market?: Market): Ticker;
     handleMessage(client: Client, message: any): void;
     handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     handleAuthenticationMessage(client: Client, message: any): void;

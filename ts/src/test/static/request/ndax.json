@@ -4,6 +4,15 @@
     "accounts": [{"id": 187639}],
     "outputType": "json",
     "methods": {
+        "fetchCurrencies": [
+            {
+                "description": "default",
+                "method": "fetchCurrencies",
+                "url": "https://api.ndax.io:8443/AP/GetProducts?omsId=1",
+                "input": [],
+                "output": null
+            }
+        ],
         "fetchTrades": [
             {
                 "description": "spot fetchTrades",
@@ -105,7 +114,7 @@
                     "triggerPrice": "1.60"
                   }
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":4,\"LimitPrice\":1.6,\"StopPrice\":\"1.60\"}"
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.99,\"OrderType\":4,\"LimitPrice\":1.6,\"StopPrice\":\"1.60\"}"
             },
             {
                 "description": "Limit Order",
@@ -118,7 +127,7 @@
                   0.998,
                   1.6
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6}"
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":1,\"Quantity\":0.99,\"OrderType\":2,\"LimitPrice\":1.6}"
             },
             {
                 "description": "Order with ClientOrderId",
@@ -134,7 +143,7 @@
                     "clientOrderId": "27"
                   }
                 ],
-                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":0.9,\"OrderType\":2,\"LimitPrice\":1.6,\"ClientOrderId\":27}"
+                "output": "{\"InstrumentId\":78,\"omsId\":1,\"AccountId\":187639,\"TimeInForce\":1,\"Side\":0,\"Quantity\":0.99,\"OrderType\":2,\"LimitPrice\":1.6,\"ClientOrderId\":27}"
             }
         ],
         "cancelOrder": [
