@@ -521,7 +521,7 @@ export default class nado extends Exchange {
         const orderNonce = Precise.stringAdd (cancelNonce, '1');
         let appendix = this.safeString (params, 'appendix');
         if (appendix === undefined) {
-            appendix = this.createOrderAppendix (params);
+            appendix = this.createOrderAppendix (false, params);
         }
         const requestId = this.safeInteger (params, 'id');
         const spotLeverage = this.safeBool2 (params, 'spotLeverage', 'spot_leverage');
