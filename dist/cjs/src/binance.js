@@ -5295,18 +5295,56 @@ class binance extends binance$1["default"] {
             request['limit'] = isFutureOrSwap ? Math.min(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         params = this.omit(params, ['until', 'fetchTradesMethod']);
-        let response = undefined;
-        if (market['option'] || method === 'eapiPublicGetTrades') {
-            response = await this.eapiPublicGetTrades(this.extend(request, params));
+        if (method === undefined) {
+            if (market['option']) {
+                method = 'eapiPublicGetTrades';
+            }
+            else if (market['linear']) {
+                method = 'fapiPublicGetAggTrades';
+            }
+            else if (market['inverse']) {
+                method = 'dapiPublicGetAggTrades';
+            }
+            else {
+                method = 'publicGetAggTrades';
+            }
         }
-        else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
+        let response = undefined;
+        if (method === 'publicGetAggTrades') {
+            response = await this.publicGetAggTrades(this.extend(request, params));
+        }
+        else if (method === 'publicGetTrades') {
+            response = await this.publicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'publicGetHistoricalTrades') {
+            response = await this.publicGetHistoricalTrades(this.extend(request, params));
+        }
+        else if (method === 'fapiPublicGetAggTrades') {
             response = await this.fapiPublicGetAggTrades(this.extend(request, params));
         }
-        else if (market['inverse'] || method === 'dapiPublicGetAggTrades') {
+        else if (method === 'fapiPublicGetTrades') {
+            response = await this.fapiPublicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'fapiPublicGetHistoricalTrades') {
+            response = await this.fapiPublicGetHistoricalTrades(this.extend(request, params));
+        }
+        else if (method === 'dapiPublicGetAggTrades') {
             response = await this.dapiPublicGetAggTrades(this.extend(request, params));
         }
+        else if (method === 'dapiPublicGetTrades') {
+            response = await this.dapiPublicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'dapiPublicGetHistoricalTrades') {
+            response = await this.dapiPublicGetHistoricalTrades(this.extend(request, params));
+        }
+        else if (method === 'eapiPublicGetTrades') {
+            response = await this.eapiPublicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'eapiPublicGetHistoricalTrades') {
+            response = await this.eapiPublicGetHistoricalTrades(this.extend(request, params));
+        }
         else {
-            response = await this.publicGetAggTrades(this.extend(request, params));
+            throw new errors.NotSupported(this.id + ' fetchTrades() does not support this method');
         }
         //
         // Caveats:
