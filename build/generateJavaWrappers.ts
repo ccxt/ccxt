@@ -635,7 +635,42 @@ const PREDICTION_EXCHANGE_METHODS: Record<string, MethodInfo[]> = {
         isWatch: false,
     }],
 };
-const predictionRestMethods = toPredictionMethods(restMethods).concat(predictionBaseOnlyMethods);
+// Exchange-tier method names no prediction venue (or PredictionExchange) implements. Prediction
+// venues extend PredictionExchange (not the Exchange tier), so wrapping these would emit a typed
+// method whose super.<method>() resolves nowhere — and would re-expose the symbol-based surface
+// (closePosition, fetchGreeks, ...) prediction deliberately drops. Exclude them from the wrappers,
+// matching javaTranspiler's PredictionExchange injection.
+function predictionTierExcludeNames(): Set<string> {
+    const src = fs.readFileSync(TS_BASE_FILE, 'utf8').split('\n');
+    const es = src.findIndex(l => l.startsWith('export default class Exchange extends BaseExchange'));
+    const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
+    const tier = new Set<string>();
+    for (let i = es; i < src.length; i++) {
+        const m = src[i].match(re);
+        if (m) tier.add(m[1]);
+    }
+    const impl = new Set<string>();
+    const files = [ './ts/src/base/PredictionExchange.ts' ];
+    const dir = './ts/src/prediction';
+    if (fs.existsSync(dir)) {
+        for (const f of fs.readdirSync(dir)) {
+            if (f.endsWith('.ts')) files.push(dir + '/' + f);
+        }
+    }
+    for (const file of files) {
+        for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+            const m = line.match(re);
+            if (m) impl.add(m[1]);
+        }
+    }
+    const exclude = new Set<string>();
+    for (const t of tier) {
+        if (!impl.has(t)) exclude.add(t);
+    }
+    return exclude;
+}
+const predictionExclude = predictionTierExcludeNames();
+const predictionRestMethods = toPredictionMethods(restMethods.filter(m => !predictionExclude.has(m.name))).concat(predictionBaseOnlyMethods);
 for (const coreFile of coreFiles) {
     const exchangeId = coreFile.replace('Core.java', '').toLowerCase();
     const className = capitalize(exchangeId);

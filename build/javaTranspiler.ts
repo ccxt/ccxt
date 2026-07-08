@@ -968,6 +968,34 @@ class NewTranspiler {
         return this._exchangeTierBody;
     }
 
+    // Method names the prediction layer actually implements — PredictionExchange.ts plus every
+    // ts/src/prediction/*.ts venue. Used to keep only the prediction unified surface when injecting
+    // Exchange-tier methods into PredictionExchange.java: symbol-based trading methods no prediction
+    // venue implements (closePosition, fetchGreeks, createLimitOrder, ...) are dropped, not injected,
+    // so prediction instances never carry them (true parity with the other languages).
+    getPredictionImplementedNames(): Set<string> {
+        const names = new Set<string>();
+        const files = [ './ts/src/base/PredictionExchange.ts' ];
+        const dir = './ts/src/prediction';
+        if (fs.existsSync(dir)) {
+            for (const f of fs.readdirSync(dir)) {
+                if (f.endsWith('.ts')) {
+                    files.push(dir + '/' + f);
+                }
+            }
+        }
+        const re = /^    (?:async )?([a-zA-Z][a-zA-Z0-9]*) \(/;
+        for (const file of files) {
+            for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+                const m = line.match(re);
+                if (m) {
+                    names.add(m[1]);
+                }
+            }
+        }
+        return names;
+    }
+
     // Names of every method declared directly in a transpiled Java class body
     // (indentation level 1, e.g. `    public ... foo(...)`).
     extractJavaMethodNames(classBody: string): Set<string> {
@@ -1100,6 +1128,15 @@ class NewTranspiler {
             // Drop every Exchange-tier method PredictionExchange already declares (avoids duplicate defs).
             for (const name of predictionOwnNames) {
                 extras = this.removeJavaMethod(extras, name);
+            }
+            // Keep only the tier methods the prediction layer actually implements (createOrder,
+            // fetchTicker, ...); drop the symbol-based surface no prediction venue supports so
+            // PredictionExchange.java doesn't carry (and leak) closePosition/fetchGreeks/etc.
+            const predImplemented = this.getPredictionImplementedNames();
+            for (const name of this.extractJavaMethodNames('\n' + extras)) {
+                if (!predImplemented.has(name)) {
+                    extras = this.removeJavaMethod(extras, name);
+                }
             }
             // predictionBody ends with the class's closing brace — splice the extras in before it.
             const withoutClose = predictionBody.replace(/\}\s*$/, '');
