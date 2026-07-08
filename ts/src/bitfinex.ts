@@ -339,8 +339,12 @@ export default class bitfinex extends Exchange {
             },
             'precisionMode': SIGNIFICANT_DIGITS,
             'options': {
-                'precision': 'R0', // P0, P1, P2, P3, P4, R0
-                'defaultCurrencyPrecision': 8, // default currency precision
+                'fetchOrderBook': {
+                    'precision': 'R0', // P0, P1, P2, P3, P4, R0
+                },
+                'fetchCurrencies': {
+                    'defaultPrecision': 8, // default currency precision
+                },
                 // convert 'EXCHANGE MARKET' to lowercase 'market'
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
@@ -374,9 +378,7 @@ export default class bitfinex extends Exchange {
                     'GBP': 'GBP',
                     'CHN': 'CHN',
                 },
-                // actually the correct names unlike the v1
-                // we don't want to extend this with accountsByType in v1
-                'v2AccountsByType': {
+                'accountsByType': {
                     'spot': 'exchange',
                     'exchange': 'exchange',
                     'funding': 'funding',
@@ -889,7 +891,7 @@ export default class bitfinex extends Exchange {
         const fees = this.safeList (feeValues, 1, []);
         const fee = this.safeNumber (fees, 1);
         const undl = this.safeList (indexed['undl'], id, []);
-        const precision = this.safeString (this.options, 'defaultCurrencyPrecision', '8');
+        const precision = this.handleOption ('fetchCurrencies', 'defaultPrecision', this.safeString (this.options, 'defaultCurrencyPrecision', '8')) as string;
         const networks: Dict = {};
         const networkIds = this.safeList (indexedNetworks, id, []);
         for (let j = 0; j < networkIds.length; j++) {
@@ -953,7 +955,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType as IndexType, requestedType);
         if (accountType === undefined) {
@@ -1005,7 +1007,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
@@ -1152,7 +1154,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const precision = this.safeValue (this.options, 'precision', 'R0');
+        const precision = this.handleOption ('fetchOrderBook', 'precision', 'R0') as string;
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
