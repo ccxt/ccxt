@@ -119,6 +119,7 @@ export default class kucoin extends Exchange {
                 'fetchTransactionFee': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
                 'setLeverage': true,
@@ -10950,6 +10951,50 @@ export default class kucoin extends Exchange {
             'amount': this.amountToPrecision (symbol, amount),
             'direction': 'in',
         });
+    }
+
+    /**
+     * @method
+     * @name kucoin#reduceMargin
+     * @description remove margin from a position
+     * @see https://www.kucoin.com/docs-new/rest/futures-trading/positions/remove-isolated-margin
+     * @param {string} symbol unified market symbol
+     * @param {float} amount the amount of margin to remove
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.positionSide] *required for hedged position* 'BOTH', 'LONG' or 'SHORT' (default is 'BOTH')
+     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
+     */
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const amountString = this.amountToPrecision (symbol, amount);
+        const request: Dict = {
+            'symbol': market['id'],
+            'withdrawAmount': amountString,
+        };
+        const response = await this.futuresPrivatePostMarginWithdrawMargin (this.extend (request, params));
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": "0.1"
+        //     }
+        //
+        const currencyId = this.safeString (market, 'settle');
+        const responseCode = this.safeString (response, 'code');
+        return {
+            'info': response,
+            'symbol': market['symbol'],
+            'type': 'reduce',
+            'marginMode': 'isolated',
+            'amount': this.parseNumber (amountString),
+            'total': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'status': (responseCode === '200000') ? 'ok' : undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
     }
 
     parseMarginModification (info, market: Market = undefined): MarginModification {
