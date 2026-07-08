@@ -71,7 +71,7 @@ func  (this *KrakenfuturesCore) Describe() any  {
  * @ignore
  * @method
  * @description authenticates the user to access private web socket channels
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
  * @returns {object} response from exchange
  */
 func  (this *KrakenfuturesCore) Authenticate(optionalArgs ...any) <- chan any {
@@ -112,7 +112,7 @@ func  (this *KrakenfuturesCore) Authenticate(optionalArgs ...any) <- chan any {
  * @method
  * @name krakenfutures#watchOrderBookForSymbols
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
  * @param {string[]} symbols unified array of symbols
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -236,7 +236,7 @@ func  (this *KrakenfuturesCore) SubscribePrivate(name any, messageHash any, opti
  * @method
  * @name krakenfutures#watchTicker
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
  * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -268,7 +268,7 @@ func  (this *KrakenfuturesCore) WatchTicker(symbol any, optionalArgs ...any) <- 
  * @method
  * @name krakenfutures#watchTickers
  * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
  * @param {string[]} symbols unified symbols of the markets to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -308,7 +308,7 @@ func  (this *KrakenfuturesCore) WatchTickers(optionalArgs ...any) <- chan any {
 /**
  * @method
  * @name krakenfutures#watchBidsAsks
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker-lite
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite
  * @description watches best bid & ask for symbols
  * @param {string[]} symbols unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -344,7 +344,7 @@ func  (this *KrakenfuturesCore) WatchBidsAsks(optionalArgs ...any) <- chan any {
  * @method
  * @name krakenfutures#watchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -374,7 +374,7 @@ func  (this *KrakenfuturesCore) WatchTrades(symbol any, optionalArgs ...any) <- 
 /**
  * @method
  * @name krakenfutures#watchTradesForSymbols
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
  * @description get the list of most recent trades for a list of symbols
  * @param {string[]} symbols unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -412,7 +412,7 @@ func  (this *KrakenfuturesCore) WatchTradesForSymbols(symbols any, optionalArgs 
  * @method
  * @name krakenfutures#watchOrderBook
  * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] not used by krakenfutures watchOrderBook
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -439,7 +439,7 @@ func  (this *KrakenfuturesCore) WatchOrderBook(symbol any, optionalArgs ...any) 
 /**
  * @method
  * @name krakenfutures#watchPositions
- * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_position
  * @description watch all open positions
  * @param {string[]} [symbols] list of unified market symbols
  * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -601,8 +601,8 @@ func  (this *KrakenfuturesCore) ParseWsPosition(position any, optionalArgs ...an
  * @method
  * @name krakenfutures#watchOrders
  * @description watches information on multiple orders made by the user
- * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders
- * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-orders-verbose
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders_verbose
  * @param {string} symbol not used by krakenfutures watchOrders
  * @param {int} [since] not used by krakenfutures watchOrders
  * @param {int} [limit] not used by krakenfutures watchOrders
@@ -650,7 +650,7 @@ func  (this *KrakenfuturesCore) WatchOrders(optionalArgs ...any) <- chan any {
  * @method
  * @name krakenfutures#watchMyTrades
  * @description watches information on multiple trades made by the user
- * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/fills
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
  * @param {int} [limit] the maximum number of order structures to retrieve
@@ -698,7 +698,7 @@ func  (this *KrakenfuturesCore) WatchMyTrades(optionalArgs ...any) <- chan any {
  * @method
  * @name krakenfutures#watchBalance
  * @description watches information on the user's account balance
- * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
+ * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.account] can be either 'futures' or 'flex_futures'
  * @returns {object} a object of wallet types each with a balance structure {@link https://docs.ccxt.com/?id=balance-structure}
@@ -1917,7 +1917,7 @@ func  (this *KrakenfuturesCore) HandleAuthenticate(client any, message any) any 
     /**
      * @ignore
      * @method
-     * @see https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-sign-challenge-challenge
+     * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
      */
     //
     //    {
