@@ -42,7 +42,9 @@ export function SurveyPopup() {
       rel="noopener noreferrer"
       onClick={dismiss}
       aria-label="CCXT survey invitation"
-      className="fixed right-4 bottom-4 left-4 z-50 block max-w-xs rounded-lg border bg-fd-card p-4 pr-8 text-sm text-fd-card-foreground shadow-lg transition-colors hover:border-fd-primary/50 hover:bg-fd-accent sm:left-auto"
+      // bottom-20 clears the floating "Ask AI" trigger (fixed bottom-4, ~3rem tall)
+      // rendered by the home/docs layouts so the popup never covers it.
+      className="fixed right-4 bottom-20 left-4 z-50 block max-w-xs rounded-lg border bg-fd-card p-4 pr-8 text-sm text-fd-card-foreground shadow-lg transition-colors hover:border-fd-primary/50 hover:bg-fd-accent sm:left-auto"
     >
       <button
         type="button"
