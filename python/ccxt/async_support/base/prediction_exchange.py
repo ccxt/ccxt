@@ -29,12 +29,6 @@ class PredictionExchange(BaseExchange):
         return self.deep_extend(super(PredictionExchange, self).describe(), {
             'has': {
                 'prediction': True,
-                'CORS': None,
-                'spot': False,
-                'margin': False,
-                'swap': False,
-                'future': False,
-                'option': False,
                 'approve': False,
                 'redeem': False,
                 'fetchEvent': False,

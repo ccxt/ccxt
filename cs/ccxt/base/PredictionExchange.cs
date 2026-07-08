@@ -19,12 +19,6 @@ public partial class PredictionExchange : BaseExchange
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "prediction", true },
-                { "CORS", null },
-                { "spot", false },
-                { "margin", false },
-                { "swap", false },
-                { "future", false },
-                { "option", false },
                 { "approve", false },
                 { "redeem", false },
                 { "fetchEvent", false },

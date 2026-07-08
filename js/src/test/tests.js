@@ -1285,8 +1285,11 @@ class testMainClass {
         const files = ioDirRead(folder);
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            // skip subdirectories (e.g. the prediction/ folder) and any non-json entries
-            if (file.indexOf('.json') < 0) {
+            // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            // check the AST transpiler renders correctly in every language (indexOf/slice on this
+            // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if (file === 'prediction') {
                 continue;
             }
             const exchangeName = file.replace('.json', '');

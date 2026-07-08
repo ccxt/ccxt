@@ -30,12 +30,6 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'prediction' => true,
-                'CORS' => null,
-                'spot' => false,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
                 'approve' => false,
                 'redeem' => false,
                 'fetchEvent' => false,

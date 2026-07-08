@@ -35,12 +35,6 @@ public Object describe()
         return this.deepExtend(super.describe(), new java.util.HashMap<String, Object>() {{
             put( "has", new java.util.HashMap<String, Object>() {{
                 put( "prediction", true );
-                put( "CORS", null );
-                put( "spot", false );
-                put( "margin", false );
-                put( "swap", false );
-                put( "future", false );
-                put( "option", false );
                 put( "approve", false );
                 put( "redeem", false );
                 put( "fetchEvent", false );

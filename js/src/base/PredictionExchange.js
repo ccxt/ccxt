@@ -28,12 +28,6 @@ export default class PredictionExchange extends BaseExchange {
         return this.deepExtend(super.describe(), {
             'has': {
                 'prediction': true,
-                'CORS': undefined,
-                'spot': false,
-                'margin': false,
-                'swap': false,
-                'future': false,
-                'option': false,
                 'approve': false,
                 'redeem': false,
                 'fetchEvent': false,
