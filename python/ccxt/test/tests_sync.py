@@ -9,6 +9,7 @@ class testMainClass:
     request_tests = False
     ws_tests = False
     response_tests = False
+    prediction_tests = False
     info = False
     verbose = False
     debug = False
@@ -38,6 +39,8 @@ class testMainClass:
         self.sandbox = get_cli_arg_value('--sandbox')
         self.load_keys = get_cli_arg_value('--loadKeys')
         self.ws_tests = get_cli_arg_value('--ws')
+        # when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        self.prediction_tests = get_cli_arg_value('--prediction')
         self.lang = get_lang()
         self.ext = get_ext()
 
@@ -617,8 +620,48 @@ class testMainClass:
                     event_id = exchange.safe_string(events_list[0], 'id')
                 if (event_id is not None) and exchange.safe_bool(exchange.has, 'fetchEvent', False):
                     event = call_exchange_method_dynamically(exchange, 'fetchEvent', [event_id])
-                    assert exchange.is_dictionary(event), exchange.id + ' fetchEvent should return an event structure'
-                    assert exchange.safe_string(event, 'id') is not None, exchange.id + ' fetchEvent returned no id'
+                    self.assert_prediction_event(exchange, event)
+                # exercise EACH scoping parameter path, not just the initial query. a scope that
+                # silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                # series filter) is a real bug that only surfaces if the path is actually asserted.
+                # build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                # calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                scopes_to_test = []
+                if event_id is not None:
+                    # copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    # since eventId is reassigned above. every venue must refetch an event by its own id
+                    event_id_scope = event_id
+                    scopes_to_test.append({
+                        'eventId': event_id_scope,
+                    })
+                # optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                # category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                extra_scopes = exchange.safe_list(self.skipped_settings_for_exchange, 'preferredEventScopes', [])
+                extra_scopes_length = len(extra_scopes)
+                for si in range(0, extra_scopes_length):
+                    scopes_to_test.append(extra_scopes[si])
+                scopes_to_test_length = len(scopes_to_test)
+                for sj in range(0, scopes_to_test_length):
+                    scope = scopes_to_test[sj]
+                    # fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    scoped_events = call_exchange_method_dynamically(exchange, 'fetchEvents', [scope])
+                    scoped_list = exchange.safe_list({
+                        'events': scoped_events,
+                    }, 'events', [])
+                    scoped_list_length = len(scoped_list)
+                    assert scoped_list_length > 0, exchange.id + ' fetchEvents scoped by ' + exchange.json(scope) + ' returned no events - the parameter path may be broken'
+                    self.assert_prediction_events(exchange, scoped_list)
+                if event_query is not None:
+                    # limit must bound the number of events returned (applied by applyEventFetchParams)
+                    limited = call_exchange_method_dynamically(exchange, 'fetchEvents', [{
+    'query': event_query,
+    'limit': 1,
+}])
+                    limited_list = exchange.safe_list({
+                        'events': limited,
+                    }, 'events', [])
+                    limited_list_length = len(limited_list)
+                    assert limited_list_length <= 1, exchange.id + ' fetchEvents did not honour limit=1'
             except Exception as e:
                 dump('[TEST_FAILURE]', exchange.id, 'fetchEvents/fetchEvent failed:', exception_message(e))
                 return False
@@ -662,10 +705,33 @@ class testMainClass:
         assert isinstance(events, list), exchange.id + ' fetchEvents/fetchEvent should return a list'
         events_length = len(events)
         for i in range(0, events_length):
-            event = events[i]
-            assert exchange.is_dictionary(event), exchange.id + ' event should be a dict'
-            assert exchange.safe_string(event, 'id') is not None, exchange.id + ' event missing id'
-            assert exchange.safe_list(event, 'markets') is not None, exchange.id + ' event missing markets'
+            self.assert_prediction_event(exchange, events[i])
+        return True
+
+    def assert_prediction_event(self, exchange, event):
+        # validates one PredictionEvent structure (id, event handle, markets each carrying an
+        # outcomes list, and the optional typed fields when present)
+        log_text = ' event: ' + exchange.json(event)
+        assert exchange.is_dictionary(event), exchange.id + ' event should be a dict' + log_text
+        assert exchange.safe_string(event, 'id') is not None, exchange.id + ' event missing id' + log_text
+        assert exchange.safe_string(event, 'event') is not None, exchange.id + ' event missing the unified event handle' + log_text
+        markets = exchange.safe_list(event, 'markets')
+        assert markets is not None, exchange.id + ' event missing markets' + log_text
+        markets_length = len(markets)
+        for i in range(0, markets_length):
+            market = markets[i]
+            assert exchange.is_dictionary(market), exchange.id + ' event market should be a dict' + log_text
+            outcomes = exchange.safe_list(market, 'outcomes')
+            assert outcomes is not None, exchange.id + ' event market missing outcomes' + log_text
+        # optional typed fields must have the right type when present
+        active = exchange.safe_value(event, 'active')
+        if active is not None:
+            assert (active) or (active == False), exchange.id + ' event active must be a bool' + log_text
+        tags = exchange.safe_value(event, 'tags')
+        if tags is not None:
+            assert isinstance(tags, list), exchange.id + ' event tags must be a list' + log_text
+        info = exchange.safe_value(event, 'info')
+        assert info is not None, exchange.id + ' event missing info' + log_text
         return True
 
     def test_prediction_create_cancel_order(self, exchange, outcome):
@@ -911,6 +977,14 @@ class testMainClass:
         content = io_file_read(filename)
         return content
 
+    def load_events_from_file(self, id):
+        # prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        # static/events/<id>.json; returns undefined when the exchange has no events fixture
+        filename = get_root_dir() + './ts/src/test/static/events/' + id + '.json'
+        if not io_file_exists(filename):
+            return None
+        return io_file_read(filename)
+
     def load_currencies_from_file(self, id):
         filename = get_root_dir() + './ts/src/test/static/currencies/' + id + '.json'
         content = io_file_read(filename)
@@ -929,6 +1003,12 @@ class testMainClass:
         files = io_dir_read(folder)
         for i in range(0, len(files)):
             file = files[i]
+            # the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            # fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            # check the AST transpiler renders correctly in every language (indexOf/slice on this
+            # entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if file == 'prediction':
+                continue
             exchange_name = file.replace('.json', '')
             content = io_file_read(folder + file)
             result[exchange_name] = content
@@ -1189,8 +1269,19 @@ class testMainClass:
         return True
 
     def init_offline_exchange(self, exchange_name):
-        markets = self.load_markets_from_file(exchange_name)
-        currencies = self.load_currencies_from_file(exchange_name)
+        # prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        # fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        # standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        # holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        # setMarkets rebuilds cleanly from the outcome markets
+        prediction_events = None
+        if self.prediction_tests:
+            prediction_events = self.load_events_from_file(exchange_name)
+        markets = None
+        currencies = None
+        if prediction_events is None:
+            markets = self.load_markets_from_file(exchange_name)
+            currencies = self.load_currencies_from_file(exchange_name)
         wasm_exec_path = None
         library_path = None
         # const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
@@ -1253,8 +1344,16 @@ class testMainClass:
             options['secret'] = ''
         exchange = init_exchange(exchange_name, options)
         exchange.currencies = currencies
-        # prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
-        # populateOutcomes) the first time a method is called, so no explicit setMarkets here
+        # rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        # outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if prediction_events is not None:
+            event_markets = []
+            for i in range(0, len(prediction_events)):
+                ev_markets = exchange.safe_list(prediction_events[i], 'markets', [])
+                for j in range(0, len(ev_markets)):
+                    event_markets.append(ev_markets[j])
+            if len(event_markets) > 0:
+                exchange.set_markets(event_markets)
         # not working in python if assigned  in the config dict
         return exchange
 
@@ -1422,7 +1521,11 @@ class testMainClass:
         return True
 
     def run_static_tests(self, type, target_exchange=None, test_name=None):
+        # prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        # run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
         folder = get_root_dir() + './ts/src/test/static/' + type + '/'
+        if self.prediction_tests:
+            folder = folder + 'prediction/'
         static_data = self.load_static_data(folder, target_exchange)
         if static_data is None:
             return True

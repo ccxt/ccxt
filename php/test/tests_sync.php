@@ -21,6 +21,7 @@ class testMainClass {
     public $request_tests = false;
     public $ws_tests = false;
     public $response_tests = false;
+    public $prediction_tests = false;
     public $info = false;
     public $verbose = false;
     public $debug = false;
@@ -50,6 +51,8 @@ class testMainClass {
         $this->sandbox = get_cli_arg_value('--sandbox');
         $this->load_keys = get_cli_arg_value('--loadKeys');
         $this->ws_tests = get_cli_arg_value('--ws');
+        // when set, static request/response tests are read from the static/<type>/prediction/ subfolder
+        $this->prediction_tests = get_cli_arg_value('--prediction');
         $this->lang = get_lang();
         $this->ext = get_ext();
     }
@@ -762,8 +765,52 @@ class testMainClass {
                 }
                 if (($event_id !== null) && $exchange->safe_bool($exchange->has, 'fetchEvent', false)) {
                     $event = call_exchange_method_dynamically($exchange, 'fetchEvent', [$event_id]);
-                    assert($exchange->is_dictionary($event), $exchange->id . ' fetchEvent should return an event structure');
-                    assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' fetchEvent returned no id');
+                    $this->assert_prediction_event($exchange, $event);
+                }
+                // exercise EACH scoping parameter path, not just the initial query. a scope that
+                // silently returns [] (e.g. an eventId served from a cold cache, or an unresolved
+                // series filter) is a real bug that only surfaces if the path is actually asserted.
+                // build the scope list here (inline, not via a helper) so the callExchangeMethodDynamically
+                // calls stay inside this try/catch — Java can't propagate their checked exception otherwise
+                $scopes_to_test = [];
+                if ($event_id !== null) {
+                    // copy to a const so the dict capture is effectively-final (Java inner-class rule),
+                    // since eventId is reassigned above. every venue must refetch an event by its own id
+                    $event_id_scope = $event_id;
+                    $scopes_to_test[] = array(
+                        'eventId' => $event_id_scope,
+                    );
+                }
+                // optional exchange-specific server-side scopes (e.g. kalshi series_ticker / tags /
+                // category) declared in skip-tests.json preferredEventScopes as an array of param dicts
+                $extra_scopes = $exchange->safe_list($this->skipped_settings_for_exchange, 'preferredEventScopes', []);
+                $extra_scopes_length = count($extra_scopes);
+                for ($si = 0; $si < $extra_scopes_length; $si++) {
+                    $scopes_to_test[] = $extra_scopes[$si];
+                }
+                $scopes_to_test_length = count($scopes_to_test);
+                for ($sj = 0; $sj < $scopes_to_test_length; $sj++) {
+                    $scope = $scopes_to_test[$sj];
+                    // fetchEvents scoped by a single parameter must return a non-empty, valid list
+                    $scoped_events = call_exchange_method_dynamically($exchange, 'fetchEvents', [$scope]);
+                    $scoped_list = $exchange->safe_list(array(
+                        'events' => $scoped_events,
+                    ), 'events', []);
+                    $scoped_list_length = count($scoped_list);
+                    assert($scoped_list_length > 0, $exchange->id . ' fetchEvents scoped by ' . $exchange->json($scope) . ' returned no events - the parameter path may be broken');
+                    $this->assert_prediction_events($exchange, $scoped_list);
+                }
+                if ($event_query !== null) {
+                    // limit must bound the number of events returned (applied by applyEventFetchParams)
+                    $limited = call_exchange_method_dynamically($exchange, 'fetchEvents', [array(
+    'query' => $event_query,
+    'limit' => 1,
+)]);
+                    $limited_list = $exchange->safe_list(array(
+                        'events' => $limited,
+                    ), 'events', []);
+                    $limited_list_length = count($limited_list);
+                    assert($limited_list_length <= 1, $exchange->id . ' fetchEvents did not honour limit=1');
                 }
             } catch(\Throwable $e) {
                 dump('[TEST_FAILURE]', $exchange->id, 'fetchEvents/fetchEvent failed:', exception_message($e));
@@ -815,11 +862,38 @@ class testMainClass {
         assert(gettype($events) === 'array' && array_is_list($events), $exchange->id . ' fetchEvents/fetchEvent should return a list');
         $events_length = count($events);
         for ($i = 0; $i < $events_length; $i++) {
-            $event = $events[$i];
-            assert($exchange->is_dictionary($event), $exchange->id . ' event should be a dict');
-            assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' event missing id');
-            assert($exchange->safe_list($event, 'markets') !== null, $exchange->id . ' event missing markets');
+            $this->assert_prediction_event($exchange, $events[$i]);
         }
+        return true;
+    }
+
+    public function assert_prediction_event($exchange, $event) {
+        // validates one PredictionEvent structure (id, event handle, markets each carrying an
+        // outcomes list, and the optional typed fields when present)
+        $log_text = ' event: ' . $exchange->json($event);
+        assert($exchange->is_dictionary($event), $exchange->id . ' event should be a dict' . $log_text);
+        assert($exchange->safe_string($event, 'id') !== null, $exchange->id . ' event missing id' . $log_text);
+        assert($exchange->safe_string($event, 'event') !== null, $exchange->id . ' event missing the unified event handle' . $log_text);
+        $markets = $exchange->safe_list($event, 'markets');
+        assert($markets !== null, $exchange->id . ' event missing markets' . $log_text);
+        $markets_length = count($markets);
+        for ($i = 0; $i < $markets_length; $i++) {
+            $market = $markets[$i];
+            assert($exchange->is_dictionary($market), $exchange->id . ' event market should be a dict' . $log_text);
+            $outcomes = $exchange->safe_list($market, 'outcomes');
+            assert($outcomes !== null, $exchange->id . ' event market missing outcomes' . $log_text);
+        }
+        // optional typed fields must have the right type when present
+        $active = $exchange->safe_value($event, 'active');
+        if ($active !== null) {
+            assert(($active === true) || ($active === false), $exchange->id . ' event active must be a bool' . $log_text);
+        }
+        $tags = $exchange->safe_value($event, 'tags');
+        if ($tags !== null) {
+            assert(gettype($tags) === 'array' && array_is_list($tags), $exchange->id . ' event tags must be a list' . $log_text);
+        }
+        $info = $exchange->safe_value($event, 'info');
+        assert($info !== null, $exchange->id . ' event missing info' . $log_text);
         return true;
     }
 
@@ -1107,6 +1181,16 @@ class testMainClass {
         return $content;
     }
 
+    public function load_events_from_file($id) {
+        // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
+        // static/events/<id>.json; returns undefined when the exchange has no events fixture
+        $filename = get_root_dir() . './ts/src/test/static/events/' . $id . '.json';
+        if (!io_file_exists($filename)) {
+            return null;
+        }
+        return io_file_read($filename);
+    }
+
     public function load_currencies_from_file($id) {
         $filename = get_root_dir() . './ts/src/test/static/currencies/' . $id . '.json';
         $content = io_file_read($filename);
@@ -1128,6 +1212,13 @@ class testMainClass {
         $files = io_dir_read($folder);
         for ($i = 0; $i < count($files); $i++) {
             $file = $files[$i];
+            // the only non-json entry in the static dirs is the prediction/ subfolder (prediction
+            // fixtures live under static/<type>/prediction/). skip it by name — a string-equality
+            // check the AST transpiler renders correctly in every language (indexOf/slice on this
+            // entry mis-transpile in PHP: array_search / mb_strpos(...) < 0 / undefined)
+            if ($file === 'prediction') {
+                continue;
+            }
             $exchange_name = str_replace('.json', '', $file);
             $content = io_file_read($folder . $file);
             $result[$exchange_name] = $content;
@@ -1446,8 +1537,21 @@ class testMainClass {
     }
 
     public function init_offline_exchange($exchange_name) {
-        $markets = $this->load_markets_from_file($exchange_name);
-        $currencies = $this->load_currencies_from_file($exchange_name);
+        // prediction exchanges load their outcome markets from an event -> markets -> outcomes
+        // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
+        // standard prediction path (kalshi/limitless/myriad/polymarket/hyperliquid all ship one) and
+        // holds the crypto markets. when a fixture is present, skip markets/currencies entirely so
+        // setMarkets rebuilds cleanly from the outcome markets
+        $prediction_events = null;
+        if ($this->prediction_tests) {
+            $prediction_events = $this->load_events_from_file($exchange_name);
+        }
+        $markets = null;
+        $currencies = null;
+        if ($prediction_events === null) {
+            $markets = $this->load_markets_from_file($exchange_name);
+            $currencies = $this->load_currencies_from_file($exchange_name);
+        }
         $wasm_exec_path = null;
         $library_path = null;
         // const wasmExecPath = getRootDir () + '/src/test/static/binaries/wasm_exec.js';
@@ -1516,8 +1620,20 @@ class testMainClass {
         }
         $exchange = init_exchange($exchange_name, $options);
         $exchange->currencies = $currencies;
-        // prediction exchanges resolve outcomes lazily from the injected markets (loadOutcome ->
-        // populateOutcomes) the first time a method is called, so no explicit setMarkets here
+        // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
+        // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline
+        if ($prediction_events !== null) {
+            $event_markets = [];
+            for ($i = 0; $i < count($prediction_events); $i++) {
+                $ev_markets = $exchange->safe_list($prediction_events[$i], 'markets', []);
+                for ($j = 0; $j < count($ev_markets); $j++) {
+                    $event_markets[] = $ev_markets[$j];
+                }
+            }
+            if (count($event_markets) > 0) {
+                $exchange->set_markets($event_markets);
+            }
+        }
         // not working in python if assigned  in the config dict
         return $exchange;
     }
@@ -1726,7 +1842,12 @@ class testMainClass {
     }
 
     public function run_static_tests($type, $target_exchange = null, $test_name = null) {
+        // prediction-market exchanges keep their fixtures under static/<type>/prediction/ and are
+        // run separately via the --prediction flag (npm run request-ts-prediction / response-ts-prediction)
         $folder = get_root_dir() . './ts/src/test/static/' . $type . '/';
+        if ($this->prediction_tests) {
+            $folder = $folder . 'prediction/';
+        }
         $static_data = $this->load_static_data($folder, $target_exchange);
         if ($static_data === null) {
             return true;
