@@ -75,7 +75,7 @@ export default class hibachi extends Exchange {
      * @returns {object} a map of market symbols to [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFees(params?: {}): Promise<TradingFees>;
-    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    orderMessage(market: any, nonce: number, feeRate: number, type: OrderType, side: OrderSide, amount: number, price?: Num): any;
     createOrderRequest(nonce: number, symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): any;
     /**
      * @method
@@ -163,7 +163,7 @@ export default class hibachi extends Exchange {
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
-    encodeWithdrawMessage(amount: number, maxFees: number, address: string): Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    encodeWithdrawMessage(amount: number, maxFees: number, address: string): any;
     /**
      * @method
      * @name hibachi#withdraw

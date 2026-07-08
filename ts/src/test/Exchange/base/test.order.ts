@@ -48,7 +48,7 @@ function testOrder (exchange: Exchange, skippedProperties: object, method: strin
         const skippedNew = exchange.deepExtend (skippedProperties, { 'timestamp': true, 'datetime': true, 'side': true });
         if (entry['trades'] !== undefined) {
             for (let i = 0; i < entry['trades'].length; i++) {
-                testTrade (exchange, skippedNew, method, entry['trades'][i], symbol, now);
+                testTrade (exchange, skippedNew, method, entry['trades'][i], symbol, now, false);
             }
         }
     }

@@ -8,10 +8,10 @@ declare function pemToDer(pem: string): Uint8Array;
 declare const hash: (request: Input, hash: CHash, digest?: Digest) => any;
 declare const hmac: (request: Input, secret: Input, hash: CHash, digest?: Digest) => any;
 declare function ecdsa(request: Hex, secret: Hex, curve: CurveFn, prehash?: CHash | null, fixedLength?: boolean): {
-    r: string;
-    s: string;
-    v: number;
+    r: any;
+    s: any;
+    v: any;
 };
-declare function eddsa(request: Hex, secret: Input, curve: CurveFnEDDSA): string;
+declare function eddsa(request: Hex, secret: Input, curve: CurveFnEDDSA): any;
 declare function crc32(str: any, signed?: boolean): number;
 export { hash, hmac, crc32, ecdsa, eddsa, pemToDer, };

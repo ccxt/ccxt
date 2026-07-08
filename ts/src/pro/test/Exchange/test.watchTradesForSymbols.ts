@@ -28,10 +28,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
             for (let i = 0; i < response.length; i++) {
                 const trade = response[i];
                 symbol = trade['symbol'];
-                if (symbol === undefined) {
-                    continue;
-                }
-                testTrade (exchange, skippedProperties, method, trade, symbol, now);
+                testTrade (exchange, skippedProperties, method, trade, symbol, now, true);
                 testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
                 if (!exchange.inArray (symbol, returnedSymbols)) {
                     returnedSymbols.push (symbol);
