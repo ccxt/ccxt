@@ -1914,7 +1914,7 @@ ${constStatements.join('\n')}
             // (see go/v4/exchange_interface.go) to let prediction cores satisfy it. These dispatch
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
-            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs)\(/g, 'this.DerivedExchange.(I$1).$1('],
+            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)\(/g, 'this.DerivedExchange.(I$1).$1('],
         ]);
 
         const jsDelimiter = '// ' + delimiter;
@@ -2911,7 +2911,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // it), so call sites in the harness type-assert to the per-method interface (ccxt.I<Method>)
             // for exactly the method called. A prediction venue that overrides only some of these runs
             // the has-gated test for the ones it has, and each single-method assertion succeeds.
-            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.I$1).$1('],
+            [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)\(/g, 'exchange.(ccxt.I$1).$1('],
             [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any\) any  {/g, 'InitOfflineExchange(exchangeName any) ccxt.ICoreExchange {'],
@@ -3011,7 +3011,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // 62 symbol-based methods trimmed from ICoreExchange → assert to the per-method interface
                 // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
                 // only some of them satisfies each has-gated per-method assertion it actually runs.
-                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId)\(/g, 'exchange.(ccxt.I$1).$1('],
+                [/exchange\.(FetchL2OrderBook|FetchPositions|FetchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)\(/g, 'exchange.(ccxt.I$1).$1('],
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange.(\w+)\s*=\s*(.+)/g, 'exchange.Set$1($2)'],

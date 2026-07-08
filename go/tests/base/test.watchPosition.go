@@ -38,7 +38,7 @@ import "github.com/ccxt/ccxt/go/v4"
                                 }()
                     		    // try block:
                                             
-                        response = (UnWrapType(<-exchange.WatchPosition(symbol)))
+                        response = (<-exchange.(ccxt.IWatchPosition).WatchPosition(symbol))
                                     PanicOnError(response)
                     		    return nil
                     	    }()

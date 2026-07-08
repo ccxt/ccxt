@@ -3367,26 +3367,14 @@ class BaseExchange(object):
     def un_watch_trades(self, symbol: str, params={}):
         raise NotSupported(self.id + ' unWatchTrades() is not supported yet')
 
-    def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
-
     def un_watch_trades_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchTradesForSymbols() is not supported yet')
-
-    def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
-
-    def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
 
     def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
 
     def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
         raise NotSupported(self.id + ' unWatchOHLCVForSymbols() is not supported yet')
-
-    def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
-        raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
 
     def un_watch_order_book_for_symbols(self, symbols: List[str], params={}):
         raise NotSupported(self.id + ' unWatchOrderBookForSymbols() is not supported yet')
@@ -5603,33 +5591,6 @@ class BaseExchange(object):
         result = self.convert_trading_view_to_ohlcv(ohlcvs)
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
-    def watch_position(self, symbol: Str = None, params={}):
-        raise NotSupported(self.id + ' watchPosition() is not supported yet')
-
-    def fetch_positions_for_symbol(self, symbol: str, params={}):
-        """
-        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
-        :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
-        """
-        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
-
-    def fetch_positions_for_symbol_ws(self, symbol: str, params={}):
-        """
-        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
-        :param str symbol: unified market symbol
-        :param dict params: extra parameters specific to the endpoint
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
-        """
-        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
-
-    def fetch_positions_risk(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
-
-    def fetch_bids_asks(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
-
     def fetch_borrow_interest(self, code: Str = None, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchBorrowInterest() is not supported yet')
 
@@ -5924,34 +5885,14 @@ class BaseExchange(object):
     def calculate_rate_limiter_cost(self, api, method, path, params, config={}):
         return self.safe_value(config, 'cost', 1)
 
-    def fetch_mark_price(self, symbol: str, params={}):
-        if self.has['fetchMarkPrices']:
-            self.load_markets()
-            market = self.market(symbol)
-            symbol = market['symbol']
-            tickers = self.fetch_mark_prices([symbol], params)
-            ticker = self.safe_dict(tickers, symbol)
-            if ticker is None:
-                raise NullResponse(self.id + ' fetchMarkPrices() could not find a ticker for ' + symbol)
-            else:
-                return ticker
-        else:
-            raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
-
     def fetch_spot_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchSpotTickers() is not supported yet')
 
     def fetch_contract_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchContractTickers() is not supported yet')
 
-    def fetch_mark_prices(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
-
     def fetch_order_books(self, symbols: Strings = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchOrderBooks() is not supported yet')
-
-    def watch_bids_asks(self, symbols: Strings = None, params={}):
-        raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
 
     def un_watch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' unWatchTickers() is not supported yet')
@@ -6038,9 +5979,6 @@ class BaseExchange(object):
     def create_contract_orders(self, orders: List[OrderRequest], params={}):
         raise NotSupported(self.id + ' createContractOrders() is not supported yet')
 
-    def edit_orders(self, orders: List[OrderRequest], params={}):
-        raise NotSupported(self.id + ' editOrders() is not supported yet')
-
     def cancel_spot_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelSpotOrder() is not supported yet')
 
@@ -6058,9 +5996,6 @@ class BaseExchange(object):
 
     def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
         raise NotSupported(self.id + ' cancelOrdersForSymbols() is not supported yet')
-
-    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
 
     def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchMyLiquidations() is not supported yet')
@@ -6111,15 +6046,6 @@ class BaseExchange(object):
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' fetchFundingHistory() is not supported yet')
-
-    def close_position(self, symbol: str, side: OrderSide = None, params={}):
-        raise NotSupported(self.id + ' closePosition() is not supported yet')
-
-    def close_all_positions(self, params={}):
-        raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
-
-    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
-        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
 
     def parse_last_price(self, price, market: Market = None):
         raise NotSupported(self.id + ' parseLastPrice() is not supported yet')
@@ -7418,34 +7344,8 @@ class BaseExchange(object):
         reconstructedDate = day + month + year
         return reconstructedDate
 
-    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}):
-        """
-        fetches the history of margin added or reduced from contract isolated positions
-        :param str [symbol]: unified market symbol
-        :param int [since]: timestamp in ms of the position
-        :param int [limit]: the maximum amount of candles to fetch, default=1000
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
-        """
-        if self.has['fetchPositionsHistory']:
-            positions = self.fetch_positions_history([symbol], since, limit, params)
-            return positions
-        else:
-            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
-
     def load_markets_and_sign_in(self):
         [self.load_markets(), self.sign_in()]
-
-    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
-        """
-        fetches the history of margin added or reduced from contract isolated positions
-        :param str [symbol]: unified market symbol
-        :param int [since]: timestamp in ms of the position
-        :param int [limit]: the maximum amount of candles to fetch, default=1000
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
-        """
-        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
 
     def parse_margin_modification(self, data: dict, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
@@ -7490,24 +7390,6 @@ class BaseExchange(object):
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
-
-    def watch_mark_price(self, symbol: str, params={}):
-        """
-        watches a mark price for a specific market
-        :param str symbol: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
-        """
-        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
-
-    def watch_mark_prices(self, symbols: Strings = None, params={}):
-        """
-        watches the mark price for all markets
-        :param str[] symbols: unified symbol of the market to fetch the ticker for
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
-        """
-        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
 
     def withdraw_ws(self, code: str, amount: float, address: str, tag: Str = None, params={}):
         """
@@ -7651,6 +7533,124 @@ class BaseExchange(object):
 
 
 class Exchange(BaseExchange):
+
+    def close_position(self, symbol: str, side: OrderSide = None, params={}):
+        raise NotSupported(self.id + ' closePosition() is not supported yet')
+
+    def close_all_positions(self, params={}):
+        raise NotSupported(self.id + ' closeAllPositions() is not supported yet')
+
+    def edit_orders(self, orders: List[OrderRequest], params={}):
+        raise NotSupported(self.id + ' editOrders() is not supported yet')
+
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' fetchCanceledAndClosedOrders() is not supported yet')
+
+    def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        if self.has['fetchPositionsHistory']:
+            positions = self.fetchPositionsHistory([symbol], since, limit, params)
+            return positions
+        else:
+            raise NotSupported(self.id + ' fetchPositionHistory() is not supported yet')
+
+    def fetch_positions_history(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches the history of margin added or reduced from contract isolated positions
+        :param str [symbol]: unified market symbol
+        :param int [since]: timestamp in ms of the position
+        :param int [limit]: the maximum amount of candles to fetch, default=1000
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
+        """
+        raise NotSupported(self.id + ' fetchPositionsHistory() is not supported yet')
+
+    def fetch_positions_risk(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
+
+    def fetch_positions_for_symbol(self, symbol: str, params={}):
+        """
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
+
+    def fetch_positions_for_symbol_ws(self, symbol: str, params={}):
+        """
+        fetches all open positions for specific symbol, unlike fetchPositions(which is designed to work with multiple symbols) so self method might be preffered for one-market position, because of less rate-limit consumption and speed
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the endpoint
+        :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>` with maximum 3 items - possible one position for "one-way" mode, and possible two positions(long & short) for "two-way"(a.k.a. hedge) mode
+        """
+        raise NotSupported(self.id + ' fetchPositionsForSymbol() is not supported yet')
+
+    def watch_position(self, symbol: Str = None, params={}):
+        raise NotSupported(self.id + ' watchPosition() is not supported yet')
+
+    def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
+
+    def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
+
+    def fetch_bids_asks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
+
+    def fetch_mark_price(self, symbol: str, params={}):
+        if self.has['fetchMarkPrices']:
+            self.load_markets()
+            market = self.market(symbol)
+            symbol = market['symbol']
+            tickers = self.fetchMarkPrices([symbol], params)
+            ticker = self.safe_dict(tickers, symbol)
+            if ticker is None:
+                raise NullResponse(self.id + ' fetchMarkPrices() could not find a ticker for ' + symbol)
+            else:
+                return ticker
+        else:
+            raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
+
+    def fetch_mark_prices(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' fetchMarkPrices() is not supported yet')
+
+    def watch_bids_asks(self, symbols: Strings = None, params={}):
+        raise NotSupported(self.id + ' watchBidsAsks() is not supported yet')
+
+    def watch_mark_price(self, symbol: str, params={}):
+        """
+        watches a mark price for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrice() is not supported yet')
+
+    def watch_mark_prices(self, symbols: Strings = None, params={}):
+        """
+        watches the mark price for all markets
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        raise NotSupported(self.id + ' watchMarkPrices() is not supported yet')
+
+    def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
+        raise BadRequest(self.id + ' fetchL3OrderBook() is not supported yet')
+
+    def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
+
+    def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
+        raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
 
     def cancel_all_orders_ws(self, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' cancelAllOrdersWs() is not supported yet')

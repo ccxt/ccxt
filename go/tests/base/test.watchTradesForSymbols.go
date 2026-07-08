@@ -37,7 +37,7 @@ import "github.com/ccxt/ccxt/go/v4"
                                 }()
                     		    // try block:
                                             
-                        response = (UnWrapType(<-exchange.WatchTradesForSymbols(symbols)))
+                        response = (<-exchange.(ccxt.IWatchTradesForSymbols).WatchTradesForSymbols(symbols))
                                     PanicOnError(response)
                     		    return nil
                     	    }()

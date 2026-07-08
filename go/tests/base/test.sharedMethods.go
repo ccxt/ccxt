@@ -447,7 +447,7 @@ import "github.com/ccxt/ccxt/go/v4"
                 } else if IsTrue(GetValue(exchange.GetHas(), "fetchBidsAsks")) {
                     usedMethod = "fetchBidsAsks"
             
-                    tickers:= (<-exchange.FetchBidsAsks([]any{symbol}))
+                    tickers:= (<-exchange.(ccxt.IFetchBidsAsks).FetchBidsAsks([]any{symbol}))
                     PanicOnError(tickers)
                     var ticker any = exchange.SafeDict(tickers, symbol)
                     bestBid = exchange.SafeNumber(ticker, "bid")

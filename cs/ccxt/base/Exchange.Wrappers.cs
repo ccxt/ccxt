@@ -59,39 +59,12 @@ public partial class BaseExchange
         var res = await this.watchMyLiquidationsForSymbols(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Liquidation(item)).ToList<Liquidation>();
     }
-    public async Task<List<Trade>> WatchTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchTradesForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    public async Task<List<Trade>> WatchMyTradesForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchMyTradesForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Trade(item)).ToList<Trade>();
-    }
-    public async Task<List<Order>> WatchOrdersForSymbols(List<string> symbols, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchOrdersForSymbols(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
     public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
         return Helper.ConvertToDictionaryOHLCVList(res);
-    }
-    public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.watchOrderBookForSymbols(symbols, limit, parameters);
-        return ((ccxt.pro.IOrderBook) res).Copy();
     }
     public async Task<List<DepositAddress>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
@@ -305,31 +278,6 @@ public partial class BaseExchange
         var res = await this.fetch2(path, api, method, parameters, headers, body, config);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Position> WatchPosition(string symbol = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchPosition(symbol, parameters);
-        return new Position(res);
-    }
-    public async Task<List<Position>> FetchPositionsForSymbol(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositionsForSymbol(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
-    public async Task<List<Position>> FetchPositionsForSymbolWs(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositionsForSymbolWs(symbol, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
-    public async Task<List<Position>> FetchPositionsRisk(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchPositionsRisk(symbols, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
-    public async Task<Tickers> FetchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchBidsAsks(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<List<BorrowInterest>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -419,11 +367,6 @@ public partial class BaseExchange
         var res = await this.fetchIsolatedBorrowRate(symbol, parameters);
         return new IsolatedBorrowRate(res);
     }
-    public async Task<Ticker> FetchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkPrice(symbol, parameters);
-        return new Ticker(res);
-    }
     public async Task<Tickers> FetchSpotTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchSpotTickers(symbols, parameters);
@@ -434,21 +377,11 @@ public partial class BaseExchange
         var res = await this.fetchContractTickers(symbols, parameters);
         return new Tickers(res);
     }
-    public async Task<Tickers> FetchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchMarkPrices(symbols, parameters);
-        return new Tickers(res);
-    }
     public async Task<OrderBooks> FetchOrderBooks(List<String> symbols = null, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBooks(symbols, limit, parameters);
         return new OrderBooks(res);
-    }
-    public async Task<Tickers> WatchBidsAsks(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchBidsAsks(symbols, parameters);
-        return new Tickers(res);
     }
     public async Task<Order> CreateTwapOrder(string symbol, string side, double amount, double duration, Dictionary<string, object> parameters = null)
     {
@@ -503,11 +436,6 @@ public partial class BaseExchange
         var res = await this.createContractOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<List<Order>> EditOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.editOrders(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
     public async Task<Order> CancelSpotOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelSpotOrder(id, symbol, parameters);
@@ -536,13 +464,6 @@ public partial class BaseExchange
     public async Task<List<Order>> CancelOrdersForSymbols(List<CancellationRequest> orders, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrdersForSymbols(orders, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
-    public async Task<List<Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     public async Task<List<Liquidation>> FetchMyLiquidations(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
@@ -633,12 +554,6 @@ public partial class BaseExchange
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
-    }
-    public async Task<OrderBook> FetchL3OrderBook(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchL3OrderBook(symbol, limit, parameters);
-        return new OrderBook(res);
     }
     public async Task<DepositAddress> FetchDepositAddress(string code, Dictionary<string, object> parameters = null)
     {
@@ -761,20 +676,6 @@ public partial class BaseExchange
         var res = await this.fetchPaginatedCallIncremental(method, symbol, since, limit, parameters, pageKey, maxEntriesPerRequest);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<List<Position>> FetchPositionHistory(string symbol, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchPositionHistory(symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
-    public async Task<List<Position>> FetchPositionsHistory(List<String> symbols = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchPositionsHistory(symbols, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
-    }
     public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransfer(id, code, parameters);
@@ -786,16 +687,6 @@ public partial class BaseExchange
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
-    }
-    public async Task<Ticker> WatchMarkPrice(string symbol, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMarkPrice(symbol, parameters);
-        return new Ticker(res);
-    }
-    public async Task<Tickers> WatchMarkPrices(List<String> symbols = null, Dictionary<string, object> parameters = null)
-    {
-        var res = await this.watchMarkPrices(symbols, parameters);
-        return new Tickers(res);
     }
     public async Task<Dictionary<string, object>> WithdrawWs(string code, double amount, string address, string tag = null, Dictionary<string, object> parameters = null)
     {

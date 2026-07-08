@@ -40,7 +40,7 @@ import "github.com/ccxt/ccxt/go/v4"
                                 }()
                     		    // try block:
                                             
-                        response = (UnWrapType(<-exchange.WatchOrderBookForSymbols(symbols)))
+                        response = (<-exchange.(ccxt.IWatchOrderBookForSymbols).WatchOrderBookForSymbols(symbols))
                                     PanicOnError(response)
                     		    return nil
                     	    }()

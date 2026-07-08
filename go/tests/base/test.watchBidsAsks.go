@@ -62,7 +62,7 @@ import "github.com/ccxt/ccxt/go/v4"
                                 }()
                     		    // try block:
                                             
-                        response = (UnWrapType(<-exchange.WatchBidsAsks(argSymbols, argParams)))
+                        response = (<-exchange.(ccxt.IWatchBidsAsks).WatchBidsAsks(argSymbols, argParams))
                                     PanicOnError(response)
                     		    return nil
                     	    }()

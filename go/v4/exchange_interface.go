@@ -62,6 +62,24 @@ type IFetchOrdersWs interface {
 type IFetchTickersWs interface {
 	FetchTickersWs(optionalArgs ...any) <-chan any
 }
+type IFetchPositionsHistory interface {
+	FetchPositionsHistory(optionalArgs ...any) <-chan any
+}
+type IFetchBidsAsks interface {
+	FetchBidsAsks(optionalArgs ...any) <-chan any
+}
+type IWatchBidsAsks interface {
+	WatchBidsAsks(optionalArgs ...any) <-chan any
+}
+type IWatchOrderBookForSymbols interface {
+	WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any
+}
+type IWatchPosition interface {
+	WatchPosition(optionalArgs ...any) <-chan any
+}
+type IWatchTradesForSymbols interface {
+	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
+}
 
 type IBaseExchange interface {
 	SetEnableRateLimit(rateLimit bool)
@@ -189,7 +207,6 @@ type ICoreExchange interface {
 	FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 	FetchStatus(optionalArgs ...any) <-chan any
 	FetchTicker(symbol any, optionalArgs ...any) <-chan any
-	FetchBidsAsks(optionalArgs ...any) <-chan any
 	FetchLastPrices(optionalArgs ...any) <-chan any
 	ParseOpenInterest(interest any, optionalArgs ...any) any
 	FetchMyLiquidations(optionalArgs ...any) <-chan any
@@ -312,7 +329,6 @@ type ICoreExchange interface {
 	// FetchMarketsWs(optionalArgs ...any) <-chan any
 	FetchOHLCVWs(symbol any, optionalArgs ...any) <-chan any
 	FetchOrdersByStatusWs(status any, optionalArgs ...any) <-chan any
-	FetchPositionsForSymbolWs(symbol any, optionalArgs ...any) <-chan any
 	FetchTradingFeesWs(optionalArgs ...any) <-chan any
 	FetchWithdrawalsWs(optionalArgs ...any) <-chan any
 	UnWatchBidsAsks(optionalArgs ...any) <-chan any
@@ -329,27 +345,19 @@ type ICoreExchange interface {
 	UnWatchTrades(symbol any, optionalArgs ...any) <-chan any
 	UnWatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchBalance(optionalArgs ...any) <-chan any
-	WatchBidsAsks(optionalArgs ...any) <-chan any
 	WatchLiquidations(symbol any, optionalArgs ...any) <-chan any
 	WatchLiquidationsForSymbols(symbol any, optionalArgs ...any) <-chan any
-	WatchMarkPrice(symbol any, optionalArgs ...any) <-chan any
-	WatchMarkPrices(optionalArgs ...any) <-chan any
 	WatchMyLiquidations(symbol any, optionalArgs ...any) <-chan any
 	WatchMyLiquidationsForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchMyTrades(optionalArgs ...any) <-chan any
-	WatchMyTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchOHLCV(symbol any, optionalArgs ...any) <-chan any
 	WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalArgs ...any) <-chan any
 	WatchOrderBook(symbol any, optionalArgs ...any) <-chan any
-	WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WatchOrders(optionalArgs ...any) <-chan any
-	WatchOrdersForSymbols(symbols any, optionalArgs ...any) <-chan any
-	WatchPosition(optionalArgs ...any) <-chan any
 	WatchPositions(optionalArgs ...any) <-chan any
 	WatchTicker(symbol any, optionalArgs ...any) <-chan any
 	WatchTickers(optionalArgs ...any) <-chan any
 	WatchTrades(symbol any, optionalArgs ...any) <-chan any
-	WatchTradesForSymbols(symbols any, optionalArgs ...any) <-chan any
 	WithdrawWs(code any, amount any, address any, optionalArgs ...any) <-chan any
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
@@ -415,7 +423,6 @@ type IDerivedExchange interface {
 	FetchOHLCV(symbol any, optionalArgs ...any) <-chan any
 	FetchFundingRates(optionalArgs ...any) <-chan any
 	FetchFundingIntervals(optionalArgs ...any) <-chan any
-	FetchPositionsHistory(optionalArgs ...any) <-chan any
 	FetchDepositsWithdrawals(optionalArgs ...any) <-chan any
 	ParseMarginModification(data any, optionalArgs ...any) any
 	FetchMarkets(optionalArgs ...any) <-chan any

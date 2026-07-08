@@ -940,13 +940,10 @@ func (this *Kalshi) CreateOrders(orders []ccxt.PredictionOrderRequest, options .
     }
     return ccxt.NewPredictionOrderArray(res), nil
 }
-func (this *Kalshi) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Kalshi) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Kalshi) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Kalshi) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Kalshi) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
 func (this *Kalshi) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
-func (this *Kalshi) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
 func (this *Kalshi) FetchConvertCurrencies(params ...any) (ccxt.Currencies, error) {return this.exchangeTyped.FetchConvertCurrencies(params...)}
 func (this *Kalshi) FetchConvertQuote(fromCode string, toCode string, options ...ccxt.FetchConvertQuoteOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertQuote(fromCode, toCode, options...)}
 func (this *Kalshi) FetchConvertTrade(id string, options ...ccxt.FetchConvertTradeOptions) (ccxt.Conversion, error) {return this.exchangeTyped.FetchConvertTrade(id, options...)}
@@ -986,8 +983,6 @@ func (this *Kalshi) FetchMarginMode(symbol string, options ...ccxt.FetchMarginMo
 func (this *Kalshi) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
 func (this *Kalshi) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
 func (this *Kalshi) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
-func (this *Kalshi) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
-func (this *Kalshi) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
 func (this *Kalshi) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.FetchMyLiquidations(options...)}
 func (this *Kalshi) FetchOpenInterestHistory(symbol string, options ...ccxt.FetchOpenInterestHistoryOptions) ([]ccxt.OpenInterest, error) {return this.exchangeTyped.FetchOpenInterestHistory(symbol, options...)}
 func (this *Kalshi) FetchOpenInterests(options ...ccxt.FetchOpenInterestsOptions) (ccxt.OpenInterests, error) {return this.exchangeTyped.FetchOpenInterests(options...)}
@@ -1046,11 +1041,7 @@ func (this *Kalshi) FetchPosition(outcome string, options ...ccxt.FetchPositionO
     }
     return ccxt.NewPredictionPosition(res), nil
 }
-func (this *Kalshi) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
 func (this *Kalshi) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.FetchPositionMode(options...)}
-func (this *Kalshi) FetchPositionsForSymbol(symbol string, options ...ccxt.FetchPositionsForSymbolOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
-func (this *Kalshi) FetchPositionsHistory(options ...ccxt.FetchPositionsHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
-func (this *Kalshi) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
 func (this *Kalshi) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
 func (this *Kalshi) FetchTime(params ...any) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
 func (this *Kalshi) FetchTradingFee(outcome string, options ...ccxt.FetchTradingFeeOptions) (ccxt.PredictionTradingFee, error) {
@@ -1088,7 +1079,6 @@ func (this *Kalshi) FetchBalanceWs(params ...any) (ccxt.Balances, error) {return
 func (this *Kalshi) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
 func (this *Kalshi) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
 func (this *Kalshi) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)}
-func (this *Kalshi) FetchPositionsForSymbolWs(symbol string, options ...ccxt.FetchPositionsForSymbolWsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)}
 func (this *Kalshi) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
 func (this *Kalshi) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
 func (this *Kalshi) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
@@ -1103,10 +1093,7 @@ func (this *Kalshi) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (any, 
 func (this *Kalshi) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
 func (this *Kalshi) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
 func (this *Kalshi) WatchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
-func (this *Kalshi) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Kalshi) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
-func (this *Kalshi) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
-func (this *Kalshi) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
 func (this *Kalshi) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
 func (this *Kalshi) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
 func (this *Kalshi) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
@@ -1167,7 +1154,6 @@ func (this *Kalshi) WatchOrderBook(outcome string, options ...ccxt.WatchOrderBoo
     }
     return ccxt.NewPredictionOrderBookFromWs(res), nil
 }
-func (this *Kalshi) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
 func (this *Kalshi) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := WatchOrdersOptionsStruct{}
@@ -1201,8 +1187,6 @@ func (this *Kalshi) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Predictio
     }
     return ccxt.NewPredictionOrderArray(res), nil
 }
-func (this *Kalshi) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
-func (this *Kalshi) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
 func (this *Kalshi) WatchPositions(options ...WatchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := WatchPositionsOptionsStruct{}
@@ -1305,5 +1289,4 @@ func (this *Kalshi) WatchTrades(outcome string, options ...ccxt.WatchTradesOptio
     }
     return ccxt.NewPredictionTradeArray(res), nil
 }
-func (this *Kalshi) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
 func (this *Kalshi) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

@@ -628,13 +628,10 @@ func (this *Hyperliquid) CreateOrders(orders []ccxt.PredictionOrderRequest, opti
     }
     return ccxt.NewPredictionOrderArray(res), nil
 }
-func (this *Hyperliquid) EditOrders(orders []ccxt.OrderRequest, options ...ccxt.EditOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.EditOrders(orders, options...)}
 func (this *Hyperliquid) FetchAccounts(params ...any) ([]ccxt.Account, error) {return this.exchangeTyped.FetchAccounts(params...)}
 func (this *Hyperliquid) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {return this.exchangeTyped.FetchAllGreeks(options...)}
-func (this *Hyperliquid) FetchBidsAsks(options ...ccxt.FetchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchBidsAsks(options...)}
 func (this *Hyperliquid) FetchBorrowInterest(options ...ccxt.FetchBorrowInterestOptions) ([]ccxt.BorrowInterest, error) {return this.exchangeTyped.FetchBorrowInterest(options...)}
 func (this *Hyperliquid) FetchBorrowRate(code string, amount float64, options ...ccxt.FetchBorrowRateOptions) (map[string]any, error) {return this.exchangeTyped.FetchBorrowRate(code, amount, options...)}
-func (this *Hyperliquid) FetchCanceledAndClosedOrders(options ...ccxt.FetchCanceledAndClosedOrdersOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchCanceledAndClosedOrders(options...)}
 func (this *Hyperliquid) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := FetchClosedOrdersOptionsStruct{}
@@ -707,8 +704,6 @@ func (this *Hyperliquid) FetchMarginMode(symbol string, options ...ccxt.FetchMar
 func (this *Hyperliquid) FetchMarginModes(options ...ccxt.FetchMarginModesOptions) (ccxt.MarginModes, error) {return this.exchangeTyped.FetchMarginModes(options...)}
 func (this *Hyperliquid) FetchMarketLeverageTiers(symbol string, options ...ccxt.FetchMarketLeverageTiersOptions) ([]ccxt.LeverageTier, error) {return this.exchangeTyped.FetchMarketLeverageTiers(symbol, options...)}
 func (this *Hyperliquid) FetchMarkOHLCV(symbol string, options ...ccxt.FetchMarkOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchMarkOHLCV(symbol, options...)}
-func (this *Hyperliquid) FetchMarkPrice(symbol string, options ...ccxt.FetchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.FetchMarkPrice(symbol, options...)}
-func (this *Hyperliquid) FetchMarkPrices(options ...ccxt.FetchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.FetchMarkPrices(options...)}
 func (this *Hyperliquid) FetchMyLiquidations(options ...ccxt.FetchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.FetchMyLiquidations(options...)}
 func (this *Hyperliquid) FetchOpenInterest(outcome string, options ...ccxt.FetchOpenInterestOptions) (ccxt.PredictionOpenInterest, error) {
 
@@ -785,11 +780,7 @@ func (this *Hyperliquid) FetchPosition(outcome string, options ...ccxt.FetchPosi
     }
     return ccxt.NewPredictionPosition(res), nil
 }
-func (this *Hyperliquid) FetchPositionHistory(symbol string, options ...ccxt.FetchPositionHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionHistory(symbol, options...)}
 func (this *Hyperliquid) FetchPositionMode(options ...ccxt.FetchPositionModeOptions) (map[string]any, error) {return this.exchangeTyped.FetchPositionMode(options...)}
-func (this *Hyperliquid) FetchPositionsForSymbol(symbol string, options ...ccxt.FetchPositionsForSymbolOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbol(symbol, options...)}
-func (this *Hyperliquid) FetchPositionsHistory(options ...ccxt.FetchPositionsHistoryOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsHistory(options...)}
-func (this *Hyperliquid) FetchPositionsRisk(options ...ccxt.FetchPositionsRiskOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsRisk(options...)}
 func (this *Hyperliquid) FetchPremiumIndexOHLCV(symbol string, options ...ccxt.FetchPremiumIndexOHLCVOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchPremiumIndexOHLCV(symbol, options...)}
 func (this *Hyperliquid) FetchStatus(params ...any) (map[string]any, error) {return this.exchangeTyped.FetchStatus(params...)}
 func (this *Hyperliquid) FetchTime(params ...any) ( int64, error) {return this.exchangeTyped.FetchTime(params...)}
@@ -828,7 +819,6 @@ func (this *Hyperliquid) FetchBalanceWs(params ...any) (ccxt.Balances, error) {r
 func (this *Hyperliquid) FetchDepositsWs(options ...ccxt.FetchDepositsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchDepositsWs(options...)}
 func (this *Hyperliquid) FetchOHLCVWs(symbol string, options ...ccxt.FetchOHLCVWsOptions) ([]ccxt.OHLCV, error) {return this.exchangeTyped.FetchOHLCVWs(symbol, options...)}
 func (this *Hyperliquid) FetchOrdersByStatusWs(status string, options ...ccxt.FetchOrdersByStatusWsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.FetchOrdersByStatusWs(status, options...)}
-func (this *Hyperliquid) FetchPositionsForSymbolWs(symbol string, options ...ccxt.FetchPositionsForSymbolWsOptions) ([]ccxt.Position, error) {return this.exchangeTyped.FetchPositionsForSymbolWs(symbol, options...)}
 func (this *Hyperliquid) FetchTradingFeesWs(params ...any) (ccxt.TradingFees, error) {return this.exchangeTyped.FetchTradingFeesWs(params...)}
 func (this *Hyperliquid) FetchWithdrawalsWs(options ...ccxt.FetchWithdrawalsWsOptions) (map[string]any, error) {return this.exchangeTyped.FetchWithdrawalsWs(options...)}
 func (this *Hyperliquid) UnWatchBidsAsks(options ...ccxt.UnWatchBidsAsksOptions) (any, error) {return this.exchangeTyped.UnWatchBidsAsks(options...)}
@@ -843,10 +833,7 @@ func (this *Hyperliquid) UnWatchTickers(options ...ccxt.UnWatchTickersOptions) (
 func (this *Hyperliquid) UnWatchTrades(symbol string, options ...ccxt.UnWatchTradesOptions) (any, error) {return this.exchangeTyped.UnWatchTrades(symbol, options...)}
 func (this *Hyperliquid) UnWatchTradesForSymbols(symbols []string, options ...ccxt.UnWatchTradesForSymbolsOptions) (any, error) {return this.exchangeTyped.UnWatchTradesForSymbols(symbols, options...)}
 func (this *Hyperliquid) WatchBalance(params ...any) (ccxt.Balances, error) {return this.exchangeTyped.WatchBalance(params...)}
-func (this *Hyperliquid) WatchBidsAsks(options ...ccxt.WatchBidsAsksOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchBidsAsks(options...)}
 func (this *Hyperliquid) WatchLiquidations(symbol string, options ...ccxt.WatchLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchLiquidations(symbol, options...)}
-func (this *Hyperliquid) WatchMarkPrice(symbol string, options ...ccxt.WatchMarkPriceOptions) (ccxt.Ticker, error) {return this.exchangeTyped.WatchMarkPrice(symbol, options...)}
-func (this *Hyperliquid) WatchMarkPrices(options ...ccxt.WatchMarkPricesOptions) (ccxt.Tickers, error) {return this.exchangeTyped.WatchMarkPrices(options...)}
 func (this *Hyperliquid) WatchMyLiquidations(symbol string, options ...ccxt.WatchMyLiquidationsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidations(symbol, options...)}
 func (this *Hyperliquid) WatchMyLiquidationsForSymbols(symbols []string, options ...ccxt.WatchMyLiquidationsForSymbolsOptions) ([]ccxt.Liquidation, error) {return this.exchangeTyped.WatchMyLiquidationsForSymbols(symbols, options...)}
 func (this *Hyperliquid) WatchMyTrades(options ...WatchMyTradesOptions) ([]ccxt.PredictionTrade, error) {
@@ -907,7 +894,6 @@ func (this *Hyperliquid) WatchOrderBook(outcome string, options ...ccxt.WatchOrd
     }
     return ccxt.NewPredictionOrderBookFromWs(res), nil
 }
-func (this *Hyperliquid) WatchOrderBookForSymbols(symbols []string, options ...ccxt.WatchOrderBookForSymbolsOptions) (ccxt.OrderBook, error) {return this.exchangeTyped.WatchOrderBookForSymbols(symbols, options...)}
 func (this *Hyperliquid) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.PredictionOrder, error) {
 
     opts := WatchOrdersOptionsStruct{}
@@ -941,8 +927,6 @@ func (this *Hyperliquid) WatchOrders(options ...WatchOrdersOptions) ([]ccxt.Pred
     }
     return ccxt.NewPredictionOrderArray(res), nil
 }
-func (this *Hyperliquid) WatchOrdersForSymbols(symbols []string, options ...ccxt.WatchOrdersForSymbolsOptions) ([]ccxt.Order, error) {return this.exchangeTyped.WatchOrdersForSymbols(symbols, options...)}
-func (this *Hyperliquid) WatchPosition(options ...ccxt.WatchPositionOptions) (ccxt.Position, error) {return this.exchangeTyped.WatchPosition(options...)}
 func (this *Hyperliquid) WatchPositions(options ...WatchPositionsOptions) ([]ccxt.PredictionPosition, error) {
 
     opts := WatchPositionsOptionsStruct{}
@@ -1045,5 +1029,4 @@ func (this *Hyperliquid) WatchTrades(outcome string, options ...ccxt.WatchTrades
     }
     return ccxt.NewPredictionTradeArray(res), nil
 }
-func (this *Hyperliquid) WatchTradesForSymbols(symbols []string, options ...ccxt.WatchTradesForSymbolsOptions) ([]ccxt.Trade, error) {return this.exchangeTyped.WatchTradesForSymbols(symbols, options...)}
 func (this *Hyperliquid) WithdrawWs(code string, amount float64, address string, options ...ccxt.WithdrawWsOptions) (ccxt.Transaction, error) {return this.exchangeTyped.WithdrawWs(code, amount, address, options...)}

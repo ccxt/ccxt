@@ -3745,20 +3745,8 @@ class BaseExchange {
         throw new NotSupported($this->id . ' unWatchTrades() is not supported yet');
     }
 
-    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
-    }
-
     public function un_watch_trades_for_symbols(array $symbols, $params = array()) {
         throw new NotSupported($this->id . ' unWatchTradesForSymbols() is not supported yet');
-    }
-
-    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
-    }
-
-    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -3767,10 +3755,6 @@ class BaseExchange {
 
     public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array()) {
         throw new NotSupported($this->id . ' unWatchOHLCVForSymbols() is not supported yet');
-    }
-
-    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
     }
 
     public function un_watch_order_book_for_symbols(array $symbols, $params = array()) {
@@ -6472,38 +6456,6 @@ class BaseExchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function watch_position(?string $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' watchPosition() is not supported yet');
-    }
-
-    public function fetch_positions_for_symbol(string $symbol, $params = array()) {
-        /**
-         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
-         * @param {string} $symbol unified market $symbol
-         * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
-         */
-        throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
-    }
-
-    public function fetch_positions_for_symbol_ws(string $symbol, $params = array()) {
-        /**
-         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
-         * @param {string} $symbol unified market $symbol
-         * @param {array} $params extra parameters specific to the endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
-         */
-        throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
-    }
-
-    public function fetch_positions_risk(?array $symbols = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
-    }
-
-    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
-    }
-
     public function fetch_borrow_interest(?string $code = null, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchBorrowInterest() is not supported yet');
     }
@@ -6879,23 +6831,6 @@ class BaseExchange {
         return $this->safe_value($config, 'cost', 1);
     }
 
-    public function fetch_mark_price(string $symbol, $params = array()) {
-        if ($this->has['fetchMarkPrices']) {
-            $this->load_markets();
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $tickers = $this->fetch_mark_prices(array( $symbol ), $params);
-            $ticker = $this->safe_dict($tickers, $symbol);
-            if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
-            } else {
-                return $ticker;
-            }
-        } else {
-            throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
-        }
-    }
-
     public function fetch_spot_tickers(?array $symbols = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchSpotTickers() is not supported yet');
     }
@@ -6904,16 +6839,8 @@ class BaseExchange {
         throw new NotSupported($this->id . ' fetchContractTickers() is not supported yet');
     }
 
-    public function fetch_mark_prices(?array $symbols = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
-    }
-
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchOrderBooks() is not supported yet');
-    }
-
-    public function watch_bids_asks(?array $symbols = null, $params = array()) {
-        throw new NotSupported($this->id . ' watchBidsAsks() is not supported yet');
     }
 
     public function un_watch_tickers(?array $symbols = null, $params = array()) {
@@ -7027,10 +6954,6 @@ class BaseExchange {
         throw new NotSupported($this->id . ' createContractOrders() is not supported yet');
     }
 
-    public function edit_orders(array $orders, $params = array()) {
-        throw new NotSupported($this->id . ' editOrders() is not supported yet');
-    }
-
     public function cancel_spot_order(string $id, ?string $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' cancelSpotOrder() is not supported yet');
     }
@@ -7053,10 +6976,6 @@ class BaseExchange {
 
     public function cancel_orders_for_symbols(array $orders, $params = array()) {
         throw new NotSupported($this->id . ' cancelOrdersForSymbols() is not supported yet');
-    }
-
-    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
     }
 
     public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -7121,18 +7040,6 @@ class BaseExchange {
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchFundingHistory() is not supported yet');
-    }
-
-    public function close_position(string $symbol, ?string $side = null, $params = array()) {
-        throw new NotSupported($this->id . ' closePosition() is not supported yet');
-    }
-
-    public function close_all_positions($params = array()) {
-        throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
-    }
-
-    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()) {
-        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
     }
 
     public function parse_last_price($price, ?array $market = null) {
@@ -8711,37 +8618,8 @@ class BaseExchange {
         return $reconstructedDate;
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
-        /**
-         * fetches the history of margin added or reduced from contract isolated $positions
-         * @param {string} [$symbol] unified market $symbol
-         * @param {int} [$since] timestamp in ms of the position
-         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
-         */
-        if ($this->has['fetchPositionsHistory']) {
-            $positions = $this->fetch_positions_history(array( $symbol ), $since, $limit, $params);
-            return $positions;
-        } else {
-            throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
-        }
-    }
-
     public function load_markets_and_sign_in() {
         array( $this->load_markets(), $this->sign_in() );
-    }
-
-    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        /**
-         * fetches the history of margin added or reduced from contract isolated positions
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [$since] timestamp in ms of the position
-         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
-         */
-        throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
     }
 
     public function parse_margin_modification(array $data, ?array $market = null) {
@@ -8793,26 +8671,6 @@ class BaseExchange {
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
         throw new NotSupported($this->id . ' unWatchOHLCV () is not supported yet');
-    }
-
-    public function watch_mark_price(string $symbol, $params = array()) {
-        /**
-         * watches a mark price for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-         */
-        throw new NotSupported($this->id . ' watchMarkPrice () is not supported yet');
-    }
-
-    public function watch_mark_prices(?array $symbols = null, $params = array()) {
-        /**
-         * watches the mark price for all markets
-         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
-         */
-        throw new NotSupported($this->id . ' watchMarkPrices () is not supported yet');
     }
 
     public function withdraw_ws(string $code, float $amount, string $address, ?string $tag = null, $params = array()) {
@@ -8996,6 +8854,148 @@ class BaseExchange {
 }
 
 class Exchange extends BaseExchange {
+
+    public function close_position(string $symbol, ?string $side = null, $params = array()) {
+        throw new NotSupported($this->id . ' closePosition() is not supported yet');
+    }
+
+    public function close_all_positions($params = array()) {
+        throw new NotSupported($this->id . ' closeAllPositions() is not supported yet');
+    }
+
+    public function edit_orders(array $orders, $params = array()) {
+        throw new NotSupported($this->id . ' editOrders() is not supported yet');
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
+    }
+
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches the history of margin added or reduced from contract isolated $positions
+         * @param {string} [$symbol] unified market $symbol
+         * @param {int} [$since] timestamp in ms of the position
+         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        if ($this->has['fetchPositionsHistory']) {
+            $positions = $this->fetchPositionsHistory(array( $symbol ), $since, $limit, $params);
+            return $positions;
+        } else {
+            throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
+        }
+    }
+
+    public function fetch_positions_history(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [$since] timestamp in ms of the position
+         * @param {int} [$limit] the maximum amount of candles to fetch, default=1000
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
+         */
+        throw new NotSupported($this->id . ' fetchPositionsHistory () is not supported yet');
+    }
+
+    public function fetch_positions_risk(?array $symbols = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
+    }
+
+    public function fetch_positions_for_symbol(string $symbol, $params = array()) {
+        /**
+         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} $symbol unified market $symbol
+         * @param {array} $params extra parameters specific to the endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
+    }
+
+    public function fetch_positions_for_symbol_ws(string $symbol, $params = array()) {
+        /**
+         * fetches all open positions for specific $symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} $symbol unified market $symbol
+         * @param {array} $params extra parameters specific to the endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
+    }
+
+    public function watch_position(?string $symbol = null, $params = array()) {
+        throw new NotSupported($this->id . ' watchPosition() is not supported yet');
+    }
+
+    public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
+    }
+
+    public function fetch_bids_asks(?array $symbols = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
+    }
+
+    public function fetch_mark_price(string $symbol, $params = array()) {
+        if ($this->has['fetchMarkPrices']) {
+            $this->load_markets();
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $tickers = $this->fetchMarkPrices(array( $symbol ), $params);
+            $ticker = $this->safe_dict($tickers, $symbol);
+            if ($ticker === null) {
+                throw new NullResponse($this->id . ' fetchMarkPrices() could not find a $ticker for ' . $symbol);
+            } else {
+                return $ticker;
+            }
+        } else {
+            throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+        }
+    }
+
+    public function fetch_mark_prices(?array $symbols = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
+    }
+
+    public function watch_bids_asks(?array $symbols = null, $params = array()) {
+        throw new NotSupported($this->id . ' watchBidsAsks() is not supported yet');
+    }
+
+    public function watch_mark_price(string $symbol, $params = array()) {
+        /**
+         * watches a mark price for a specific market
+         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        throw new NotSupported($this->id . ' watchMarkPrice () is not supported yet');
+    }
+
+    public function watch_mark_prices(?array $symbols = null, $params = array()) {
+        /**
+         * watches the mark price for all markets
+         * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
+         */
+        throw new NotSupported($this->id . ' watchMarkPrices () is not supported yet');
+    }
+
+    public function fetch_l3_order_book(string $symbol, ?int $limit = null, $params = array()) {
+        throw new BadRequest($this->id . ' fetchL3OrderBook() is not supported yet');
+    }
+
+    public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
+    }
 
     public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' cancelAllOrdersWs() is not supported yet');

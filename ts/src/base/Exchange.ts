@@ -3516,20 +3516,8 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' unWatchTrades() is not supported yet');
     }
 
-    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
-    }
-
     async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchTradesForSymbols() is not supported yet');
-    }
-
-    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
-    }
-
-    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
     }
 
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dictionary<Dictionary<OHLCV[]>>> {
@@ -3538,10 +3526,6 @@ export class BaseExchange {
 
     async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}): Promise<any> {
         throw new NotSupported (this.id + ' unWatchOHLCVForSymbols() is not supported yet');
-    }
-
-    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
-        throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
     }
 
     async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<any> {
@@ -6262,42 +6246,6 @@ export class BaseExchange {
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
-    async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
-        throw new NotSupported (this.id + ' watchPosition() is not supported yet');
-    }
-
-    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name exchange#fetchPositionsForSymbol
-         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
-         */
-        throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
-    }
-
-    async fetchPositionsForSymbolWs (symbol: string, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name exchange#fetchPositionsForSymbol
-         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the endpoint
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
-         */
-        throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
-    }
-
-    async fetchPositionsRisk (symbols: Strings = undefined, params = {}): Promise<Position[]> {
-        throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
-    }
-
-    async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
-    }
-
     async fetchBorrowInterest (code: Str = undefined, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<BorrowInterest[]> {
         throw new NotSupported (this.id + ' fetchBorrowInterest() is not supported yet');
     }
@@ -6677,23 +6625,6 @@ export class BaseExchange {
         return this.safeValue (config, 'cost', 1);
     }
 
-    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        if (this.has['fetchMarkPrices']) {
-            await this.loadMarkets ();
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            const tickers = await this.fetchMarkPrices ([ symbol ], params);
-            const ticker = this.safeDict (tickers, symbol);
-            if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
-            } else {
-                return ticker as Ticker;
-            }
-        } else {
-            throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
-        }
-    }
-
     async fetchSpotTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         throw new NotSupported (this.id + ' fetchSpotTickers() is not supported yet');
     }
@@ -6702,16 +6633,8 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchContractTickers() is not supported yet');
     }
 
-    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
-    }
-
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}): Promise<OrderBooks> {
         throw new NotSupported (this.id + ' fetchOrderBooks() is not supported yet');
-    }
-
-    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        throw new NotSupported (this.id + ' watchBidsAsks() is not supported yet');
     }
 
     async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
@@ -6825,10 +6748,6 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' createContractOrders() is not supported yet');
     }
 
-    async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
-        throw new NotSupported (this.id + ' editOrders() is not supported yet');
-    }
-
     async cancelSpotOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         throw new NotSupported (this.id + ' cancelSpotOrder() is not supported yet');
     }
@@ -6851,10 +6770,6 @@ export class BaseExchange {
 
     async cancelOrdersForSymbols (orders: CancellationRequest[], params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelOrdersForSymbols() is not supported yet');
-    }
-
-    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
     }
 
     async fetchMyLiquidations (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -6921,18 +6836,6 @@ export class BaseExchange {
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<FundingHistory[]> {
         throw new NotSupported (this.id + ' fetchFundingHistory() is not supported yet');
-    }
-
-    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
-        throw new NotSupported (this.id + ' closePosition() is not supported yet');
-    }
-
-    async closeAllPositions (params = {}): Promise<Position[]> {
-        throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
-    }
-
-    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
     }
 
     parseLastPrice (price, market: Market = undefined): LastPrice {
@@ -8535,41 +8438,8 @@ export class BaseExchange {
         return reconstructedDate;
     }
 
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name exchange#fetchPositionHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] timestamp in ms of the position
-         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-         */
-        if (this.has['fetchPositionsHistory']) {
-            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
-            return positions as Position[];
-        } else {
-            throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
-        }
-    }
-
     async loadMarketsAndSignIn () {
         await Promise.all ([ this.loadMarkets (), this.signIn () ]);
-    }
-
-    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
-        /**
-         * @method
-         * @name exchange#fetchPositionsHistory
-         * @description fetches the history of margin added or reduced from contract isolated positions
-         * @param {string} [symbol] unified market symbol
-         * @param {int} [since] timestamp in ms of the position
-         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-         */
-        throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
     }
 
     parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
@@ -8627,30 +8497,6 @@ export class BaseExchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         throw new NotSupported (this.id + ' unWatchOHLCV () is not supported yet');
-    }
-
-    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
-        /**
-         * @method
-         * @name exchange#watchMarkPrice
-         * @description watches a mark price for a specific market
-         * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-         */
-        throw new NotSupported (this.id + ' watchMarkPrice () is not supported yet');
-    }
-
-    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        /**
-         * @method
-         * @name exchange#watchMarkPrices
-         * @description watches the mark price for all markets
-         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
-         */
-        throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
     }
 
     async withdrawWs (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<{}> {
@@ -8846,6 +8692,160 @@ export class BaseExchange {
 // independent sibling — so a prediction instance is NOT `instanceof Exchange`, while still reusing
 // every base helper via BaseExchange.
 export default class Exchange extends BaseExchange {
+    async closePosition (symbol: string, side: OrderSide = undefined, params = {}): Promise<Order> {
+        throw new NotSupported (this.id + ' closePosition() is not supported yet');
+    }
+
+    async closeAllPositions (params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' closeAllPositions() is not supported yet');
+    }
+
+    async editOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' editOrders() is not supported yet');
+    }
+
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' fetchCanceledAndClosedOrders() is not supported yet');
+    }
+
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+         */
+        if (this.has['fetchPositionsHistory']) {
+            const positions = await this.fetchPositionsHistory ([ symbol ], since, limit, params);
+            return positions as Position[];
+        } else {
+            throw new NotSupported (this.id + ' fetchPositionHistory () is not supported yet');
+        }
+    }
+
+    async fetchPositionsHistory (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsHistory
+         * @description fetches the history of margin added or reduced from contract isolated positions
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] timestamp in ms of the position
+         * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+         */
+        throw new NotSupported (this.id + ' fetchPositionsHistory () is not supported yet');
+    }
+
+    async fetchPositionsRisk (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
+
+    async fetchPositionsForSymbolWs (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name exchange#fetchPositionsForSymbol
+         * @description fetches all open positions for specific symbol, unlike fetchPositions (which is designed to work with multiple symbols) so this method might be preffered for one-market position, because of less rate-limit consumption and speed
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure} with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
+         */
+        throw new NotSupported (this.id + ' fetchPositionsForSymbol() is not supported yet');
+    }
+
+    async watchPosition (symbol: Str = undefined, params = {}): Promise<Position> {
+        throw new NotSupported (this.id + ' watchPosition() is not supported yet');
+    }
+
+    async watchMyTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchMyTradesForSymbols() is not supported yet');
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        throw new NotSupported (this.id + ' watchTradesForSymbols() is not supported yet');
+    }
+
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
+    }
+
+    async fetchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        if (this.has['fetchMarkPrices']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const tickers = await this.fetchMarkPrices ([ symbol ], params);
+            const ticker = this.safeDict (tickers, symbol);
+            if (ticker === undefined) {
+                throw new NullResponse (this.id + ' fetchMarkPrices() could not find a ticker for ' + symbol);
+            } else {
+                return ticker as Ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
+        }
+    }
+
+    async fetchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' fetchMarkPrices() is not supported yet');
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        throw new NotSupported (this.id + ' watchBidsAsks() is not supported yet');
+    }
+
+    async watchMarkPrice (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name exchange#watchMarkPrice
+         * @description watches a mark price for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+         */
+        throw new NotSupported (this.id + ' watchMarkPrice () is not supported yet');
+    }
+
+    async watchMarkPrices (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name exchange#watchMarkPrices
+         * @description watches the mark price for all markets
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+         */
+        throw new NotSupported (this.id + ' watchMarkPrices () is not supported yet');
+    }
+
+    async fetchL3OrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new BadRequest (this.id + ' fetchL3OrderBook() is not supported yet');
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        throw new NotSupported (this.id + ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        throw new NotSupported (this.id + ' watchOrdersForSymbols() is not supported yet');
+    }
+
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
         throw new NotSupported (this.id + ' cancelAllOrdersWs() is not supported yet');
     }

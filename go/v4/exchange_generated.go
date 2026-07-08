@@ -1060,22 +1060,6 @@ func  (this *BaseExchange) UnWatchTrades(symbol any, optionalArgs ...any) <- cha
             }()
             return ch
         }
-func  (this *BaseExchange) WatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    since := GetArg(optionalArgs, 0, nil)
-            _ = since
-            limit := GetArg(optionalArgs, 1, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 2, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchTradesForSymbols() is not supported yet")))
-        
-            }()
-            return ch
-        }
 func  (this *BaseExchange) UnWatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
@@ -1084,38 +1068,6 @@ func  (this *BaseExchange) UnWatchTradesForSymbols(symbols any, optionalArgs ...
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " unWatchTradesForSymbols() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) WatchMyTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    since := GetArg(optionalArgs, 0, nil)
-            _ = since
-            limit := GetArg(optionalArgs, 1, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 2, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchMyTradesForSymbols() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) WatchOrdersForSymbols(symbols any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    since := GetArg(optionalArgs, 0, nil)
-            _ = since
-            limit := GetArg(optionalArgs, 1, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 2, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchOrdersForSymbols() is not supported yet")))
         
             }()
             return ch
@@ -1144,20 +1096,6 @@ func  (this *BaseExchange) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, opti
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " unWatchOHLCVForSymbols() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    limit := GetArg(optionalArgs, 0, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchOrderBookForSymbols() is not supported yet")))
         
             }()
             return ch
@@ -1538,9 +1476,9 @@ func  (this *BaseExchange) WatchFundingRatesForSymbols(symbols any, optionalArgs
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes371415 :=  (<-this.WatchFundingRates(symbols, params))
-                PanicOnError(retRes371415)
-                ch <- retRes371415
+                retRes369815 :=  (<-this.WatchFundingRates(symbols, params))
+                PanicOnError(retRes369815)
+                ch <- retRes369815
                 return nil
         
             }()
@@ -4537,8 +4475,8 @@ func  (this *BaseExchange) Fetch2(path any, optionalArgs ...any) <- chan any {
             if IsTrue(this.EnableRateLimit) {
                 var cost any = this.CalculateRateLimiterCost(api, method, path, params, config)
         
-                retRes611712 := (<-this.Throttle(cost))
-                PanicOnError(retRes611712)
+                retRes610112 := (<-this.Throttle(cost))
+                PanicOnError(retRes610112)
             }
             var retries any = nil
             retriesparamsVariable := this.HandleOptionAndParams(params, path, "maxRetriesOnFailure", 0);
@@ -4582,8 +4520,8 @@ func  (this *BaseExchange) Fetch2(path any, optionalArgs ...any) <- chan any {
                                     }
                                     if IsTrue(IsTrue((!IsEqual(retryDelay, nil))) && IsTrue((!IsEqual(retryDelay, 0)))) {
                 
-                                        retRes615428 := (<-this.Sleep(retryDelay))
-                                        PanicOnError(retRes615428)
+                                        retRes613828 := (<-this.Sleep(retryDelay))
+                                        PanicOnError(retRes613828)
                                     }
                                 } else {
                                     panic(e)
@@ -4644,9 +4582,9 @@ func  (this *BaseExchange) Request(path any, optionalArgs ...any) <- chan any {
             config := GetArg(optionalArgs, 5, map[string]any {})
             _ = config
         
-                retRes616815 :=  (<-this.Fetch2(path, api, method, params, headers, body, config))
-                PanicOnError(retRes616815)
-                ch <- retRes616815
+                retRes615215 :=  (<-this.Fetch2(path, api, method, params, headers, body, config))
+                PanicOnError(retRes615215)
+                ch <- retRes615215
                 return nil
         
             }()
@@ -4749,72 +4687,6 @@ func  (this *BaseExchange) ParseTradingViewOHLCV(ohlcvs any, optionalArgs ...any
     var result any = this.ConvertTradingViewToOHLCV(ohlcvs)
     return this.ParseOHLCVs(result, market, timeframe, since, limit)
 }
-func  (this *BaseExchange) WatchPosition(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbol := GetArg(optionalArgs, 0, nil)
-            _ = symbol
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchPosition() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    params := GetArg(optionalArgs, 0, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchPositionsForSymbol() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchPositionsForSymbolWs(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    params := GetArg(optionalArgs, 0, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchPositionsForSymbol() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchPositionsRisk(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbols := GetArg(optionalArgs, 0, nil)
-            _ = symbols
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchPositionsRisk() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchBidsAsks(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbols := GetArg(optionalArgs, 0, nil)
-            _ = symbols
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchBidsAsks() is not supported yet")))
-        
-            }()
-            return ch
-        }
 func  (this *BaseExchange) FetchBorrowInterest(optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
@@ -5058,9 +4930,9 @@ func  (this *BaseExchange) FetchFreeBalance(optionalArgs ...any) <- chan any {
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes642615 :=  (<-this.FetchPartialBalance("free", params))
-                PanicOnError(retRes642615)
-                ch <- retRes642615
+                retRes637415 :=  (<-this.FetchPartialBalance("free", params))
+                PanicOnError(retRes637415)
+                ch <- retRes637415
                 return nil
         
             }()
@@ -5074,9 +4946,9 @@ func  (this *BaseExchange) FetchUsedBalance(optionalArgs ...any) <- chan any {
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes643015 :=  (<-this.FetchPartialBalance("used", params))
-                PanicOnError(retRes643015)
-                ch <- retRes643015
+                retRes637815 :=  (<-this.FetchPartialBalance("used", params))
+                PanicOnError(retRes637815)
+                ch <- retRes637815
                 return nil
         
             }()
@@ -5090,9 +4962,9 @@ func  (this *BaseExchange) FetchTotalBalance(optionalArgs ...any) <- chan any {
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes643415 :=  (<-this.FetchPartialBalance("total", params))
-                PanicOnError(retRes643415)
-                ch <- retRes643415
+                retRes638215 :=  (<-this.FetchPartialBalance("total", params))
+                PanicOnError(retRes638215)
+                ch <- retRes638215
                 return nil
         
             }()
@@ -5121,9 +4993,9 @@ func  (this *BaseExchange) FetchTransactionFee(code any, optionalArgs ...any) <-
                 panic(NotSupported(Add(this.Id, " fetchTransactionFee() is not supported yet")))
             }
         
-                retRes644515 :=  (<-this.FetchTransactionFees([]any{code}, params))
-                PanicOnError(retRes644515)
-                ch <- retRes644515
+                retRes639315 :=  (<-this.FetchTransactionFees([]any{code}, params))
+                PanicOnError(retRes639315)
+                ch <- retRes639315
                 return nil
         
             }()
@@ -5194,8 +5066,8 @@ func  (this *BaseExchange) FetchCrossBorrowRate(code any, optionalArgs ...any) <
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes64738 := (<-this.LoadMarkets())
-            PanicOnError(retRes64738)
+            retRes64218 := (<-this.LoadMarkets())
+            PanicOnError(retRes64218)
             if !IsTrue(GetValue(this.Has, "fetchBorrowRates")) {
                 panic(NotSupported(Add(this.Id, " fetchCrossBorrowRate() is not supported yet")))
             }
@@ -5221,8 +5093,8 @@ func  (this *BaseExchange) FetchIsolatedBorrowRate(symbol any, optionalArgs ...a
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes64868 := (<-this.LoadMarkets())
-            PanicOnError(retRes64868)
+            retRes64348 := (<-this.LoadMarkets())
+            PanicOnError(retRes64348)
             if !IsTrue(GetValue(this.Has, "fetchBorrowRates")) {
                 panic(NotSupported(Add(this.Id, " fetchIsolatedBorrowRate() is not supported yet")))
             }
@@ -5422,39 +5294,6 @@ func  (this *BaseExchange) CalculateRateLimiterCost(api any, method any, path an
     _ = config
     return this.SafeValue(config, "cost", 1)
 }
-func  (this *BaseExchange) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    params := GetArg(optionalArgs, 0, map[string]any {})
-            _ = params
-            if IsTrue(GetValue(this.Has, "fetchMarkPrices")) {
-        
-                retRes666312 := (<-this.LoadMarkets())
-                PanicOnError(retRes666312)
-        
-                var market any = this.DerivedExchange.Market(symbol)
-                PanicOnError(market)
-                symbol = GetValue(market, "symbol")
-        
-                tickers:= (<-this.FetchMarkPrices([]any{symbol}, params))
-                PanicOnError(tickers)
-                var ticker any = this.SafeDict(tickers, symbol)
-                if IsTrue(IsEqual(ticker, nil)) {
-                    panic(NullResponse(Add(Add(this.Id, " fetchMarkPrices() could not find a ticker for "), symbol)))
-                } else {
-        
-                    ch <- ticker
-                    return nil
-                }
-            } else {
-                panic(NotSupported(Add(this.Id, " fetchMarkPrices() is not supported yet")))
-            }
-        
-            }()
-            return ch
-        }
 func  (this *BaseExchange) FetchSpotTickers(optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
@@ -5483,20 +5322,6 @@ func  (this *BaseExchange) FetchContractTickers(optionalArgs ...any) <- chan any
             }()
             return ch
         }
-func  (this *BaseExchange) FetchMarkPrices(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbols := GetArg(optionalArgs, 0, nil)
-            _ = symbols
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchMarkPrices() is not supported yet")))
-        
-            }()
-            return ch
-        }
 func  (this *BaseExchange) FetchOrderBooks(optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
@@ -5509,20 +5334,6 @@ func  (this *BaseExchange) FetchOrderBooks(optionalArgs ...any) <- chan any {
             params := GetArg(optionalArgs, 2, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " fetchOrderBooks() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) WatchBidsAsks(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbols := GetArg(optionalArgs, 0, nil)
-            _ = symbols
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchBidsAsks() is not supported yet")))
         
             }()
             return ch
@@ -5660,8 +5471,8 @@ func  (this *BaseExchange) FetchPositionADLRank(symbol any, optionalArgs ...any)
             _ = params
             if IsTrue(GetValue(this.Has, "fetchPositionsADLRank")) {
         
-                retRes673612 := (<-this.LoadMarkets())
-                PanicOnError(retRes673612)
+                retRes665912 := (<-this.LoadMarkets())
+                PanicOnError(retRes665912)
         
                 var market any = this.DerivedExchange.Market(symbol)
                 PanicOnError(market)
@@ -5765,18 +5576,6 @@ func  (this *BaseExchange) CreateContractOrders(orders any, optionalArgs ...any)
             }()
             return ch
         }
-func  (this *BaseExchange) EditOrders(orders any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    params := GetArg(optionalArgs, 0, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " editOrders() is not supported yet")))
-        
-            }()
-            return ch
-        }
 func  (this *BaseExchange) CancelSpotOrder(id any, optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {
@@ -5853,24 +5652,6 @@ func  (this *BaseExchange) CancelOrdersForSymbols(orders any, optionalArgs ...an
                     params := GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " cancelOrdersForSymbols() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbol := GetArg(optionalArgs, 0, nil)
-            _ = symbol
-            since := GetArg(optionalArgs, 1, nil)
-            _ = since
-            limit := GetArg(optionalArgs, 2, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 3, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchCanceledAndClosedOrders() is not supported yet")))
         
             }()
             return ch
@@ -6095,46 +5876,6 @@ func  (this *BaseExchange) FetchFundingHistory(optionalArgs ...any) <- chan any 
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " fetchFundingHistory() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    side := GetArg(optionalArgs, 0, nil)
-            _ = side
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " closePosition() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) CloseAllPositions(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    params := GetArg(optionalArgs, 0, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " closeAllPositions() is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchL3OrderBook(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    limit := GetArg(optionalArgs, 0, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(BadRequest(Add(this.Id, " fetchL3OrderBook() is not supported yet")))
         
             }()
             return ch
@@ -6978,8 +6719,8 @@ func  (this *BaseExchange) FetchFundingRate(symbol any, optionalArgs ...any) <- 
             _ = params
             if IsTrue(GetValue(this.Has, "fetchFundingRates")) {
         
-                retRes758112 := (<-this.LoadMarkets())
-                PanicOnError(retRes758112)
+                retRes748412 := (<-this.LoadMarkets())
+                PanicOnError(retRes748412)
         
                 var market any = this.DerivedExchange.Market(symbol)
                 PanicOnError(market)
@@ -7014,8 +6755,8 @@ func  (this *BaseExchange) FetchFundingInterval(symbol any, optionalArgs ...any)
             _ = params
             if IsTrue(GetValue(this.Has, "fetchFundingIntervals")) {
         
-                retRes760112 := (<-this.LoadMarkets())
-                PanicOnError(retRes760112)
+                retRes750412 := (<-this.LoadMarkets())
+                PanicOnError(retRes750412)
         
                 var market any = this.DerivedExchange.Market(symbol)
                 PanicOnError(market)
@@ -7070,9 +6811,9 @@ func  (this *BaseExchange) FetchMarkOHLCV(symbol any, optionalArgs ...any) <- ch
                     "price": "mark",
                 }
         
-                    retRes763519 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-                    PanicOnError(retRes763519)
-                    ch <- retRes763519
+                    retRes753819 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+                    PanicOnError(retRes753819)
+                    ch <- retRes753819
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchMarkOHLCV () is not supported yet")))
@@ -7110,9 +6851,9 @@ func  (this *BaseExchange) FetchIndexOHLCV(symbol any, optionalArgs ...any) <- c
                     "price": "index",
                 }
         
-                    retRes765719 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-                    PanicOnError(retRes765719)
-                    ch <- retRes765719
+                    retRes756019 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+                    PanicOnError(retRes756019)
+                    ch <- retRes756019
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchIndexOHLCV () is not supported yet")))
@@ -7150,9 +6891,9 @@ func  (this *BaseExchange) FetchPremiumIndexOHLCV(symbol any, optionalArgs ...an
                     "price": "premiumIndex",
                 }
         
-                    retRes767919 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
-                    PanicOnError(retRes767919)
-                    ch <- retRes767919
+                    retRes758219 :=  <-this.DerivedExchange.FetchOHLCV(symbol, timeframe, since, limit, this.Extend(request, params))
+                    PanicOnError(retRes758219)
+                    ch <- retRes758219
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchPremiumIndexOHLCV () is not supported yet")))
@@ -7405,9 +7146,9 @@ func  (this *BaseExchange) FetchTransactions(optionalArgs ...any) <- chan any {
             _ = params
             if IsTrue(GetValue(this.Has, "fetchDepositsWithdrawals")) {
         
-                    retRes789219 :=  <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
-                    PanicOnError(retRes789219)
-                    ch <- retRes789219
+                    retRes779519 :=  <-this.DerivedExchange.FetchDepositsWithdrawals(code, since, limit, params)
+                    PanicOnError(retRes779519)
+                    ch <- retRes779519
                     return nil
             } else {
                 panic(NotSupported(Add(this.Id, " fetchTransactions () is not supported yet")))
@@ -7657,15 +7398,15 @@ func  (this *BaseExchange) SafeDeterministicCall(method any, optionalArgs ...any
                 		    // try block:
                                         if IsTrue(IsTrue(timeframe) && IsTrue(!IsEqual(method, "fetchFundingRateHistory"))) {
                 
-                                    retRes803827 :=  (<-this.CallDynamically(method, symbol, timeframe, since, limit, params))
-                                    PanicOnError(retRes803827)
-                                    ch <- retRes803827
+                                    retRes794127 :=  (<-this.CallDynamically(method, symbol, timeframe, since, limit, params))
+                                    PanicOnError(retRes794127)
+                                    ch <- retRes794127
                                     return nil
                             } else {
                 
-                                    retRes804027 :=  (<-this.CallDynamically(method, symbol, since, limit, params))
-                                    PanicOnError(retRes804027)
-                                    ch <- retRes804027
+                                    retRes794327 :=  (<-this.CallDynamically(method, symbol, since, limit, params))
+                                    PanicOnError(retRes794327)
+                                    ch <- retRes794327
                                     return nil
                             }
                 		    
@@ -8321,68 +8062,15 @@ func  (this *BaseExchange) ConvertMarketIdExpireDate(date any) any  {
     var reconstructedDate any = Add(Add(day, month), year)
     return reconstructedDate
 }
-func  (this *BaseExchange) FetchPositionHistory(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    /**
-            * @method
-            * @name exchange#fetchPositionHistory
-            * @description fetches the history of margin added or reduced from contract isolated positions
-            * @param {string} [symbol] unified market symbol
-            * @param {int} [since] timestamp in ms of the position
-            * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-            * @param {object} params extra parameters specific to the exchange api endpoint
-            * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-            */
-            since := GetArg(optionalArgs, 0, nil)
-            _ = since
-            limit := GetArg(optionalArgs, 1, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 2, map[string]any {})
-            _ = params
-            if IsTrue(GetValue(this.Has, "fetchPositionsHistory")) {
-        
-                positions:= <-this.DerivedExchange.FetchPositionsHistory([]any{symbol}, since, limit, params)
-                PanicOnError(positions)
-        
-                ch <- positions
-                return nil
-            } else {
-                panic(NotSupported(Add(this.Id, " fetchPositionHistory () is not supported yet")))
-            }
-        
-            }()
-            return ch
-        }
 func  (this *BaseExchange) LoadMarketsAndSignIn() <- chan any {
             ch := make(chan any)
             go func() any {
                 defer close(ch)
                 defer ReturnPanicError(ch)
                 
-        retRes85398 := (<-promiseAll([]any{this.LoadMarkets(), <-this.callInternal("signIn")}))
-        PanicOnError(retRes85398)
+        retRes84238 := (<-promiseAll([]any{this.LoadMarkets(), <-this.callInternal("signIn")}))
+        PanicOnError(retRes84238)
                 return nil
-            }()
-            return ch
-        }
-func  (this *BaseExchange) FetchPositionsHistory(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbols := GetArg(optionalArgs, 0, nil)
-            _ = symbols
-            since := GetArg(optionalArgs, 1, nil)
-            _ = since
-            limit := GetArg(optionalArgs, 2, nil)
-            _ = limit
-            params := GetArg(optionalArgs, 3, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " fetchPositionsHistory () is not supported yet")))
-        
             }()
             return ch
         }
@@ -8453,32 +8141,6 @@ func  (this *BaseExchange) UnWatchOHLCV(symbol any, optionalArgs ...any) <- chan
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
             panic(NotSupported(Add(this.Id, " unWatchOHLCV () is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) WatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    params := GetArg(optionalArgs, 0, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchMarkPrice () is not supported yet")))
-        
-            }()
-            return ch
-        }
-func  (this *BaseExchange) WatchMarkPrices(optionalArgs ...any) <- chan any {
-            ch := make(chan any)
-            go func() any {
-                defer close(ch)
-                defer ReturnPanicError(ch)
-                    symbols := GetArg(optionalArgs, 0, nil)
-            _ = symbols
-            params := GetArg(optionalArgs, 1, map[string]any {})
-            _ = params
-            panic(NotSupported(Add(this.Id, " watchMarkPrices () is not supported yet")))
         
             }()
             return ch
@@ -8691,6 +8353,344 @@ func  (this *BaseExchange) IsUTAEnabled(optionalArgs ...any) <- chan any {
 
 
 
+func  (this *Exchange) ClosePosition(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    side := GetArg(optionalArgs, 0, nil)
+            _ = side
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " closePosition() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) CloseAllPositions(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " closeAllPositions() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) EditOrders(orders any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " editOrders() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchCanceledAndClosedOrders(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
+            _ = symbol
+            since := GetArg(optionalArgs, 1, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 2, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 3, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchCanceledAndClosedOrders() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchPositionHistory(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    /**
+            * @method
+            * @name exchange#fetchPositionHistory
+            * @description fetches the history of margin added or reduced from contract isolated positions
+            * @param {string} [symbol] unified market symbol
+            * @param {int} [since] timestamp in ms of the position
+            * @param {int} [limit] the maximum amount of candles to fetch, default=1000
+            * @param {object} params extra parameters specific to the exchange api endpoint
+            * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
+            */
+            since := GetArg(optionalArgs, 0, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 1, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 2, map[string]any {})
+            _ = params
+            if IsTrue(GetValue(this.Has, "fetchPositionsHistory")) {
+        
+                positions:= <-this.DerivedExchange.(IFetchPositionsHistory).FetchPositionsHistory([]any{symbol}, since, limit, params)
+                PanicOnError(positions)
+        
+                ch <- positions
+                return nil
+            } else {
+                panic(NotSupported(Add(this.Id, " fetchPositionHistory () is not supported yet")))
+            }
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchPositionsHistory(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            since := GetArg(optionalArgs, 1, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 2, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 3, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchPositionsHistory () is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchPositionsRisk(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchPositionsRisk() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchPositionsForSymbol(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchPositionsForSymbol() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchPositionsForSymbolWs(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchPositionsForSymbol() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchPosition(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbol := GetArg(optionalArgs, 0, nil)
+            _ = symbol
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchPosition() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchMyTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    since := GetArg(optionalArgs, 0, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 1, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 2, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchMyTradesForSymbols() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchTradesForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    since := GetArg(optionalArgs, 0, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 1, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 2, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchTradesForSymbols() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchBidsAsks(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchBidsAsks() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            if IsTrue(GetValue(this.Has, "fetchMarkPrices")) {
+        
+                retRes877112 := (<-this.LoadMarkets())
+                PanicOnError(retRes877112)
+        
+                var market any = this.DerivedExchange.Market(symbol)
+                PanicOnError(market)
+                symbol = GetValue(market, "symbol")
+        
+                tickers:= (<-this.FetchMarkPrices([]any{symbol}, params))
+                PanicOnError(tickers)
+                var ticker any = this.SafeDict(tickers, symbol)
+                if IsTrue(IsEqual(ticker, nil)) {
+                    panic(NullResponse(Add(Add(this.Id, " fetchMarkPrices() could not find a ticker for "), symbol)))
+                } else {
+        
+                    ch <- ticker
+                    return nil
+                }
+            } else {
+                panic(NotSupported(Add(this.Id, " fetchMarkPrices() is not supported yet")))
+            }
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchMarkPrices(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " fetchMarkPrices() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchBidsAsks(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchBidsAsks() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchMarkPrice(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    params := GetArg(optionalArgs, 0, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchMarkPrice () is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchMarkPrices(optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    symbols := GetArg(optionalArgs, 0, nil)
+            _ = symbols
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchMarkPrices () is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) FetchL3OrderBook(symbol any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    limit := GetArg(optionalArgs, 0, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(BadRequest(Add(this.Id, " fetchL3OrderBook() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchOrderBookForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    limit := GetArg(optionalArgs, 0, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 1, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchOrderBookForSymbols() is not supported yet")))
+        
+            }()
+            return ch
+        }
+func  (this *Exchange) WatchOrdersForSymbols(symbols any, optionalArgs ...any) <- chan any {
+            ch := make(chan any)
+            go func() any {
+                defer close(ch)
+                defer ReturnPanicError(ch)
+                    since := GetArg(optionalArgs, 0, nil)
+            _ = since
+            limit := GetArg(optionalArgs, 1, nil)
+            _ = limit
+            params := GetArg(optionalArgs, 2, map[string]any {})
+            _ = params
+            panic(NotSupported(Add(this.Id, " watchOrdersForSymbols() is not supported yet")))
+        
+            }()
+            return ch
+        }
 func  (this *Exchange) CancelAllOrdersWs(optionalArgs ...any) <- chan any {
             ch := make(chan any)
             go func() any {

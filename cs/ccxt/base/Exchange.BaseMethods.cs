@@ -1073,28 +1073,10 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " unWatchTrades() is not supported yet")) ;
     }
 
-    public async virtual Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchTradesForSymbols() is not supported yet")) ;
-    }
-
     public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " unWatchTradesForSymbols() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> watchMyTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchMyTradesForSymbols() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> watchOrdersForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOrdersForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
@@ -1107,12 +1089,6 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " unWatchOHLCVForSymbols() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchOrderBookForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
@@ -4488,36 +4464,6 @@ public partial class BaseExchange
         return this.parseOHLCVs(result, market, timeframe, since, limit);
     }
 
-    public async virtual Task<object> watchPosition(object symbol = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchPosition() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchPositionsForSymbolWs(object symbol, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPositionsForSymbol() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchPositionsRisk(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPositionsRisk() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchBidsAsks() is not supported yet")) ;
-    }
-
     public async virtual Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5023,29 +4969,6 @@ public partial class BaseExchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public async virtual Task<object> fetchMarkPrice(object symbol, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(getValue(this.has, "fetchMarkPrices")))
-        {
-            await this.loadMarkets();
-            object market = this.market(symbol);
-            symbol = getValue(market, "symbol");
-            object tickers = await this.fetchMarkPrices(new List<object>() {symbol}, parameters);
-            object ticker = this.safeDict(tickers, symbol);
-            if (isTrue(isEqual(ticker, null)))
-            {
-                throw new NullResponse ((string)add(add(this.id, " fetchMarkPrices() could not find a ticker for "), symbol)) ;
-            } else
-            {
-                return ticker;
-            }
-        } else
-        {
-            throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
-        }
-    }
-
     public async virtual Task<object> fetchSpotTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5058,22 +4981,10 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " fetchContractTickers() is not supported yet")) ;
     }
 
-    public async virtual Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchMarkPrices() is not supported yet")) ;
-    }
-
     public async virtual Task<object> fetchOrderBooks(object symbols = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchOrderBooks() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> watchBidsAsks(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchBidsAsks() is not supported yet")) ;
     }
 
     public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
@@ -5228,12 +5139,6 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " createContractOrders() is not supported yet")) ;
     }
 
-    public async virtual Task<object> editOrders(object orders, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " editOrders() is not supported yet")) ;
-    }
-
     public async virtual Task<object> cancelSpotOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -5268,12 +5173,6 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchCanceledAndClosedOrders() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchMyLiquidations(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -5358,24 +5257,6 @@ public partial class BaseExchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchFundingHistory() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> closePosition(object symbol, object side = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " closePosition() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> closeAllPositions(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " closeAllPositions() is not supported yet")) ;
-    }
-
-    public async virtual Task<object> fetchL3OrderBook(object symbol, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new BadRequest ((string)add(this.id, " fetchL3OrderBook() is not supported yet")) ;
     }
 
     public virtual object parseLastPrice(object price, object market = null)
@@ -7385,38 +7266,9 @@ public partial class BaseExchange
         return reconstructedDate;
     }
 
-    public async virtual Task<object> fetchPositionHistory(object symbol, object since = null, object limit = null, object parameters = null)
-    {
-        /**
-        * @method
-        * @name exchange#fetchPositionHistory
-        * @description fetches the history of margin added or reduced from contract isolated positions
-        * @param {string} [symbol] unified market symbol
-        * @param {int} [since] timestamp in ms of the position
-        * @param {int} [limit] the maximum amount of candles to fetch, default=1000
-        * @param {object} params extra parameters specific to the exchange api endpoint
-        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
-        */
-        parameters ??= new Dictionary<string, object>();
-        if (isTrue(getValue(this.has, "fetchPositionsHistory")))
-        {
-            object positions = await this.fetchPositionsHistory(new List<object>() {symbol}, since, limit, parameters);
-            return positions;
-        } else
-        {
-            throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;
-        }
-    }
-
     public async virtual Task loadMarketsAndSignIn()
     {
         await promiseAll(new List<object> {this.loadMarkets(), this.signIn()});
-    }
-
-    public async virtual Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPositionsHistory () is not supported yet")) ;
     }
 
     public virtual object parseMarginModification(object data, object market = null)
@@ -7457,18 +7309,6 @@ public partial class BaseExchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " unWatchOHLCV () is not supported yet")) ;
-    }
-
-    public async virtual Task<object> watchMarkPrice(object symbol, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchMarkPrice () is not supported yet")) ;
-    }
-
-    public async virtual Task<object> watchMarkPrices(object symbols = null, object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " watchMarkPrices () is not supported yet")) ;
     }
 
     public async virtual Task<object> withdrawWs(object code, object amount, object address, object tag = null, object parameters = null)

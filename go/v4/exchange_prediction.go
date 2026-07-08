@@ -16,10 +16,64 @@ type PredictionExchange struct {
 func  (this *PredictionExchange) Describe() any  {
     return this.DeepExtend(this.BaseExchange.Describe(), map[string]any {
         "has": map[string]any {
+            "prediction": true,
+            "CORS": nil,
+            "spot": false,
+            "margin": false,
+            "swap": false,
+            "future": false,
+            "option": false,
+            "approve": false,
+            "redeem": false,
+            "fetchEvent": false,
+            "fetchEvents": false,
+            "fetchOutcome": false,
+            "fetchSettlements": false,
+            "createOrder": false,
+            "createOrders": false,
             "createLimitOrder": false,
             "createMarketOrder": false,
             "createMarketOrderWs": false,
+            "createMarketBuyOrderWithCost": false,
+            "cancelOrder": false,
+            "cancelOrders": false,
+            "cancelAllOrders": false,
+            "editOrder": false,
+            "fetchBalance": false,
+            "fetchOrder": false,
+            "fetchOrders": false,
+            "fetchOrdersByIds": false,
+            "fetchOrderTrades": false,
+            "fetchOpenOrders": false,
+            "fetchClosedOrders": false,
+            "fetchCanceledOrders": false,
+            "fetchMyTrades": false,
+            "fetchPosition": false,
+            "fetchPositions": false,
+            "fetchAccounts": false,
+            "fetchLedger": false,
+            "fetchDeposits": false,
+            "fetchWithdrawals": false,
+            "fetchMarkets": false,
+            "fetchCurrencies": false,
+            "fetchTicker": false,
+            "fetchTickers": false,
+            "fetchOrderBook": false,
             "fetchL2OrderBook": false,
+            "fetchOHLCV": false,
+            "fetchTrades": false,
+            "fetchStatus": false,
+            "fetchTime": false,
+            "fetchOpenInterest": false,
+            "fetchTradingFee": false,
+            "watchTicker": false,
+            "watchTickers": false,
+            "watchOrderBook": false,
+            "watchTrades": false,
+            "watchOrders": false,
+            "watchMyTrades": false,
+            "watchOHLCV": false,
+            "watchPositions": false,
         },
     })
 }
@@ -330,9 +384,9 @@ func  (this *PredictionExchange) LoadEvents(optionalArgs ...any) <- chan any {
             params := GetArg(optionalArgs, 1, map[string]any {})
             _ = params
         
-                retRes29515 :=  (<-this.LoadEventsHelper(reload, params))
-                PanicOnError(retRes29515)
-        ch <- retRes29515
+                retRes34915 :=  (<-this.LoadEventsHelper(reload, params))
+                PanicOnError(retRes34915)
+        ch <- retRes34915
                 return nil
         
             }()
@@ -587,8 +641,8 @@ func  (this *PredictionExchange) LoadOutcomes(optionalArgs ...any) <- chan any {
                 return nil
             }
         
-            retRes5388 := (<-this.LoadMarkets(reload, params))
-            PanicOnError(retRes5388)
+            retRes5928 := (<-this.LoadMarkets(reload, params))
+            PanicOnError(retRes5928)
             this.PopulateOutcomes()
         
             ch <- this.Outcomes
@@ -644,8 +698,8 @@ func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any) <- chan any {
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
         
-                retRes57712 := (<-this.LoadOutcomes())
-                PanicOnError(retRes57712)
+                retRes63112 := (<-this.LoadOutcomes())
+                PanicOnError(retRes63112)
                 if IsTrue(!IsEqual(this.Outcomes, nil)) {
                     if IsTrue(InOp(this.Outcomes, outcomeSymbol)) {
         
@@ -660,9 +714,9 @@ func  (this *PredictionExchange) LoadOutcome(outcomeSymbol any) <- chan any {
                 }
             }
         
-                retRes58715 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
-                PanicOnError(retRes58715)
-                ch <- retRes58715
+                retRes64115 :=  <-this.DerivedExchange.FetchOutcome(outcomeSymbol)
+                PanicOnError(retRes64115)
+                ch <- retRes64115
                 return nil
         
             }()
@@ -678,8 +732,8 @@ func  (this *PredictionExchange) FetchOutcome(outcomeSymbol any) <- chan any {
             // this throws BadSymbol if the outcome is absent); exchanges with a by-id market fetch (kalshi)
             // override this to fetch and cache only the requested outcome — the "always fetch one" path.
         
-            retRes5958 := (<-this.LoadOutcomes())
-            PanicOnError(retRes5958)
+            retRes6498 := (<-this.LoadOutcomes())
+            PanicOnError(retRes6498)
         
             ch <- this.Outcome(outcomeSymbol)
             return nil
@@ -755,9 +809,9 @@ func  (this *PredictionExchange) FetchOHLCV(outcome any, optionalArgs ...any) <-
             params := GetArg(optionalArgs, 3, map[string]any {})
             _ = params
         
-                retRes63615 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
-                PanicOnError(retRes63615)
-                ch <- retRes63615
+                retRes69015 :=  (<-this.BaseExchange.FetchOHLCV(outcome, timeframe, since, limit, params))
+                PanicOnError(retRes69015)
+                ch <- retRes69015
                 return nil
         
             }()
@@ -1143,9 +1197,9 @@ func  (this *PredictionExchange) CreateMarketBuyOrderWithCost(outcome any, cost 
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketBuyOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketBuyOrderWithCost", false))) {
         
-                    retRes85219 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
-                    PanicOnError(retRes85219)
-                    ch <- retRes85219
+                    retRes90619 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "buy", cost, 1, params)
+                    PanicOnError(retRes90619)
+                    ch <- retRes90619
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketBuyOrderWithCost() is not supported yet")))
@@ -1171,9 +1225,9 @@ func  (this *PredictionExchange) CreateMarketSellOrderWithCost(outcome any, cost
             _ = params
             if IsTrue(IsTrue(this.SafeBool(this.Options, "createMarketSellOrderRequiresPrice", false)) || IsTrue(this.SafeBool(this.Has, "createMarketSellOrderWithCost", false))) {
         
-                    retRes86819 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
-                    PanicOnError(retRes86819)
-                    ch <- retRes86819
+                    retRes92219 :=  <-this.DerivedExchange.CreateOrder(outcome, "market", "sell", cost, 1, params)
+                    PanicOnError(retRes92219)
+                    ch <- retRes92219
                     return nil
             }
             panic(NotSupported(Add(this.Id, " createMarketSellOrderWithCost() is not supported yet")))
@@ -1661,9 +1715,9 @@ func  (this *PredictionExchange) SendEvmTransaction(rpcUrl any, chainId any, fro
             var signed any = this.DerivedExchange.SignEvmTransaction(tx, this.PrivateKey)
             PanicOnError(signed)
         
-                retRes123615 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
-                PanicOnError(retRes123615)
-                ch <- retRes123615
+                retRes129015 :=  (<-this.EthRpc(rpcUrl, "eth_sendRawTransaction", []any{signed}))
+                PanicOnError(retRes129015)
+                ch <- retRes129015
                 return nil
         
             }()
@@ -1687,8 +1741,8 @@ func  (this *PredictionExchange) WaitForTransactionReceipt(rpcUrl any, txHash an
                     return nil
                 }
         
-                retRes124612 := (<-this.Sleep(2000))
-                PanicOnError(retRes124612)
+                retRes130012 := (<-this.Sleep(2000))
+                PanicOnError(retRes130012)
             }
             panic(ExchangeError(Add(Add(Add(this.Id, " transaction "), txHash), " not mined within timeout")))
         
