@@ -1306,10 +1306,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' fetchAccounts() is not supported yet');
     }
 
-    public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchTradesWs() is not supported yet');
-    }
-
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($this->has['watchLiquidationsForSymbols']) {
@@ -1392,10 +1388,6 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchDepositAddresses() is not supported yet');
-    }
-
-    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchOrderBookWs() is not supported yet');
     }
 
     public function fetch_margin_mode(string $symbol, $params = array()) {
@@ -4089,17 +4081,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
 
-    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
-            Async\await($this->cancel_order_ws($id, $symbol));
-            return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-        })();
-    }
-
-    public function fetch_position_ws(string $symbol, $params = array()) {
-        throw new NotSupported($this->id . ' fetchPositionWs() is not supported yet');
-    }
-
     public function watch_position(?string $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' watchPosition() is not supported yet');
     }
@@ -4122,10 +4103,6 @@ class BaseExchange extends \ccxt\BaseExchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~ with maximum 3 items - possible one position for "one-way" mode, and possible two positions (long & short) for "two-way" (a.k.a. hedge) mode
          */
         throw new NotSupported($this->id . ' fetchPositionsForSymbol() is not supported yet');
-    }
-
-    public function fetch_positions_ws(?array $symbols = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
     }
 
     public function fetch_positions_risk(?array $symbols = null, $params = array()) {
@@ -4546,25 +4523,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         })();
     }
 
-    public function fetch_ticker_ws(string $symbol, $params = array()) {
-        return Async\async(function () use ($symbol, $params) {
-            if ($this->has['fetchTickersWs']) {
-                Async\await($this->load_markets());
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-                $tickers = Async\await($this->fetch_tickers_ws(array( $symbol ), $params));
-                $ticker = $this->safe_dict($tickers, $symbol);
-                if ($ticker === null) {
-                    throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
-                } else {
-                    return $ticker;
-                }
-            } else {
-                throw new NotSupported($this->id . ' fetchTickerWs() is not supported yet');
-            }
-        })();
-    }
-
     public function fetch_spot_tickers(?array $symbols = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchSpotTickers() is not supported yet');
     }
@@ -4575,10 +4533,6 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function fetch_mark_prices(?array $symbols = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchMarkPrices() is not supported yet');
-    }
-
-    public function fetch_tickers_ws(?array $symbols = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchTickersWs() is not supported yet');
     }
 
     public function fetch_order_books(?array $symbols = null, ?int $limit = null, $params = array()) {
@@ -4595,10 +4549,6 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function un_watch_funding_rate(string $symbol, $params = array()) {
         throw new NotSupported($this->id . ' unWatchFundingRate() is not supported yet');
-    }
-
-    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchOrderWs() is not supported yet');
     }
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()) {
@@ -4645,151 +4595,6 @@ class BaseExchange extends \ccxt\BaseExchange {
             } else {
                 throw new NotSupported($this->id . ' fetchPositionsADLRank() is not supported yet');
             }
-        })();
-    }
-
-    public function create_trailing_amount_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
-            /**
-             * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
-             * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
-             * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
-             * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($trailingAmount === null) {
-                throw new ArgumentsRequired($this->id . ' createTrailingAmountOrderWs() requires a $trailingAmount argument');
-            }
-            $params['trailingAmount'] = $trailingAmount;
-            if ($trailingTriggerPrice !== null) {
-                $params['trailingTriggerPrice'] = $trailingTriggerPrice;
-            }
-            if ($this->has['createTrailingAmountOrderWs']) {
-                return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-            }
-            throw new NotSupported($this->id . ' createTrailingAmountOrderWs() is not supported yet');
-        })();
-    }
-
-    public function create_trailing_percent_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
-            /**
-             * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
-             * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
-             * @param {float} $trailingPercent the percent to trail away from the current market $price
-             * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($trailingPercent === null) {
-                throw new ArgumentsRequired($this->id . ' createTrailingPercentOrderWs() requires a $trailingPercent argument');
-            }
-            $params['trailingPercent'] = $trailingPercent;
-            if ($trailingTriggerPrice !== null) {
-                $params['trailingTriggerPrice'] = $trailingTriggerPrice;
-            }
-            if ($this->has['createTrailingPercentOrderWs']) {
-                return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-            }
-            throw new NotSupported($this->id . ' createTrailingPercentOrderWs() is not supported yet');
-        })();
-    }
-
-    public function create_market_order_with_cost_ws(string $symbol, string $side, float $cost, $params = array()) {
-        return Async\async(function () use ($symbol, $side, $cost, $params) {
-            /**
-             * create a market order by providing the $symbol, $side and $cost
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $cost how much you want to trade in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($this->has['createMarketOrderWithCostWs'] || ($this->has['createMarketBuyOrderWithCostWs'] && $this->has['createMarketSellOrderWithCostWs'])) {
-                return Async\await($this->create_order_ws($symbol, 'market', $side, $cost, 1, $params));
-            }
-            throw new NotSupported($this->id . ' createMarketOrderWithCostWs() is not supported yet');
-        })();
-    }
-
-    public function create_trigger_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
-            /**
-             * create a trigger stop order ($type 1)
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a $triggerPrice argument');
-            }
-            $params = $this->extend($params, array( 'triggerPrice' => $triggerPrice ));
-            if ($this->has['createTriggerOrderWs']) {
-                return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-            }
-            throw new NotSupported($this->id . ' createTriggerOrderWs() is not supported yet');
-        })();
-    }
-
-    public function create_stop_loss_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopLossPrice = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopLossPrice, $params) {
-            /**
-             * create a trigger stop loss order ($type 2)
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($stopLossPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a $stopLossPrice argument');
-            }
-            $params = $this->extend($params, array( 'stopLossPrice' => $stopLossPrice ));
-            if ($this->has['createStopLossOrderWs']) {
-                return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-            }
-            throw new NotSupported($this->id . ' createStopLossOrderWs() is not supported yet');
-        })();
-    }
-
-    public function create_take_profit_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfitPrice = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takeProfitPrice, $params) {
-            /**
-             * create a trigger take profit order ($type 2)
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            if ($takeProfitPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a $takeProfitPrice argument');
-            }
-            $params = $this->extend($params, array( 'takeProfitPrice' => $takeProfitPrice ));
-            if ($this->has['createTakeProfitOrderWs']) {
-                return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-            }
-            throw new NotSupported($this->id . ' createTakeProfitOrderWs() is not supported yet');
         })();
     }
 
@@ -4843,36 +4648,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $params;
     }
 
-    public function create_order_with_take_profit_and_stop_loss_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfit = null, ?float $stopLoss = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params) {
-            /**
-             * create an order with a stop loss or take profit attached ($type 3)
-             * @param {string} $symbol unified $symbol of the market to create an order in
-             * @param {string} $type 'market' or 'limit'
-             * @param {string} $side 'buy' or 'sell'
-             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
-             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
-             * @param {float} [$takeProfit] the take profit $price, in units of the quote currency
-             * @param {float} [$stopLoss] the stop loss $price, in units of the quote currency
-             * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->takeProfitType] *not available on all exchanges* 'limit' or 'market'
-             * @param {string} [$params->stopLossType] *not available on all exchanges* 'limit' or 'market'
-             * @param {string} [$params->takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-             * @param {string} [$params->stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
-             * @param {float} [$params->takeProfitLimitPrice] *not available on all exchanges* limit $price for a limit take profit order
-             * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
-             * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
-             * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
-             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-             */
-            $params = $this->set_take_profit_and_stop_loss_params($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params);
-            if ($this->has['createOrderWithTakeProfitAndStopLossWs']) {
-                return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
-            }
-            throw new NotSupported($this->id . ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
-        })();
-    }
-
     public function create_spot_orders(array $orders, $params = array()) {
         throw new NotSupported($this->id . ' createSpotOrders() is not supported yet');
     }
@@ -4885,24 +4660,12 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' editOrders() is not supported yet');
     }
 
-    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        throw new NotSupported($this->id . ' createOrderWs() is not supported yet');
-    }
-
     public function cancel_spot_order(string $id, ?string $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' cancelSpotOrder() is not supported yet');
     }
 
     public function cancel_contract_order(string $id, ?string $symbol = null, $params = array()) {
         throw new NotSupported($this->id . ' cancelContractOrder() is not supported yet');
-    }
-
-    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
-    }
-
-    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' cancelOrdersWs() is not supported yet');
     }
 
     public function cancel_all_spot_orders(?string $symbol = null, $params = array()) {
@@ -4921,36 +4684,8 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' cancelOrdersForSymbols() is not supported yet');
     }
 
-    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
-        throw new NotSupported($this->id . ' cancelAllOrdersWs() is not supported yet');
-    }
-
-    public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchOrdersWs() is not supported yet');
-    }
-
-    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            if ($this->has['fetchOrdersWs']) {
-                $orders = Async\await($this->fetch_orders_ws($symbol, $since, $limit, $params));
-                return $this->filter_by($orders, 'status', 'open');
-            }
-            throw new NotSupported($this->id . ' fetchOpenOrdersWs() is not supported yet');
-        })();
-    }
-
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchCanceledAndClosedOrders() is not supported yet');
-    }
-
-    public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
-            if ($this->has['fetchOrdersWs']) {
-                $orders = Async\await($this->fetch_orders_ws($symbol, $since, $limit, $params));
-                return $this->filter_by($orders, 'status', 'closed');
-            }
-            throw new NotSupported($this->id . ' fetchClosedOrdersWs() is not supported yet');
-        })();
     }
 
     public function fetch_my_liquidations(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
@@ -4959,10 +4694,6 @@ class BaseExchange extends \ccxt\BaseExchange {
 
     public function fetch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchLiquidations() is not supported yet');
-    }
-
-    public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        throw new NotSupported($this->id . ' fetchMyTradesWs() is not supported yet');
     }
 
     public function fetch_greeks(string $symbol, $params = array()) {
@@ -5162,42 +4893,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         return array( $tag, $params );
     }
 
-    public function create_limit_order_ws(string $symbol, string $side, float $amount, float $price, $params = array()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
-            return Async\await($this->create_order_ws($symbol, 'limit', $side, $amount, $price, $params));
-        })();
-    }
-
-    public function create_market_order_ws(string $symbol, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
-            return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, $price, $params));
-        })();
-    }
-
-    public function create_limit_buy_order_ws(string $symbol, float $amount, float $price, $params = array()) {
-        return Async\async(function () use ($symbol, $amount, $price, $params) {
-            return Async\await($this->create_order_ws($symbol, 'limit', 'buy', $amount, $price, $params));
-        })();
-    }
-
-    public function create_limit_sell_order_ws(string $symbol, float $amount, float $price, $params = array()) {
-        return Async\async(function () use ($symbol, $amount, $price, $params) {
-            return Async\await($this->create_order_ws($symbol, 'limit', 'sell', $amount, $price, $params));
-        })();
-    }
-
-    public function create_market_buy_order_ws(string $symbol, float $amount, $params = array()) {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            return Async\await($this->create_order_ws($symbol, 'market', 'buy', $amount, null, $params));
-        })();
-    }
-
-    public function create_market_sell_order_ws(string $symbol, float $amount, $params = array()) {
-        return Async\async(function () use ($symbol, $amount, $params) {
-            return Async\await($this->create_order_ws($symbol, 'market', 'sell', $amount, null, $params));
-        })();
-    }
-
     public function cost_to_precision(string $symbol, $cost) {
         if ($cost === null) {
             return null;
@@ -5359,59 +5054,6 @@ class BaseExchange extends \ccxt\BaseExchange {
             } else {
                 throw new NotSupported($this->id . ' fetchMarketLeverageTiers() is not supported yet');
             }
-        })();
-    }
-
-    public function create_post_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            if (!$this->has['createPostOnlyOrderWs']) {
-                throw new NotSupported($this->id . ' createPostOnlyOrderWs() is not supported yet');
-            }
-            $query = $this->extend($params, array( 'postOnly' => true ));
-            return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
-        })();
-    }
-
-    public function create_reduce_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
-            if (!$this->has['createReduceOnlyOrderWs']) {
-                throw new NotSupported($this->id . ' createReduceOnlyOrderWs() is not supported yet');
-            }
-            $query = $this->extend($params, array( 'reduceOnly' => true ));
-            return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
-        })();
-    }
-
-    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array()) {
-        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
-            if (!$this->has['createStopOrderWs']) {
-                throw new NotSupported($this->id . ' createStopOrderWs() is not supported yet');
-            }
-            if ($triggerPrice === null) {
-                throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a stopPrice argument');
-            }
-            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
-            return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $query));
-        })();
-    }
-
-    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array()) {
-        return Async\async(function () use ($symbol, $side, $amount, $price, $triggerPrice, $params) {
-            if (!$this->has['createStopLimitOrderWs']) {
-                throw new NotSupported($this->id . ' createStopLimitOrderWs() is not supported yet');
-            }
-            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
-            return Async\await($this->create_order_ws($symbol, 'limit', $side, $amount, $price, $query));
-        })();
-    }
-
-    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $triggerPrice, $params = array()) {
-        return Async\async(function () use ($symbol, $side, $amount, $triggerPrice, $params) {
-            if (!$this->has['createStopMarketOrderWs']) {
-                throw new NotSupported($this->id . ' createStopMarketOrderWs() is not supported yet');
-            }
-            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
-            return Async\await($this->create_order_ws($symbol, 'market', $side, $amount, null, $query));
         })();
     }
 
@@ -6857,16 +6499,6 @@ class BaseExchange extends \ccxt\BaseExchange {
         throw new NotSupported($this->id . ' unWatchMyTrades () is not supported yet');
     }
 
-    public function create_orders_ws(array $orders, $params = array()) {
-        /**
-         * create a list of trade $orders
-         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
-         */
-        throw new NotSupported($this->id . ' createOrdersWs () is not supported yet');
-    }
-
     public function fetch_orders_by_status_ws(string $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
@@ -7025,6 +6657,374 @@ class BaseExchange extends \ccxt\BaseExchange {
 }
 
 class Exchange extends BaseExchange {
+
+    public function cancel_all_orders_ws(?string $symbol = null, $params = array()) {
+        throw new NotSupported($this->id . ' cancelAllOrdersWs() is not supported yet');
+    }
+
+    public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        throw new NotSupported($this->id . ' cancelOrderWs() is not supported yet');
+    }
+
+    public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()) {
+        throw new NotSupported($this->id . ' cancelOrdersWs() is not supported yet');
+    }
+
+    public function create_limit_buy_order_ws(string $symbol, float $amount, float $price, $params = array()) {
+        return Async\async(function () use ($symbol, $amount, $price, $params) {
+            return Async\await($this->createOrderWs($symbol, 'limit', 'buy', $amount, $price, $params));
+        })();
+    }
+
+    public function create_limit_order_ws(string $symbol, string $side, float $amount, float $price, $params = array()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
+            return Async\await($this->createOrderWs($symbol, 'limit', $side, $amount, $price, $params));
+        })();
+    }
+
+    public function create_limit_sell_order_ws(string $symbol, float $amount, float $price, $params = array()) {
+        return Async\async(function () use ($symbol, $amount, $price, $params) {
+            return Async\await($this->createOrderWs($symbol, 'limit', 'sell', $amount, $price, $params));
+        })();
+    }
+
+    public function create_market_buy_order_ws(string $symbol, float $amount, $params = array()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            return Async\await($this->createOrderWs($symbol, 'market', 'buy', $amount, null, $params));
+        })();
+    }
+
+    public function create_market_order_with_cost_ws(string $symbol, string $side, float $cost, $params = array()) {
+        return Async\async(function () use ($symbol, $side, $cost, $params) {
+            /**
+             * create a market order by providing the $symbol, $side and $cost
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $cost how much you want to trade in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            if ($this->has['createMarketOrderWithCostWs'] || ($this->has['createMarketBuyOrderWithCostWs'] && $this->has['createMarketSellOrderWithCostWs'])) {
+                return Async\await($this->createOrderWs($symbol, 'market', $side, $cost, 1, $params));
+            }
+            throw new NotSupported($this->id . ' createMarketOrderWithCostWs() is not supported yet');
+        })();
+    }
+
+    public function create_market_order_ws(string $symbol, string $side, float $amount, ?float $price = null, $params = array()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $params) {
+            return Async\await($this->createOrderWs($symbol, 'market', $side, $amount, $price, $params));
+        })();
+    }
+
+    public function create_market_sell_order_ws(string $symbol, float $amount, $params = array()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            return Async\await($this->createOrderWs($symbol, 'market', 'sell', $amount, null, $params));
+        })();
+    }
+
+    public function create_order_with_take_profit_and_stop_loss_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfit = null, ?float $stopLoss = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params) {
+            /**
+             * create an order with a stop loss or take profit attached ($type 3)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} [$takeProfit] the take profit $price, in units of the quote currency
+             * @param {float} [$stopLoss] the stop loss $price, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->takeProfitType] *not available on all exchanges* 'limit' or 'market'
+             * @param {string} [$params->stopLossType] *not available on all exchanges* 'limit' or 'market'
+             * @param {string} [$params->takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+             * @param {string} [$params->stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+             * @param {float} [$params->takeProfitLimitPrice] *not available on all exchanges* limit $price for a limit take profit order
+             * @param {float} [$params->stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+             * @param {float} [$params->takeProfitAmount] *not available on all exchanges* the $amount for a take profit
+             * @param {float} [$params->stopLossAmount] *not available on all exchanges* the $amount for a stop loss
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            $params = $this->set_take_profit_and_stop_loss_params($symbol, $type, $side, $amount, $price, $takeProfit, $stopLoss, $params);
+            if ($this->has['createOrderWithTakeProfitAndStopLossWs']) {
+                return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createOrderWithTakeProfitAndStopLossWs() is not supported yet');
+        })();
+    }
+
+    public function create_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        throw new NotSupported($this->id . ' createOrderWs() is not supported yet');
+    }
+
+    public function create_orders_ws(array $orders, $params = array()) {
+        /**
+         * create a list of trade $orders
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+         */
+        throw new NotSupported($this->id . ' createOrdersWs () is not supported yet');
+    }
+
+    public function create_post_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            if (!$this->has['createPostOnlyOrderWs']) {
+                throw new NotSupported($this->id . ' createPostOnlyOrderWs() is not supported yet');
+            }
+            $query = $this->extend($params, array( 'postOnly' => true ));
+            return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $query));
+        })();
+    }
+
+    public function create_reduce_only_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            if (!$this->has['createReduceOnlyOrderWs']) {
+                throw new NotSupported($this->id . ' createReduceOnlyOrderWs() is not supported yet');
+            }
+            $query = $this->extend($params, array( 'reduceOnly' => true ));
+            return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $query));
+        })();
+    }
+
+    public function create_stop_limit_order_ws(string $symbol, string $side, float $amount, float $price, float $triggerPrice, $params = array()) {
+        return Async\async(function () use ($symbol, $side, $amount, $price, $triggerPrice, $params) {
+            if (!$this->has['createStopLimitOrderWs']) {
+                throw new NotSupported($this->id . ' createStopLimitOrderWs() is not supported yet');
+            }
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
+            return Async\await($this->createOrderWs($symbol, 'limit', $side, $amount, $price, $query));
+        })();
+    }
+
+    public function create_stop_loss_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $stopLossPrice = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $stopLossPrice, $params) {
+            /**
+             * create a trigger stop loss order ($type 2)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} $stopLossPrice the $price to trigger the stop loss order, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            if ($stopLossPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createStopLossOrderWs() requires a $stopLossPrice argument');
+            }
+            $params = $this->extend($params, array( 'stopLossPrice' => $stopLossPrice ));
+            if ($this->has['createStopLossOrderWs']) {
+                return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createStopLossOrderWs() is not supported yet');
+        })();
+    }
+
+    public function create_stop_market_order_ws(string $symbol, string $side, float $amount, float $triggerPrice, $params = array()) {
+        return Async\async(function () use ($symbol, $side, $amount, $triggerPrice, $params) {
+            if (!$this->has['createStopMarketOrderWs']) {
+                throw new NotSupported($this->id . ' createStopMarketOrderWs() is not supported yet');
+            }
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
+            return Async\await($this->createOrderWs($symbol, 'market', $side, $amount, null, $query));
+        })();
+    }
+
+    public function create_stop_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
+            if (!$this->has['createStopOrderWs']) {
+                throw new NotSupported($this->id . ' createStopOrderWs() is not supported yet');
+            }
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createStopOrderWs() requires a stopPrice argument');
+            }
+            $query = $this->extend($params, array( 'stopPrice' => $triggerPrice ));
+            return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $query));
+        })();
+    }
+
+    public function create_take_profit_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $takeProfitPrice = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $takeProfitPrice, $params) {
+            /**
+             * create a trigger take profit order ($type 2)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} $takeProfitPrice the $price to trigger the take profit order, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            if ($takeProfitPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createTakeProfitOrderWs() requires a $takeProfitPrice argument');
+            }
+            $params = $this->extend($params, array( 'takeProfitPrice' => $takeProfitPrice ));
+            if ($this->has['createTakeProfitOrderWs']) {
+                return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createTakeProfitOrderWs() is not supported yet');
+        })();
+    }
+
+    public function create_trailing_amount_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingAmount = null, ?float $trailingTriggerPrice = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingAmount, $trailingTriggerPrice, $params) {
+            /**
+             * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingAmount
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+             * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+             * @param {float} $trailingAmount the quote $amount to trail away from the current market $price
+             * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            if ($trailingAmount === null) {
+                throw new ArgumentsRequired($this->id . ' createTrailingAmountOrderWs() requires a $trailingAmount argument');
+            }
+            $params['trailingAmount'] = $trailingAmount;
+            if ($trailingTriggerPrice !== null) {
+                $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+            }
+            if ($this->has['createTrailingAmountOrderWs']) {
+                return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createTrailingAmountOrderWs() is not supported yet');
+        })();
+    }
+
+    public function create_trailing_percent_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $trailingPercent = null, ?float $trailingTriggerPrice = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $trailingPercent, $trailingTriggerPrice, $params) {
+            /**
+             * create a trailing order by providing the $symbol, $type, $side, $amount, $price and $trailingPercent
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency, or number of contracts
+             * @param {float} [$price] the $price for the order to be filled at, in units of the quote currency, ignored in market orders
+             * @param {float} $trailingPercent the percent to trail away from the current market $price
+             * @param {float} [$trailingTriggerPrice] the $price to activate a trailing order, default uses the $price argument
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            if ($trailingPercent === null) {
+                throw new ArgumentsRequired($this->id . ' createTrailingPercentOrderWs() requires a $trailingPercent argument');
+            }
+            $params['trailingPercent'] = $trailingPercent;
+            if ($trailingTriggerPrice !== null) {
+                $params['trailingTriggerPrice'] = $trailingTriggerPrice;
+            }
+            if ($this->has['createTrailingPercentOrderWs']) {
+                return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createTrailingPercentOrderWs() is not supported yet');
+        })();
+    }
+
+    public function create_trigger_order_ws(string $symbol, string $type, string $side, float $amount, ?float $price = null, ?float $triggerPrice = null, $params = array()) {
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $triggerPrice, $params) {
+            /**
+             * create a trigger stop order ($type 1)
+             * @param {string} $symbol unified $symbol of the market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much you want to trade in units of the base currency or the number of contracts
+             * @param {float} [$price] the $price to fulfill the order, in units of the quote currency, ignored in market orders
+             * @param {float} $triggerPrice the $price to trigger the stop order, in units of the quote currency
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
+             */
+            if ($triggerPrice === null) {
+                throw new ArgumentsRequired($this->id . ' createTriggerOrderWs() requires a $triggerPrice argument');
+            }
+            $params = $this->extend($params, array( 'triggerPrice' => $triggerPrice ));
+            if ($this->has['createTriggerOrderWs']) {
+                return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+            }
+            throw new NotSupported($this->id . ' createTriggerOrderWs() is not supported yet');
+        })();
+    }
+
+    public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->cancelOrderWs($id, $symbol));
+            return Async\await($this->createOrderWs($symbol, $type, $side, $amount, $price, $params));
+        })();
+    }
+
+    public function fetch_closed_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['fetchOrdersWs']) {
+                $orders = Async\await($this->fetchOrdersWs($symbol, $since, $limit, $params));
+                return $this->filter_by($orders, 'status', 'closed');
+            }
+            throw new NotSupported($this->id . ' fetchClosedOrdersWs() is not supported yet');
+        })();
+    }
+
+    public function fetch_my_trades_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchMyTradesWs() is not supported yet');
+    }
+
+    public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['fetchOrdersWs']) {
+                $orders = Async\await($this->fetchOrdersWs($symbol, $since, $limit, $params));
+                return $this->filter_by($orders, 'status', 'open');
+            }
+            throw new NotSupported($this->id . ' fetchOpenOrdersWs() is not supported yet');
+        })();
+    }
+
+    public function fetch_order_book_ws(string $symbol, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchOrderBookWs() is not supported yet');
+    }
+
+    public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchOrderWs() is not supported yet');
+    }
+
+    public function fetch_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchOrdersWs() is not supported yet');
+    }
+
+    public function fetch_position_ws(string $symbol, $params = array()) {
+        throw new NotSupported($this->id . ' fetchPositionWs() is not supported yet');
+    }
+
+    public function fetch_positions_ws(?array $symbols = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
+    }
+
+    public function fetch_ticker_ws(string $symbol, $params = array()) {
+        return Async\async(function () use ($symbol, $params) {
+            if ($this->has['fetchTickersWs']) {
+                Async\await($this->load_markets());
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $tickers = Async\await($this->fetchTickersWs(array( $symbol ), $params));
+                $ticker = $this->safe_dict($tickers, $symbol);
+                if ($ticker === null) {
+                    throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
+                } else {
+                    return $ticker;
+                }
+            } else {
+                throw new NotSupported($this->id . ' fetchTickerWs() is not supported yet');
+            }
+        })();
+    }
+
+    public function fetch_tickers_ws(?array $symbols = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchTickersWs() is not supported yet');
+    }
+
+    public function fetch_trades_ws(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+        throw new NotSupported($this->id . ' fetchTradesWs() is not supported yet');
+    }
 
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         throw new NotSupported($this->id . ' fetchTrades() is not supported yet');

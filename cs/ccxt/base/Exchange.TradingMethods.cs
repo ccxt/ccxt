@@ -6,6 +6,450 @@ public partial class Exchange
 {
 
 
+    public async virtual Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelAllOrdersWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> cancelOrdersWs(object ids, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " cancelOrdersWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createLimitBuyOrderWs(object symbol, object amount, object price, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "limit", "buy", amount, price, parameters);
+    }
+
+    public async virtual Task<object> createLimitOrderWs(object symbol, object side, object amount, object price, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "limit", side, amount, price, parameters);
+    }
+
+    public async virtual Task<object> createLimitSellOrderWs(object symbol, object amount, object price, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "limit", "sell", amount, price, parameters);
+    }
+
+    public async virtual Task<object> createMarketBuyOrderWs(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "market", "buy", amount, null, parameters);
+    }
+
+    public async virtual Task<object> createMarketOrderWithCostWs(object symbol, object side, object cost, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createMarketOrderWithCostWs
+        * @description create a market order by providing the symbol, side and cost
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} cost how much you want to trade in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isTrue(getValue(this.has, "createMarketOrderWithCostWs")) || isTrue((isTrue(getValue(this.has, "createMarketBuyOrderWithCostWs")) && isTrue(getValue(this.has, "createMarketSellOrderWithCostWs"))))))
+        {
+            return await this.createOrderWs(symbol, "market", side, cost, 1, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createMarketOrderWithCostWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createMarketOrderWs(object symbol, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "market", side, amount, price, parameters);
+    }
+
+    public async virtual Task<object> createMarketSellOrderWs(object symbol, object amount, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        return await this.createOrderWs(symbol, "market", "sell", amount, null, parameters);
+    }
+
+    public async virtual Task<object> createOrderWithTakeProfitAndStopLossWs(object symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createOrderWithTakeProfitAndStopLossWs
+        * @description create an order with a stop loss or take profit attached (type 3)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} [takeProfit] the take profit price, in units of the quote currency
+        * @param {float} [stopLoss] the stop loss price, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.takeProfitType] *not available on all exchanges* 'limit' or 'market'
+        * @param {string} [params.stopLossType] *not available on all exchanges* 'limit' or 'market'
+        * @param {string} [params.takeProfitPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+        * @param {string} [params.stopLossPriceType] *not available on all exchanges* 'last', 'mark' or 'index'
+        * @param {float} [params.takeProfitLimitPrice] *not available on all exchanges* limit price for a limit take profit order
+        * @param {float} [params.stopLossLimitPrice] *not available on all exchanges* stop loss for a limit stop loss order
+        * @param {float} [params.takeProfitAmount] *not available on all exchanges* the amount for a take profit
+        * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        parameters = this.setTakeProfitAndStopLossParams(symbol, type, side, amount, price, takeProfit, stopLoss, parameters);
+        if (isTrue(getValue(this.has, "createOrderWithTakeProfitAndStopLossWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createOrderWithTakeProfitAndStopLossWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " createOrdersWs () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createPostOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createPostOnlyOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createPostOnlyOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "postOnly", true },
+        });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+
+    public async virtual Task<object> createReduceOnlyOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createReduceOnlyOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createReduceOnlyOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "reduceOnly", true },
+        });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+
+    public async virtual Task<object> createStopLimitOrderWs(object symbol, object side, object amount, object price, object triggerPrice, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createStopLimitOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createStopLimitOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopPrice", triggerPrice },
+        });
+        return await this.createOrderWs(symbol, "limit", side, amount, price, query);
+    }
+
+    public async virtual Task<object> createStopLossOrderWs(object symbol, object type, object side, object amount, object price = null, object stopLossPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createStopLossOrderWs
+        * @description create a trigger stop loss order (type 2)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} stopLossPrice the price to trigger the stop loss order, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(stopLossPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createStopLossOrderWs() requires a stopLossPrice argument")) ;
+        }
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopLossPrice", stopLossPrice },
+        });
+        if (isTrue(getValue(this.has, "createStopLossOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createStopLossOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createStopMarketOrderWs(object symbol, object side, object amount, object triggerPrice, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createStopMarketOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createStopMarketOrderWs() is not supported yet")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopPrice", triggerPrice },
+        });
+        return await this.createOrderWs(symbol, "market", side, amount, null, query);
+    }
+
+    public async virtual Task<object> createStopOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (!isTrue(getValue(this.has, "createStopOrderWs")))
+        {
+            throw new NotSupported ((string)add(this.id, " createStopOrderWs() is not supported yet")) ;
+        }
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createStopOrderWs() requires a stopPrice argument")) ;
+        }
+        object query = this.extend(parameters, new Dictionary<string, object>() {
+            { "stopPrice", triggerPrice },
+        });
+        return await this.createOrderWs(symbol, type, side, amount, price, query);
+    }
+
+    public async virtual Task<object> createTakeProfitOrderWs(object symbol, object type, object side, object amount, object price = null, object takeProfitPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTakeProfitOrderWs
+        * @description create a trigger take profit order (type 2)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} takeProfitPrice the price to trigger the take profit order, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(takeProfitPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")) ;
+        }
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "takeProfitPrice", takeProfitPrice },
+        });
+        if (isTrue(getValue(this.has, "createTakeProfitOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTakeProfitOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createTrailingAmountOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingAmount = null, object trailingTriggerPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTrailingAmountOrderWs
+        * @description create a trailing order by providing the symbol, type, side, amount, price and trailingAmount
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+        * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        * @param {float} trailingAmount the quote amount to trail away from the current market price
+        * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(trailingAmount, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTrailingAmountOrderWs() requires a trailingAmount argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["trailingAmount"] = trailingAmount;
+        if (isTrue(!isEqual(trailingTriggerPrice, null)))
+        {
+            ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
+        }
+        if (isTrue(getValue(this.has, "createTrailingAmountOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTrailingAmountOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createTrailingPercentOrderWs(object symbol, object type, object side, object amount, object price = null, object trailingPercent = null, object trailingTriggerPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTrailingPercentOrderWs
+        * @description create a trailing order by providing the symbol, type, side, amount, price and trailingPercent
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency, or number of contracts
+        * @param {float} [price] the price for the order to be filled at, in units of the quote currency, ignored in market orders
+        * @param {float} trailingPercent the percent to trail away from the current market price
+        * @param {float} [trailingTriggerPrice] the price to activate a trailing order, default uses the price argument
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(trailingPercent, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTrailingPercentOrderWs() requires a trailingPercent argument")) ;
+        }
+        ((IDictionary<string,object>)parameters)["trailingPercent"] = trailingPercent;
+        if (isTrue(!isEqual(trailingTriggerPrice, null)))
+        {
+            ((IDictionary<string,object>)parameters)["trailingTriggerPrice"] = trailingTriggerPrice;
+        }
+        if (isTrue(getValue(this.has, "createTrailingPercentOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTrailingPercentOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> createTriggerOrderWs(object symbol, object type, object side, object amount, object price = null, object triggerPrice = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name createTriggerOrderWs
+        * @description create a trigger stop order (type 1)
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much you want to trade in units of the base currency or the number of contracts
+        * @param {float} [price] the price to fulfill the order, in units of the quote currency, ignored in market orders
+        * @param {float} triggerPrice the price to trigger the stop order, in units of the quote currency
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(isEqual(triggerPrice, null)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " createTriggerOrderWs() requires a triggerPrice argument")) ;
+        }
+        parameters = this.extend(parameters, new Dictionary<string, object>() {
+            { "triggerPrice", triggerPrice },
+        });
+        if (isTrue(getValue(this.has, "createTriggerOrderWs")))
+        {
+            return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " createTriggerOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.cancelOrderWs(id, symbol);
+        return await this.createOrderWs(symbol, type, side, amount, price, parameters);
+    }
+
+    public async virtual Task<object> fetchClosedOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchOrdersWs")))
+        {
+            object orders = await this.fetchOrdersWs(symbol, since, limit, parameters);
+            return this.filterBy(orders, "status", "closed");
+        }
+        throw new NotSupported ((string)add(this.id, " fetchClosedOrdersWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchMyTradesWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchMyTradesWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchOrdersWs")))
+        {
+            object orders = await this.fetchOrdersWs(symbol, since, limit, parameters);
+            return this.filterBy(orders, "status", "open");
+        }
+        throw new NotSupported ((string)add(this.id, " fetchOpenOrdersWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderBookWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrderWs(object id, object symbol = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrderWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchOrdersWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositionWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchPositionsWs(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchPositions() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "fetchTickersWs")))
+        {
+            await this.loadMarkets();
+            object market = this.market(symbol);
+            symbol = getValue(market, "symbol");
+            object tickers = await this.fetchTickersWs(new List<object>() {symbol}, parameters);
+            object ticker = this.safeDict(tickers, symbol);
+            if (isTrue(isEqual(ticker, null)))
+            {
+                throw new NullResponse ((string)add(add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
+            } else
+            {
+                return ticker;
+            }
+        } else
+        {
+            throw new NotSupported ((string)add(this.id, " fetchTickerWs() is not supported yet")) ;
+        }
+    }
+
+    public async virtual Task<object> fetchTickersWs(object symbols = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTickersWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchTradesWs(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTradesWs() is not supported yet")) ;
+    }
+
 
     public async virtual Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {

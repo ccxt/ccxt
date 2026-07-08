@@ -14,6 +14,18 @@ public partial class PredictionExchange : BaseExchange
     public bool reloadingEvents { get; set; } = false;
     public Task<object> eventsLoading { get; set; } = null;
 
+    public override object describe()
+    {
+        return this.deepExtend(base.describe(), new Dictionary<string, object>() {
+            { "has", new Dictionary<string, object>() {
+                { "createLimitOrder", false },
+                { "createMarketOrder", false },
+                { "createMarketOrderWs", false },
+                { "fetchL2OrderBook", false },
+            } },
+        });
+    }
+
     public virtual object isPrediction()
     {
         return this.safeBool(this.has, "prediction", false);

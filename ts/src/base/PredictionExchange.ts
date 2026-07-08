@@ -21,6 +21,17 @@ export default class PredictionExchange extends BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
+    describe (): any {
+        return this.deepExtend (super.describe (), {
+            'has': {
+                'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createMarketOrderWs': false,
+                'fetchL2OrderBook': false,
+            },
+        });
+    }
+
     isPrediction (): boolean {
         return this.safeBool (this.has, 'prediction', false);
     }

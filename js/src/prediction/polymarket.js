@@ -1920,7 +1920,7 @@ export default class polymarket extends Exchange {
             'orderType': orderTypeStr,
         };
         // the CLOB create response only echoes {orderID, status}; carry the submitted terms
-        // (keyed as the fetchOrder response fields parsePredictionOrder reads) so createOrder can merge
+        // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         const requestEcho = {
             'side': sideStr,
@@ -2342,7 +2342,7 @@ export default class polymarket extends Exchange {
             active = rawActive && !closed;
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
-        // (filterEventsByTags reads event['tags'], not event.info.tags) can actually match
+        // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match
         const rawTags = this.safeList(rawEvent, 'tags', []);
         const rawTagsLength = rawTags.length;
         const parsedTags = [];

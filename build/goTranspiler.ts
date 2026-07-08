@@ -1914,7 +1914,7 @@ ${constStatements.join('\n')}
             // (see go/v4/exchange_interface.go) to let prediction cores satisfy it. These dispatch
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
-            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers)\(/g, 'this.DerivedExchange.(I$1).$1('],
+            [/this\.DerivedExchange\.(EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs)\(/g, 'this.DerivedExchange.(I$1).$1('],
         ]);
 
         const jsDelimiter = '// ' + delimiter;

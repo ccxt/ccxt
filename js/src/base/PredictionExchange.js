@@ -24,6 +24,16 @@ export default class PredictionExchange extends BaseExchange {
         this.events_by_slug = undefined;
     }
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
+    describe() {
+        return this.deepExtend(super.describe(), {
+            'has': {
+                'createLimitOrder': false,
+                'createMarketOrder': false,
+                'createMarketOrderWs': false,
+                'fetchL2OrderBook': false,
+            },
+        });
+    }
     isPrediction() {
         return this.safeBool(this.has, 'prediction', false);
     }
@@ -101,7 +111,7 @@ export default class PredictionExchange extends BaseExchange {
         const limit = this.safeInteger(params, 'limit');
         if (limit !== undefined) {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
-            // (reflect Slice) and throws in C#, unlike JS/Python which return the whole array
+            // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
             const resultLength = result.length;
             let sliceEnd = limit;
             if (sliceEnd > resultLength) {
@@ -390,7 +400,7 @@ export default class PredictionExchange extends BaseExchange {
         // pass undefined — the body already collapses an absent event to just the market part.
         // a strict `string` param would make PHP/typed transpilers throw on null before the body runs.
         // qualify the market handle with its event so two events that share a market label
-        // (e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps") do NOT collapse
+        // — e.g. kalshi's KXFEDDECISION-28JAN and -27OCT both list "Cut 25bps" — do NOT collapse
         // to the same handle — a collision silently overwrites markets in this.markets and would
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
@@ -404,7 +414,7 @@ export default class PredictionExchange extends BaseExchange {
     }
     slugToOutcomeSymbol(eventSlug, marketSlug, outcome) {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
-        // (both event-qualified or both not) — otherwise a qualified market + unqualified outcome mismatch
+        // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch
         return this.slugToMarketSymbol(eventSlug, marketSlug) + ':' + outcome.toUpperCase();
     }
     setMarkets(markets, currencies = undefined) {
@@ -482,7 +492,7 @@ export default class PredictionExchange extends BaseExchange {
         // register a single event's markets into this.markets and rebuild the outcome cache so the
         // handles fetchEvent() returns resolve immediately in outcome-addressed methods (fetchTicker,
         // createOrder, ...). without this, on a cold instance or a loadAllOutcomes:false venue
-        // (kalshi) the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
+        // such as kalshi, the returned handles are unusable — fetchTicker(ev.markets[0].outcomes[0].outcome)
         // BadSymbols because the outcome was never cached
         if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();

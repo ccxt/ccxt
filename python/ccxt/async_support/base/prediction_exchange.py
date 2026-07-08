@@ -25,6 +25,16 @@ class PredictionExchange(BaseExchange):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
+    def describe(self) -> Any:
+        return self.deep_extend(super(PredictionExchange, self).describe(), {
+            'has': {
+                'createLimitOrder': False,
+                'createMarketOrder': False,
+                'createMarketOrderWs': False,
+                'fetchL2OrderBook': False,
+            },
+        })
+
     def is_prediction(self) -> bool:
         return self.safe_bool(self.has, 'prediction', False)
 

@@ -26,6 +26,17 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
 
+    public function describe(): mixed {
+        return $this->deep_extend(parent::describe(), array(
+            'has' => array(
+                'createLimitOrder' => false,
+                'createMarketOrder' => false,
+                'createMarketOrderWs' => false,
+                'fetchL2OrderBook' => false,
+            ),
+        ));
+    }
+
     public function is_prediction(): bool {
         return $this->safe_bool($this->has, 'prediction', false);
     }
