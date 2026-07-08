@@ -287,7 +287,7 @@ public partial class BaseExchange
         this.exceptions = SafeValue(extendedProperties, "exceptions") as dict;
         this.markets = SafeValue(extendedProperties, "markets") as dict;
         var propCurrencies = SafeValue(extendedProperties, "currencies") as dict;
-        if (propCurrencies.Keys.Count > 0)
+        if (propCurrencies != null && propCurrencies.Keys.Count > 0)
         {
             this.currencies = propCurrencies;
         }

@@ -35,25 +35,19 @@ public partial class testMainClass : BaseTest
     public static int TICK_SIZE = Exchange.TICK_SIZE;
 
     // public static object AuthenticationError = typeof(Exchange.AuthenticationError);
-    public static Exchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
+    public static BaseExchange initExchange(object exchangeId, object exchangeArgs = null, bool isWs = false)
     {
         // the --prediction flag forces the prediction-markets namespace; prediction exchanges carry
         // their watch* methods on the main prediction class (no ccxt.pro variant), so keep the bare id
         var forcePrediction = getCliArgValue("--prediction");
         if (isWs && !forcePrediction)
         {
-            // var binance = new ccxt.binance();
-            exchangeId = "ccxt.pro." + (string)exchangeId;// + "Ws";
+            exchangeId = "ccxt.pro." + (string)exchangeId;
         }
-        var exchange = Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
-        // regular venues return an Exchange; the shared test harness types the variable as Exchange,
-        // so prediction instances (which extend BaseExchange, not Exchange) are exercised through the
-        // cli / dedicated prediction paths rather than this Exchange-typed cast
-        if (exchange is Exchange regular)
-        {
-            return regular;
-        }
-        throw new Exception("initExchange: '" + (string)exchangeId + "' is a prediction venue (extends BaseExchange, not Exchange) — run prediction tests via the CLI/dedicated path, not this Exchange-typed harness");
+        // DynamicallyCreateInstance returns BaseExchange: a regular venue is an Exchange, a prediction
+        // venue a PredictionExchange. The shared static harness types the variable as BaseExchange and
+        // drives the tested method via reflection, so both run through the same path.
+        return Exchange.DynamicallyCreateInstance((string)exchangeId, exchangeArgs, false, forcePrediction);
     }
 
     public static bool getCliArgValue(string option)
@@ -325,9 +319,9 @@ public partial class testMainClass : BaseTest
         return exc;
     }
 
-    public Exchange setFetchResponse(object exchange2, object response)
+    public BaseExchange setFetchResponse(object exchange2, object response)
     {
-        var exchange = exchange2 as Exchange;
+        var exchange = exchange2 as BaseExchange;
 
         exchange.fetchResponse = response;
         return exchange;
