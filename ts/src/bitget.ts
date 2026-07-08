@@ -5318,6 +5318,9 @@ export default class bitget extends Exchange {
             [ postOnly, params ] = this.handlePostOnly (isMarketOrder, exchangeSpecificTifParam === 'post_only', params);
             let timeInForce: Str = undefined;
             [ timeInForce, params ] = this.handleOptionAndParams (params, 'createOrder', 'timeInForce');
+            if (timeInForce !== undefined) {
+                timeInForce = timeInForce.toUpperCase ();
+            }
             if (postOnly) {
                 request['timeInForce'] = 'post_only';
             } else if (timeInForce === 'GTC') {
