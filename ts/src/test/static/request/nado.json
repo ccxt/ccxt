@@ -1,9 +1,18 @@
 {
     "exchange": "nado",
-    "skipKeys": [],
+    "skipKeys": [
+        "signature",
+        "recvTime"
+    ],
     "outputType": "json",
     "walletAddress": "0x1230000000000000000000000000000000000123",
     "privateKey": "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771",
+    "options":{
+        "gatewayContracts": {
+            "chain_id": "763373",
+            "endpoint_addr": "0x698d87105274292b5673367dec81874ce3633ac2"
+        }
+    },
     "methods": {
         "fetchTime": [
             {
@@ -176,6 +185,36 @@
                 ]
             }
         ],
+        "fetchOrders": [
+            {
+                "description": "fetch BTC/USDT0:USDT0 trigger orders",
+                "method": "fetchOrders",
+                "url": "https://trigger.test.nado.xyz/v1/query",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    10,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"recvTime\":\"1783494888934\"},\"type\":\"list_trigger_orders\",\"product_ids\":[2],\"signature\":\"\",\"limit\":10}"
+            },
+            {
+                "description": "fetch all trigger orders",
+                "method": "fetchOrders",
+                "url": "https://trigger.test.nado.xyz/v1/query",
+                "input": [
+                    null,
+                    null,
+                    10,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"recvTime\":\"1783494888934\"},\"type\":\"list_trigger_orders\",\"product_ids\":[],\"signature\":\"\",\"limit\":10}"
+            }
+        ],
         "fetchOpenOrders": [
             {
                 "description": "fetchOpenOrders",
@@ -184,6 +223,20 @@
                 "input": [
                     "BTC/USDT0:USDT0"
                 ]
+            },
+            {
+                "description": "fetchOpenTriggerOrders",
+                "method": "fetchOpenOrders",
+                "url": "https://trigger.test.nado.xyz/v1/query",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    10,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"recvTime\":\"1783494888934\"},\"type\":\"list_trigger_orders\",\"product_ids\":[2],\"signature\":\"\",\"status_types\":[\"waiting_price\",\"waiting_dependency\"]}"
             }
         ],
         "fetchClosedOrders": [
@@ -197,6 +250,54 @@
                     2
                 ],
                 "output": "{\"orders\":{\"subaccounts\":[\"0x123000000000000000000000000000000000012364656661756c740000000000\"],\"product_ids\":[2],\"limit\":2}}"
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetch BTC/USDT0:USDT0 closed trigger orders",
+                "method": "fetchClosedOrders",
+                "url": "https://trigger.test.nado.xyz/v1/query",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    10,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"recvTime\":\"1783495555032\"},\"type\":\"list_trigger_orders\",\"product_ids\":[2],\"signature\":\"\",\"status_types\":[\"triggered\",\"triggering\",\"twap_executing\",\"twap_completed\"]}"
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "fetch BTC/USDT0:USDT0 canceled trigger orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://trigger.test.nado.xyz/v1/query",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    10,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"recvTime\":\"1783495555032\"},\"type\":\"list_trigger_orders\",\"product_ids\":[2],\"signature\":\"\",\"status_types\":[\"cancelled\",\"internal_error\"]}"
+            }
+        ],
+        "fetchCanceledAndClosedOrders": [
+            {
+                "description": "fetch BTC/USDT0:USDT0 canceled and closed trigger orders",
+                "method": "fetchCanceledAndClosedOrders",
+                "url": "https://trigger.test.nado.xyz/v1/query",
+                "input": [
+                    "BTC/USDT0:USDT0",
+                    null,
+                    10,
+                    {
+                        "trigger": true
+                    }
+                ],
+                "output": "{\"tx\":{\"sender\":\"0x123000000000000000000000000000000000012364656661756c740000000000\",\"recvTime\":\"1783495555032\"},\"type\":\"list_trigger_orders\",\"product_ids\":[2],\"signature\":\"\",\"status_types\":[\"cancelled\",\"internal_error\",\"triggered\",\"triggering\",\"twap_executing\",\"twap_completed\"]}"
             }
         ],
         "fetchMyTrades": [
