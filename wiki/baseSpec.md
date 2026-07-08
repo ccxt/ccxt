@@ -6940,6 +6940,7 @@ remove margin from a position
 * [hashkey](/exchanges/hashkey.md#reducemargin)
 * [hitbtc](/exchanges/hitbtc.md#reducemargin)
 * [hyperliquid](/exchanges/hyperliquid.md#reducemargin)
+* [kucoin](/exchanges/kucoin.md#reducemargin)
 * [lighter](/exchanges/lighter.md#reducemargin)
 * [mexc](/exchanges/mexc.md#reducemargin)
 * [mudrex](/exchanges/mudrex.md#reducemargin)
