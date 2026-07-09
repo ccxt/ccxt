@@ -6,7 +6,7 @@ import Exchange from './abstract/bitso.js';
 import { ExchangeError, InvalidNonce, AuthenticationError, OrderNotFound, BadRequest, ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, int, LedgerEntry, DepositAddress, List } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, TradingFees, Transaction, Currencies, int, LedgerEntry, DepositAddress, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -53,7 +53,7 @@ export default class bitso extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
@@ -146,12 +146,6 @@ export default class bitso extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'precision': {
-                    'XRP': 0.000001,
-                    'MXN': 0.01,
-                    'TUSD': 0.01,
-                },
-                'defaultPrecision': 0.00000001,
                 'networks': {
                     'TRC20': 'trx',
                     'ERC20': 'erc20',
@@ -174,6 +168,7 @@ export default class bitso extends Exchange {
                 'public': {
                     'get': [
                         'available_books',
+                        'catalogues',
                         'ticker',
                         'order_book',
                         'trades',
@@ -494,6 +489,7 @@ export default class bitso extends Exchange {
         //         ]
         //     }
         const markets = this.safeValue (response, 'payload', []);
+        const currencies = this.safeDict (this.options, 'cachedCurrencies');
         const result: Market[] = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -535,8 +531,6 @@ export default class bitso extends Exchange {
                 'maker': makerFees,
             };
             fee['tiers'] = tiers;
-            // TODO: precisions can be also set from https://bitso.com/api/v3/catalogues ->available_currency_conversions->currencies (or ->currencies->metadata)  or https://bitso.com/api/v3/get_exchange_rates/mxn
-            const defaultPricePrecision = this.safeNumber (this.options['precision'], quote, this.options['defaultPrecision']);
             result.push (this.extend ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -564,8 +558,8 @@ export default class bitso extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (this.options['precision'], base, this.options['defaultPrecision']),
-                    'price': this.safeNumber (market, 'tick_size', defaultPricePrecision),
+                    'amount': this.safeNumber (currencies, base),
+                    'price': this.safeNumber (market, 'tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -590,6 +584,77 @@ export default class bitso extends Exchange {
             }, fee));
         }
         return result;
+    }
+
+    /**
+     * @method
+     * @name bitso#fetchCurrencies
+     * @description fetches all available currencies on an exchange
+     * @see https://docs.bitso.com/bitso-payouts-funding/docs
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an associative dictionary of currencies
+     */
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        const catalogues = await this.publicGetCatalogues (params);
+        //
+        //     {
+        //         "payload": {
+        //             "currencies": {
+        //                 "metadata": [
+        //                     {
+        //                         "code": "brl",
+        //                         "full_name": "Brazilian Reais",
+        //                         "color": "02A630",
+        //                         "precision": 2,
+        //                         "display_ticker": "BRL",
+        //                         "type": "fiat"
+        //                     },
+        //                     {
+        //                         "code": "usdt",
+        //                         "full_name": "USDT (Digital Dollars)",
+        //                         "color": "50AF95",
+        //                         "precision": 2,
+        //                         "display_ticker": "USDT",
+        //                         "type": "crypto"
+        //                     }, ...
+        //
+        const payload = this.safeDict (catalogues, 'payload');
+        const currencies = this.safeDict (payload, 'currencies');
+        const metadata = this.safeList (currencies, 'metadata', []);
+        return this.parseCurrencies (metadata);
+    }
+
+    parseCurrency (rawCurrency: Dict): Currency {
+        const currencyId = this.safeString (rawCurrency, 'code');
+        const code = this.safeCurrencyCode (currencyId);
+        return this.safeCurrencyStructure ({
+            'info': rawCurrency,
+            'code': code,
+            'id': currencyId,
+            'name': this.safeString (rawCurrency, 'full_name'),
+            'active': undefined,
+            'deposit': undefined,
+            'withdraw': undefined,
+            'fee': undefined,
+            'precision': this.parseNumber (this.parsePrecision (this.safeString (rawCurrency, 'precision'))),
+            'margin': this.safeBool (rawCurrency, 'marginAvailable'),
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'withdraw': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'deposit': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'networks': undefined,
+            'type': this.safeString (rawCurrency, 'type'),
+        });
     }
 
     parseBalance (response): Balances {
