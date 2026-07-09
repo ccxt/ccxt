@@ -1369,7 +1369,7 @@ export default class alpaca extends Exchange {
             request['limit_price'] = this.priceToPrecision (symbol, price);
         }
         let timeInForce: Str = undefined;
-        [ timeInForce, params ] = this.handleOptionAndParams2 (params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+        [ timeInForce, params ] = this.handleOptionAndParams (params, 'editOrder', 'timeInForce', 'gtc');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
