@@ -7,7 +7,7 @@ import { ExchangeError, AuthenticationError, InsufficientFunds, BadSymbol, Order
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { totp } from './base/functions/totp.js';
-import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Ticker, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
+import type { IndexType, Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, Num, Account, Currencies, Dict, int, LedgerEntry, DepositAddress, NullableDict } from './base/types.js';
 // ---------------------------------------------------------------------------
 
 /**
@@ -109,8 +109,9 @@ export default class ndax extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchSettlementHistory': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -402,6 +403,31 @@ export default class ndax extends Exchange {
                 },
             },
         });
+    }
+
+    /**
+     * @method
+     * @name ndax#fetchStatus
+     * @description the latest known information on the availability of the exchange API
+     * @see https://apidoc.ndax.io/#ping
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
+     */
+    async fetchStatus (params = {}): Promise<Dict> {
+        const response = await this.publicGetPing (params);
+        //
+        //     {
+        //         "msg":"PONG"
+        //     }
+        //
+        const message = this.safeString (response, 'msg');
+        return {
+            'status': (message === 'PONG') ? 'ok' : 'error',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     /**
@@ -777,25 +803,42 @@ export default class ndax extends Exchange {
         //         "Rolling24HrPxChangePercent":0,
         //     }
         //
+        // fetchTickers
+        //
+        //     {
+        //         "trading_pairs":"BTC_CAD",
+        //         "last_price":75925.37,
+        //         "lowest_ask":75926.63,
+        //         "highest_bid":66.435340000000000000000000000,
+        //         "base_volume":75774.93,
+        //         "quote_volume":5112197.7830825000000000000000,
+        //         "price_change_percent_24h":-5.3894893561980828521107542600,
+        //         "highest_price_24h":79813.51,
+        //         "lowest_price_24h":73700.01
+        //     }
+        //
         const timestamp = this.safeInteger (ticker, 'TimeStamp');
-        const marketId = this.safeString (ticker, 'InstrumentId');
-        market = this.safeMarket (marketId, market);
+        let marketId = this.safeString (ticker, 'InstrumentId');
+        if (marketId === undefined) {
+            marketId = this.safeString (ticker, 'trading_pairs');
+        }
+        market = this.safeMarket (marketId, market, '_');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString (ticker, 'LastTradedPx');
-        const percentage = this.safeString (ticker, 'Rolling24HrPxChangePercent');
+        const last = this.safeString2 (ticker, 'LastTradedPx', 'last_price');
+        const percentage = this.safeString2 (ticker, 'Rolling24HrPxChangePercent', 'price_change_percent_24h');
         const change = this.safeString (ticker, 'Rolling24HrPxChange');
         const open = this.safeString (ticker, 'SessionOpen');
-        const baseVolume = this.safeString (ticker, 'Rolling24HrVolume');
-        const quoteVolume = this.safeString (ticker, 'Rolling24HrNotional');
+        const baseVolume = this.safeString2 (ticker, 'Rolling24HrVolume', 'base_volume');
+        const quoteVolume = this.safeString2 (ticker, 'Rolling24HrNotional', 'quote_volume');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'SessionHigh'),
-            'low': this.safeString (ticker, 'SessionLow'),
-            'bid': this.safeString (ticker, 'BestBid'),
+            'high': this.safeString2 (ticker, 'SessionHigh', 'highest_price_24h'),
+            'low': this.safeString2 (ticker, 'SessionLow', 'lowest_price_24h'),
+            'bid': this.safeString2 (ticker, 'BestBid', 'highest_bid'),
             'bidVolume': undefined, // this.safeNumber (ticker, 'BidQty'), always shows 0
-            'ask': this.safeString (ticker, 'BestOffer'),
+            'ask': this.safeString2 (ticker, 'BestOffer', 'lowest_ask'),
             'askVolume': undefined, // this.safeNumber (ticker, 'AskQty'), always shows 0
             'vwap': undefined,
             'open': open,
@@ -809,6 +852,40 @@ export default class ndax extends Exchange {
             'quoteVolume': quoteVolume,
             'info': ticker,
         }, market);
+    }
+
+    /**
+     * @method
+     * @name ndax#fetchTickers
+     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+     * @see https://apidoc.ndax.io/#cmc-summary
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetSummary (params);
+        //
+        //     [
+        //         {
+        //             "trading_pairs":"BTC_CAD",
+        //             "last_price":75925.37,
+        //             "lowest_ask":75926.63,
+        //             "highest_bid":66.435340000000000000000000000,
+        //             "base_volume":75774.93,
+        //             "quote_volume":5112197.7830825000000000000000,
+        //             "price_change_percent_24h":-5.3894893561980828521107542600,
+        //             "highest_price_24h":79813.51,
+        //             "lowest_price_24h":73700.01
+        //         }
+        //     ]
+        //
+        const tickers = this.parseTickers (response);
+        return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
 
     /**
