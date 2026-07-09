@@ -71,6 +71,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileWs -- --php $exchange
         done
+    - name: Transpile prediction to PHP
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-php
     - name: Post-transpile (syntax check)
       run: npm run check-php-syntax
     - name: Post-transpile (style check)
@@ -106,6 +109,12 @@ jobs:
           npm run response-php-sync -- $exchange
           npm run response-php-async -- $exchange
         done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-php-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-php-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:

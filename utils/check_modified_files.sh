@@ -25,10 +25,18 @@ else
     IMPORTANT_MODIFIED="false"
 fi
 
+# prediction-market sources/fixtures live outside the regular ts/src/*.ts + ts/src/pro/*.ts globs,
+# so flag them separately to drive the per-language prediction transpile + test CI steps
+if [[ "$IMPORTANT_MODIFIED" == "true" ]] || echo "$diff" | grep -qE 'ts/src/prediction/|ts/src/pro/prediction/|ts/src/test/static/(request|response)/prediction/'; then
+    PREDICTION_MODIFIED="true"
+else
+    PREDICTION_MODIFIED="false"
+fi
+
 # echo "$diff_without_statics"
 
 if [ "$IMPORTANT_MODIFIED" == "true" ]; then
-  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
+  echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": [], \"ws_exchanges\": []}"
   exit
 fi
 
@@ -117,4 +125,4 @@ else
   ws_exchanges_json=$(printf '%s\n' "${WS_EXCHANGES[@]}" | jq -R . | jq -s .)
 fi
 
-echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"
+echo "{\"important_modified\": \"$IMPORTANT_MODIFIED\", \"prediction_modified\": \"$PREDICTION_MODIFIED\", \"rest_exchanges\": $rest_exchanges_json, \"ws_exchanges\": $ws_exchanges_json}"

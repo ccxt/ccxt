@@ -128,10 +128,10 @@ jobs:
           npm run response-js -- $exchange
         done
     - name: Request Prediction tests
-      if: env.important_modified == 'true'
+      if: env.prediction_modified == 'true'
       run: npm run request-ts-prediction
     - name: Response Prediction tests
-      if: env.important_modified == 'true'
+      if: env.prediction_modified == 'true'
       run: npm run response-ts-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4

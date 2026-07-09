@@ -63,6 +63,9 @@ jobs:
         for exchange in $cleaned_ws_files; do
           npm run transpileWs --python $exchange
         done
+    - name: Transpile prediction to Python
+      if: env.prediction_modified == 'true'
+      run: npm run transpile-prediction-py
     - name: Post-transpile (syntax check)
       run: npm run check-python-syntax
     - name: Run Base Tests
@@ -96,6 +99,12 @@ jobs:
           npm run response-py-sync -- $exchange
           npm run response-py-async -- $exchange
         done
+    - name: Prediction request tests
+      if: env.prediction_modified == 'true'
+      run: npm run request-py-prediction
+    - name: Prediction response tests
+      if: env.prediction_modified == 'true'
+      run: npm run response-py-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:

@@ -76,10 +76,16 @@ jobs:
           tsx build/granular-go-build.ts "${files[@]}"
       # - name: Install dependencies
       #   run: cd go && go get ./ccxt && cd ..
+      - name: Transpile prediction to Go
+        if: env.prediction_modified == 'true'
+        run: npm run transpile-prediction-go
       - name: Build
         run: go build -C go ./v4
       - name: Build Ws
         run: go build -C go ./v4/pro
+      - name: Build prediction
+        if: env.prediction_modified == 'true'
+        run: go build -C go ./v4/prediction
       - name: Build tests
         run: go -C go build ./tests/main.go
       - name: Format go files
@@ -120,6 +126,12 @@ jobs:
           for exchange in $cleaned_rest_files; do
             npm run response-go -- $exchange
           done
+      - name: Prediction request tests
+        if: env.prediction_modified == 'true'
+        run: npm run request-go-prediction
+      - name: Prediction response tests
+        if: env.prediction_modified == 'true'
+        run: npm run response-go-prediction
 
       # - name: Upload Go Files
       #   uses: actions/upload-artifact@v4
