@@ -123,7 +123,7 @@ function main() {
             wsPaths.push(basePath + 'pro/' + exchange + '.d.ts')
         }
     }
-    const program = ts.createProgram([...restPaths, ...wsPaths,basePath + 'base/Exchange.d.ts'], {});
+    const program = ts.createProgram([...restPaths, ...wsPaths,basePath + 'base/Exchange.d.ts'], { strict: false }); // TS >= 6 defaults to strict (undefined kept in unions, aliases preserved); pin pre-6 semantics so type strings compare stably
     
     const sourceOfTruth = extractMethodsInfo(basePath + 'base/Exchange.d.ts', program);
     let foundIssues = false;
