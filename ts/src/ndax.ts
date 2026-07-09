@@ -168,6 +168,7 @@ export default class ndax extends Exchange {
                         'Activate2FA': 1,
                         'Authenticate2FA': 1,
                         'AuthenticateUser': 1,
+                        'EnableXP2FA': 1,
                         'GetL2Snapshot': 1,
                         'GetLevel1': 1,
                         'GetValidate2FARequiredEndpoints': 1,
@@ -177,9 +178,15 @@ export default class ndax extends Exchange {
                         'GetProducts': 1,
                         'GetInstrument': 1,
                         'GetInstruments': 1,
+                        'GetEarliestTickTime': 1,
                         'Ping': 1,
+                        'assets': 1,
+                        'orderbook': 1,
+                        'ticker': 1,
+                        'summary': 1,
                         'trades': 1, // undocumented
                         'GetLastTrades': 1, // undocumented
+                        'ConfirmWithdraw': 1,
                         'SubscribeLevel1': 1,
                         'SubscribeLevel2': 1,
                         'SubscribeTicker': 1,
@@ -235,10 +242,14 @@ export default class ndax extends Exchange {
                         'GetWithdrawTemplate': 1,
                         'GetWithdrawTemplateTypes': 1,
                         'GetWithdrawTicket': 1,
+                        'GetWithdrawTicketAttachment': 1,
                         'GetWithdrawTickets': 1,
+                        'GetDepositTicketAttachment': 1,
                     },
                     'post': {
                         'AddUserAffiliateTag': 1,
+                        'AddDepositTicketAttachment': 1,
+                        'AddWithdrawTicketAttachment': 1,
                         'CancelUserReport': 1,
                         'RegisterNewDevice': 1,
                         'SubscribeAccountEvents': 1,
@@ -452,7 +463,7 @@ export default class ndax extends Exchange {
      * @method
      * @name ndax#fetchCurrencies
      * @description fetches all available currencies on an exchange
-     * @see https://apidoc.ndax.io/#getproduct
+     * @see https://apidoc.ndax.io/#getproducts
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
@@ -1558,6 +1569,20 @@ export default class ndax extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    /**
+     * @method
+     * @name ndax#editOrder
+     * @description cancels an open order and places a new order
+     * @see https://apidoc.ndax.io/#cancelreplaceorder
+     * @param {string} id order id
+     * @param {string} symbol unified market symbol
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of currency you want to trade in units of base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         if (this.markets === undefined) {
