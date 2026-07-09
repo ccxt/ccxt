@@ -235,9 +235,11 @@ public partial class bitteam : Exchange
                     { "ufobject", "ufobject" },
                     { "tonchain", "tonchain" },
                 } },
-                { "currenciesValuedInUsd", new Dictionary<string, object>() {
-                    { "USDT", true },
-                    { "BUSD", true },
+                { "fetchMarkets", new Dictionary<string, object>() {
+                    { "currenciesValuedInUsd", new Dictionary<string, object>() {
+                        { "USDT", true },
+                        { "BUSD", true },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {
@@ -459,7 +461,7 @@ public partial class bitteam : Exchange
         object timeStart = this.safeString(market, "timeStart");
         object created = this.parse8601(timeStart);
         object minCost = null;
-        object currenciesValuedInUsd = this.safeValue(this.options, "currenciesValuedInUsd", new Dictionary<string, object>() {});
+        object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new Dictionary<string, object>() {});
         object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (isTrue(quoteInUsd))
         {

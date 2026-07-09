@@ -155,7 +155,6 @@ class btcbox extends btcbox$1["default"] {
                     'webApiEnable': true, // fetches from WEB
                     'webApiRetries': 3,
                 },
-                'amountPrecision': '0.0001', // exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {

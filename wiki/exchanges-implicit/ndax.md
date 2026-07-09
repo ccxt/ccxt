@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official ndax API documentation:** [apidoc.ndax.io](https://apidoc.ndax.io/)
 
-> 93 implicit endpoints across 2 access groups.
+> 104 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -66,6 +66,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetActivate2FA` | GET | `Activate2FA` | 1 |
 | `publicGetAuthenticate2FA` | GET | `Authenticate2FA` | 1 |
 | `publicGetAuthenticateUser` | GET | `AuthenticateUser` | 1 |
+| `publicGetEnableXP2FA` | GET | `EnableXP2FA` | 1 |
 | `publicGetGetL2Snapshot` | GET | `GetL2Snapshot` | 1 |
 | `publicGetGetLevel1` | GET | `GetLevel1` | 1 |
 | `publicGetGetValidate2FARequiredEndpoints` | GET | `GetValidate2FARequiredEndpoints` | 1 |
@@ -75,9 +76,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetGetProducts` | GET | `GetProducts` | 1 |
 | `publicGetGetInstrument` | GET | `GetInstrument` | 1 |
 | `publicGetGetInstruments` | GET | `GetInstruments` | 1 |
+| `publicGetGetEarliestTickTime` | GET | `GetEarliestTickTime` | 1 |
 | `publicGetPing` | GET | `Ping` | 1 |
+| `publicGetAssets` | GET | `assets` | 1 |
+| `publicGetOrderbook` | GET | `orderbook` | 1 |
+| `publicGetTicker` | GET | `ticker` | 1 |
+| `publicGetSummary` | GET | `summary` | 1 |
 | `publicGetTrades` | GET | `trades` | 1 |
 | `publicGetGetLastTrades` | GET | `GetLastTrades` | 1 |
+| `publicGetConfirmWithdraw` | GET | `ConfirmWithdraw` | 1 |
 | `publicGetSubscribeLevel1` | GET | `SubscribeLevel1` | 1 |
 | `publicGetSubscribeLevel2` | GET | `SubscribeLevel2` | 1 |
 | `publicGetSubscribeTicker` | GET | `SubscribeTicker` | 1 |
@@ -136,8 +143,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetGetWithdrawTemplate` | GET | `GetWithdrawTemplate` | 1 |
 | `privateGetGetWithdrawTemplateTypes` | GET | `GetWithdrawTemplateTypes` | 1 |
 | `privateGetGetWithdrawTicket` | GET | `GetWithdrawTicket` | 1 |
+| `privateGetGetWithdrawTicketAttachment` | GET | `GetWithdrawTicketAttachment` | 1 |
 | `privateGetGetWithdrawTickets` | GET | `GetWithdrawTickets` | 1 |
+| `privateGetGetDepositTicketAttachment` | GET | `GetDepositTicketAttachment` | 1 |
 | `privatePostAddUserAffiliateTag` | POST | `AddUserAffiliateTag` | 1 |
+| `privatePostAddDepositTicketAttachment` | POST | `AddDepositTicketAttachment` | 1 |
+| `privatePostAddWithdrawTicketAttachment` | POST | `AddWithdrawTicketAttachment` | 1 |
 | `privatePostCancelUserReport` | POST | `CancelUserReport` | 1 |
 | `privatePostRegisterNewDevice` | POST | `RegisterNewDevice` | 1 |
 | `privatePostSubscribeAccountEvents` | POST | `SubscribeAccountEvents` | 1 |

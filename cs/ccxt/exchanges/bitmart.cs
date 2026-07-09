@@ -618,7 +618,9 @@ public partial class bitmart : Exchange
                     { "spot", "spot" },
                     { "swap", "swap" },
                 } },
-                { "createMarketBuyOrderRequiresPrice", true },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "createMarketBuyOrderRequiresPrice", true },
+                } },
                 { "brokerId", "CCXTxBitmart000" },
             } },
             { "features", new Dictionary<string, object>() {
@@ -3205,7 +3207,7 @@ public partial class bitmart : Exchange
                 {
                     if (isTrue(isTrue((isEqual(price, null))) && isTrue((isEqual(notional, null)))))
                     {
-                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument or in the \"notional\" extra parameter (the exchange-specific behaviour)")) ;
+                        throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice to false in options[\"createOrder\"] or in params and pass the cost to spend in the amount argument or in the \"notional\" extra parameter (the exchange-specific behaviour)")) ;
                     } else
                     {
                         object amountString = this.numberToString(amount);

@@ -717,7 +717,9 @@ export default class bitmart extends Exchange {
                     'spot': 'spot',
                     'swap': 'swap',
                 },
-                'createMarketBuyOrderRequiresPrice': true,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': true,
+                },
                 'brokerId': 'CCXTxBitmart000',
             },
             'features': {
@@ -3185,7 +3187,7 @@ export default class bitmart extends Exchange {
                 [ createMarketBuyOrderRequiresPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
                 if (createMarketBuyOrderRequiresPrice) {
                     if ((price === undefined) && (notional === undefined)) {
-                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument or in the "notional" extra parameter (the exchange-specific behaviour)');
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice to false in options["createOrder"] or in params and pass the cost to spend in the amount argument or in the "notional" extra parameter (the exchange-specific behaviour)');
                     } else {
                         const amountString = this.numberToString (amount);
                         const priceString = this.numberToString (price);

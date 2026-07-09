@@ -1322,7 +1322,7 @@ class binance extends binance$1["default"] {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
-                'fetchMargins': true,
+                'fetchMargins': true, // todo: reorganize
                 'fetchMarkets': {
                     'types': [
                         'spot', // allows CORS in browsers
@@ -1330,25 +1330,34 @@ class binance extends binance$1["default"] {
                         'inverse', // allows CORS in browsers
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
+                    'loadAllOptions': false,
                 },
-                'loadAllOptions': false,
-                'fetchCurrencies': true, // this is a private call and it requires API keys
+                'fetchCurrencies': true, // this is a private call and it requires API keys // todo: reorganize
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'createOrder': {
+                    'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'warnOnSTPForInverse': true,
+                    'quoteOrderQty': true, // whether market orders support amounts in quote currency
+                },
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
-                'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'warnOnSTPForInverse': true,
+                'fetchOpenOrders': {
+                    'warnWithoutSymbol': true,
+                },
                 'currencyToPrecisionRoundingMode': number.TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
-                'throwMarginModeAlreadySet': false,
-                'fetchPositions': 'positionRisk', // or 'account' or 'option'
+                'setMarginMode': {
+                    'throwMarginModeAlreadySet': true,
+                },
+                'fetchPositions': {
+                    'method': 'positionRisk', // or 'account' or 'option'
+                },
                 'recvWindow': 10 * 1000, // 10 sec
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -1356,7 +1365,6 @@ class binance extends binance$1["default"] {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
@@ -3232,8 +3240,7 @@ class binance extends binance$1["default"] {
             // for backward-compatibility
             rawFetchMarkets = this.safeList(this.options, 'fetchMarkets', defaultTypes);
         }
-        // handle loadAllOptions option
-        const loadAllOptions = this.safeBool(this.options, 'loadAllOptions', false);
+        const loadAllOptions = this.handleOption('fetchMarkets', 'loadAllOptions', false);
         if (loadAllOptions) {
             if (!this.inArray('option', rawFetchMarkets)) {
                 rawFetchMarkets.push('option');
@@ -5295,18 +5302,56 @@ class binance extends binance$1["default"] {
             request['limit'] = isFutureOrSwap ? Math.min(limit, maxLimitForContractHistorical) : limit; // default = 500, maximum = 1000
         }
         params = this.omit(params, ['until', 'fetchTradesMethod']);
-        let response = undefined;
-        if (market['option'] || method === 'eapiPublicGetTrades') {
-            response = await this.eapiPublicGetTrades(this.extend(request, params));
+        if (method === undefined) {
+            if (market['option']) {
+                method = 'eapiPublicGetTrades';
+            }
+            else if (market['linear']) {
+                method = 'fapiPublicGetAggTrades';
+            }
+            else if (market['inverse']) {
+                method = 'dapiPublicGetAggTrades';
+            }
+            else {
+                method = 'publicGetAggTrades';
+            }
         }
-        else if (market['linear'] || method === 'fapiPublicGetAggTrades') {
+        let response = undefined;
+        if (method === 'publicGetAggTrades') {
+            response = await this.publicGetAggTrades(this.extend(request, params));
+        }
+        else if (method === 'publicGetTrades') {
+            response = await this.publicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'publicGetHistoricalTrades') {
+            response = await this.publicGetHistoricalTrades(this.extend(request, params));
+        }
+        else if (method === 'fapiPublicGetAggTrades') {
             response = await this.fapiPublicGetAggTrades(this.extend(request, params));
         }
-        else if (market['inverse'] || method === 'dapiPublicGetAggTrades') {
+        else if (method === 'fapiPublicGetTrades') {
+            response = await this.fapiPublicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'fapiPublicGetHistoricalTrades') {
+            response = await this.fapiPublicGetHistoricalTrades(this.extend(request, params));
+        }
+        else if (method === 'dapiPublicGetAggTrades') {
             response = await this.dapiPublicGetAggTrades(this.extend(request, params));
         }
+        else if (method === 'dapiPublicGetTrades') {
+            response = await this.dapiPublicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'dapiPublicGetHistoricalTrades') {
+            response = await this.dapiPublicGetHistoricalTrades(this.extend(request, params));
+        }
+        else if (method === 'eapiPublicGetTrades') {
+            response = await this.eapiPublicGetTrades(this.extend(request, params));
+        }
+        else if (method === 'eapiPublicGetHistoricalTrades') {
+            response = await this.eapiPublicGetHistoricalTrades(this.extend(request, params));
+        }
         else {
-            response = await this.publicGetAggTrades(this.extend(request, params));
+            throw new errors.NotSupported(this.id + ' fetchTrades() does not support this method');
         }
         //
         // Caveats:
@@ -5509,7 +5554,7 @@ class binance extends binance$1["default"] {
         let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
+            const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
             if (quoteOrderQty) {
                 const quoteOrderQtyNew = this.safeValue2(params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
@@ -5559,7 +5604,7 @@ class binance extends binance$1["default"] {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.handleOption('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (triggerPriceIsRequired) {
             if (triggerPrice === undefined) {
@@ -6866,7 +6911,7 @@ class binance extends binance$1["default"] {
         //
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeBool(this.options, 'quoteOrderQty', true);
+                const quoteOrderQty = this.handleOption('createOrder', 'quoteOrderQty', true);
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2(params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
@@ -6977,7 +7022,7 @@ class binance extends binance$1["default"] {
             }
         }
         if (timeInForceIsRequired && (this.safeString(params, 'timeInForce') === undefined) && (this.safeString(request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.safeString(this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.handleOption('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
             request['timeInForce'] = 'GTX';
@@ -6998,8 +7043,9 @@ class binance extends binance$1["default"] {
         let selfTradePrevention = undefined;
         [selfTradePrevention, params] = this.handleOptionAndParams(params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
-            if (market['inverse'] && this.options['warnOnSTPForInverse']) {
-                throw new errors.NotSupported(this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the "warnOnSTPForInverse" option to false.');
+            const warnOnStpForInverse = this.handleOption('createOrder', 'warnOnSTPForInverse');
+            if (market['inverse'] && warnOnStpForInverse) {
+                throw new errors.NotSupported(this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options["createOrder"]["warnOnSTPForInverse"] to false.');
             }
             request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase(); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
@@ -7509,12 +7555,16 @@ class binance extends binance$1["default"] {
             const marketType = ('type' in market) ? market['type'] : defaultType;
             type = this.safeString(params, 'type', marketType);
         }
-        else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            throw new errors.ExchangeError(this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
-        }
         else {
-            const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString(params, 'type', defaultType);
+            const warnWithoutSymbol = this.safeBool(this.options['fetchOpenOrders'], 'warnWithoutSymbol');
+            const optValue = this.safeBool(this.options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
+            if (optValue || (optValue === undefined && warnWithoutSymbol)) {
+                throw new errors.ExchangeError(this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
+            }
+            else {
+                const defaultType = this.safeString2(this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+                type = this.safeString(params, 'type', defaultType);
+            }
         }
         let subType = undefined;
         [subType, params] = this.handleSubTypeAndParams('fetchOpenOrders', market, params);
@@ -11313,13 +11363,16 @@ class binance extends binance$1["default"] {
      */
     async fetchPositions(symbols = undefined, params = {}) {
         let defaultMethod = undefined;
-        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method');
+        [defaultMethod, params] = this.handleOptionAndParams(params, 'fetchPositions', 'method'); // check if there is a key in options|params
         if (defaultMethod === undefined) {
+            // check if .options['fetchPositions'] dict exist at all
             const options = this.safeDict(this.options, 'fetchPositions');
             if (options === undefined) {
+                // if undefined, for backward compatibility, check if it is a string
                 defaultMethod = this.safeString(this.options, 'fetchPositions', 'positionRisk');
             }
             else {
+                // if it is a dict, then it doesn't seem to have any 'method', so set default value
                 defaultMethod = 'positionRisk';
             }
         }
@@ -11831,7 +11884,7 @@ class binance extends binance$1["default"] {
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
             if (e instanceof errors.MarginModeAlreadySet) {
-                const throwMarginModeAlreadySet = this.safeBool(this.options, 'throwMarginModeAlreadySet', false);
+                const throwMarginModeAlreadySet = this.handleOption('setMarginMode', 'throwMarginModeAlreadySet', false);
                 if (throwMarginModeAlreadySet) {
                     throw e;
                 }

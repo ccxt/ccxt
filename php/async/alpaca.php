@@ -316,7 +316,9 @@ class alpaca extends Exchange {
                     'GNSS', // Genesis
                     'ERSX', // ErisX
                 ),
-                'defaultTimeInForce' => 'gtc', // fok, gtc, ioc
+                'createOrder' => array(
+                    'timeInForce' => 'gtc', // fok, gtc, ioc
+                ),
                 'clientOrderId' => 'ccxt_{id}',
             ),
             'features' => array(
@@ -1113,8 +1115,9 @@ class alpaca extends Exchange {
             } else {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
             }
-            $defaultTIF = $this->safe_string($this->options, 'defaultTimeInForce');
-            $request['time_in_force'] = $this->safe_string($params, 'timeInForce', $defaultTIF);
+            $defaultTIF = null;
+            list($defaultTIF, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            $request['time_in_force'] = $defaultTIF;
             $params = $this->omit($params, array( 'timeInForce', 'triggerPrice' ));
             $request['client_order_id'] = $this->generate_client_order_id($params);
             $params = $this->omit($params, array( 'clientOrderId' ));
@@ -1401,7 +1404,7 @@ class alpaca extends Exchange {
                 $request['limit_price'] = $this->price_to_precision($symbol, $price);
             }
             $timeInForce = null;
-            list($timeInForce, $params) = $this->handle_option_and_params_2($params, 'editOrder', 'timeInForce', 'defaultTimeInForce');
+            list($timeInForce, $params) = $this->handle_option_and_params($params, 'editOrder', 'timeInForce', 'gtc');
             if ($timeInForce !== null) {
                 $request['time_in_force'] = $timeInForce;
             }

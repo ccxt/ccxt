@@ -520,7 +520,10 @@
                 "active": "not provided"
             },
             "fetchCurrencies": {
-                "activeMajorCurrencies": "todo"
+                "activeMajorCurrencies": "todo",
+                "withdraw": "not provided",
+                "deposit": "not provided",
+                "networks": "not provided"
             },
             "orderBook": {
                 "compareToZero": "tmp",
@@ -2336,6 +2339,10 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
                 "precision":"is undefined"
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },

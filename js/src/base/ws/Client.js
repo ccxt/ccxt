@@ -6,7 +6,7 @@
 
 import { RequestTimeout, NetworkError, NotSupported, BaseError, ExchangeClosedByUser } from '../../base/errors.js';
 import { Future } from './Future.js';
-import { isNode, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
+import { isNode, isBun, isJsonEncodedObject, deepExtend, milliseconds, } from '../../base/functions.js';
 import { utf8 } from '@scure/base';
 // websocket decompression backends are resolved once at startup so the message
 // hot path stays branch-free: node:zlib under Node, the fflate npm package elsewhere.
@@ -19,6 +19,14 @@ if (isNode) {
 else {
     import(/* webpackMode: "eager" */ 'fflate').then((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch(() => { });
 }
+// platform checks are likewise resolved once at module load so the send/ping
+// hot paths stay branch-cheap:
+// - usesNodeWsPackage: the 'ws' npm package is in use (node-style send callbacks, connection.ping ())
+// - bunHasNativePing: bun's native WebSocket exposes ping () as a non-standard extension
+// - hasPing: the active WebSocket implementation supports connection.ping ()
+const usesNodeWsPackage = isNode && !isBun;
+const bunHasNativePing = isBun && (typeof globalThis.WebSocket !== 'undefined') && (typeof globalThis.WebSocket.prototype.ping === 'function');
+const hasPing = usesNodeWsPackage || bunHasNativePing;
 export default class Client {
     constructor(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         this.verbose = false;
@@ -171,9 +179,10 @@ export default class Client {
                         this.onError(error);
                     });
                 }
-                else if (isNode) {
+                else if (hasPing) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+                    // under bun the native WebSocket implements ping () as a non-standard extension
                     this.connection.ping();
                 }
                 else {
@@ -254,7 +263,8 @@ export default class Client {
         }
         message = (typeof message === 'string') ? message : JSON.stringify(message);
         const future = Future();
-        if (isNode) {
+        if (usesNodeWsPackage) {
+            // bun's native WebSocket send () does not accept a completion callback
             /* eslint-disable no-inner-declarations */
             /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete(error) {

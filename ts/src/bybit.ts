@@ -1127,16 +1127,20 @@ export default class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': false,
                     'types': [ 'spot', 'linear', 'inverse', 'option' ],
                     'options': [ 'BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE' ],
+                    'loadAllOptions': false, // load all possible option markets, adds signficant load time
+                    'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 },
                 'enableUnifiedMargin': undefined,
                 'enableUnifiedAccount': undefined,
                 'unifiedMarginStatus': undefined,
-                'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': false, // only true for classic accounts
+                },
                 'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  // 'linear', 'inverse'
@@ -1145,8 +1149,6 @@ export default class bybit extends Exchange {
                 'recvWindow': 5 * 1000, // 5 sec default
                 'timeDifference': 0, // the difference between system clock and exchange server clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
-                'loadAllOptions': false, // load all possible option markets, adds signficant load time
-                'loadExpiredOptions': false, // loads expired options, to load all possible expired options set loadAllOptions to true
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1941,7 +1943,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': 'spot',
         };
-        const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
         let response: Dict;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
@@ -2059,7 +2061,7 @@ export default class bybit extends Exchange {
         params = this.extend (params, {});
         params['limit'] = 1000; // minimize number of requests
         let preLaunchMarkets = [] as any;
-        const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
         let response: NullableDict = undefined;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (params);
@@ -2255,7 +2257,7 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': 'option',
         };
-        const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
+        const usePrivateInstrumentsInfo = this.handleOption ('fetchMarkets', 'usePrivateInstrumentsInfo', false) as Bool;
         let response: Dict;
         if (usePrivateInstrumentsInfo) {
             response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
@@ -2264,7 +2266,8 @@ export default class bybit extends Exchange {
         }
         const data = this.safeDict (response, 'result', {});
         let markets = this.safeList (data, 'list', []);
-        if (this.options['loadAllOptions']) {
+        const loadAllOptions = this.handleOption ('fetchMarkets', 'loadAllOptions') as Bool;
+        if (loadAllOptions) {
             request['limit'] = 1000;
             let paginationCursor = this.safeString (data, 'nextPageCursor');
             if (paginationCursor !== undefined) {
@@ -2341,7 +2344,8 @@ export default class bybit extends Exchange {
             const optionLetter = this.safeString (splitId, 3);
             const isActive = (status === 'Trading');
             const isInverse = base === settle;
-            if (isActive || (this.options['loadAllOptions']) || (this.options['loadExpiredOptions'])) {
+            const loadExpiredOptions = this.handleOption ('fetchMarkets', 'loadExpiredOptions') as Bool;
+            if (isActive || loadAllOptions || loadExpiredOptions) {
                 result.push (this.safeMarketStructure ({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter,

@@ -383,14 +383,26 @@ class bittrade extends Exchange {
                     'ALGO' => 'algo',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice' => true,
-                'fetchMarketsMethod' => 'publicGetCommonSymbols',
-                'fetchBalanceMethod' => 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod' => 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates' => array(
+                    'method' => 'private_get_order_orders', // 'private_get_order_history' // https://github.com/ccxt/ccxt/pull/5392
+                ),
+                'fetchOpenOrders' => array(
+                    'method' => 'fetch_open_orders_v1', // 'fetch_open_orders_v2' // https://github.com/ccxt/ccxt/issues/5388
+                ),
+                'createOrder' => array(
+                    'createMarketBuyOrderRequiresPrice' => true,
+                    'method' => 'privatePostOrderOrdersPlace',
+                ),
+                'fetchMarkets' => array(
+                    'method' => 'publicGetCommonSymbols',
+                ),
+                'fetchBalance' => array(
+                    'method' => 'privateGetAccountAccountsIdBalance',
+                ),
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'language' => 'en-US',
+                'fetchCurrencies' => array(
+                    'language' => 'en-US',
+                ),
                 'broker' => array(
                     'id' => 'AA03022abc',
                 ),
@@ -509,7 +521,7 @@ class bittrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $method = $this->options['fetchMarketsMethod'];
+            $method = $this->handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols');
             $response = Async\await($this->$method($params));
             //
             //    {
@@ -1111,7 +1123,7 @@ class bittrade extends Exchange {
              * @return {array} an associative dictionary of $currencies
              */
             $request = array(
-                'language' => $this->options['language'],
+                'language' => $this->handle_option('fetchCurrencies', 'language', 'en-US'),
             );
             $response = Async\await($this->publicGetSettingsCurrencys($this->extend($request, $params)));
             //
@@ -1237,7 +1249,7 @@ class bittrade extends Exchange {
                 Async\await($this->load_markets());
             }
             Async\await($this->load_accounts());
-            $method = $this->options['fetchBalanceMethod'];
+            $method = $this->handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance');
             $request = array(
                 'id' => $this->accounts[0]['id'],
             );
@@ -1259,7 +1271,7 @@ class bittrade extends Exchange {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
             }
-            $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'private_get_order_orders');
+            $method = $this->handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders');
             $response = Async\await($this->$method($this->extend($request, $params)));
             //
             //     { "status" =>   "ok",
@@ -1327,7 +1339,7 @@ class bittrade extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            $method = $this->safe_string($this->options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1');
+            $method = $this->handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1');
             return Async\await($this->$method($symbol, $since, $limit, $params));
         })();
     }

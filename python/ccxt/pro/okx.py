@@ -933,6 +933,9 @@ class okx(ccxt.async_support.okx):
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -953,6 +956,9 @@ class okx(ccxt.async_support.okx):
     async def un_watch_ohlcv(self, symbol: str, timeframe: str = '1m', params={}) -> Any:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -965,6 +971,9 @@ class okx(ccxt.async_support.okx):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
@@ -1005,6 +1014,9 @@ class okx(ccxt.async_support.okx):
     async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}) -> Any:
         """
         unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
@@ -2095,7 +2107,7 @@ class okx(ccxt.async_support.okx):
     async def cancel_order_ws(self, id: str, symbol: Str = None, params={}) -> Order:
         """
 
-        https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order
 
         cancel multiple orders
         :param str id: order id
@@ -2132,7 +2144,7 @@ class okx(ccxt.async_support.okx):
     async def cancel_orders_ws(self, ids: List[str], symbol: Str = None, params={}):
         """
 
-        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders
 
         cancel multiple orders
         :param str[] ids: order ids
@@ -2171,7 +2183,7 @@ class okx(ccxt.async_support.okx):
     async def cancel_all_orders_ws(self, symbol: Str = None, params={}) -> List[Order]:
         """
 
-        https://docs.okx.com/websockets/#message-cancelAll
+        https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
 
         cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
         :param str symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None

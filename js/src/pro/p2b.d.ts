@@ -95,7 +95,7 @@ export default class p2b extends p2bRest {
     handleErrorMessage(client: Client, message: any): Bool;
     ping(client: Client): {
         method: string;
-        params: any[];
+        params: undefined[];
         id: number;
     };
     handlePong(client: Client, message: any): any;

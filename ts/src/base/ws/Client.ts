@@ -3,6 +3,7 @@ import { Future } from './Future.js';
 
 import {
     isNode,
+    isBun,
     isJsonEncodedObject,
     deepExtend,
     milliseconds,
@@ -20,6 +21,15 @@ if (isNode) {
 } else {
     import (/* webpackMode: "eager" */ 'fflate').then ((mod) => { gunzipSync = mod.gunzipSync; inflateRawSync = mod.inflateSync; }).catch (() => {});
 }
+
+// platform checks are likewise resolved once at module load so the send/ping
+// hot paths stay branch-cheap:
+// - usesNodeWsPackage: the 'ws' npm package is in use (node-style send callbacks, connection.ping ())
+// - bunHasNativePing: bun's native WebSocket exposes ping () as a non-standard extension
+// - hasPing: the active WebSocket implementation supports connection.ping ()
+const usesNodeWsPackage = isNode && !isBun;
+const bunHasNativePing = isBun && (typeof (globalThis as any).WebSocket !== 'undefined') && (typeof (globalThis as any).WebSocket.prototype.ping === 'function');
+const hasPing = usesNodeWsPackage || bunHasNativePing;
 
 export default class Client {
     connected: Promise<any>
@@ -241,9 +251,10 @@ export default class Client {
                     this.send (message).catch ((error) => {
                         this.onError (error);
                     });
-                } else if (isNode) {
+                } else if (hasPing) {
                     // can't do this inside browser
                     // https://stackoverflow.com/questions/10585355/sending-websocket-ping-pong-frame-from-browser
+                    // under bun the native WebSocket implements ping () as a non-standard extension
                     this.connection.ping ()
                 } else {
                     // browsers handle ping-pong automatically therefore
@@ -330,7 +341,8 @@ export default class Client {
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
         const future = Future ()
-        if (isNode) {
+        if (usesNodeWsPackage) {
+            // bun's native WebSocket send () does not accept a completion callback
             /* eslint-disable no-inner-declarations */
             /* eslint-disable jsdoc/require-jsdoc */
             function onSendComplete (error: any) {

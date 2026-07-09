@@ -55,15 +55,15 @@ class hibachi extends Exchange {
                 'editOrders' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
-                'fetchCanceledOrders' => false,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrder' => false,
-                'fetchClosedOrders' => false,
+                'fetchClosedOrders' => true,
                 'fetchConvertCurrencies' => false,
                 'fetchConvertQuote' => false,
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
-                'fetchDepositsWithdrawals' => false,
+                'fetchDepositsWithdrawals' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
@@ -76,6 +76,7 @@ class hibachi extends Exchange {
                 'fetchMarginAdjustmentHistory' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
+                'fetchMySettlementHistory' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
                 'fetchOpenInterest' => true,
@@ -662,7 +663,8 @@ class hibachi extends Exchange {
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_order_status(string $status): string {
+    public function parse_order_status(?string $status): ?string {
+        $uppercaseStatus = ($status === null) ? null : strtoupper($status);
         $statuses = array(
             'PENDING' => 'open',
             'CHILD_PENDING' => 'open',
@@ -671,9 +673,10 @@ class hibachi extends Exchange {
             'PARTIALLY_FILLED' => 'open',
             'FILLED' => 'closed',
             'CANCELLED' => 'canceled',
+            'PARTIAL_CANCELLED' => 'canceled',
             'REJECTED' => 'rejected',
         );
-        return $this->safe_string($statuses, $status, $status);
+        return $this->safe_string($statuses, $uppercaseStatus, $status);
     }
 
     public function parse_order(array $order, ?array $market = null): array {
@@ -681,7 +684,7 @@ class hibachi extends Exchange {
         $market = $this->safe_market($marketId, $market);
         $status = $this->safe_string($order, 'status');
         $type = $this->safe_string_lower($order, 'orderType');
-        $price = $this->safe_string($order, 'price');
+        $price = $this->safe_string_2($order, 'price', 'avgFillPrice');
         $rawSide = $this->safe_string($order, 'side');
         $side = null;
         if ($rawSide === 'BID') {
@@ -693,9 +696,13 @@ class hibachi extends Exchange {
         $remaining = $this->safe_string($order, 'availableQuantity');
         $totalQuantity = $this->safe_string($order, 'totalQuantity');
         $availableQuantity = $this->safe_string($order, 'availableQuantity');
-        $filled = null;
+        $filled = $this->safe_string($order, 'filledQuantity');
         if ($totalQuantity !== null && $availableQuantity !== null) {
             $filled = Precise::string_sub($totalQuantity, $availableQuantity);
+        }
+        $remainingString = $remaining;
+        if ($remainingString === null && $totalQuantity !== null && $filled !== null) {
+            $remainingString = Precise::string_sub($totalQuantity, $filled);
         }
         $timeInForce = 'GTC';
         $orderFlags = $this->safe_value($order, 'orderFlags');
@@ -709,24 +716,29 @@ class hibachi extends Exchange {
         } elseif ($orderFlags === 'REDUCE_ONLY') {
             $reduceOnly = true;
         }
+        $timestamp = $this->safe_integer($order, 'createdAt');
+        if ($timestamp === null) {
+            $timestamp = $this->safe_integer_product($order, 'creationTime', 1000);
+        }
+        $lastUpdateTimestamp = $this->safe_integer($order, 'closedAt');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => null,
-            'datetime' => null,
-            'timestamp' => null,
+            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => $timestamp,
             'lastTradeTimestamp' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $lastUpdateTimestamp,
             'status' => $this->parse_order_status($status),
             'symbol' => $market['symbol'],
             'type' => $type,
             'timeInForce' => $timeInForce,
             'side' => $side,
             'price' => $price,
-            'average' => null,
+            'average' => $this->safe_string($order, 'avgFillPrice'),
             'amount' => $amount,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => $remainingString,
             'cost' => null,
             'trades' => null,
             'fee' => null,
@@ -1484,6 +1496,113 @@ class hibachi extends Exchange {
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
+    public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * @ignore
+         * fetch $orders filtered by terminal $status
+         *
+         * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+         *
+         * @param {string} $status exchange specific terminal $status
+         * @param {string} [$symbol] unified $market $symbol to filter by
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of $orders to return
+         * @param {array} [$params] extra parameters
+         * @param {int} [$params->until] timestamp in ms of the latest order
+         * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = null;
+        $request = array(
+            'accountId' => $this->get_account_id(),
+        );
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if ($status !== null) {
+            $request['status'] = $status;
+        }
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchOrdersByStatus', 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+        }
+        $response = $this->privateGetTradeOrdersHistory($this->extend($request, $params));
+        //
+        //     {
+        //         "hasMore" => false,
+        //         "orders" => array(
+        //             {
+        //                 "accountId" => 128,
+        //                 "avgFillPrice" => "2900.000000",
+        //                 "closedAt" => 1777811627000,
+        //                 "createdAt" => 1777811620000,
+        //                 "filledQuantity" => "1.200000000",
+        //                 "orderFlags" => null,
+        //                 "orderId" => "596002791293190100",
+        //                 "orderType" => "MARKET",
+        //                 "parentOrderId" => null,
+        //                 "price" => null,
+        //                 "side" => "BID",
+        //                 "sourceType" => "regular",
+        //                 "status" => "Filled",
+        //                 "symbol" => "ETH/USDT-P",
+        //                 "totalQuantity" => "1.200000000",
+        //                 "triggerDirection" => null,
+        //                 "triggerPrice" => null
+        //             }
+        //         )
+        //     }
+        //
+        $orders = $this->safe_list($response, 'orders', array());
+        $parsedOrders = $this->parse_orders($orders, $market);
+        return $this->filter_by_symbol_since_limit($parsedOrders, $symbol, $since, $limit);
+    }
+
+    public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         *
+         * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+         *
+         * @param {string} [$symbol] unified market $symbol of the $orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of closed order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest order
+         * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $orders = $this->fetch_orders_by_status('filled', $symbol, $since, $limit, $params);
+        $filtered = $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_since_limit($filtered, $since, $limit);
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetches information on multiple canceled $orders made by the user
+         *
+         * @see https://api-doc.hibachi.xyz/#0ca35e79-a80e-4a91-bd32-de3fc2b0b1fa
+         *
+         * @param {string} [$symbol] unified market $symbol of the $orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the maximum number of canceled order structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest order
+         * @param {string} [$params->cursorOrderId] pagination cursor, returns $orders with orderId strictly less than this value
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
+         */
+        $orders = $this->fetch_orders_by_status(null, $symbol, $since, $limit, $params);
+        $filtered = $this->filter_by($orders, 'status', 'canceled');
+        return $this->filter_by_since_limit($filtered, $since, $limit);
+    }
+
     public function fetch_ohlcv(string $symbol, string $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          *
@@ -1933,17 +2052,17 @@ class hibachi extends Exchange {
         );
     }
 
-    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+    public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch $deposits made to account
+         * fetch deposit and withdrawal history for the account
          *
          * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
          *
          * @param {string} [$code] unified $currency $code
-         * @param {int} [$since] filter by earliest timestamp (ms)
-         * @param {int} [$limit] maximum number of $deposits to be returned
-         * @param {array} [$params] extra parameters to be passed to API
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structures~
+         * @param {int} [$since] timestamp in ms of the earliest transaction
+         * @param {int} [$limit] the maximum number of $transactions to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         $currency = $this->safe_currency($code);
         $request = array(
@@ -1982,14 +2101,24 @@ class hibachi extends Exchange {
         //     )
         // }
         $transactions = $this->safe_list($response, 'transactions', array());
-        $deposits = array();
-        for ($i = 0; $i < count($transactions); $i++) {
-            $transaction = $transactions[$i];
-            if ($this->safe_string($transaction, 'transactionType') === 'deposit') {
-                $deposits[] = $transaction;
-            }
-        }
-        return $this->parse_transactions($deposits, $currency, $since, $limit, $params);
+        return $this->parse_transactions($transactions, $currency, $since, $limit, $params);
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
+        /**
+         * fetch $deposits made to account
+         *
+         * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
+         *
+         * @param {string} [$code] unified currency $code
+         * @param {int} [$since] filter by earliest timestamp (ms)
+         * @param {int} [$limit] maximum number of $deposits to be returned
+         * @param {array} [$params] extra parameters to be passed to API
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
+         */
+        $transactions = $this->fetch_deposits_withdrawals($code, $since, null, $params);
+        $deposits = $this->filter_by($transactions, 'type', 'deposit');
+        return $this->filter_by_since_limit($deposits, $since, $limit, 'timestamp');
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1998,57 +2127,102 @@ class hibachi extends Exchange {
          *
          * @see https://api-doc.hibachi.xyz/#35125e3f-d154-4bfd-8276-a48bb1c62020
          *
-         * @param {string} [$code] unified $currency $code
+         * @param {string} [$code] unified currency $code
          * @param {int} [$since] filter by earliest timestamp (ms)
          * @param {int} [$limit] maximum number of deposits to be returned
          * @param {array} [$params] extra parameters to be passed to API
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$transaction-structure $transaction structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $currency = $this->safe_currency($code);
+        $transactions = $this->fetch_deposits_withdrawals($code, $since, null, $params);
+        $withdrawals = $this->filter_by($transactions, 'type', 'withdrawal');
+        return $this->filter_by_since_limit($withdrawals, $since, $limit, 'timestamp');
+    }
+
+    public function parse_settlement($settlement, $market = null) {
+        //
+        //     {
+        //         "direction" => "Long",
+        //         "indexPrice" => "81.8781761",
+        //         "quantity" => "0.10000000",
+        //         "settledAmount" => "0.00005994405060281047",
+        //         "symbol" => "SOL/USDT-P",
+        //         "timestamp" => 1783389600,
+        //         "timestampNsPartial" => 0
+        //     }
+        //
+        $timestamp = $this->safe_timestamp($settlement, 'timestamp');
+        $marketId = $this->safe_string($settlement, 'symbol');
+        return array(
+            'info' => $settlement,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'price' => $this->safe_number($settlement, 'indexPrice'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+    }
+
+    public function parse_settlements($settlements, $market = null) {
+        $result = array();
+        for ($i = 0; $i < count($settlements); $i++) {
+            $result[] = $this->parse_settlement($settlements[$i], $market);
+        }
+        return $result;
+    }
+
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+        /**
+         * fetches historical settlement records of the user
+         *
+         * @see https://api-doc.hibachi.xyz/#28185336-04b7-4480-bcc8-a33516ad458b
+         *
+         * @param {string} [$symbol] unified $market $symbol of the settlement history
+         * @param {int} [$since] timestamp in ms of the earliest settlement
+         * @param {int} [$limit] the maximum number of $settlements to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest settlement
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=settlement-history-structure settlement history objects~
+         */
+        $this->load_markets();
+        $market = null;
         $request = array(
             'accountId' => $this->get_account_id(),
         );
-        $response = $this->privateGetCapitalHistory($this->extend($request, $params));
-        // {
-        //     "transactions" => array(
-        //         array(
-        //             "assetId" => 1,
-        //             "blockNumber" => 0,
-        //             "chain" => null,
-        //             "etaTsSec" => 1752758789,
-        //             "id" => 42688,
-        //             "quantity" => "6.130000",
-        //             "status" => "completed",
-        //             "timestampSec" => 1752758788,
-        //             "token" => null,
-        //             "transactionHash" => "0x8dcd7bd1155b5624fb5e38a1365888f712ec633a57434340e05080c70b0e3bba",
-        //             "transactionType" => "deposit"
-        //         ),
-        //         array(
-        //             "assetId" => 1,
-        //             "etaTsSec" => null,
-        //             "id" => 12993,
-        //             "instantWithdrawalChain" => null,
-        //             "instantWithdrawalToken" => null,
-        //             "isInstantWithdrawal" => false,
-        //             "quantity" => "0.111930",
-        //             "status" => "completed",
-        //             "timestampSec" => 1752387891,
-        //             "transactionHash" => "0x32ab5fe5b90f6d753bab83523ebc8465eb9daef54580e13cb9ff031d400c5620",
-        //             "transactionType" => "withdrawal",
-        //             "withdrawalAddress" => "0x43f15ef2ef2ab5e61e987ee3d652a5872aea8a6c"
-        //         ),
-        //     )
-        // }
-        $transactions = $this->safe_list($response, 'transactions', array());
-        $withdrawals = array();
-        for ($i = 0; $i < count($transactions); $i++) {
-            $transaction = $transactions[$i];
-            if ($this->safe_string($transaction, 'transactionType') === 'withdrawal') {
-                $withdrawals[] = $transaction;
-            }
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $request['contractId'] = $market['numericId'];
+            $symbol = $market['symbol'];
         }
-        return $this->parse_transactions($withdrawals, $currency, $since, $limit, $params);
+        if ($since !== null) {
+            $request['startTime'] = $this->parse_to_int($since / 1000);
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $until = null;
+        list($until, $params) = $this->handle_option_and_params($params, 'fetchMySettlementHistory', 'until');
+        if ($until !== null) {
+            $request['endTime'] = $this->parse_to_int($until / 1000);
+        }
+        $response = $this->privateGetTradeAccountSettlementsHistory($this->extend($request, $params));
+        //
+        //     {
+        //         "settlements" => array(
+        //             {
+        //                 "direction" => "Long",
+        //                 "indexPrice" => "81.8781761",
+        //                 "quantity" => "0.10000000",
+        //                 "settledAmount" => "0.00005994405060281047",
+        //                 "symbol" => "SOL/USDT-P",
+        //                 "timestamp" => 1783389600,
+        //                 "timestampNsPartial" => 0
+        //             }
+        //         )
+        //     }
+        //
+        $data = $this->safe_list($response, 'settlements', array());
+        $settlements = $this->parse_settlements($data, $market);
+        $sorted = $this->sort_by($settlements, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function fetch_time($params = array()): ?int {

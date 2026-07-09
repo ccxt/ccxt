@@ -6,7 +6,7 @@ import Exchange from './abstract/bitopro.js';
 import { ExchangeError, ArgumentsRequired, AuthenticationError, InvalidOrder, InsufficientFunds, BadRequest } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int, Bool, NullableDict, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -239,7 +239,9 @@ export default class bitopro extends Exchange {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
-                'fiatCurrencies': [ 'TWD' ], // the only fiat currency for exchange
+                'fetchCurrencies': {
+                    'fiatCurrencies': [ 'TWD' ], // the only fiat currency for exchange
+                },
             },
             'features': {
                 'spot': {
@@ -372,7 +374,7 @@ export default class bitopro extends Exchange {
     }
 
     parseCurrency (rawCurrency: Dict): Currency {
-        const fiatCurrencies = this.safeList (this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption ('fetchCurrencies', 'fiatCurrencies', []) as List;
         const currencyId = this.safeString (rawCurrency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
         const deposit = this.safeBool (rawCurrency, 'deposit');

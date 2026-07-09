@@ -245,7 +245,9 @@ class bitopro(Exchange, ImplicitAPI):
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
-                'fiatCurrencies': ['TWD'],  # the only fiat currency for exchange
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['TWD'],  # the only fiat currency for exchange
+                },
             },
             'features': {
                 'spot': {
@@ -376,7 +378,7 @@ class bitopro(Exchange, ImplicitAPI):
         return self.parse_currencies(currencies)
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
-        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
+        fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
         currencyId = self.safe_string(rawCurrency, 'currency')
         code = self.safe_currency_code(currencyId)
         deposit = self.safe_bool(rawCurrency, 'deposit')

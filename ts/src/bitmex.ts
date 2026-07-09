@@ -288,8 +288,10 @@ export default class bitmex extends Exchange {
             'options': {
                 // https://blog.bitmex.com/api_announcement/deprecation-of-api-nonce-header/
                 // https://github.com/ccxt/ccxt/issues/4789
-                'api-expires': 5, // in seconds
-                'fetchOHLCVOpenTimestamp': true,
+                'recvWindow': 5000,
+                'fetchOHLCV': {
+                    'useOpenTimestamp': true,
+                },
                 'oldPrecision': false,
                 'networks': {
                     'BTC': 'btc',
@@ -1770,11 +1772,12 @@ export default class bitmex extends Exchange {
             request['endTime'] = this.iso8601 (until);
         }
         const duration = this.parseTimeframe (timeframe) * 1000;
-        const fetchOHLCVOpenTimestamp = this.safeBool (this.options, 'fetchOHLCVOpenTimestamp', true);
+        let useOpenTimestamp = undefined;
+        [ useOpenTimestamp, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'useOpenTimestamp', true);
         // if since is not set, they will return candles starting from 2017-01-01
         if (since !== undefined) {
             let timestamp = since;
-            if (fetchOHLCVOpenTimestamp) {
+            if (useOpenTimestamp) {
                 timestamp = this.sum (timestamp, duration);
             }
             const startTime = this.iso8601 (timestamp);
@@ -1791,7 +1794,7 @@ export default class bitmex extends Exchange {
         //     ]
         //
         const result = this.parseOHLCVs (response, market, timeframe, since, limit);
-        if (fetchOHLCVOpenTimestamp) {
+        if (useOpenTimestamp) {
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
@@ -3732,7 +3735,8 @@ export default class bitmex extends Exchange {
         if (api === 'private' || (api === 'public' && isAuthenticated)) {
             this.checkRequiredCredentials ();
             let auth = method + query;
-            let expires = this.safeInteger (this.options, 'api-expires');
+            const apiExpires = this.safeInteger (this.options, 'api-expires'); // backwards compatibility
+            let expires = this.safeIntegerProduct (this.options, 'recvWindow', 0.001, apiExpires);
             headers = {
                 'Content-Type': 'application/json',
                 'api-key': this.apiKey,
