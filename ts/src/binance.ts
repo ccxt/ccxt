@@ -1322,7 +1322,7 @@ export default class binance extends Exchange {
             // exchange-specific options
             'options': {
                 'sandboxMode': false,
-                'fetchMargins': true,
+                'fetchMargins': true, // todo: reorganize
                 'fetchMarkets': {
                     'types': [
                         'spot', // allows CORS in browsers
@@ -1330,25 +1330,34 @@ export default class binance extends Exchange {
                         'inverse', // allows CORS in browsers
                         // 'option', // does not allow CORS, enable outside of the browser only
                     ],
+                    'loadAllOptions': false,
                 },
-                'loadAllOptions': false,
-                'fetchCurrencies': true, // this is a private call and it requires API keys
+                'fetchCurrencies': true, // this is a private call and it requires API keys // todo: reorganize
                 // 'fetchTradesMethod': 'publicGetAggTrades', // publicGetTrades, publicGetHistoricalTrades, eapiPublicGetTrades
                 // 'repayCrossMarginMethod': 'papiPostRepayLoan', // papiPostMarginRepayDebt
-                'defaultTimeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                'createOrder': {
+                    'timeInForce': 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'warnOnSTPForInverse': true,
+                    'quoteOrderQty': true, // whether market orders support amounts in quote currency
+                },
                 'defaultType': 'spot', // 'spot', 'future', 'margin', 'delivery', 'option'
                 'defaultSubType': undefined, // 'linear', 'inverse'
                 'hasAlreadyAuthenticatedSuccessfully': false,
-                'warnOnFetchOpenOrdersWithoutSymbol': true,
-                'warnOnSTPForInverse': true,
+                'fetchOpenOrders': {
+                    'warnWithoutSymbol': true,
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
                 // not an error
                 // https://github.com/ccxt/ccxt/issues/11268
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
                 // binanceusdm
-                'throwMarginModeAlreadySet': false,
-                'fetchPositions': 'positionRisk', // or 'account' or 'option'
+                'setMarginMode': {
+                    'throwMarginModeAlreadySet': true,
+                },
+                'fetchPositions': {
+                    'method': 'positionRisk', // or 'account' or 'option'
+                },
                 'recvWindow': 10 * 1000, // 10 sec
                 'timeDifference': 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference': false, // controls the adjustment logic upon instantiation
@@ -1356,7 +1365,6 @@ export default class binance extends Exchange {
                     'market': 'FULL', // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
-                'quoteOrderQty': true, // whether market orders support amounts in quote currency
                 'broker': {
                     'spot': 'x-TKT5PX2F',
                     'margin': 'x-TKT5PX2F',
@@ -3234,8 +3242,7 @@ export default class binance extends Exchange {
             // for backward-compatibility
             rawFetchMarkets = this.safeList (this.options, 'fetchMarkets', defaultTypes);
         }
-        // handle loadAllOptions option
-        const loadAllOptions = this.safeBool (this.options, 'loadAllOptions', false);
+        const loadAllOptions: Bool = this.handleOption ('fetchMarkets', 'loadAllOptions', false);
         if (loadAllOptions) {
             if (!this.inArray ('option', rawFetchMarkets)) {
                 rawFetchMarkets.push ('option');
@@ -5485,7 +5492,7 @@ export default class binance extends Exchange {
         let triggerPriceIsRequired = false;
         let quantityIsRequired = false;
         if (uppercaseType === 'MARKET') {
-            const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
+            const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true) as Bool;
             if (quoteOrderQty) {
                 const quoteOrderQtyNew = this.safeValue2 (params, 'quoteOrderQty', 'cost');
                 const precision = market['precision']['price'];
@@ -5528,7 +5535,7 @@ export default class binance extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.handleOption ('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (triggerPriceIsRequired) {
             if (triggerPrice === undefined) {
@@ -6807,7 +6814,7 @@ export default class binance extends Exchange {
         //
         if (uppercaseType === 'MARKET') {
             if (market['spot']) {
-                const quoteOrderQty = this.safeBool (this.options, 'quoteOrderQty', true);
+                const quoteOrderQty = this.handleOption ('createOrder', 'quoteOrderQty', true) as Bool;
                 if (quoteOrderQty) {
                     const quoteOrderQtyNew = this.safeString2 (params, 'quoteOrderQty', 'cost');
                     const precision = market['precision']['price'];
@@ -6903,7 +6910,7 @@ export default class binance extends Exchange {
             }
         }
         if (timeInForceIsRequired && (this.safeString (params, 'timeInForce') === undefined) && (this.safeString (request, 'timeInForce') === undefined)) {
-            request['timeInForce'] = this.safeString (this.options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            request['timeInForce'] = this.handleOption ('createOrder', 'timeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
         }
         if (!isPortfolioMargin && market['contract'] && postOnly) {
             request['timeInForce'] = 'GTX';
@@ -6924,8 +6931,9 @@ export default class binance extends Exchange {
         let selfTradePrevention = undefined;
         [ selfTradePrevention, params ] = this.handleOptionAndParams (params, 'createOrder', 'selfTradePrevention');
         if (selfTradePrevention !== undefined) {
-            if (market['inverse'] && this.options['warnOnSTPForInverse']) {
-                throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the "warnOnSTPForInverse" option to false.');
+            const warnOnStpForInverse = this.handleOption ('createOrder', 'warnOnSTPForInverse');
+            if (market['inverse'] && warnOnStpForInverse) {
+                throw new NotSupported (this.id + ' createOrder() selfTradePrevention is not supported for inverse markets. selfTradePrevention for inverse markets is taken from linear market. To disable this warning set the .options["createOrder"]["warnOnSTPForInverse"] to false.');
             }
             request['selfTradePreventionMode'] = selfTradePrevention.toUpperCase (); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
@@ -7418,11 +7426,15 @@ export default class binance extends Exchange {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             const marketType = ('type' in market) ? market['type'] : defaultType;
             type = this.safeString (params, 'type', marketType);
-        } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
-            const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-            type = this.safeString (params, 'type', defaultType);
+            const warnWithoutSymbol = this.safeBool (this.options['fetchOpenOrders'], 'warnWithoutSymbol');
+            const optValue = this.safeBool (this.options, 'warnOnFetchOpenOrdersWithoutSymbol'); // for backward compatibility
+            if (optValue || (optValue === undefined && warnWithoutSymbol)) {
+                throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["fetchOpenOrders"]["warnWithoutSymbol"] = false to suppress this warning message.');
+            } else {
+                const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
+                type = this.safeString (params, 'type', defaultType);
+            }
         }
         let subType = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
@@ -11168,12 +11180,15 @@ export default class binance extends Exchange {
      */
     async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         let defaultMethod: Str = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
+        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method'); // check if there is a key in options|params
         if (defaultMethod === undefined) {
+            // check if .options['fetchPositions'] dict exist at all
             const options = this.safeDict (this.options, 'fetchPositions');
             if (options === undefined) {
+                // if undefined, for backward compatibility, check if it is a string
                 defaultMethod = this.safeString (this.options, 'fetchPositions', 'positionRisk');
             } else {
+                // if it is a dict, then it doesn't seem to have any 'method', so set default value
                 defaultMethod = 'positionRisk';
             }
         }
@@ -11666,7 +11681,7 @@ export default class binance extends Exchange {
             // POST https://fapi.binance.com/fapi/v1/marginType 400 Bad Request
             // binanceusdm
             if (e instanceof MarginModeAlreadySet) {
-                const throwMarginModeAlreadySet = this.safeBool (this.options, 'throwMarginModeAlreadySet', false);
+                const throwMarginModeAlreadySet = this.handleOption ('setMarginMode', 'throwMarginModeAlreadySet', false) as Bool;
                 if (throwMarginModeAlreadySet) {
                     throw e;
                 } else {
