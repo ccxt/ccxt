@@ -1833,6 +1833,90 @@
         ],
         "createOrder": [
             {
+                "description": "with stopLoss (unified)",
+                "method": "createOrder",
+                "input": [
+                    "ETH/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.01,
+                    1000,
+                    {
+                        "stopLoss": {
+                            "triggerPrice": 900
+                        }
+                    }
+                ],
+                "httpResponse": null,
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "2075327018132791296",
+                        "orderID": "2075327018132791296",
+                        "symbol": "ETH-USDT",
+                        "positionSide": "BOTH",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "price": "1000",
+                        "quantity": "0.01",
+                        "quoteOrderQty": "0",
+                        "stopPrice": "0",
+                        "workingType": "MARK_PRICE",
+                        "clientOrderID": "",
+                        "clientOrderId": "",
+                        "timeInForce": "GTC",
+                        "priceRate": "0",
+                        "stopLoss": {
+                            "stopPrice": "900",
+                            "workingType": "MARK_PRICE",
+                            "type": "STOP_MARKET",
+                            "quantity": "0.01"
+                        },
+                        "takeProfit": "",
+                        "reduceOnly": false,
+                        "activationPrice": "0",
+                        "closePosition": "",
+                        "stopGuaranteed": "",
+                        "status": "PENDING",
+                        "avgPrice": "0.00",
+                        "executedQty": "0.00"
+                    },
+                    "id": "2075327018132791296",
+                    "clientOrderId": null,
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "side": "buy",
+                    "price": 1000,
+                    "triggerPrice": null,
+                    "stopLossPrice": 900,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": 0,
+                    "amount": 0.01,
+                    "filled": 0,
+                    "remaining": 0.01,
+                    "status": "open",
+                    "fee": {
+                        "currency": "USDT",
+                        "cost": null
+                    },
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [
+                        {
+                            "currency": "USDT",
+                            "cost": null
+                        }
+                    ],
+                    "stopPrice": null
+                }
+            },
+            {
                 "description": "spot create order limit buy",
                 "method": "createOrder",
                 "input": [
