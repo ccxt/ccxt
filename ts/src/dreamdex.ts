@@ -268,7 +268,7 @@ export default class dreamdex extends Exchange {
                 'authTokenExpires': undefined,
                 'chainId': 5031,
                 'builderFee': true,
-                'builder': '0x000000000000000000000000000000000000dEaD', // TODO(maintainers): replace placeholder builder wallet before merge
+                'builder': '0x7121f9204980ea8DC50226CeDe990bA8698b69E8', // TODO(maintainers): replace placeholder builder wallet before merge
                 'builderFeeBpsTimes1k': 1000, // 1 bps (unit: 1000 = 1 bps)
             },
             'exceptions': {
@@ -455,7 +455,9 @@ export default class dreamdex extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbols': market['id'],
@@ -495,7 +497,9 @@ export default class dreamdex extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -523,7 +527,9 @@ export default class dreamdex extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = [];
@@ -597,7 +603,9 @@ export default class dreamdex extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -637,7 +645,9 @@ export default class dreamdex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -704,7 +714,9 @@ export default class dreamdex extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -752,7 +764,9 @@ export default class dreamdex extends Exchange {
      */
     async fetchBalance (params = {}): Promise<Balances> {
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const symbol = this.safeString (params, 'symbol');
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBalance() requires a params.symbol argument (vault is per-market)');
@@ -843,7 +857,9 @@ export default class dreamdex extends Exchange {
 
     async vaultAction (action: string, symbol: string, currency: string, amount: Num, params = {}): Promise<any> {
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
         params = this.omit (params, 'walletAddress');
@@ -890,7 +906,9 @@ export default class dreamdex extends Exchange {
      * @returns {object} a structure containing maxFeeBpsTimes1k in BPS_TIMES_1K units (1000 = 1 bps)
      */
     async fetchBuilderMaxFee (symbol: string, params = {}): Promise<Dict> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -917,7 +935,9 @@ export default class dreamdex extends Exchange {
      */
     async fetchBuilderApproval (symbol: string, params = {}): Promise<Dict> {
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
         const builder = this.safeStringLower (params, 'builder', this.safeStringLower (this.options, 'builder'));
@@ -953,7 +973,9 @@ export default class dreamdex extends Exchange {
      */
     async approveBuilder (symbol: string, maxFeeBpsTimes1k: Int, params = {}): Promise<Dict> {
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
         const builder = this.safeStringLower (params, 'builder', this.safeStringLower (this.options, 'builder'));
@@ -1003,7 +1025,9 @@ export default class dreamdex extends Exchange {
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const walletAddress = this.safeString (params, 'walletAddress', this.walletAddress);
         const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
@@ -1140,7 +1164,9 @@ export default class dreamdex extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -1180,7 +1206,9 @@ export default class dreamdex extends Exchange {
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         if (symbol === undefined) {
             if (stop) {
@@ -1241,7 +1269,9 @@ export default class dreamdex extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const stop = this.safeBool2 (params, 'stop', 'trigger');
         const request: Dict = {
@@ -1302,7 +1332,9 @@ export default class dreamdex extends Exchange {
             throw new NotSupported (this.id + ' editOrder() does not support changing price, only reducing quantity');
         }
         await this.signIn ();
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],

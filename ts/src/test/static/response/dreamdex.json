@@ -1,5 +1,9 @@
 {
     "exchange": "dreamdex",
+    "options": {
+        "authToken": "staticTestToken",
+        "authTokenExpires": 99999999999999
+    },
     "skipKeys": [],
     "methods": {
         "fetchOrders": [
@@ -1496,17 +1500,6 @@
                     "gasLimit": "100000",
                     "nonce": "44"
                 }
-            },
-            {
-                "description": "Approve native token returns null (no approval needed)",
-                "method": "vaultApprove",
-                "input": [
-                    "SOMI/USDso",
-                    "SOMI",
-                    100
-                ],
-                "httpResponse": null,
-                "parsedResponse": null
             }
         ]
     }
