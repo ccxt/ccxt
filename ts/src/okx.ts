@@ -912,6 +912,18 @@ export default class okx extends Exchange {
                     '51734': AuthenticationError, // User KYC Country is not supported
                     '51735': ExchangeError, // Sub-account is not supported
                     '51736': InsufficientFunds, // Insufficient {ccy} balance
+                    '51763': AccountNotEnabled, // Your account does not meet the VIP tier requirement for this product
+                    '51764': InsufficientFunds, // Insufficient balance
+                    '51765': BadRequest, // Exceed your remaining daily quota of {x} USDT
+                    '51766': ExchangeError, // Platform daily subscription limit reached
+                    '51767': OnMaintenance, // System maintenance, please retry
+                    '51768': BadRequest, // Exceed your remaining fast redemption quota of {x} OKUSD
+                    '51769': ExchangeError, // Platform fast redemption limit reached
+                    '51770': BadRequest, // Exceed your remaining standard redemption quota of {x} OKUSD
+                    '51771': ExchangeError, // Platform standard redemption limit reached
+                    '51772': InsufficientFunds, // Instant redemption pool insufficient
+                    '51773': PermissionDenied, // Feature not available in your region
+                    '51774': OnMaintenance, // OKUSD API is under maintenance
                     // Data class
                     '52000': ExchangeError, // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -923,6 +935,7 @@ export default class okx extends Exchange {
                     '54072': ExchangeError, // This contract is currently view-only and not tradable.
                     '54073': BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
+                    '54094': InvalidOrder, // Order rejected. The cool-off period is active for the current instId.
                     // Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder, // Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': InvalidOrder, // Stop loss % should be within the range of {parameter1}-{parameter2}
@@ -997,6 +1010,7 @@ export default class okx extends Exchange {
                     '59107': ExchangeError, // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': InsufficientFunds, // Low leverage and insufficient margin, please adjust the leverage
                     '59109': ExchangeError, // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59113': AuthenticationError, // KYC level 2 or above is required for placing orders
                     '59128': InvalidOrder, // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': InsufficientFunds, // Insufficient account balance
                     '59201': InsufficientFunds, // Negative account balance
@@ -1069,6 +1083,8 @@ export default class okx extends Exchange {
                     '64001': BadRequest, // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64002': BadRequest, // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64003': AccountNotEnabled, // Your trading fee tier doesnt meet the requirement to access this channel
+                    '64004': BadRequest, // Subscribe to both {channelName} and books-l2-tbt for {instId} is not allowed. Unsubscribe books-l2-tbt first.
+                    '64008': NetworkError, // The connection will soon be closed for a service upgrade. Please reconnect.
                     '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest, // Please specify your instrument settings for at least one instType.
