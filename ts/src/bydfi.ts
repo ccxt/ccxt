@@ -1314,9 +1314,10 @@ export default class bydfi extends Exchange {
         } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
             throw new NotSupported (this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
-        let timeInForce = this.handleTimeInForce (params);
-        if (timeInForce === undefined) {
-            timeInForce = this.handleOption ('createOrder', 'timeInForce');
+        let timeInForce = this.safeString (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            const supported = this.handleOption ('createOrder', 'timeInForce') as Dict;
+            timeInForce = this.safeString (supported, timeInForce);
         }
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', params);
