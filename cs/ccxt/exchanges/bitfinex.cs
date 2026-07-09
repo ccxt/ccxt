@@ -301,8 +301,12 @@ public partial class bitfinex : Exchange
             } },
             { "precisionMode", SIGNIFICANT_DIGITS },
             { "options", new Dictionary<string, object>() {
-                { "precision", "R0" },
-                { "defaultCurrencyPrecision", 8 },
+                { "fetchOrderBook", new Dictionary<string, object>() {
+                    { "precision", "R0" },
+                } },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "defaultPrecision", 8 },
+                } },
                 { "exchangeTypes", new Dictionary<string, object>() {
                     { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
@@ -844,7 +848,8 @@ public partial class bitfinex : Exchange
         object fees = this.safeList(feeValues, 1, new List<object>() {});
         object fee = this.safeNumber(fees, 1);
         object undl = this.safeList(getValue(indexed, "undl"), id, new List<object>() {});
-        object precision = this.safeString(this.options, "defaultCurrencyPrecision", "8");
+        object defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
+        object precision = ((string)this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
         object networks = new Dictionary<string, object>() {};
         object networkIds = this.safeList(indexedNetworks, id, new List<object>() {});
         for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
@@ -1135,7 +1140,7 @@ public partial class bitfinex : Exchange
         {
             await this.loadMarkets();
         }
-        object precision = this.safeValue(this.options, "precision", "R0");
+        object precision = ((string)this.handleOption("fetchOrderBook", "precision", "R0"));
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },

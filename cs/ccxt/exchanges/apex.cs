@@ -220,7 +220,6 @@ public partial class apex : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {} },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "swap" },
-                { "defaultSlippage", 0.05 },
                 { "brokerId", "6956" },
             } },
             { "features", new Dictionary<string, object>() {
