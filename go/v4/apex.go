@@ -226,9 +226,8 @@ func (this *ApexCore) Describe() any {
 		"precisionMode":    TICK_SIZE,
 		"commonCurrencies": map[string]any{},
 		"options": map[string]any{
-			"defaultType":     "swap",
-			"defaultSlippage": 0.05,
-			"brokerId":        "6956",
+			"defaultType": "swap",
+			"brokerId":    "6956",
 		},
 		"features": map[string]any{
 			"default": map[string]any{
@@ -378,8 +377,8 @@ func (this *ApexCore) FetchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes36612 := (<-this.LoadMarkets())
-			PanicOnError(retRes36612)
+			retRes36512 := (<-this.LoadMarkets())
+			PanicOnError(retRes36512)
 		}
 
 		response := (<-this.PrivateGetV3AccountBalance(params))
@@ -419,8 +418,8 @@ func (this *ApexCore) FetchAccount(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes39312 := (<-this.LoadMarkets())
-			PanicOnError(retRes39312)
+			retRes39212 := (<-this.LoadMarkets())
+			PanicOnError(retRes39212)
 		}
 
 		response := (<-this.PrivateGetV3Account(params))
@@ -850,8 +849,8 @@ func (this *ApexCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes78412 := (<-this.LoadMarkets())
-			PanicOnError(retRes78412)
+			retRes78312 := (<-this.LoadMarkets())
+			PanicOnError(retRes78312)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -890,8 +889,8 @@ func (this *ApexCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes80712 := (<-this.LoadMarkets())
-			PanicOnError(retRes80712)
+			retRes80612 := (<-this.LoadMarkets())
+			PanicOnError(retRes80612)
 		}
 
 		response := (<-this.PublicGetV3DataAllTickerInfo(params))
@@ -933,8 +932,8 @@ func (this *ApexCore) FetchOHLCV(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes82912 := (<-this.LoadMarkets())
-			PanicOnError(retRes82912)
+			retRes82812 := (<-this.LoadMarkets())
+			PanicOnError(retRes82812)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1003,8 +1002,8 @@ func (this *ApexCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan any
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes88612 := (<-this.LoadMarkets())
-			PanicOnError(retRes88612)
+			retRes88512 := (<-this.LoadMarkets())
+			PanicOnError(retRes88512)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1081,8 +1080,8 @@ func (this *ApexCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes94512 := (<-this.LoadMarkets())
-			PanicOnError(retRes94512)
+			retRes94412 := (<-this.LoadMarkets())
+			PanicOnError(retRes94412)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1182,8 +1181,8 @@ func (this *ApexCore) FetchOpenInterest(symbol any, optionalArgs ...any) <-chan 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes103012 := (<-this.LoadMarkets())
-			PanicOnError(retRes103012)
+			retRes102912 := (<-this.LoadMarkets())
+			PanicOnError(retRes102912)
 		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
@@ -1267,8 +1266,8 @@ func (this *ApexCore) FetchFundingRateHistory(optionalArgs ...any) <-chan any {
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes109312 := (<-this.LoadMarkets())
-			PanicOnError(retRes109312)
+			retRes109212 := (<-this.LoadMarkets())
+			PanicOnError(retRes109212)
 		}
 		var request any = map[string]any{}
 		var market any = this.Market(symbol)
@@ -1563,8 +1562,8 @@ func (this *ApexCore) CreateOrder(symbol any, typeVar any, side any, amount any,
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes136012 := (<-this.LoadMarkets())
-			PanicOnError(retRes136012)
+			retRes135912 := (<-this.LoadMarkets())
+			PanicOnError(retRes135912)
 		}
 		var market any = this.Market(symbol)
 		var orderType any = ToUpper(typeVar)
@@ -1683,8 +1682,8 @@ func (this *ApexCore) Transfer(code any, amount any, fromAccount any, toAccount 
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes146112 := (<-this.LoadMarkets())
-			PanicOnError(retRes146112)
+			retRes146012 := (<-this.LoadMarkets())
+			PanicOnError(retRes146012)
 		}
 
 		configResponse := (<-this.PublicGetV3Symbols(params))
@@ -1871,8 +1870,8 @@ func (this *ApexCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes161912 := (<-this.LoadMarkets())
-			PanicOnError(retRes161912)
+			retRes161812 := (<-this.LoadMarkets())
+			PanicOnError(retRes161812)
 		}
 		var market any = nil
 		var request any = map[string]any{}
@@ -1958,8 +1957,8 @@ func (this *ApexCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes167212 := (<-this.LoadMarkets())
-			PanicOnError(retRes167212)
+			retRes167112 := (<-this.LoadMarkets())
+			PanicOnError(retRes167112)
 		}
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeStringN(params, []any{"clientId", "clientOrderId", "client_order_id"})
@@ -2011,8 +2010,8 @@ func (this *ApexCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes170212 := (<-this.LoadMarkets())
-			PanicOnError(retRes170212)
+			retRes170112 := (<-this.LoadMarkets())
+			PanicOnError(retRes170112)
 		}
 
 		response := (<-this.PrivateGetV3OpenOrders(params))
@@ -2058,8 +2057,8 @@ func (this *ApexCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes172812 := (<-this.LoadMarkets())
-			PanicOnError(retRes172812)
+			retRes172712 := (<-this.LoadMarkets())
+			PanicOnError(retRes172712)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2118,8 +2117,8 @@ func (this *ApexCore) FetchOrderTrades(id any, optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes176712 := (<-this.LoadMarkets())
-			PanicOnError(retRes176712)
+			retRes176612 := (<-this.LoadMarkets())
+			PanicOnError(retRes176612)
 		}
 		var request any = map[string]any{}
 		var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId")
@@ -2172,8 +2171,8 @@ func (this *ApexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes180012 := (<-this.LoadMarkets())
-			PanicOnError(retRes180012)
+			retRes179912 := (<-this.LoadMarkets())
+			PanicOnError(retRes179912)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2234,8 +2233,8 @@ func (this *ApexCore) FetchFundingHistory(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes184112 := (<-this.LoadMarkets())
-			PanicOnError(retRes184112)
+			retRes184012 := (<-this.LoadMarkets())
+			PanicOnError(retRes184012)
 		}
 		var request any = map[string]any{}
 		var market any = nil
@@ -2323,8 +2322,8 @@ func (this *ApexCore) SetLeverage(leverage any, optionalArgs ...any) <-chan any 
 		}
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes191212 := (<-this.LoadMarkets())
-			PanicOnError(retRes191212)
+			retRes191112 := (<-this.LoadMarkets())
+			PanicOnError(retRes191112)
 		}
 		var market any = this.Market(symbol)
 		var leverageString any = this.NumberToString(leverage)
@@ -2365,8 +2364,8 @@ func (this *ApexCore) FetchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if IsTrue(IsEqual(this.Markets, nil)) {
 
-			retRes193712 := (<-this.LoadMarkets())
-			PanicOnError(retRes193712)
+			retRes193612 := (<-this.LoadMarkets())
+			PanicOnError(retRes193612)
 		}
 
 		response := (<-this.PrivateGetV3Account(params))
