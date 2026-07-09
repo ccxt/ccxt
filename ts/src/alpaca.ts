@@ -1095,7 +1095,7 @@ export default class alpaca extends Exchange {
             request['qty'] = this.amountToPrecision (symbol, amount);
         }
         let defaultTIF = undefined;
-        [ defaultTIF, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'timeInForce', 'defaultTimeInForce', 'gtc'); // defaultTimeInForce is for backward compatibility
+        [ defaultTIF, params ] = this.handleOptionAndParams2 (params, 'createOrder', 'timeInForce', 'defaultTimeInForce'); // defaultTimeInForce is for backward compatibility
         request['time_in_force'] = defaultTIF;
         params = this.omit (params, [ 'timeInForce', 'triggerPrice' ]);
         request['client_order_id'] = this.generateClientOrderId (params);
