@@ -394,14 +394,26 @@ class bittrade(Exchange, ImplicitAPI):
                     'ALGO': 'algo',
                 },
                 # https://github.com/ccxt/ccxt/issues/5376
-                'fetchOrdersByStatesMethod': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
-                'fetchOpenOrdersMethod': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
-                'createMarketBuyOrderRequiresPrice': True,
-                'fetchMarketsMethod': 'publicGetCommonSymbols',
-                'fetchBalanceMethod': 'privateGetAccountAccountsIdBalance',
-                'createOrderMethod': 'privatePostOrderOrdersPlace',
+                'fetchOrdersByStates': {
+                    'method': 'private_get_order_orders',  # 'private_get_order_history'  # https://github.com/ccxt/ccxt/pull/5392
+                },
+                'fetchOpenOrders': {
+                    'method': 'fetch_open_orders_v1',  # 'fetch_open_orders_v2'  # https://github.com/ccxt/ccxt/issues/5388
+                },
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                    'method': 'privatePostOrderOrdersPlace',
+                },
+                'fetchMarkets': {
+                    'method': 'publicGetCommonSymbols',
+                },
+                'fetchBalance': {
+                    'method': 'privateGetAccountAccountsIdBalance',
+                },
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'language': 'en-US',
+                'fetchCurrencies': {
+                    'language': 'en-US',
+                },
                 'broker': {
                     'id': 'AA03022abc',
                 },
@@ -504,7 +516,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        method = self.options['fetchMarketsMethod']
+        method = self.handle_option('fetchMarkets', 'method', 'publicGetCommonSymbols')
         response = getattr(self, method)(params)
         #
         #    {
@@ -1048,7 +1060,7 @@ class bittrade(Exchange, ImplicitAPI):
         :returns dict: an associative dictionary of currencies
         """
         request = {
-            'language': self.options['language'],
+            'language': self.handle_option('fetchCurrencies', 'language', 'en-US'),
         }
         response = self.publicGetSettingsCurrencys(self.extend(request, params))
         #
@@ -1164,7 +1176,7 @@ class bittrade(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         self.load_accounts()
-        method = self.options['fetchBalanceMethod']
+        method = self.handle_option('fetchBalance', 'method', 'privateGetAccountAccountsIdBalance')
         request = {
             'id': self.accounts[0]['id'],
         }
@@ -1181,7 +1193,7 @@ class bittrade(Exchange, ImplicitAPI):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        method = self.safe_string(self.options, 'fetchOrdersByStatesMethod', 'private_get_order_orders')
+        method = self.handle_option('fetchOrdersByStates', 'method', 'private_get_order_orders')
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {"status":   "ok",
@@ -1239,7 +1251,7 @@ class bittrade(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        method = self.safe_string(self.options, 'fetchOpenOrdersMethod', 'fetch_open_orders_v1')
+        method = self.handle_option('fetchOpenOrders', 'method', 'fetch_open_orders_v1')
         return getattr(self, method)(symbol, since, limit, params)
 
     def fetch_open_orders_v1(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
