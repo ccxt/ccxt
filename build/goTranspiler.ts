@@ -913,7 +913,6 @@ class NewTranspiler {
         const goReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
-            'PredictionEvent': 'map[string]any', // no concrete Go struct; surface as a map
             'fetchEventsParams': 'map[string]interface{}', // params bag; surface as a map
         };
 
@@ -1387,10 +1386,6 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         let unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        if (methodName === 'fetchEvents') {
-            // prediction events have no concrete Go struct; surface them as a list of maps
-            unwrappedType = '[]map[string]any';
-        }
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
         // const stringArgs = args.filter(arg => arg !== undefined).join(', ');

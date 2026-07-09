@@ -274,7 +274,7 @@ export default class PredictionExchange extends BaseExchange {
         throw new NotSupported (this.id + ' fetchEvents() is not supported yet');
     }
 
-    async fetchEvent (id: string, params = {}): Promise<any> {
+    async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
         throw new NotSupported (this.id + ' fetchEvent() is not supported yet');
     }
 

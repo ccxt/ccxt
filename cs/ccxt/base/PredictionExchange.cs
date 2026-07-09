@@ -1533,15 +1533,15 @@ public partial class PredictionExchange : BaseExchange
 
 public partial class PredictionExchange
 {
-    public async Task<List<Dictionary<string, object>>> FetchEvents(Dictionary<string, object> parameters)
+    public async Task<List<PredictionEvent>> FetchEvents(Dictionary<string, object> parameters)
     {
         var res = await this.fetchEvents(parameters);
-        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
+        return ((IList<object>)res).Select(item => new PredictionEvent(item)).ToList<PredictionEvent>();
     }
-    public async Task<Dictionary<string, object>> FetchEvent(string id, Dictionary<string, object> parameters = null)
+    public async Task<PredictionEvent> FetchEvent(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchEvent(id, parameters);
-        return ((Dictionary<string, object>)res);
+        return new PredictionEvent(res);
     }
     public Dictionary<string, object> SetMarkets(object markets, object currencies = null)
     {

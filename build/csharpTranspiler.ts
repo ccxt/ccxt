@@ -369,10 +369,6 @@ class NewTranspiler {
             return `Task<Int64>`; // custom handling for now
         }
 
-        if (name === 'fetchEvents') {
-            return `Task<List<Dictionary<string, object>>>`; // returns a list of parsed events; some impls are typed Promise<any>
-        }
-
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
@@ -389,7 +385,6 @@ class NewTranspiler {
         const csharpReplacements: dict = {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
-            'PredictionEvent': 'Dictionary<string, object>', // no concrete C# struct; surface as a dict
             'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
         }
 

@@ -334,6 +334,181 @@ public struct PredictionTickers
     }
 }
 
+// PredictionFees / PredictionOutcome / PredictionMarket / PredictionEvent mirror the
+// Event -> Market -> Outcome hierarchy in ts/src/base/types.ts. The Outcome is the
+// tradeable unit; PredictionEvent.markets holds the grouped ccxt market rows (each
+// carrying its outcomes list), matching what fetchEvents() returns at runtime.
+
+public struct PredictionFees
+{
+    public double? trading;
+    public double? resolution;
+
+    public PredictionFees(object fees2)
+    {
+        var fees = (Dictionary<string, object>)fees2;
+        trading = Exchange.SafeFloat(fees, "trading");
+        resolution = Exchange.SafeFloat(fees, "resolution");
+    }
+}
+
+public struct PredictionOutcome
+{
+    public string? outcome;
+    public string? outcomeId;
+    public string? label;
+    public string? market;
+    public string? marketId;
+    public string? eventId;
+    public double? price;
+    public double? bid;
+    public double? ask;
+    public bool? active;
+    public bool? winner;
+    public double? settleFraction;
+    public Precision? precision;
+    public Dictionary<string, object> info;
+
+    public PredictionOutcome(object outcome2)
+    {
+        var outcomeDict = (Dictionary<string, object>)outcome2;
+        outcome = Exchange.SafeString(outcomeDict, "outcome");
+        outcomeId = Exchange.SafeString(outcomeDict, "outcomeId");
+        label = Exchange.SafeString(outcomeDict, "label");
+        market = Exchange.SafeString(outcomeDict, "market");
+        marketId = Exchange.SafeString(outcomeDict, "marketId");
+        eventId = Exchange.SafeString(outcomeDict, "event");
+        price = Exchange.SafeFloat(outcomeDict, "price");
+        bid = Exchange.SafeFloat(outcomeDict, "bid");
+        ask = Exchange.SafeFloat(outcomeDict, "ask");
+        active = Exchange.SafeBool(outcomeDict, "active");
+        winner = Exchange.SafeBool(outcomeDict, "winner");
+        settleFraction = Exchange.SafeFloat(outcomeDict, "settleFraction");
+        precision = Exchange.SafeValue(outcomeDict, "precision") != null ? new Precision(Exchange.SafeValue(outcomeDict, "precision")) : null;
+        info = Helper.GetInfo(outcomeDict);
+    }
+}
+
+public struct PredictionMarket
+{
+    public string? id;
+    public string? market;
+    public string? eventId;
+    public string? marketType;
+    public string? executionModel;
+    public string? title;
+    public string? description;
+    public List<PredictionOutcome>? outcomes;
+    public string? underlying;
+    public double? floorStrike;
+    public double? capStrike;
+    public string? strikeType;
+    public string? collateral;
+    public bool? active;
+    public bool? closed;
+    public bool? resolved;
+    public string? resolvedOutcome;
+    public double? settlementValue;
+    public Int64? created;
+    public string? createdDatetime;
+    public Int64? end;
+    public string? endDatetime;
+    public double? volume;
+    public double? liquidity;
+    public double? openInterest;
+    public double? tickSize;
+    public Limits? limits;
+    public PredictionFees? fees;
+    public string? resolutionSource;
+    public string? image;
+    public Dictionary<string, object> info;
+
+    public PredictionMarket(object market2)
+    {
+        var marketDict = (Dictionary<string, object>)market2;
+        id = Exchange.SafeString(marketDict, "id");
+        market = Exchange.SafeString(marketDict, "market");
+        eventId = Exchange.SafeString(marketDict, "event");
+        marketType = Exchange.SafeString(marketDict, "marketType");
+        executionModel = Exchange.SafeString(marketDict, "executionModel");
+        title = Exchange.SafeString(marketDict, "title");
+        description = Exchange.SafeString(marketDict, "description");
+        outcomes = marketDict.ContainsKey("outcomes") && marketDict["outcomes"] != null ? ((IEnumerable<object>)marketDict["outcomes"]).Select(x => new PredictionOutcome(x)).ToList() : null;
+        underlying = Exchange.SafeString(marketDict, "underlying");
+        floorStrike = Exchange.SafeFloat(marketDict, "floorStrike");
+        capStrike = Exchange.SafeFloat(marketDict, "capStrike");
+        strikeType = Exchange.SafeString(marketDict, "strikeType");
+        collateral = Exchange.SafeString(marketDict, "collateral");
+        active = Exchange.SafeBool(marketDict, "active");
+        closed = Exchange.SafeBool(marketDict, "closed");
+        resolved = Exchange.SafeBool(marketDict, "resolved");
+        resolvedOutcome = Exchange.SafeString(marketDict, "resolvedOutcome");
+        settlementValue = Exchange.SafeFloat(marketDict, "settlementValue");
+        created = Exchange.SafeInteger(marketDict, "created");
+        createdDatetime = Exchange.SafeString(marketDict, "createdDatetime");
+        end = Exchange.SafeInteger(marketDict, "end");
+        endDatetime = Exchange.SafeString(marketDict, "endDatetime");
+        volume = Exchange.SafeFloat(marketDict, "volume");
+        liquidity = Exchange.SafeFloat(marketDict, "liquidity");
+        openInterest = Exchange.SafeFloat(marketDict, "openInterest");
+        tickSize = Exchange.SafeFloat(marketDict, "tickSize");
+        limits = Exchange.SafeValue(marketDict, "limits") != null ? new Limits(Exchange.SafeValue(marketDict, "limits")) : null;
+        fees = Exchange.SafeValue(marketDict, "fees") != null ? new PredictionFees(Exchange.SafeValue(marketDict, "fees")) : null;
+        resolutionSource = Exchange.SafeString(marketDict, "resolutionSource");
+        image = Exchange.SafeString(marketDict, "image");
+        info = Helper.GetInfo(marketDict);
+    }
+}
+
+public struct PredictionEvent
+{
+    public string? id;
+    public string? eventId;
+    public string? title;
+    public string? description;
+    public string? slug;
+    public string? category;
+    public List<string>? tags;
+    public List<PredictionMarket>? markets;
+    public bool? mutuallyExclusive;
+    public bool? active;
+    public bool? resolved;
+    public double? volume;
+    public double? liquidity;
+    public Int64? created;
+    public string? createdDatetime;
+    public Int64? end;
+    public string? endDatetime;
+    public string? image;
+    public string? url;
+    public Dictionary<string, object> info;
+
+    public PredictionEvent(object event2)
+    {
+        var eventDict = (Dictionary<string, object>)event2;
+        id = Exchange.SafeString(eventDict, "id");
+        eventId = Exchange.SafeString(eventDict, "event");
+        title = Exchange.SafeString(eventDict, "title");
+        description = Exchange.SafeString(eventDict, "description");
+        slug = Exchange.SafeString(eventDict, "slug");
+        category = Exchange.SafeString(eventDict, "category");
+        tags = eventDict.ContainsKey("tags") && eventDict["tags"] != null ? ((IEnumerable<object>)eventDict["tags"]).Select(x => (string)x).ToList() : null;
+        markets = eventDict.ContainsKey("markets") && eventDict["markets"] != null ? ((IEnumerable<object>)eventDict["markets"]).Select(x => new PredictionMarket(x)).ToList() : null;
+        mutuallyExclusive = Exchange.SafeBool(eventDict, "mutuallyExclusive");
+        active = Exchange.SafeBool(eventDict, "active");
+        resolved = Exchange.SafeBool(eventDict, "resolved");
+        volume = Exchange.SafeFloat(eventDict, "volume");
+        liquidity = Exchange.SafeFloat(eventDict, "liquidity");
+        created = Exchange.SafeInteger(eventDict, "created");
+        createdDatetime = Exchange.SafeString(eventDict, "createdDatetime");
+        end = Exchange.SafeInteger(eventDict, "end");
+        endDatetime = Exchange.SafeString(eventDict, "endDatetime");
+        image = Exchange.SafeString(eventDict, "image");
+        url = Exchange.SafeString(eventDict, "url");
+        info = Helper.GetInfo(eventDict);
+    }
+}
+
 // PredictionSettlement is a standalone record (no base unified struct): one settled outcome
 // the user held, with the collateral paid in and paid out. Mirrors the PredictionSettlement
 // interface in ts/src/base/types.ts.
