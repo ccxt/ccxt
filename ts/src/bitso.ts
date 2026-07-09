@@ -531,6 +531,7 @@ export default class bitso extends Exchange {
                 'maker': makerFees,
             };
             fee['tiers'] = tiers;
+            const baseCurrency = this.safeDict (currencies, base);
             result.push (this.extend ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -558,7 +559,7 @@ export default class bitso extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (currencies, base),
+                    'amount': this.safeNumber (baseCurrency, 'precision'),
                     'price': this.safeNumber (market, 'tick_size'),
                 },
                 'limits': {
