@@ -622,9 +622,7 @@ export default class bitso extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.privateGetBalance (params);
         //
         //     {
@@ -665,9 +663,7 @@ export default class bitso extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'book': market['id'],
@@ -733,9 +729,7 @@ export default class bitso extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'book': market['id'],
@@ -774,9 +768,7 @@ export default class bitso extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'book': market['id'],
@@ -960,9 +952,7 @@ export default class bitso extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'book': market['id'],
@@ -980,9 +970,7 @@ export default class bitso extends Exchange {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees (params = {}): Promise<TradingFees> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
         //    {
@@ -1058,9 +1046,7 @@ export default class bitso extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
@@ -1102,9 +1088,7 @@ export default class bitso extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'book': market['id'],
@@ -1134,9 +1118,7 @@ export default class bitso extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const request: Dict = {
             'oid': id,
         };
@@ -1291,9 +1273,7 @@ export default class bitso extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = 25, params = {}): Promise<Order[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol as string);
         // the don't support fetching trades starting from a date yet
         // use the `marker` extra param for that
@@ -1333,9 +1313,7 @@ export default class bitso extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.privateGetOrdersOid ({
             'oid': id,
         });
@@ -1362,9 +1340,7 @@ export default class bitso extends Exchange {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades (id: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const market = this.market (symbol as string);
         const request: Dict = {
             'oid': id,
@@ -1384,9 +1360,7 @@ export default class bitso extends Exchange {
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposit (id: string, code: Str = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const request: Dict = {
             'fid': id,
         };
@@ -1431,9 +1405,7 @@ export default class bitso extends Exchange {
      * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         let currency: Currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1475,9 +1447,7 @@ export default class bitso extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const currency = this.currency (code);
         const request: Dict = {
             'fund_currency': currency['id'],
@@ -1511,9 +1481,7 @@ export default class bitso extends Exchange {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTransactionFees (codes: Strings = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
         //    {
@@ -1607,9 +1575,7 @@ export default class bitso extends Exchange {
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees (codes: Strings = undefined, params = {}) {
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const response = await this.privateGetFees (params);
         //
         //    {
@@ -1752,9 +1718,7 @@ export default class bitso extends Exchange {
     async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
-        if (this.markets === undefined) {
-            await this.loadMarkets ();
-        }
+        await this.loadMarkets ();
         const methods: Dict = {
             'BTC': 'Bitcoin',
             'ETH': 'Ether',
