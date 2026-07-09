@@ -420,13 +420,15 @@ class bitvavo(Exchange, ImplicitAPI):
             'options': {
                 'mica': True,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW': 10000,  # default 10 sec
+                'recvWindow': 10000,  # default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'operatorId': None,  # self will be required soon for order-related endpoints
-                'fiatCurrencies': ['EUR'],  # only fiat atm
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['EUR'],  # only fiat atm
+                },
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
@@ -625,7 +627,7 @@ class bitvavo(Exchange, ImplicitAPI):
         #         },
         #     ]
         #
-        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
+        fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
         id = self.safe_string(rawCurrency, 'symbol')
         code = self.safe_currency_code(id)
         isFiat = self.in_array(code, fiatCurrencies)
@@ -2541,7 +2543,7 @@ class bitvavo(Exchange, ImplicitAPI):
             timestamp = str(self.milliseconds())
             auth = timestamp + method + url + payload
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            accessWindow = self.safe_string(self.options, 'BITVAVO-ACCESS-WINDOW', '10000')
+            accessWindow = self.safe_string_2(self.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000')
             headers = {
                 'BITVAVO-ACCESS-KEY': self.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,
