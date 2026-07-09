@@ -917,6 +917,18 @@ class okx extends Exchange {
                     '51734' => '\\ccxt\\AuthenticationError', // User KYC Country is not supported
                     '51735' => '\\ccxt\\ExchangeError', // Sub-account is not supported
                     '51736' => '\\ccxt\\InsufficientFunds', // Insufficient {ccy} balance
+                    '51763' => '\\ccxt\\AccountNotEnabled', // Your account does not meet the VIP tier requirement for this product
+                    '51764' => '\\ccxt\\InsufficientFunds', // Insufficient balance
+                    '51765' => '\\ccxt\\BadRequest', // Exceed your remaining daily quota of {x} USDT
+                    '51766' => '\\ccxt\\ExchangeError', // Platform daily subscription limit reached
+                    '51767' => '\\ccxt\\OnMaintenance', // System maintenance, please retry
+                    '51768' => '\\ccxt\\BadRequest', // Exceed your remaining fast redemption quota of {x} OKUSD
+                    '51769' => '\\ccxt\\ExchangeError', // Platform fast redemption limit reached
+                    '51770' => '\\ccxt\\BadRequest', // Exceed your remaining standard redemption quota of {x} OKUSD
+                    '51771' => '\\ccxt\\ExchangeError', // Platform standard redemption limit reached
+                    '51772' => '\\ccxt\\InsufficientFunds', // Instant redemption pool insufficient
+                    '51773' => '\\ccxt\\PermissionDenied', // Feature not available in your region
+                    '51774' => '\\ccxt\\OnMaintenance', // OKUSD API is under maintenance
                     // Data class
                     '52000' => '\\ccxt\\ExchangeError', // No updates
                     // SPOT/MARGIN error codes 54000-54999
@@ -928,6 +940,7 @@ class okx extends Exchange {
                     '54072' => '\\ccxt\\ExchangeError', // This contract is currently view-only and not tradable.
                     '54073' => '\\ccxt\\BadRequest', // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074' => '\\ccxt\\ExchangeError', // Your settings failed have positions, bot or open orders for USD contracts.
+                    '54094' => '\\ccxt\\InvalidOrder', // Order rejected. The cool-off period is active for the current instId.
                     // Trading bot Error Code from 55100 to 55999
                     '55100' => '\\ccxt\\InvalidOrder', // Take fmod(profit, should) be within the range of {parameter1}-{parameter2}
                     '55101' => '\\ccxt\\InvalidOrder', // Stop fmod(loss, should) be within the range of {parameter1}-{parameter2}
@@ -1002,6 +1015,7 @@ class okx extends Exchange {
                     '59107' => '\\ccxt\\ExchangeError', // You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108' => '\\ccxt\\InsufficientFunds', // Low leverage and insufficient margin, please adjust the leverage
                     '59109' => '\\ccxt\\ExchangeError', // Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59113' => '\\ccxt\\AuthenticationError', // KYC level 2 or above is required for placing orders
                     '59128' => '\\ccxt\\InvalidOrder', // As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200' => '\\ccxt\\InsufficientFunds', // Insufficient account balance
                     '59201' => '\\ccxt\\InsufficientFunds', // Negative account balance
@@ -1074,6 +1088,8 @@ class okx extends Exchange {
                     '64001' => '\\ccxt\\BadRequest', // This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64002' => '\\ccxt\\BadRequest', // This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to => https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64003' => '\\ccxt\\AccountNotEnabled', // Your trading fee tier doesnt meet the requirement to access this channel
+                    '64004' => '\\ccxt\\BadRequest', // Subscribe to both {channelName} and books-l2-tbt for {instId} is not allowed. Unsubscribe books-l2-tbt first.
+                    '64008' => '\\ccxt\\NetworkError', // The connection will soon be closed for a service upgrade. Please reconnect.
                     '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
                     '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.
@@ -2114,6 +2130,7 @@ class okx extends Exchange {
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              *
              * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-order-book
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-full-order-book
              *
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -2537,6 +2554,7 @@ class okx extends Exchange {
              * get the list of most recent trades for a particular $symbol
              *
              * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-trades
+             * @see https://www.okx.com/docs-v5/en/#rest-api-$market-$data-get-trades-history
              * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-option-trades
              *
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
@@ -6614,6 +6632,16 @@ class okx extends Exchange {
 
     public function fetch_transfer(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(function () use ($id, $code, $params) {
+            /**
+             * fetch a $transfer
+             *
+             * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-$transfer-state
+             *
+             * @param {string} $id $transfer $id
+             * @param {string} [$code] unified currency $code of the currency transferred
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/?$id=$transfer-structure $transfer structure~
+             */
             if ($this->markets === null) {
                 Async\await($this->load_markets());
             }
