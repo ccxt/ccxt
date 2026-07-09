@@ -6209,7 +6209,8 @@ export default class Exchange {
     }
 
     async fetch2 (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
-        if (this.enableRateLimit && (method === 'GET')) {
+        const isGetRequest = (method === 'GET');
+        if (this.enableRateLimit && isGetRequest) {
             // GET requests are throttled before the request is sent
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
             await this.throttle (cost);
@@ -6236,7 +6237,7 @@ export default class Exchange {
                     fetchData['response']['body'] = response;
                     this.addFetchCache (fetchData);
                 }
-                if (this.enableRateLimit && (method !== 'GET')) {
+                if (this.enableRateLimit && !isGetRequest) {
                     // non-GET requests are throttled after the request has succeeded, errors are not throttled
                     const cost = this.calculateRateLimiterCost (api, method, path, params, config);
                     await this.throttle (cost);
