@@ -455,10 +455,12 @@ class aster(Exchange, ImplicitAPI):
             'options': {
                 'defaultType': 'spot',
                 'recvWindow': 10 * 1000,  # 10 sec
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
                 'zeroAddress': '0x0000000000000000000000000000000000000000',
                 'v3ChainId': 1666,  # Aster chain ID used for EIP-712 v3 signing
-                'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                'createOrder': {
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty': True,  # whether market orders support amounts in quote currency
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'swap': 'FUTURE',
@@ -2583,7 +2585,7 @@ class aster(Exchange, ImplicitAPI):
         request['type'] = uppercaseType
         if uppercaseType == 'MARKET':
             if market['spot']:
-                quoteOrderQty = self.safe_bool(self.options, 'quoteOrderQty', True)
+                quoteOrderQty = self.handle_option('createOrder', 'quoteOrderQty', True)
                 if quoteOrderQty:
                     quoteOrderQtyNew = self.safe_string_2(params, 'quoteOrderQty', 'cost')
                     precision = market['precision']['price']
@@ -2638,7 +2640,9 @@ class aster(Exchange, ImplicitAPI):
             if stopPrice is not None:
                 request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
         if timeInForceIsRequired and (self.safe_string(params, 'timeInForce') is None) and (self.safe_string(request, 'timeInForce') is None):
-            request['timeInForce'] = self.safe_string(self.options, 'defaultTimeInForce')  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+            tif = None
+            tif, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+            request['timeInForce'] = tif
         requestParams = self.omit(params, ['newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
         if self.safe_bool(self.options, 'builderFee') and market['swap']:
             request['builder'] = self.safe_string(self.options, 'builder')
