@@ -956,7 +956,7 @@ func (this *NdaxCore) FetchTickers(optionalArgs ...any) <-chan any {
 		}
 		symbols = this.MarketSymbols(symbols)
 
-		response := (<-this.CallDynamically("publicGetSummary", params))
+		response := (<-this.PublicGetSummary(params))
 		PanicOnError(response)
 		//
 		//     [
