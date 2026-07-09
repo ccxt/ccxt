@@ -889,7 +889,7 @@ public partial class ndax : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await ((Task<object>)callDynamically(this, "publicGetSummary", new object[] { parameters }));
+        object response = await this.publicGetSummary(parameters);
         //
         //     [
         //         {
