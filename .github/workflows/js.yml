@@ -129,10 +129,10 @@ jobs:
         done
     - name: Request Prediction tests
       if: env.important_modified == 'true'
-      run: npm run request-prediction-js
+      run: npm run request-ts-prediction
     - name: Response Prediction tests
       if: env.important_modified == 'true'
-      run: npm run response-prediction-js
+      run: npm run response-ts-prediction
     - name: Upload shared_env.txt
       uses: actions/upload-artifact@v4
       with:
