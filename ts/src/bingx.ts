@@ -3166,7 +3166,7 @@ export default class bingx extends Exchange {
             const takeProfit = this.safeDict (params, 'takeProfit');
             const hasStopLoss = stopLoss !== undefined;
             const hasTakeProfit = takeProfit !== undefined;
-            // because exchange-specific keys matches with the unified keys, we need to omit them only if they are provided as unified dict
+            // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
             if (hasStopLoss) {
                 params = this.omit (params, 'stopLoss');
             }
