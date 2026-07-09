@@ -1,11 +1,11 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js'
-import { writeReAsyncedTranspileCopy, removeReAsyncedTranspileCopy } from './reAsyncDelegators.js'
 import { writeFile } from 'fs/promises';
 import { platform } from 'process'
 import fs from 'fs'
@@ -1114,10 +1114,7 @@ class NewTranspiler {
         const allFilesPath = exchanges.map((file: string) => jsFolder + file);
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[java] Transpiling [', exchanges.join(', '), ']');
-        // non-async Promise-returning delegators must be transpiled in their async form (see reAsyncDelegators.ts)
-        const transpilePaths = allFilesPath.map((file: string) => writeReAsyncedTranspileCopy(file));
-        const transpiledFiles = transpilePaths.map((file: string) => this.transpiler.transpileJavaByPath(file));
-        transpilePaths.forEach((tmpPath: string, i: number) => removeReAsyncedTranspileCopy(tmpPath, allFilesPath[i]));
+        const transpiledFiles = allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
