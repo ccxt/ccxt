@@ -29,7 +29,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
+            "amount": 1e-8,
             "price": 1
         },
         "limits": {
@@ -257,7 +257,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
+            "amount": 1e-8,
             "price": 0.001
         },
         "limits": {
@@ -485,7 +485,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
+            "amount": 1e-8,
             "price": 0.1
         },
         "limits": {
@@ -713,7 +713,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
+            "amount": 1e-8,
             "price": 1
         },
         "limits": {
@@ -941,7 +941,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
+            "amount": 0.000001,
             "price": 0.00001
         },
         "limits": {
@@ -1169,7 +1169,7 @@
         "strike": null,
         "optionType": null,
         "precision": {
-            "amount": null,
+            "amount": 1e-8,
             "price": 0.1
         },
         "limits": {
