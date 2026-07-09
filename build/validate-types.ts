@@ -1,5 +1,6 @@
 
-import ts from 'typescript';
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from 'typescript6';
 import fs from 'fs'
 import log from 'ololog'
 
