@@ -3162,10 +3162,17 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-            const stopLoss = this.safeValue (params, 'stopLoss');
-            const takeProfit = this.safeValue (params, 'takeProfit');
+            const stopLoss = this.safeDict (params, 'stopLoss');
+            const takeProfit = this.safeDict (params, 'takeProfit');
             const hasStopLoss = stopLoss !== undefined;
             const hasTakeProfit = takeProfit !== undefined;
+            // because exchange-specific keys matches with the unified keys, we need to omit them only if they are provided as unified dict
+            if (hasStopLoss) {
+                params = this.omit (params, 'stopLoss');
+            }
+            if (hasTakeProfit) {
+                params = this.omit (params, 'takeProfit');
+            }
             if (((type === 'LIMIT') || (type === 'TRIGGER_LIMIT') || (type === 'STOP') || (type === 'TAKE_PROFIT')) && !isTrailing) {
                 request['price'] = this.parseToNumeric (this.priceToPrecision (symbol, price));
             }
@@ -3263,7 +3270,7 @@ export default class bingx extends Exchange {
                 request['quantity'] = amountReq; // precision not available for inverse contracts
             }
         }
-        params = this.omit (params, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
+        params = this.omit (params, [ 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'clientOrderId' ]);
         return this.extend (request, params);
     }
 
