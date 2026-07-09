@@ -2372,7 +2372,11 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "messed",
-                "precision": "is undefined"
+                "precision":"is undefined"
+            },
+            "fetchCurrencies": {
+                "withdraw": "not provided",
+                "deposit": "not provided"
             }
         }
     },

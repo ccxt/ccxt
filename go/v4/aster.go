@@ -3653,7 +3653,7 @@ func (this *AsterCore) FetchMarginAdjustmentHistory(optionalArgs ...any) <-chan 
 		//             "amount": "23.36332311",
 		//             "asset": "USDT",
 		//             "symbol": "BTCUSDT",
-		//             "time": 1578047897183,
+		//             "time": 1578047897182,
 		//             "type": 1,
 		//             "positionSide": "BOTH"
 		//         }
