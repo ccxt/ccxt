@@ -375,7 +375,7 @@ export default class bydfi extends Exchange {
                     'ERC20': 'ETH', // todo add more networks
                 },
                 'createOrder': {
-                    'timeInForce': {
+                    'timeInForceMap': {
                         'GTC': 'GTC', // Good Till Cancelled
                         'FOK': 'FOK', // Fill Or Kill
                         'IOC': 'IOC', // Immediate Or Cancel
@@ -1316,7 +1316,7 @@ export default class bydfi extends Exchange {
         }
         let timeInForce = this.safeString (params, 'timeInForce');
         if (timeInForce !== undefined) {
-            const supported = this.handleOption ('createOrder', 'timeInForce') as Dict;
+            const supported = this.handleOption ('createOrder', 'timeInForceMap') as Dict;
             timeInForce = this.safeString (supported, timeInForce);
         }
         let postOnly = false;
