@@ -3162,10 +3162,14 @@ export default class bingx extends Exchange {
             const isTrailingAmountOrder = trailingAmount !== undefined;
             const isTrailingPercentOrder = trailingPercent !== undefined;
             const isTrailing = isTrailingAmountOrder || isTrailingPercentOrder;
-            const stopLoss = this.safeDict (params, 'stopLoss');
-            const takeProfit = this.safeDict (params, 'takeProfit');
-            const hasStopLoss = stopLoss !== undefined;
-            const hasTakeProfit = takeProfit !== undefined;
+            const stopLossDict = this.safeDict (params, 'stopLoss');
+            const stopLossNumber = this.safeNumber (params, 'stopLoss');
+            const stopLossString = this.safeString (params, 'stopLoss');
+            const takeProfitDict = this.safeDict (params, 'takeProfit');
+            const takeProfitNumber = this.safeNumber (params, 'takeProfit');
+            const takeProfitString = this.safeString (params, 'takeProfit');
+            const hasStopLoss = stopLossDict !== undefined || stopLossNumber !== undefined;
+            const hasTakeProfit = takeProfitDict !== undefined || takeProfitNumber !== undefined;
             // only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
             if (hasStopLoss) {
                 params = this.omit (params, 'stopLoss');
@@ -3214,36 +3218,36 @@ export default class bingx extends Exchange {
             if (hasStopLoss || hasTakeProfit) {
                 const stringifiedAmount = this.numberToString (amount);
                 if (hasStopLoss) {
-                    const slTriggerPrice = this.safeString2 (stopLoss, 'triggerPrice', 'stopPrice', stopLoss);
-                    const slWorkingType = this.safeString (stopLoss, 'workingType', 'MARK_PRICE');
-                    const slType = this.safeString (stopLoss, 'type', 'STOP_MARKET');
+                    const slTriggerPrice = this.safeString2 (stopLossDict, 'triggerPrice', 'stopPrice', stopLossString);
+                    const slWorkingType = this.safeString (stopLossDict, 'workingType', 'MARK_PRICE');
+                    const slType = this.safeString (stopLossDict, 'type', 'STOP_MARKET');
                     const slRequest: Dict = {
                         'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, slTriggerPrice)),
                         'workingType': slWorkingType,
                         'type': slType,
                     };
-                    const slPrice = this.safeString (stopLoss, 'price');
+                    const slPrice = this.safeString (stopLossDict, 'price');
                     if (slPrice !== undefined) {
                         slRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const slQuantity = this.safeString (stopLoss, 'quantity', stringifiedAmount);
+                    const slQuantity = this.safeString (stopLossDict, 'quantity', stringifiedAmount);
                     slRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, slQuantity));
                     request['stopLoss'] = this.json (slRequest);
                 }
                 if (hasTakeProfit) {
-                    const tkTriggerPrice = this.safeString2 (takeProfit, 'triggerPrice', 'stopPrice', takeProfit);
-                    const tkWorkingType = this.safeString (takeProfit, 'workingType', 'MARK_PRICE');
-                    const tpType = this.safeString (takeProfit, 'type', 'TAKE_PROFIT_MARKET');
+                    const tkTriggerPrice = this.safeString2 (takeProfitDict, 'triggerPrice', 'stopPrice', takeProfitString);
+                    const tkWorkingType = this.safeString (takeProfitDict, 'workingType', 'MARK_PRICE');
+                    const tpType = this.safeString (takeProfitDict, 'type', 'TAKE_PROFIT_MARKET');
                     const tpRequest: Dict = {
                         'stopPrice': this.parseToNumeric (this.priceToPrecision (symbol, tkTriggerPrice)),
                         'workingType': tkWorkingType,
                         'type': tpType,
                     };
-                    const slPrice = this.safeString (takeProfit, 'price');
+                    const slPrice = this.safeString (takeProfitDict, 'price');
                     if (slPrice !== undefined) {
                         tpRequest['price'] = this.parseToNumeric (this.priceToPrecision (symbol, slPrice));
                     }
-                    const tkQuantity = this.safeString (takeProfit, 'quantity', stringifiedAmount);
+                    const tkQuantity = this.safeString (takeProfitDict, 'quantity', stringifiedAmount);
                     tpRequest['quantity'] = this.parseToNumeric (this.amountToPrecision (symbol, tkQuantity));
                     request['takeProfit'] = this.json (tpRequest);
                 }
