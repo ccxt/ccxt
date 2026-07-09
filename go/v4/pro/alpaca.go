@@ -91,9 +91,11 @@ func  (this *AlpacaCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
         
             retRes788 := (<-this.Authenticate(url))
             ccxt.PanicOnError(retRes788)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes798 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes798)
+                retRes8012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes8012)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
             var request any = map[string]any {
@@ -101,9 +103,9 @@ func  (this *AlpacaCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 "quotes": []any{ccxt.GetValue(market, "id")},
             }
         
-                retRes8615 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
-                ccxt.PanicOnError(retRes8615)
-                ch <- retRes8615
+                retRes8815 :=  (<-this.Watch(url, messageHash, this.Extend(request, params), messageHash))
+                ccxt.PanicOnError(retRes8815)
+                ch <- retRes8815
                 return nil
         
             }()
@@ -193,11 +195,13 @@ func  (this *AlpacaCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = params
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
         
-            retRes1608 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes1608)
+            retRes1628 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes1628)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1618 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1618)
+                retRes16412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes16412)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var request any = map[string]any {
@@ -267,11 +271,13 @@ func  (this *AlpacaCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             _ = params
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
         
-            retRes2178 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes2178)
+            retRes2218 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes2218)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2188 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2188)
+                retRes22312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes22312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add(ccxt.Add("orderbook", ":"), symbol)
@@ -368,11 +374,13 @@ func  (this *AlpacaCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
             _ = params
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "crypto")
         
-            retRes3018 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes3018)
+            retRes3078 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes3078)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3028)
+                retRes30912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes30912)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add("trade:", symbol)
@@ -445,12 +453,14 @@ func  (this *AlpacaCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = params
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
         
-            retRes3578 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes3578)
+            retRes3658 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes3658)
             var messageHash any = "myTrades"
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3598 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3598)
+                retRes36812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes36812)
+            }
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 symbol = this.Symbol(symbol)
                 messageHash = ccxt.Add(messageHash, ccxt.Add(":", symbol))
@@ -499,11 +509,13 @@ func  (this *AlpacaCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = params
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "trading")
         
-            retRes3898 := (<-this.Authenticate(url))
-            ccxt.PanicOnError(retRes3898)
+            retRes3998 := (<-this.Authenticate(url))
+            ccxt.PanicOnError(retRes3998)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3908)
+                retRes40112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes40112)
+            }
             var messageHash any = "orders"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 var market any = this.Market(symbol)
@@ -751,9 +763,9 @@ func  (this *AlpacaCore) Authenticate(url any, optionalArgs ...any) <- chan any 
                 this.Watch(url, messageHash, request, messageHash, future)
             }
         
-                retRes62715 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes62715)
-                ch <- retRes62715
+                retRes63915 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes63915)
+                ch <- retRes63915
                 return nil
         
             }()

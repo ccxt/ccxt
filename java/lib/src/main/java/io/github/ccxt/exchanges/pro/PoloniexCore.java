@@ -763,7 +763,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-        Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
+        Object stored = ((Helpers.isTrue((Helpers.isEqual(timeframe, null))))) ? null : this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -808,7 +808,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 Object symbol = Helpers.GetValue(trade, "symbol");
                 Object type = "trades";
                 Object messageHash = Helpers.add(Helpers.add(type, "::"), symbol);
-                Object tradesArray = this.safeValue(this.trades, symbol);
+                Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
                 {
                     Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1014,8 +1014,8 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
                 Object symbol = this.safeSymbol(marketId);
-                Object orderId = this.safeString(order, "orderId");
-                Object clientOrderId = this.safeString(order, "clientOrderId");
+                Object orderId = this.safeString(order, "orderId", "");
+                Object clientOrderId = this.safeString(order, "clientOrderId", "");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(eventType, "place")) || Helpers.isTrue(Helpers.isEqual(eventType, "canceled"))))
                 {
                     Object parsed = this.parseWsOrder(order);
@@ -1453,7 +1453,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             put( "cancelAllOrders", "handleOrderRequest");
             put( "auth", "handleAuthenticate");
         }};
-        Object method = this.safeValue(methods, type);
+        Object method = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeValue(methods, type);
         if (Helpers.isTrue(Helpers.isEqual(type, "auth")))
         {
             this.handleAuthenticate(client, message);

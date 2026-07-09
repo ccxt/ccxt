@@ -22,12 +22,14 @@ func TestSleep() <-chan any {
 		ccxt.PanicOnError(retRes134)
 		var end any = exchange.Milliseconds()
 		var elapsed any = ccxt.Subtract(end, start)
-		// Allow a small margin of error due to execution time
+		// Allow a small margin of error due to execution time and timer jitter
+		// (some runtimes, e.g. .NET ccxt.Task.Delay, may return a few ms early)
 		var marginOfError any = 20
+		var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
 		var maxElapsed any = ccxt.Add(sleepAmount, marginOfError)
-		var elapsedBiggerThanSleep any = ccxt.IsGreaterThanOrEqual(elapsed, sleepAmount)
+		var elapsedBiggerThanSleep any = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
 		var elapsedLessThanMax any = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)
-		assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than sleep amount "), ccxt.ToString(sleepAmount)), "ms"))
+		assert(elapsedBiggerThanSleep, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms is less than minimum "), ccxt.ToString(minElapsed)), "ms (sleep amount "), ccxt.ToString(sleepAmount)), "ms)"))
 		assert(elapsedLessThanMax, ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("Elapsed time ", ccxt.ToString(elapsed)), "ms exceeds sleep amount "), ccxt.ToString(maxElapsed)), "ms"))
 
 		ch <- true

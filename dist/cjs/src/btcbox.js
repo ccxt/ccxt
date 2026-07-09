@@ -251,8 +251,8 @@ class btcbox extends btcbox$1["default"] {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const symbolParts = marketId.split('_');
-            const baseCurr = this.safeString(symbolParts, 0);
-            const quote = this.safeString(symbolParts, 1);
+            const baseCurr = this.safeString(symbolParts, 0, '');
+            const quote = this.safeString(symbolParts, 1, '');
             const quoteId = quote.toLowerCase();
             const id = baseCurr.toLowerCase();
             const res = response1[marketId];
@@ -399,7 +399,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privatePostBalance(params);
         return this.parseBalance(response);
     }
@@ -414,10 +416,12 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = this.symbols.length;
+        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -460,10 +464,12 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = this.symbols.length;
+        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -479,7 +485,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers(params);
         return this.parseTickers(response, symbols);
     }
@@ -530,10 +538,12 @@ class btcbox extends btcbox$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {};
-        const numSymbols = this.symbols.length;
+        const numSymbols = (this.symbols === undefined) ? 0 : this.symbols.length;
         if (numSymbols > 1) {
             request['coin'] = market['baseId'];
         }
@@ -565,7 +575,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'amount': amount,
@@ -593,7 +605,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol === undefined) {
             symbol = 'BTC/JPY';
@@ -618,6 +632,9 @@ class btcbox extends btcbox$1["default"] {
             'closed': 'closed', // never encountered, seems to be bug in the doc
             'no': 'closed', // not clarified in the docs...
         };
+        if (status === undefined) {
+            return undefined;
+        }
         return this.safeString(statuses, status, status);
     }
     parseOrder(order, market = undefined) {
@@ -688,7 +705,9 @@ class btcbox extends btcbox$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
         if (symbol === undefined) {
             symbol = 'BTC/JPY';
@@ -714,8 +733,13 @@ class btcbox extends btcbox$1["default"] {
         return this.parseOrder(response, market);
     }
     async fetchOrdersByType(type, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
+        if (symbol === undefined) {
+            symbol = 'BTC/JPY';
+        }
         const market = this.market(symbol);
         const request = {
             'type': type, // 'open' or 'all'

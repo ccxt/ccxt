@@ -108,7 +108,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $params = $this->omit($params, array(
                 'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
@@ -191,7 +193,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @return {array} an ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             $batchOperationType = 'edit_order';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
             $params = $this->omit($params, array( 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ));
@@ -248,7 +252,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
             $batchOperationType = 'batch_orders';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . 'cancelOrders() requires a "symbol" argument!');
             }
@@ -324,7 +330,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
             $operationType = 'cancel_order';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrderWs() requires a $symbol argument');
             }
@@ -382,7 +390,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {string|null} [$params->originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $operationType = 'cancel_all_orders';
             $request = $this->cancelAllOrdersRequest($symbol, $params);
             $params = $this->omit($params, array( 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ));
@@ -424,7 +434,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $this->setup_api_key_headers();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $aggLevel = null;
             list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
@@ -458,7 +470,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {int|null} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $aggLevel = null;
             list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
@@ -567,7 +581,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $this->setup_api_key_headers();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true);
             $messageHash = 'tickers';
             $isTestnet = $this->isSandboxModeEnabled;
@@ -598,7 +614,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true);
             $subMessageHash = 'tickers';
             $messageHash = 'unsubscribe:' . $subMessageHash;
@@ -631,7 +649,9 @@ class pacifica extends \ccxt\async\pacifica {
              */
             $userAddress = null;
             list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchMyTrades', $params);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
@@ -668,7 +688,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {string|null} [$params->account] will default to options' walletAddress if not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 throw new NotSupported($this->id . ' unWatchMyTrades does not support a $symbol argument, unWatch from all markets only');
             }
@@ -797,7 +819,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trade:' . $symbol;
@@ -831,7 +855,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $subMessageHash = 'trade:' . $symbol;
@@ -983,7 +1009,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $isTestnet = $this->isSandboxModeEnabled;
@@ -1020,7 +1048,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $isTestnet = $this->isSandboxModeEnabled;
@@ -1093,7 +1123,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {string|null} [$params->account] will default to options' walletAddress if not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $userAddress = null;
             list($userAddress, $params) = $this->handleOriginAndSingleAddress('watchOrders', $params);
             $market = null;
@@ -1134,7 +1166,9 @@ class pacifica extends \ccxt\async\pacifica {
              * @param {string|null} [$params->account] will default to options' walletAddress if not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 throw new NotSupported($this->id . ' unWatchOrders() does not support a $symbol argument, unWatch from all markets only');
             }

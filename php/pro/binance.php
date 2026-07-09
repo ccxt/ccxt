@@ -306,7 +306,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscriptionHashes = array();
             $messageHashes = array();
             $streamHash = 'liquidations';
@@ -531,7 +533,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
              * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $messageHashes = array( 'myLiquidations' );
@@ -704,7 +708,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->rpi] *future only* set to true to use the RPI endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
@@ -776,7 +782,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
@@ -854,7 +862,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $payload = array(
                 'symbol' => $market['id'],
@@ -1166,7 +1176,9 @@ class binance extends \ccxt\async\binance {
              * @param {string} [$params->name] the $name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $streamHash = 'multipleTrades';
             if ($symbols !== null) {
@@ -1230,7 +1242,9 @@ class binance extends \ccxt\async\binance {
              * @param {string} [$params->name] the $name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $streamHash = 'multipleTrades';
             if ($symbols !== null) {
@@ -1295,7 +1309,9 @@ class binance extends \ccxt\async\binance {
              * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->un_watch_trades_for_symbols(array( $symbol ), $params));
         })();
     }
@@ -1522,7 +1538,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $params['callerMethodName'] = 'watchOHLCV';
@@ -1547,7 +1565,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $klineType = null;
             list($klineType, $params) = $this->handle_param_string_2($params, 'channel', 'name', 'kline');
             $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
@@ -1615,7 +1635,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $klineType = null;
             list($klineType, $params) = $this->handle_param_string_2($params, 'channel', 'name', 'kline');
             $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
@@ -1686,7 +1708,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $params['callerMethodName'] = 'watchOHLCV';
@@ -1770,7 +1794,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->returnRateLimits] return the rate limits for the exchange
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $payload = array(
                 'symbol' => $market['id'],
@@ -1819,7 +1845,9 @@ class binance extends \ccxt\async\binance {
              * @param {string} $params->timeZone default=0 (UTC)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = $this->get_market_type('fetchOHLCVWs', $market, $params);
             if ($marketType !== 'spot' && $marketType !== 'future') {
@@ -1914,7 +1942,9 @@ class binance extends \ccxt\async\binance {
              * @param {string} [$params->name] stream to use can be ticker or miniTicker
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' ))));
             return $tickers[$symbol];
@@ -1933,7 +1963,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->use1sFreq] *default is true* if set to true, the mark price will be updated every second, otherwise every 3 seconds
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_mark_prices(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchMarkPrice' ))));
             return $tickers[$symbol];
@@ -2032,7 +2064,9 @@ class binance extends \ccxt\async\binance {
              */
             $channelName = null;
             list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->watch_multi_ticker_helper('unWatchMarkPrices', $channelName, $symbols, $params, true));
         })();
     }
@@ -2085,7 +2119,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, false, true);
             $result = Async\await($this->watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', $symbols, $params));
             if ($this->newUpdates) {
@@ -2097,7 +2133,9 @@ class binance extends \ccxt\async\binance {
 
     public function watch_multi_ticker_helper($methodName, string $channelName, ?array $symbols = null, $params = array(), bool $isUnsubscribe = false) {
         return Async\async(function () use ($methodName, $channelName, $symbols, $params, $isUnsubscribe) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, false, true);
             $isBidAsk = ($channelName === 'bookTicker');
             $isMarkPrice = ($channelName === 'markPrice');
@@ -2838,7 +2876,9 @@ class binance extends \ccxt\async\binance {
              * @param {string|null} [$params->method] $method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = $this->get_market_type('fetchBalanceWs', null, $params);
             if ($type !== 'spot' && $type !== 'future' && $type !== 'delivery') {
                 throw new BadRequest($this->id . ' fetchBalanceWs only supports spot or swap markets');
@@ -2964,7 +3004,9 @@ class binance extends \ccxt\async\binance {
              * @param {string|null} [$params->method] $method to use. Can be account.position or v2/account.position
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $payload = array();
             $market = null;
             $symbols = $this->market_symbols($symbols, 'swap', true, true, true);
@@ -3057,7 +3099,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch the balance of a portfolio margin account
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate($params));
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
             $type = $this->safe_string($params, 'type', $defaultType);
@@ -3254,7 +3298,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} $params->returnRateLimits set to true to return rate limit information, default false
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = $this->get_market_type('createOrderWs', $market, $params);
             if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
@@ -3422,7 +3468,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = $this->get_market_type('editOrderWs', $market, $params);
             if ($marketType !== 'spot' && $marketType !== 'future' && $marketType !== 'delivery') {
@@ -3580,7 +3628,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->trigger] set to true if you would like to cancel a conditional order
              * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelOrderWs requires a symbol');
             }
@@ -3641,7 +3691,9 @@ class binance extends \ccxt\async\binance {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelAllOrdersWs() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = $this->get_market_type('cancelAllOrdersWs', $market, $params);
             if ($type !== 'spot') {
@@ -3682,7 +3734,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' cancelOrderWs requires a symbol');
             }
@@ -3735,7 +3789,9 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$params->limit] the maximum number of order structures to retrieve
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' fetchOrdersWs requires a symbol');
             }
@@ -3804,7 +3860,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = $this->get_market_type('fetchOpenOrdersWs', $market, $params);
             if ($type !== 'spot') {
@@ -3852,7 +3910,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch portfolio margin account $orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             $market = null;
             if ($symbol !== null) {
@@ -4210,7 +4270,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
@@ -4445,7 +4507,9 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$params->fromId] first trade Id to fetch
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new BadRequest($this->id . ' fetchMyTradesWs requires a symbol');
             }
@@ -4502,7 +4566,9 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$params->fromId] trade ID to begin at
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = $this->get_market_type('fetchTradesWs', $market, $params);
             if ($type !== 'spot' && $type !== 'future') {
@@ -4596,7 +4662,9 @@ class binance extends \ccxt\async\binance {
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch $trades in a portfolio margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             $market = null;
             if ($symbol !== null) {

@@ -1,6 +1,6 @@
 {
     "exchange": "bitget",
-    "options": {},
+    "options": {"uta": false},
     "methods": {
         "withdraw": [
             {

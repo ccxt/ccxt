@@ -2078,7 +2078,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
@@ -2144,7 +2146,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $market = null;
             if ($symbols !== null) {
@@ -2288,7 +2292,9 @@ class gate extends Exchange {
 
     public function fetch_network_deposit_address(string $code, $params = array()) {
         return Async\async(function () use ($code, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'], // todo => currencies have $network-junctions
@@ -2339,7 +2345,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the api endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by the network
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -2365,7 +2373,9 @@ class gate extends Exchange {
              * @param {string} [$params->network] unified network $code (not used directly by gate.com but used by ccxt to filter the response)
              * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $networkCode = null;
             list($networkCode, $params) = $this->handle_network_code_and_params($params);
             $chainsIndexedById = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
@@ -2407,7 +2417,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'currency_pair' => $market['id'],
@@ -2441,7 +2453,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateWalletGetFee($params));
             //
             //    {
@@ -2514,7 +2528,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateWalletGetWithdrawStatus($params));
             //
             //    {
@@ -2575,7 +2591,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateWalletGetWithdrawStatus($params));
             //
             //    array(
@@ -2667,7 +2685,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             // $defaultType = 'future';
             $market = null;
             if ($symbol !== null) {
@@ -2757,7 +2777,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             //
             //     $request = array(
@@ -2879,7 +2901,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             list($request, $query) = $this->prepare_request($market, null, $params);
             if ($market['spot'] || $market['margin']) {
@@ -3041,7 +3065,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $first = $this->safe_string($symbols, 0);
             $market = null;
@@ -3101,7 +3127,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->unifiedAccount] default false, set to true for fetching the unified account balance
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $symbol = $this->safe_string($params, 'symbol');
             $params = $this->omit($params, 'symbol');
@@ -3395,7 +3423,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
@@ -3457,7 +3487,9 @@ class gate extends Exchange {
     public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             // separated option logic because the from, to and $limit parameters weren't functioning
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             list($request, $params) = $this->prepare_request($market, null, $params);
@@ -3485,7 +3517,9 @@ class gate extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
             if ($paginate) {
@@ -3597,7 +3631,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
             if ($paginate) {
@@ -3712,7 +3748,9 @@ class gate extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             //
             //      array(
             //          {
@@ -3764,7 +3802,9 @@ class gate extends Exchange {
              * @param {bool} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
@@ -4061,7 +4101,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
             if ($paginate) {
@@ -4102,7 +4144,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
             if ($paginate) {
@@ -4144,7 +4188,9 @@ class gate extends Exchange {
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
             $this->check_address($address);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'], // todo => currencies have network-junctions
@@ -4351,7 +4397,9 @@ class gate extends Exchange {
              * @param {string} [$params->clientOrderId] the clientOrderId of the order
              * @return {array|null} ~@link https://docs.ccxt.com/?id=order-structure An order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = $this->market($symbol);
             $trigger = $this->safe_value($params, 'trigger');
@@ -4500,7 +4548,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $ordersRequests = $this->create_orders_request($orders, $params);
             $firstOrder = $orders[0];
@@ -4781,7 +4831,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for creating a unified account order
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = $this->market($symbol);
             if (!$market['spot']) {
@@ -4852,7 +4904,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for editing an order in a unified account
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = $this->market($symbol);
             $extendedRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -5312,7 +5366,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for fetching a unified account order
              * @return An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
             $result = $this->handle_market_type_and_params('fetchOrder', $market, $params);
@@ -5392,7 +5448,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for fetching unified account orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $until = $this->safe_integer($params, 'until');
             $market = null;
@@ -5467,7 +5525,9 @@ class gate extends Exchange {
 
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = null;
             if ($symbol !== null) {
@@ -5688,7 +5748,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
             $trigger = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
@@ -5818,7 +5880,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return {array} an list of ~@link https://docs.ccxt.com/?$id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = null;
             if ($symbol !== null) {
@@ -5869,7 +5933,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for canceling unified account $orders
              * @return {array} an list of ~@link https://docs.ccxt.com/?$id=$order-structure $order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $ordersRequests = array();
             for ($i = 0; $i < count($orders); $i++) {
@@ -5917,7 +5983,9 @@ class gate extends Exchange {
              * @param {bool} [$params->unifiedAccount] set to true for canceling unified account orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $market = ($symbol === null) ? null : $this->market($symbol);
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
@@ -5994,7 +6062,9 @@ class gate extends Exchange {
              * @param {string} [$params->symbol] Unified $market $symbol *required for type == margin*
              * @return A ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $fromId = $this->convert_type_to_account($fromAccount);
             $toId = $this->convert_type_to_account($toAccount);
@@ -6087,7 +6157,9 @@ class gate extends Exchange {
             if (($leverage < 0) || ($leverage > 100)) {
                 throw new BadRequest($this->id . ' setLeverage() $leverage should be between 1 and 100');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             list($request, $query) = $this->prepare_request($market, null, $params);
             $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
@@ -6228,7 +6300,6 @@ class gate extends Exchange {
                 $side = 'short';
             }
         }
-        $maintenanceRate = $this->safe_string($position, 'maintenance_rate');
         $notional = $this->safe_string($position, 'value');
         $leverage = $this->safe_string($position, 'leverage');
         $marginMode = null;
@@ -6239,15 +6310,19 @@ class gate extends Exchange {
                 $marginMode = 'isolated';
             }
         }
-        // Initial Position Margin = ( Position Value / Leverage ) . Close Position Fee
-        // *The default $leverage under the full $position is the highest $leverage in the $market->
-        // *Trading fee is charged Fee Rate (0.075%).
-        $feePaid = $this->safe_string($position, 'pnl_fee');
-        $initialMarginString = null;
-        if ($feePaid === null) {
-            $takerFee = '0.00075';
-            $feePaid = Precise::string_mul($takerFee, $notional);
-            $initialMarginString = Precise::string_add(Precise::string_div($notional, $leverage), $feePaid);
+        // gate returns the initial margin requirement in the initial_margin field (= value / $leverage . taker fee), see https://github.com/ccxt/ccxt/issues/27152
+        $marginBalance = $this->safe_string($position, 'margin');
+        $initialMarginString = $this->omit_zero($this->safe_string($position, 'initial_margin'));
+        // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate . taker fee))
+        // it is the exact liquidation threshold => the $position is liquidated when margin . unrealised_pnl drops to maintenance_margin
+        $maintenanceMarginString = $this->omit_zero($this->safe_string($position, 'maintenance_margin'));
+        // the margin field is the $position margin balance, which excludes the unrealized pnl,
+        // the $position is liquidated when margin . unrealised_pnl drops to the maintenance margin,
+        // so the unified $collateral (the amount that can be lost, affected by pnl) includes it
+        $unrealisedPnl = $this->safe_string($position, 'unrealised_pnl');
+        $collateral = $marginBalance;
+        if (($marginBalance !== null) && ($unrealisedPnl !== null)) {
+            $collateral = Precise::string_add($marginBalance, $unrealisedPnl);
         }
         $timestamp = $this->safe_timestamp_2($position, 'open_time', 'first_open_time');
         if ($timestamp === 0) {
@@ -6262,12 +6337,12 @@ class gate extends Exchange {
             'lastUpdateTimestamp' => $this->safe_timestamp_2($position, 'update_time', 'time'),
             'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number(Precise::string_div($initialMarginString, $notional)),
-            'maintenanceMargin' => $this->parse_number(Precise::string_mul($maintenanceRate, $notional)),
-            'maintenanceMarginPercentage' => $this->parse_number($maintenanceRate),
+            'maintenanceMargin' => $this->parse_number($maintenanceMarginString),
+            'maintenanceMarginPercentage' => $this->parse_number(Precise::string_div($maintenanceMarginString, $notional)),
             'entryPrice' => $this->safe_number($position, 'entry_price'),
             'notional' => $this->parse_number($notional),
             'leverage' => $this->safe_number($position, 'leverage'),
-            'unrealizedPnl' => $this->safe_number($position, 'unrealised_pnl'),
+            'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'realizedPnl' => $this->safe_number_2($position, 'realised_pnl', 'pnl'),
             'contracts' => $this->parse_number(Precise::string_abs($size)),
             'contractSize' => $this->safe_number($market, 'contractSize'),
@@ -6275,7 +6350,7 @@ class gate extends Exchange {
             'liquidationPrice' => $this->safe_number($position, 'liq_price'),
             'markPrice' => $this->safe_number($position, 'mark_price'),
             'lastPrice' => null,
-            'collateral' => $this->safe_number($position, 'margin'),
+            'collateral' => $this->parse_number($collateral),
             'marginMode' => $marginMode,
             'side' => $side,
             'percentage' => null,
@@ -6297,7 +6372,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['contract']) {
                 throw new BadRequest($this->id . ' fetchPosition() supports contract markets only');
@@ -6388,7 +6465,9 @@ class gate extends Exchange {
              * @param {string} [$params->type] swap, future or option, if not provided $this->options['defaultType'] is used
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             if ($symbols !== null) {
@@ -6496,7 +6575,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             list($type, $query) = $this->handle_market_type_and_params('fetchLeverageTiers', null, $params);
             list($request, $requestParams) = $this->prepare_request(null, $type, $query);
             if ($type !== 'future' && $type !== 'swap') {
@@ -6617,7 +6698,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             list($type, $query) = $this->handle_market_type_and_params('fetchMarketLeverageTiers', $market, $params);
             list($request, $requestParams) = $this->prepare_request($market, $type, $query);
@@ -6724,7 +6807,9 @@ class gate extends Exchange {
              * @param {string} [$params->id] '34267567' loan id, extra parameter required for isolated margin
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
@@ -6756,7 +6841,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->unifiedAccount] set to true for repaying in the unified account
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $currency = $this->currency($code);
             $request = array(
@@ -6807,7 +6894,9 @@ class gate extends Exchange {
              * @param {string} [$params->rate] '0.0002' or '0.002' extra parameter required for isolated margin
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => strtoupper($currency['id']), // todo => currencies have network-junctions
@@ -6854,7 +6943,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $currency = $this->currency($code);
             $request = array(
@@ -6960,7 +7051,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->unifiedAccount] set to true for fetching borrow $interest in the unified account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_unified_status());
             $isUnifiedAccount = false;
             list($isUnifiedAccount, $params) = $this->handle_option_and_params($params, 'fetchBorrowInterest', 'unifiedAccount');
@@ -7118,7 +7211,9 @@ class gate extends Exchange {
 
     public function modify_margin_helper(string $symbol, $amount, $params = array()) {
         return Async\async(function () use ($symbol, $amount, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             list($request, $query) = $this->prepare_request($market, null, $params);
             $request['change'] = $this->number_to_string($amount);
@@ -7227,7 +7322,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenInterestHistory', 'paginate', false);
             if ($paginate) {
@@ -7320,7 +7417,9 @@ class gate extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchSettlementHistory() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
@@ -7371,7 +7470,9 @@ class gate extends Exchange {
              * @param {array} [$params] exchange specific $params
              * @return {array[]} a list of [settlement history objects]
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -7552,7 +7653,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
             if ($paginate) {
@@ -7809,7 +7912,9 @@ class gate extends Exchange {
              * @param {string} [$params->type] the contract market type, 'option', 'swap' or 'future', the default is 'option'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$underlying-assets-structure $underlying assets~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchUnderlyingAssets', null, $params);
             if (($marketType === null) || ($marketType === 'spot')) {
@@ -7854,7 +7959,9 @@ class gate extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest liquidation
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['swap']) {
                 throw new NotSupported($this->id . ' fetchLiquidations() supports swap markets only');
@@ -7905,7 +8012,9 @@ class gate extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyLiquidations() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'contract' => $market['id'],
@@ -8061,7 +8170,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'underlying' => $market['info']['underlying'],
@@ -8185,7 +8296,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->unified] default false, set to true for fetching the unified accounts leverage
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 // unified account does not require a $symbol
@@ -8292,7 +8405,9 @@ class gate extends Exchange {
              * @param {boolean} [$params->unified] default false, set to true for fetching unified account leverages
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=leverage-structure leverage structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $isUnified = $this->safe_bool($params, 'unified');
             $params = $this->omit($params, 'unified');
@@ -8354,7 +8469,9 @@ class gate extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=option-chain-structure option chain structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'contract' => $market['id'],
@@ -8417,7 +8534,9 @@ class gate extends Exchange {
              * @param {int} [$params->expiration] unix timestamp of the expiration time
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=option-chain-structure option chain structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'underlying' => $currency['code'] . '_USDT', // todo => strtoupper($currency['id']) &  network junctions
@@ -8554,7 +8673,9 @@ class gate extends Exchange {
              * @param {string} [$params->pnl] query profit or loss
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbols !== null) {
                 $symbolsLength = count($symbols);

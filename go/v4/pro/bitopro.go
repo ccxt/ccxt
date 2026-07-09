@@ -93,9 +93,11 @@ func  (this *BitoproCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
                     panic(ccxt.ExchangeError(ccxt.Add(this.Id, " watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000")))
                 }
             }
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes728 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes728)
+                retRes7312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes7312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add(ccxt.Add("ORDER_BOOK", ":"), symbol)
@@ -173,9 +175,11 @@ func  (this *BitoproCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1358 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1358)
+                retRes13812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes13812)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add(ccxt.Add("TRADE", ":"), symbol)
@@ -255,9 +259,11 @@ func  (this *BitoproCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
             this.CheckRequiredCredentials()
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1988)
+                retRes20312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes20312)
+            }
             var messageHash any = "USER_TRADE"
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 var market any = this.Market(symbol)
@@ -411,16 +417,18 @@ func  (this *BitoproCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3408 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3408)
+                retRes34712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes34712)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add(ccxt.Add("TICKER", ":"), symbol)
         
-                retRes34415 :=  (<-this.WatchPublic("tickers", messageHash, ccxt.GetValue(market, "id")))
-                ccxt.PanicOnError(retRes34415)
-                ch <- retRes34415
+                retRes35215 :=  (<-this.WatchPublic("tickers", messageHash, ccxt.GetValue(market, "id")))
+                ccxt.PanicOnError(retRes35215)
+                ch <- retRes35215
                 return nil
         
             }()
@@ -508,16 +516,18 @@ func  (this *BitoproCore) WatchBalance(optionalArgs ...any) <- chan any {
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             this.CheckRequiredCredentials()
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4258 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4258)
+                retRes43412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes43412)
+            }
             var messageHash any = "ACCOUNT_BALANCE"
             var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "ws"), "private"), "/"), "account-balance")
             this.Authenticate(url)
         
-                retRes42915 :=  (<-this.Watch(url, messageHash, nil, messageHash))
-                ccxt.PanicOnError(retRes42915)
-                ch <- retRes42915
+                retRes43915 :=  (<-this.Watch(url, messageHash, nil, messageHash))
+                ccxt.PanicOnError(retRes43915)
+                ch <- retRes43915
                 return nil
         
             }()

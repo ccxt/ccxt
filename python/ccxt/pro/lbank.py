@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import math
-from ccxt.base.types import Any, Balances, Int, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Any, Balances, Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -80,7 +80,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
@@ -114,7 +115,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         watchOHLCVOptions = self.safe_value(self.options, 'watchOHLCV', {})
         timeframes = self.safe_value(watchOHLCVOptions, 'timeframes', {})
@@ -244,7 +246,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the cex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchTicker:' + market['symbol']
@@ -267,7 +270,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'ticker:' + market['symbol']
@@ -311,7 +315,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTicker:' + symbol
         client.resolve(parsedTicker, messageHash)
 
-    def parse_ws_ticker(self, ticker, market=None):
+    def parse_ws_ticker(self, ticker, market: Market = None):
         #
         #     {
         #         "tick":{
@@ -372,7 +376,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchTrades:' + market['symbol']
@@ -400,7 +405,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'trades:' + market['symbol']
@@ -461,7 +467,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchTrades:' + symbol
         client.resolve(self.trades[symbol], messageHash)
 
-    def parse_ws_trade(self, trade, market=None):
+    def parse_ws_trade(self, trade, market: Market = None):
         #
         # request
         #    ['timestamp', 'price', 'volume', 'direction']
@@ -514,7 +520,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         key = await self.authenticate(params)
         url = self.urls['api']['ws']
         messageHash = None
@@ -557,12 +564,10 @@ class lbank(ccxt.async_support.lbank):
         #
         marketId = self.safe_string(message, 'pair')
         symbol = self.safe_symbol(marketId, None, '_')
-        myOrders = None
+        myOrders = self.orders
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             myOrders = ArrayCacheBySymbolById(limit)
-        else:
-            myOrders = self.orders
         order = self.parse_ws_order(message)
         myOrders.append(order)
         self.orders = myOrders
@@ -670,7 +675,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         key = await self.authenticate(params)
         url = self.urls['api']['ws']
         messageHash = 'balance'
@@ -725,7 +731,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'fetchOrderbook:' + market['symbol']
@@ -752,7 +759,8 @@ class lbank(ccxt.async_support.lbank):
         :param dict params: extra parameters specific to the lbank api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']
         messageHash = 'orderbook:' + market['symbol']

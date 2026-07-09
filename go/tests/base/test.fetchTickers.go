@@ -44,7 +44,29 @@ func FetchTickersHelperTest(exchange ccxt.ICoreExchange, skippedProperties any, 
 		for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
 			// todo: symbol check here
 			var ticker any = GetValue(values, i)
-			TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+
+			{
+				func() (ret_ any) {
+					defer func() {
+						if ex := recover(); ex != nil {
+							if ex == "break" {
+								return
+							}
+							ret_ = func() any {
+								// catch block:
+
+								retRes3112 := (<-ValidateTickerExceptionForPercentage(ex, exchange, ticker))
+								PanicOnError(retRes3112)
+								return nil
+							}()
+						}
+					}()
+					// try block:
+					TestTicker(exchange, skippedProperties, method, ticker, checkedSymbol)
+					return nil
+				}()
+
+			}
 		}
 
 		ch <- response

@@ -76,9 +76,11 @@ func  (this *CoinoneCore) WatchOrderBook(symbol any, optionalArgs ...any) <- cha
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes638 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes638)
+                retRes6412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes6412)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("orderbook:", ccxt.GetValue(market, "symbol"))
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -170,9 +172,11 @@ func  (this *CoinoneCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1458 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1458)
+                retRes14812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes14812)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("ticker:", ccxt.GetValue(market, "symbol"))
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
@@ -186,9 +190,9 @@ func  (this *CoinoneCore) WatchTicker(symbol any, optionalArgs ...any) <- chan a
             }
             var message any = this.Extend(request, params)
         
-                retRes15815 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes15815)
-                ch <- retRes15815
+                retRes16215 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes16215)
+                ch <- retRes16215
                 return nil
         
             }()
@@ -311,9 +315,11 @@ func  (this *CoinoneCore) WatchTrades(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2688 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2688)
+                retRes27312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes27312)
+            }
             var market any = this.Market(symbol)
             var messageHash any = ccxt.Add("trade:", ccxt.GetValue(market, "symbol"))
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")

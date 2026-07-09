@@ -1470,7 +1470,7 @@ class bitget extends Exchange {
                 'TONCOIN' => 'TON',
             ),
             'options' => array(
-                'uta' => false,
+                'uta' => null,
                 'timeDifference' => 0, // the difference between system clock and Binance clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'timeframes' => array(
@@ -1909,6 +1909,27 @@ class bitget extends Exchange {
         return array( $productType, $params );
     }
 
+    public function handle_uta_and_params($params, ?string $methodName, bool $defaultValue = false) {
+        $uta = null;
+        list($uta, $params) = $this->handle_option_and_params($params, $methodName, 'uta');
+        if ($uta !== null) {
+            return array( $uta, $params );
+        }
+        if ($this->check_required_credentials(false)) {
+            // use the api to determine if the account is $uta or not
+            $accountIsUTa = false;
+            try {
+                $this->privateUtaGetV3AccountSettings($params);
+                $accountIsUTa = true;
+            } catch (Exception $e) {
+                $accountIsUTa = false;
+            }
+            $this->options['uta'] = $accountIsUTa;
+            return array( $accountIsUTa, $params );
+        }
+        return array( $defaultValue, $params );
+    }
+
     public function fetch_time($params = array()): ?int {
         /**
          * fetches the current integer timestamp in milliseconds from the exchange server
@@ -1950,7 +1971,7 @@ class bitget extends Exchange {
             $this->load_time_difference();
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarkets', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchMarkets', false);
         if ($uta) {
             return $this->fetch_uta_markets($params);
         }
@@ -2114,8 +2135,8 @@ class bitget extends Exchange {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
                     $expiryDatetime = $this->iso8601($expiry);
                     $expiryParts = explode('-', $expiryDatetime);
-                    $yearPart = $this->safe_string($expiryParts, 0);
-                    $dayPart = $this->safe_string($expiryParts, 2);
+                    $yearPart = $this->safe_string($expiryParts, 0, '');
+                    $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
                     $month = $this->safe_string($expiryParts, 1);
                     $day = mb_substr($dayPart, 0, 2 - 0);
@@ -2378,8 +2399,8 @@ class bitget extends Exchange {
                     $expiry = $this->safe_integer($market, 'deliveryTime');
                     $expiryDatetime = $this->iso8601($expiry);
                     $expiryParts = explode('-', $expiryDatetime);
-                    $yearPart = $this->safe_string($expiryParts, 0);
-                    $dayPart = $this->safe_string($expiryParts, 2);
+                    $yearPart = $this->safe_string($expiryParts, 0, '');
+                    $dayPart = $this->safe_string($expiryParts, 2, '');
                     $year = mb_substr($yearPart, 2, 4 - 2);
                     $month = $this->safe_string($expiryParts, 1);
                     $day = mb_substr($dayPart, 0, 2 - 0);
@@ -2600,7 +2621,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         $response = null;
@@ -2609,7 +2632,7 @@ class bitget extends Exchange {
         $uta = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'isolated');
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMarketLeverageTiers', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchMarketLeverageTiers', false);
         if ($uta) {
             if ($productType === 'SPOT') {
                 if ($marginMode !== null) {
@@ -2805,7 +2828,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchDeposits', 'paginate');
         if ($paginate) {
@@ -2875,7 +2900,9 @@ class bitget extends Exchange {
         if ($networkCode === null) {
             throw new ArgumentsRequired($this->id . ' withdraw() requires a "network" parameter');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $networkId = $this->network_code_to_id($networkCode, $code);
         $request = array(
@@ -2931,7 +2958,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchWithdrawals', 'paginate');
         if ($paginate) {
@@ -3087,7 +3116,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
         $currency = $this->currency($code);
@@ -3156,7 +3187,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3168,7 +3201,7 @@ class bitget extends Exchange {
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOrderBook', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketOrderbook($this->extend($request, $params));
@@ -3368,7 +3401,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3377,7 +3412,7 @@ class bitget extends Exchange {
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTicker', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchTicker', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketTickers($this->extend($request, $params));
@@ -3524,7 +3559,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3557,7 +3594,9 @@ class bitget extends Exchange {
          * @param {string} [$params->productType] *contract only* 'USDT-FUTURES', 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbol = $this->safe_value($symbols, 0);
@@ -3575,7 +3614,7 @@ class bitget extends Exchange {
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
         // only if $passedSubType && $productType is null, then use spot
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchTickers', false);
         if ($uta) {
             if ($symbols !== null) {
                 $symbolsLength = count($symbols);
@@ -3884,7 +3923,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'paginate');
         if ($paginate) {
@@ -3895,7 +3936,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchTrades', false);
         if ($limit !== null) {
             if ($uta) {
                 $request['limit'] = min($limit, 100);
@@ -4018,7 +4059,9 @@ class bitget extends Exchange {
          * @param {string} [$params->marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -4063,7 +4106,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->margin] set to true for spot $margin
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by $market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = null;
         $marginMode = null;
         $marketType = null;
@@ -4230,7 +4275,9 @@ class bitget extends Exchange {
          * @param {string} [$params->price] *swap only* "mark" (to fetch mark price candles) or "index" (to fetch index price candles)
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $defaultLimit = 100; // default 100, max 1000
         $maxLimitForRecentEndpoint = 1000;
         $maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
@@ -4249,7 +4296,7 @@ class bitget extends Exchange {
         $marketType = null;
         $timeframes = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOHLCV', false);
         if ($uta) {
             $timeframes = $this->options['timeframes']['uta'];
             $request['interval'] = $this->safe_string($timeframes, $timeframe, $timeframe);
@@ -4409,13 +4456,15 @@ class bitget extends Exchange {
          * @param {string} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $marketType = null;
         $marginMode = null;
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchBalance', false);
         list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
         if ($uta) {
@@ -5045,7 +5094,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -5102,7 +5153,9 @@ class bitget extends Exchange {
          * @param {string} [$params->posSide] *$uta only* hedged two-way position $side, long or short
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginParams = $this->handle_margin_mode_and_params('createOrder', $params);
         $marginMode = $marginParams[0];
@@ -5117,7 +5170,7 @@ class bitget extends Exchange {
         $isStopLossOrTakeProfitTrigger = $isStopLossTriggerOrder || $isTakeProfitTriggerOrder;
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'createOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'createOrder', false);
         if ($uta) {
             $request = $this->create_uta_order_request($symbol, $type, $side, $amount, $price, $params);
             if ($isStopLossOrTakeProfitTrigger) {
@@ -5500,7 +5553,9 @@ class bitget extends Exchange {
     }
 
     public function create_uta_orders(array $orders, $params = array()) {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $ordersRequests = array();
         $symbol = null;
         $marginMode = null;
@@ -5567,9 +5622,11 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'createOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'createOrders', false);
         if ($uta) {
             return $this->create_uta_orders($orders, $params);
         }
@@ -5695,7 +5752,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             // 'orderId' => $id,
@@ -5735,7 +5794,7 @@ class bitget extends Exchange {
         $productType = null;
         $uta = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'editOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'editOrder', false);
         if ($uta) {
             if ($amount !== null) {
                 $request['qty'] = $this->amount_to_precision($symbol, $amount);
@@ -5911,10 +5970,12 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginMode = null;
-        $response = null;
+        $response = array();
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
         $request = array();
         $trailing = $this->safe_value($params, 'trailing');
@@ -5924,7 +5985,7 @@ class bitget extends Exchange {
             $request['symbol'] = $market['id'];
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'cancelOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'cancelOrder', false);
         $isPlanOrder = $trigger || $trailing;
         $isContract = $market['swap'] || $market['future'];
         $isContractTriggerEndpoint = $isContract && $isPlanOrder && !$uta;
@@ -6035,10 +6096,10 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $order = null;
+        $order = array();
         if ($isContractTriggerEndpoint) {
             $orderInfo = $this->safe_value($data, 'successList', array());
-            $order = $orderInfo[0];
+            $order = $this->safe_dict($orderInfo, 0, array());
         } else {
             if ($uta && $trigger) {
                 $order = $response;
@@ -6053,7 +6114,9 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -6107,10 +6170,12 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'cancelOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'cancelOrders', false);
         if ($uta) {
             return $this->cancel_uta_orders($ids, $symbol, $params);
         }
@@ -6196,7 +6261,9 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
@@ -6209,7 +6276,7 @@ class bitget extends Exchange {
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'cancelAllOrders', false);
         if ($uta) {
             if ($productType === 'SPOT') {
                 if ($marginMode !== null) {
@@ -6319,7 +6386,9 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             // 'orderId' => $id,
@@ -6333,7 +6402,7 @@ class bitget extends Exchange {
         }
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOrder', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOrder', false);
         if ($uta) {
             $response = $this->privateUtaGetV3TradeOrderInfo($this->extend($request, $params));
         } elseif ($market['spot']) {
@@ -6503,14 +6572,16 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $type = null;
         $request = array();
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOpenOrders', false);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
@@ -6903,7 +6974,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'closed');
     }
@@ -6932,7 +7005,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->trailing] set to true if you want to fetch trailing $orders
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
         return $this->filter_by($orders, 'status', 'canceled');
     }
@@ -6964,11 +7039,13 @@ class bitget extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchCanceledAndClosedOrders', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchCanceledAndClosedOrders', false);
         if ($uta) {
             return $this->fetch_uta_canceled_and_closed_orders($symbol, $since, $limit, $params);
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -7250,7 +7327,9 @@ class bitget extends Exchange {
     }
 
     public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -7392,7 +7471,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbol = $this->safe_string($params, 'symbol');
         $params = $this->omit($params, 'symbol');
         $market = null;
@@ -7521,7 +7602,7 @@ class bitget extends Exchange {
         $timestamp = $this->safe_integer($item, 'cTime');
         $after = $this->safe_number($item, 'balance');
         $fee = $this->safe_number_2($item, 'fees', 'fee');
-        $amountRaw = $this->safe_string_2($item, 'size', 'amount');
+        $amountRaw = $this->safe_string_2($item, 'size', 'amount', '');
         $amount = $this->parse_number(Precise::string_abs($amountRaw));
         $direction = 'in';
         if (mb_strpos($amountRaw, '-') !== false) {
@@ -7615,11 +7696,13 @@ class bitget extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchMyTrades', false);
         if (!$uta && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array();
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
@@ -7832,7 +7915,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -7842,7 +7927,7 @@ class bitget extends Exchange {
         $response = null;
         $uta = null;
         $result = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPosition', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchPosition', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaGetV3PositionCurrentPosition($this->extend($request, $params));
@@ -7944,7 +8029,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'paginate');
         if ($paginate) {
@@ -7971,7 +8058,7 @@ class bitget extends Exchange {
         $response = null;
         $isHistory = false;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchPositions', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaGetV3PositionCurrentPosition($this->extend($request, $params));
@@ -8361,7 +8448,9 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -8371,7 +8460,7 @@ class bitget extends Exchange {
         $response = null;
         $result = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingRateHistory', false);
         if ($uta) {
             if ($limit !== null) {
                 $request['limit'] = $limit;
@@ -8455,7 +8544,9 @@ class bitget extends Exchange {
          * @param {string} [$params->method] either (default) 'publicMixGetV2MixMarketCurrentFundRate' or 'publicMixGetV2MixMarketFundingTime'
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
@@ -8467,7 +8558,7 @@ class bitget extends Exchange {
         );
         $uta = null;
         $response = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingRate', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingRate', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketCurrentFundRate($this->extend($request, $params));
             //
@@ -8545,7 +8636,9 @@ class bitget extends Exchange {
          * @param {string} [$params->method] either (default) 'publicMixGetV2MixMarketTickers' or 'publicMixGetV2MixMarketCurrentFundRate'
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbols !== null) {
             $symbol = $this->safe_value($symbols, 0);
@@ -8628,7 +8721,9 @@ class bitget extends Exchange {
          * @param {string} [$params->productType] 'USDT-FUTURES' (default), 'USDC-FUTURES', 'COIN-FUTURES', 'SUSDT-FUTURES', 'SUSDC-FUTURES' or 'SCOIN-FUTURES'
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $params = $this->extend(array( 'method' => 'publicMixGetV2MixMarketCurrentFundRate' ), $params);
         return $this->fetch_funding_rates($symbols, $params);
     }
@@ -8737,12 +8832,14 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingHistory() requires a $symbol argument');
         }
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingHistory', false);
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
@@ -8869,7 +8966,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function parse_funding_histories($contracts, $market = null, ?int $since = null, ?int $limit = null): array {
+    public function parse_funding_histories($contracts, ?array $market = null, ?int $since = null, ?int $limit = null): array {
         $result = array();
         for ($i = 0; $i < count($contracts); $i++) {
             $contract = $contracts[$i];
@@ -8889,7 +8986,9 @@ class bitget extends Exchange {
     }
 
     public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $holdSide = $this->safe_string($params, 'holdSide');
         $market = $this->market($symbol);
         $productType = null;
@@ -8993,7 +9092,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -9066,7 +9167,9 @@ class bitget extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -9075,8 +9178,8 @@ class bitget extends Exchange {
             'leverage' => $this->number_to_string($leverage),
         );
         $uta = null;
-        $response = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'setLeverage', 'uta', false);
+        $response = array();
+        list($uta, $params) = $this->handle_uta_and_params($params, 'setLeverage', false);
         if ($uta) {
             if ($productType === 'SPOT') {
                 $marginMode = null;
@@ -9140,7 +9243,9 @@ class bitget extends Exchange {
         if (($marginMode !== 'isolated') && ($marginMode !== 'crossed')) {
             throw new ArgumentsRequired($this->id . ' setMarginMode() $marginMode must be either isolated or crossed (cross)');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -9182,7 +9287,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} $response from the exchange
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $posMode = $hedged ? 'hedge_mode' : 'one_way_mode';
         $request = array();
         $market = null;
@@ -9191,9 +9298,9 @@ class bitget extends Exchange {
         }
         $productType = null;
         $uta = null;
-        $response = null;
+        $response = array();
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'setPositionMode', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'setPositionMode', false);
         if ($uta) {
             $request['holdMode'] = $posMode;
             $response = $this->privateUtaPostV3AccountSetHoldMode($this->extend($request, $params));
@@ -9235,7 +9342,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['contract']) {
             throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
@@ -9247,7 +9356,7 @@ class bitget extends Exchange {
         );
         $uta = null;
         $response = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchOpenInterest', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchOpenInterest', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->publicUtaGetV3MarketOpenInterest($this->extend($request, $params));
@@ -9346,7 +9455,9 @@ class bitget extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchTransfers() requires a $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
         $fromAccount = $this->safe_string($params, 'fromAccount', $type);
@@ -9406,7 +9517,9 @@ class bitget extends Exchange {
          * @param {string} [$params->clientOid] custom id
          * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromType = $this->safe_string($accountsByType, $fromAccount);
@@ -9558,7 +9671,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicSpotGetV2SpotPublicCoins($params);
         //
         //     {
@@ -9604,7 +9719,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -9639,7 +9756,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $market = $this->market($symbol);
         $request = array(
@@ -9677,7 +9796,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $market = $this->market($symbol);
         $request = array(
@@ -9715,7 +9836,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -9810,7 +9933,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyLiquidations', 'paginate');
         if ($paginate) {
@@ -9963,7 +10088,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure isolated borrow rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -10082,15 +10209,17 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a {@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure borrow rate structure}
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
         );
         $uta = null;
         $response = null;
-        $result = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchCrossBorrowRate', 'uta', false);
+        $result = array();
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchCrossBorrowRate', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketMarginLoans($this->extend($request, $params));
             //
@@ -10199,7 +10328,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchBorrowInterest', 'paginate');
         if ($paginate) {
@@ -10350,7 +10481,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} An ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -10359,7 +10492,7 @@ class bitget extends Exchange {
         $uta = null;
         $response = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'closePosition', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'closePosition', false);
         if ($uta) {
             if ($side !== null) {
                 $request['posSide'] = $side;
@@ -10422,13 +10555,15 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} A list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $productType = null;
         $uta = null;
         $response = null;
         list($productType, $params) = $this->handle_product_type_and_params(null, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'closeAllPositions', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'closeAllPositions', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaPostV3TradeClosePositions($this->extend($request, $params));
@@ -10483,7 +10618,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-mode-structure margin mode structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -10525,7 +10662,7 @@ class bitget extends Exchange {
         return $this->parse_margin_mode($data, $market);
     }
 
-    public function parse_margin_mode(array $marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, ?array $market = null): array {
         $marginType = $this->safe_string($marginMode, 'marginMode');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(
@@ -10551,7 +10688,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         $productType = null;
@@ -10572,7 +10711,7 @@ class bitget extends Exchange {
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchPositionsHistory', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchPositionsHistory', false);
         if ($uta) {
             $request['category'] = $productType;
             $response = $this->privateUtaGetV3PositionHistoryPosition($this->extend($request, $params));
@@ -10658,7 +10797,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'fromCoin' => $fromCode,
             'toCoin' => $toCode,
@@ -10704,7 +10845,9 @@ class bitget extends Exchange {
          * @param {string} $params->toAmount the $amount you want to trade in units of the $toCurrency, obtained from fetchConvertQuote()
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $price = $this->safe_string_2($params, 'price', 'cnvtPrice');
         if ($price === null) {
             throw new ArgumentsRequired($this->id . ' createConvertTrade() requires a $price parameter');
@@ -10754,7 +10897,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $msInDay = 86400000;
         $now = $this->milliseconds();
@@ -10865,7 +11010,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateConvertGetV2ConvertCurrencies($params);
         //
         //     {
@@ -10932,7 +11079,9 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $productType = null;
         list($productType, $params) = $this->handle_product_type_and_params($market, $params);
@@ -10941,7 +11090,7 @@ class bitget extends Exchange {
         );
         $response = null;
         $uta = null;
-        list($uta, $params) = $this->handle_option_and_params($params, 'fetchFundingInterval', 'uta', false);
+        list($uta, $params) = $this->handle_uta_and_params($params, 'fetchFundingInterval', false);
         if ($uta) {
             $response = $this->publicUtaGetV3MarketCurrentFundRate($this->extend($request, $params));
             //
@@ -10998,7 +11147,9 @@ class bitget extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=long-short-ratio-structure long short ratio structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],

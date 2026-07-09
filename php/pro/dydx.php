@@ -49,7 +49,9 @@ class dydx extends \ccxt\async\dydx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://github.com/ccxt/ccxt/wiki/Manual#public-$trades trade structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
             $messageHash = 'trade:' . $market['symbol'];
@@ -77,7 +79,9 @@ class dydx extends \ccxt\async\dydx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
             $messageHash = 'trade:' . $market['symbol'];
@@ -175,7 +179,9 @@ class dydx extends \ccxt\async\dydx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
@@ -200,7 +206,9 @@ class dydx extends \ccxt\async\dydx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
@@ -281,7 +289,9 @@ class dydx extends \ccxt\async\dydx {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
             $messageHash = 'ohlcv:' . $market['symbol'];
@@ -312,7 +322,9 @@ class dydx extends \ccxt\async\dydx {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $market = $this->market($symbol);
             $messageHash = 'ohlcv:' . $market['symbol'];

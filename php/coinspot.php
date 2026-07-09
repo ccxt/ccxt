@@ -331,7 +331,9 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
         $response = $this->$method($params);
         //
@@ -364,7 +366,9 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'cointype' => $market['id'],
@@ -419,10 +423,12 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $response = $this->publicGetLatest($params);
-        $id = $market['id'];
+        $id = $this->safe_string($market, 'id', '');
         $id = strtolower($id);
         $prices = $this->safe_dict($response, 'prices', array());
         //
@@ -437,7 +443,7 @@ class coinspot extends Exchange {
         //         }
         //     }
         //
-        $ticker = $this->safe_dict($prices, $id);
+        $ticker = $this->safe_dict($prices, $id, array());
         return $this->parse_ticker($ticker, $market);
     }
 
@@ -451,7 +457,9 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=$ticker-structure $ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetLatest($params);
         //
         //    {
@@ -497,7 +505,9 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'cointype' => $market['id'],
@@ -527,7 +537,9 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -659,7 +671,12 @@ class coinspot extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        if ($side === null) {
+            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
+        }
         $sideUpper = strtoupper($side);
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');

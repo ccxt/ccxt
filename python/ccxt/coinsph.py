@@ -891,7 +891,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if symbols is not None:
             ids = []
@@ -903,7 +904,7 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTickers', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        tickers = None
+        tickers = []
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             tickers = self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -924,7 +925,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -932,7 +934,7 @@ class coinsph(Exchange, ImplicitAPI):
         defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr'
         options = self.safe_dict(self.options, 'fetchTicker', {})
         method = self.safe_string(options, 'method', defaultMethod)
-        ticker = None
+        ticker = {}
         if method == 'publicGetOpenapiQuoteV1TickerPrice':
             ticker = self.publicGetOpenapiQuoteV1TickerPrice(self.extend(request, params))
         elif method == 'publicGetOpenapiQuoteV1TickerBookTicker':
@@ -1030,7 +1032,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1069,7 +1072,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         interval = self.safe_string(self.timeframes, timeframe)
         until = self.safe_integer(params, 'until')
@@ -1138,7 +1142,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1179,7 +1184,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1260,7 +1266,7 @@ class coinsph(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
         type = None
-        fee = None
+        fee = {}
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
             feeCurrencyId = self.safe_string(trade, 'commissionAsset')
@@ -1304,7 +1310,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetOpenapiV1Account(params)
         #
         #     {
@@ -1363,7 +1370,8 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         # todo: add test order low priority
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
@@ -1418,7 +1426,7 @@ class coinsph(Exchange, ImplicitAPI):
             request['stopPrice'] = self.price_to_precision(symbol, triggerPrice)
         request['newOrderRespType'] = newOrderRespType
         params = self.omit(params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty')
-        response = None
+        response = {}
         if testOrder:
             response = self.privatePostOpenapiV1OrderTest(self.extend(request, params))
         else:
@@ -1463,7 +1471,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
@@ -1486,7 +1495,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if symbol is not None:
@@ -1509,7 +1519,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1534,7 +1545,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         clientOrderId = self.safe_value_2(params, 'origClientOrderId', 'clientOrderId')
         if clientOrderId is not None:
@@ -1557,7 +1569,8 @@ class coinsph(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         request = {}
         if symbol is not None:
@@ -1672,6 +1685,8 @@ class coinsph(Exchange, ImplicitAPI):
             'BUY': 'buy',
             'SELL': 'sell',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def encode_order_side(self, status):
@@ -1679,6 +1694,8 @@ class coinsph(Exchange, ImplicitAPI):
             'buy': 'BUY',
             'sell': 'SELL',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_type(self, status):
@@ -1691,6 +1708,8 @@ class coinsph(Exchange, ImplicitAPI):
             'TAKE_PROFIT': 'market',
             'TAKE_PROFIT_LIMIT': 'limit',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def encode_order_type(self, status):
@@ -1703,6 +1722,8 @@ class coinsph(Exchange, ImplicitAPI):
             'take_profit': 'TAKE_PROFIT',
             'take_profit_limit': 'TAKE_PROFIT_LIMIT',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_status(self, status: Str):
@@ -1714,6 +1735,8 @@ class coinsph(Exchange, ImplicitAPI):
             'PARTIALLY_CANCELED': 'canceled',
             'REJECTED': 'rejected',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def parse_order_time_in_force(self, status):
@@ -1722,6 +1745,8 @@ class coinsph(Exchange, ImplicitAPI):
             'FOK': 'FOK',
             'IOC': 'IOC',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -1734,7 +1759,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
@@ -1761,7 +1787,8 @@ class coinsph(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/?id=fee-structure>` indexed by market symbols
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetOpenapiV1AssetTradeFee(params)
         #
         #     [
@@ -1781,7 +1808,8 @@ class coinsph(Exchange, ImplicitAPI):
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
-            result[symbol] = fee
+            if symbol is not None:
+                result[symbol] = fee
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
@@ -1822,10 +1850,11 @@ class coinsph(Exchange, ImplicitAPI):
         if warning:
             raise InvalidAddress(self.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = False to make a withdrawal to your coins_ph account")
         networkCode = self.safe_string(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' withdraw() require network parameter')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -1852,7 +1881,8 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {}
         if code is not None:
@@ -1906,7 +1936,8 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
         # todo: returns an empty array - find out why
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {}
         if code is not None:
@@ -2047,6 +2078,8 @@ class coinsph(Exchange, ImplicitAPI):
             '2': 'failed',
             '3': 'pending',
         }
+        if status is None:
+            return None
         return self.safe_string(statuses, status, status)
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2061,10 +2094,11 @@ class coinsph(Exchange, ImplicitAPI):
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
         networkCode = self.safe_string(params, 'network')
-        networkId = self.network_code_to_id(networkCode, code)
+        networkId = None if (networkCode is None) else self.network_code_to_id(networkCode, code)
         if networkId is None:
             raise BadRequest(self.id + ' fetchDepositAddress() require network parameter')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'coin': currency['id'],

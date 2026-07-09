@@ -36,7 +36,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'watchTrades' => true,
                 'watchTradesForSymbols' => true,
                 'watchBalance' => true,
-                // 'watchStatus' => true, // https://docs.futures.kraken.com/#websocket-api-public-feeds-heartbeat
+                // 'watchStatus' => true, // https://docs.kraken.com/exchange/api-reference/futures-websocket/heartbeat
                 'watchOrders' => true,
                 'watchMyTrades' => true,
                 'watchPositions' => true,
@@ -53,7 +53,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 'tradesLimit' => 1000,
                 'ordersLimit' => 1000,
                 'OHLCVLimit' => 1000,
-                'connectionLimit' => 100, // https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-subscriptions-limits
+                'connectionLimit' => 100, // https://docs.kraken.com/exchange/api-reference/futures-websocket
                 'requestLimit' => 100, // per second
                 'fetchBalance' => array(
                     'type' => null,
@@ -71,7 +71,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @ignore
              * authenticates the user to access private web socket channels
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
              *
              * @return {array} response from exchange
              */
@@ -102,7 +102,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-challenge
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
              *
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -124,7 +124,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the krakenfutures api
              * @return {array} data from the websocket stream
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $subscribe = array(
                 'event' => 'subscribe',
@@ -160,7 +162,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the krakenfutures api
              * @return {array} data from the websocket stream
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws'];
             $subscribe = array(
@@ -180,13 +184,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-ticker
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
              *
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -198,13 +204,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-$ticker
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker
              *
              * @param {string[]} $symbols unified $symbols of the markets to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $ticker = Async\await($this->watch_multi_helper('ticker', 'ticker', $symbols, null, $params));
             if ($this->newUpdates) {
@@ -220,7 +228,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return Async\async(function () use ($symbols, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-$ticker-lite
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/ticker_lite
              *
              * watches best bid & ask for $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch the $ticker for
@@ -242,7 +250,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * get the list of most recent trades for a particular $symbol
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
              *
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -258,7 +266,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-trade
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/trade
              *
              * get the list of most recent $trades for a list of $symbols
              * @param {string[]} $symbols unified symbol of the market to fetch $trades for
@@ -282,7 +290,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-public-feeds-book
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/book
              *
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] not used by krakenfutures watchOrderBook
@@ -297,7 +305,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-positions
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_position
              *
              * watch all open positions
              * @param {string[]} [$symbols] list of unified market $symbols
@@ -306,7 +314,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = '';
             $symbols = $this->market_symbols($symbols);
             if (!$this->is_empty($symbols)) {
@@ -437,8 +447,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches information on multiple $orders made by the user
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-$orders
-             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-open-$orders-verbose
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/open_orders_verbose
              *
              * @param {string} $symbol not used by krakenfutures watchOrders
              * @param {int} [$since] not used by krakenfutures watchOrders
@@ -446,7 +456,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'open_orders';
             $messageHash = 'orders';
             if ($symbol !== null) {
@@ -466,7 +478,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches information on multiple $trades made by the user
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-fills
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/fills
              *
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -474,7 +486,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'fills';
             $messageHash = 'myTrades';
             if ($symbol !== null) {
@@ -494,13 +508,15 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             /**
              * watches information on the user's $account balance
              *
-             * @see https://docs.futures.kraken.com/#websocket-api-private-feeds-balances
+             * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/balances
              *
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->account] can be either 'futures' or 'flex_futures'
              * @return {array} a object of wallet types each with a balance structure array(@link https://docs.ccxt.com/?id=balance-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'balances';
             $messageHash = $name;
             $account = null;
@@ -1547,7 +1563,9 @@ class krakenfutures extends \ccxt\async\krakenfutures {
 
     public function watch_multi_helper(string $unifiedName, string $channelName, ?array $symbols = null, $subscriptionArgs = null, $params = array()) {
         return Async\async(function () use ($unifiedName, $channelName, $symbols, $subscriptionArgs, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             // $symbols are required
             $symbols = $this->market_symbols($symbols, null, false, true, false);
@@ -1661,7 +1679,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
     public function handle_authenticate(Client $client, $message) {
         /**
          * @ignore
-         * @see https://docs.futures.kraken.com/#websocket-api-websocket-api-introduction-sign-$challenge-challenge
+         * @see https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
          */
         //
         //    {

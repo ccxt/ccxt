@@ -337,7 +337,9 @@ export default class coinspot extends Exchange {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const method = this.safeString(this.options, 'fetchBalance', 'private_post_my_balances');
         const response = await this[method](params);
         //
@@ -369,7 +371,9 @@ export default class coinspot extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'cointype': market['id'],
@@ -422,10 +426,12 @@ export default class coinspot extends Exchange {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const response = await this.publicGetLatest(params);
-        let id = market['id'];
+        let id = this.safeString(market, 'id', '');
         id = id.toLowerCase();
         const prices = this.safeDict(response, 'prices', {});
         //
@@ -440,7 +446,7 @@ export default class coinspot extends Exchange {
         //         }
         //     }
         //
-        const ticker = this.safeDict(prices, id);
+        const ticker = this.safeDict(prices, id, {});
         return this.parseTicker(ticker, market);
     }
     /**
@@ -453,7 +459,9 @@ export default class coinspot extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetLatest(params);
         //
         //    {
@@ -498,7 +506,9 @@ export default class coinspot extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'cointype': market['id'],
@@ -527,7 +537,9 @@ export default class coinspot extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -658,7 +670,12 @@ export default class coinspot extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        if (side === undefined) {
+            throw new ArgumentsRequired(this.id + ' createOrder() requires a side argument');
+        }
         const sideUpper = side.toUpperCase();
         if (type === 'market') {
             throw new ExchangeError(this.id + ' createOrder() allows limit orders only');

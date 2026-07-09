@@ -193,7 +193,7 @@
     "response-php": "npm run response-php-sync && npm run response-php-async",
     "response-tests": "npm run response-js && npm run response-py && npm run response-php && npm run response-cs && npm run response-go && npm run response-java",
     "response-tests//withoutGo": "npm run response-js && npm run response-py && npm run response-php && npm run response-cs",
-    "static-updater": "tsx ./utils/update-static-json --update",
+    "static-updater": "tsx ./utils/update-static-markets --update",
     "id-tests-js": "npm run ti-js  -- --idTests",
     "id-tests-py": "npm run ti-py  -- --idTests",
     "id-tests-php": "npm run ti-php -- --idTests",
@@ -229,6 +229,7 @@
   },
   "types": "./js/ccxt.d.ts",
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@rollup/plugin-commonjs": "^21.0.3",
     "@rollup/plugin-json": "^4.1.0",
     "@rollup/plugin-node-resolve": "^15.2.3",
@@ -246,7 +247,6 @@
     "clipboardy": "^5.0.0",
     "commander": "^14.0.1",
     "docsify": "^4.13.1",
-    "@eslint/js": "^9.39.4",
     "eslint": "^9.39.4",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^63.0.4",
@@ -364,9 +364,8 @@
     "@noble/curves": "2.2.0",
     "@noble/hashes": "2.2.0",
     "@scure/base": "2.2.0",
-    "@scure/bip32": "2.2.0",
-    "@scure/bip39": "2.2.0",
     "@scure/starknet": "2.2.0",
+    "undici": "7.28.0",
     "ws": "8.21.0"
   },
   "overrides": {
@@ -374,7 +373,8 @@
     "piscina": "^4.9.3"
   },
   "optionalDependencies": {
-    "bufferutil": "4.1.0"
+    "bufferutil": "4.1.0",
+    "fflate": "0.8.3"
   },
   "peerDependencies": {
     "protobufjs": "^7.5.3"

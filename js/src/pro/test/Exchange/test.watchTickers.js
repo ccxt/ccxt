@@ -18,7 +18,7 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
     let now = exchange.milliseconds();
     const ends = now + 15000;
     while (now < ends) {
-        let response = undefined;
+        let response = {};
         let success = true;
         let shouldReturn = false;
         try {
@@ -55,7 +55,12 @@ async function testWatchTickersHelper(exchange, skippedProperties, argSymbols, a
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
             for (let i = 0; i < values.length; i++) {
                 const ticker = values[i];
-                testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                try {
+                    testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                }
+                catch (ex) {
+                    await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                }
             }
             now = exchange.milliseconds();
         }

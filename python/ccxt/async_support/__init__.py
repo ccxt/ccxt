@@ -64,7 +64,6 @@ from ccxt.base.errors import UnsubscribeError                         # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
-from ccxt.async_support.aftermath import aftermath                              # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.apex import apex                                        # noqa: F401
 from ccxt.async_support.aster import aster                                      # noqa: F401
@@ -171,7 +170,6 @@ from ccxt.async_support.zaif import zaif                                        
 from ccxt.async_support.zebpay import zebpay                                    # noqa: F401
 
 exchanges = [
-    'aftermath',
     'alpaca',
     'apex',
     'aster',

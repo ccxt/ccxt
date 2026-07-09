@@ -101,7 +101,9 @@ class hitbtc extends \ccxt\async\hitbtc {
             $authenticated = $this->safe_value($client->subscriptions, $messageHash);
             if ($authenticated === null) {
                 $timestamp = $this->milliseconds();
-                $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
+                $timestampString = $this->number_to_string($timestamp);
+                $timestampEncoded = ($timestampString === null) ? '' : $timestampString;
+                $signature = $this->hmac($this->encode($timestampEncoded), $this->encode($this->secret), 'sha256', 'hex');
                 $request = array(
                     'method' => 'login',
                     'params' => array(
@@ -143,7 +145,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string[]} [$symbols] unified CCXT symbol(s)
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $isBatch = mb_strpos($name, 'batch') !== false;
             $url = $this->urls['api']['ws']['public'];
@@ -173,11 +177,13 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$symbol] unified CCXT $symbol
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
             $splitName = explode('_subscribe', $name);
-            $messageHash = $this->safe_string($splitName, 0);
+            $messageHash = $this->safe_string($splitName, 0, '');
             if ($symbol !== null) {
                 $messageHash = $messageHash . '::' . $symbol;
             }
@@ -197,7 +203,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $name websocket endpoint $name
              * @param {array} [$params] extra parameters specific to the hitbtc api
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $url = $this->urls['api']['ws']['private'];
             $messageHash = (string) $this->nonce();
@@ -275,8 +283,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //    }
         //
         $snapshot = $this->safe_dict($message, 'snapshot');
-        $update = $this->safe_dict($message, 'update');
-        $data = $snapshot ? $snapshot : $update;
+        $data = $this->safe_dict_2($message, 'snapshot', 'update', array());
         $type = $snapshot ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
@@ -354,7 +361,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $params->speed '1s' (default), or '3s'
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $options = $this->safe_value($this->options, 'watchTicker');
             $defaultMethod = $this->safe_string($options, 'method', 'ticker/{$speed}/batch');
@@ -444,7 +453,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_ticker($ticker, $market = null) {
+    public function parse_ws_ticker($ticker, ?array $market = null) {
         //
         //    {
         //        "t" => 1614815872000,             // Timestamp in milliseconds
@@ -513,7 +522,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$params->speed] '100ms' (default) or '500ms' or '1000ms'
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $options = $this->safe_value($this->options, 'watchBidsAsks');
             $defaultMethod = $this->safe_string($options, 'method', 'orderbook/top/{$speed}/batch');
@@ -571,10 +582,11 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($result, $topic);
     }
 
-    public function parse_ws_bid_ask($ticker, $market = null) {
+    public function parse_ws_bid_ask($ticker, ?array $market = null) {
         $timestamp = $this->safe_integer($ticker, 't');
+        $bidAskSymbol = ($market !== null) ? $market['symbol'] : null;
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $bidAskSymbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'ask' => $this->safe_string($ticker, 'a'),
@@ -598,7 +610,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'params' => array(
@@ -691,7 +705,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         return $this->filter_by_symbol_since_limit($result, $symbol, $since, $limit);
     }
 
-    public function parse_ws_trade($trade, $market = null) {
+    public function parse_ws_trade($trade, ?array $market = null) {
         //
         //    {
         //        "t" => 1626861123552,       // Timestamp in milliseconds
@@ -788,10 +802,13 @@ class hitbtc extends \ccxt\async\hitbtc {
         //
         $data = $this->safe_value_2($message, 'snapshot', 'update', array());
         $marketIds = is_array($data) ? array_keys($data) : array();
-        $channel = $this->safe_string($message, 'ch');
+        $channel = $this->safe_string($message, 'ch', '');
         $splitChannel = explode('/', $channel);
         $period = $this->safe_string($splitChannel, 1);
         $timeframe = $this->find_timeframe($period);
+        if ($timeframe === null) {
+            return $message;
+        }
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
@@ -850,7 +867,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             $market = null;
             if ($symbol !== null) {
@@ -952,7 +971,7 @@ class hitbtc extends \ccxt\async\hitbtc {
     public function handle_order_helper(Client $client, $message, $order) {
         $orders = $this->orders;
         $marketId = $this->safe_string_lower_2($order, 'instrument', 'symbol');
-        $method = $this->safe_string($message, 'method');
+        $method = $this->safe_string($message, 'method', '');
         $splitMethod = explode('_order', $method);
         $messageHash = $this->safe_string($splitMethod, 0);
         $symbol = $this->safe_symbol($marketId);
@@ -962,7 +981,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $client->resolve($orders, $messageHash . '::' . $symbol);
     }
 
-    public function parse_ws_order_trade($trade, $market = null) {
+    public function parse_ws_order_trade($trade, ?array $market = null) {
         //
         //    {
         //        "id" => 584244931496,
@@ -1012,7 +1031,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         ), $market);
     }
 
-    public function parse_ws_order($order, $market = null) {
+    public function parse_ws_order($order, ?array $market = null) {
         //
         //    {
         //        "id" => 584244931496,
@@ -1096,7 +1115,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$params->mode] 'updates' or 'batches' (default), 'updates' = messages arrive after balance updates, 'batches' = messages arrive at equal intervals if there were any updates
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=balance-structure balance structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
             $name = $this->get_supported_mapping($type, array(
@@ -1135,9 +1156,11 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "Day", "GTD"
              * @return {array} an {@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure order structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
-            $request = null;
+            $request = array();
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
             $marginMode = null;
@@ -1170,7 +1193,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {bool} [$params->margin] true for canceling a margin order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array(
                 'client_order_id' => $id,
@@ -1206,7 +1231,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {bool} [$params->margin] true for canceling margin orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1242,7 +1269,9 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {bool} [$params->margin] true for fetching open margin orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array();
             if ($symbol !== null) {
@@ -1366,7 +1395,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'spot_balance' => array($this, 'handle_balance'),
                 'futures_balance' => array($this, 'handle_balance'),
             );
-            $method = $this->safe_value($methods, $channel);
+            $method = ($channel === null) ? null : $this->safe_value($methods, $channel);
             if ($method !== null) {
                 $method($client, $message);
             }

@@ -53,7 +53,8 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws'] + '?subscribe=ticker-' + market['base'] + '-' + market['quote']
@@ -133,7 +134,8 @@ class independentreserve(ccxt.async_support.independentreserve):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         if limit is None:
@@ -267,7 +269,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             'OrderBookSnapshot': self.handle_order_book,
             'OrderBookChange': self.handle_order_book,
         }
-        handler = self.safe_value(handlers, event)
+        handler = None if (event is None) else self.safe_value(handlers, event)
         if handler is not None:
             handler(client, message)
             return

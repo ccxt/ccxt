@@ -102,7 +102,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrderWs(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const [request, operationType] = this.createOrderRequest(symbol, type, side, amount, price, params);
         params = this.omit(params, [
             'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
@@ -184,7 +186,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         const batchOperationType = 'edit_order';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = this.editOrderRequest(id, symbol, type, side, amount, price, market, params);
         params = this.omit(params, ['originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId']);
@@ -239,7 +243,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async cancelOrdersWs(ids, symbol = undefined, params = {}) {
         const batchOperationType = 'batch_orders';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + 'cancelOrders() requires a "symbol" argument!');
         }
@@ -313,7 +319,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async cancelOrderWs(id, symbol = undefined, params = {}) {
         const operationType = 'cancel_order';
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrderWs() requires a symbol argument');
         }
@@ -369,7 +377,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest(symbol, params);
         params = this.omit(params, ['excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow']);
@@ -408,7 +418,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         this.setupApiKeyHeaders();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let aggLevel = undefined;
         [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
@@ -439,7 +451,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         let aggLevel = undefined;
         [aggLevel, params] = this.handleOptionAndParams(params, 'fetchOrderBook', 'aggLevel', 1);
@@ -541,7 +555,9 @@ class pacifica extends pacifica$1["default"] {
      */
     async watchTickers(symbols = undefined, params = {}) {
         this.setupApiKeyHeaders();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true);
         const messageHash = 'tickers';
         const isTestnet = this.isSandboxModeEnabled;
@@ -569,7 +585,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async unWatchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
@@ -599,7 +617,9 @@ class pacifica extends pacifica$1["default"] {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('watchMyTrades', params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             symbol = this.symbol(symbol);
@@ -633,7 +653,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchMyTrades(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
@@ -756,7 +778,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'trade:' + symbol;
@@ -787,7 +811,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async unWatchTrades(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const subMessageHash = 'trade:' + symbol;
@@ -937,7 +963,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
@@ -971,7 +999,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
@@ -1040,7 +1070,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let userAddress = undefined;
         [userAddress, params] = this.handleOriginAndSingleAddress('watchOrders', params);
         let market = undefined;
@@ -1078,7 +1110,9 @@ class pacifica extends pacifica$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async unWatchOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         if (symbol !== undefined) {
             throw new errors.NotSupported(this.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only');
         }

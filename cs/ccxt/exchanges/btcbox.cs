@@ -233,8 +233,8 @@ public partial class btcbox : Exchange
         {
             object marketId = getValue(marketIds, i);
             object symbolParts = ((string)marketId).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-            object baseCurr = this.safeString(symbolParts, 0);
-            object quote = this.safeString(symbolParts, 1);
+            object baseCurr = this.safeString(symbolParts, 0, "");
+            object quote = this.safeString(symbolParts, 1, "");
             object quoteId = ((string)quote).ToLower();
             object id = ((string)baseCurr).ToLower();
             object res = getValue(response1, marketId);
@@ -392,7 +392,10 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostBalance(parameters);
         return this.parseBalance(response);
     }
@@ -410,10 +413,13 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -462,10 +468,13 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -485,7 +494,10 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetTickers(parameters);
         return this.parseTickers(response, symbols);
     }
@@ -541,10 +553,13 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
-        object numSymbols = getArrayLength(this.symbols);
+        object numSymbols = ((bool) isTrue((isEqual(this.symbols, null)))) ? 0 : getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
             ((IDictionary<string,object>)request)["coin"] = getValue(market, "baseId");
@@ -580,7 +595,10 @@ public partial class btcbox : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "amount", amount },
@@ -611,7 +629,10 @@ public partial class btcbox : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
         if (isTrue(isEqual(symbol, null)))
         {
@@ -638,6 +659,10 @@ public partial class btcbox : Exchange
             { "closed", "closed" },
             { "no", "closed" },
         };
+        if (isTrue(isEqual(status, null)))
+        {
+            return null;
+        }
         return this.safeString(statuses, status, status);
     }
 
@@ -716,7 +741,10 @@ public partial class btcbox : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
         if (isTrue(isEqual(symbol, null)))
         {
@@ -746,8 +774,15 @@ public partial class btcbox : Exchange
     public async virtual Task<object> fetchOrdersByType(object type, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // a special case for btcbox – default symbol is BTC/JPY
+        if (isTrue(isEqual(symbol, null)))
+        {
+            symbol = "BTC/JPY";
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "type", type },

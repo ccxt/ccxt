@@ -885,7 +885,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?$id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         if ($symbols !== null) {
             $ids = array();
@@ -899,7 +901,7 @@ class coinsph extends Exchange {
         $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         $options = $this->safe_dict($this->options, 'fetchTickers', array());
         $method = $this->safe_string($options, 'method', $defaultMethod);
-        $tickers = null;
+        $tickers = array();
         if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
             $tickers = $this->publicGetOpenapiQuoteV1TickerPrice($this->extend($request, $params));
         } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -922,7 +924,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -930,7 +934,7 @@ class coinsph extends Exchange {
         $defaultMethod = 'publicGetOpenapiQuoteV1Ticker24hr';
         $options = $this->safe_dict($this->options, 'fetchTicker', array());
         $method = $this->safe_string($options, 'method', $defaultMethod);
-        $ticker = null;
+        $ticker = array();
         if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
             $ticker = $this->publicGetOpenapiQuoteV1TickerPrice($this->extend($request, $params));
         } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
@@ -1031,7 +1035,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1072,7 +1078,9 @@ class coinsph extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe);
         $until = $this->safe_integer($params, 'until');
@@ -1146,7 +1154,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1191,7 +1201,9 @@ class coinsph extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1276,7 +1288,7 @@ class coinsph extends Exchange {
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'qty');
         $type = null;
-        $fee = null;
+        $fee = array();
         $feeCost = $this->safe_string($trade, 'commission');
         if ($feeCost !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'commissionAsset');
@@ -1325,7 +1337,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetOpenapiV1Account($params);
         //
         //     {
@@ -1387,7 +1401,9 @@ class coinsph extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         // todo => add test order low priority
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $testOrder = $this->safe_bool($params, 'test', false);
         $params = $this->omit($params, 'test');
@@ -1450,7 +1466,7 @@ class coinsph extends Exchange {
         }
         $request['newOrderRespType'] = $newOrderRespType;
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
-        $response = null;
+        $response = array();
         if ($testOrder) {
             $response = $this->privatePostOpenapiV1OrderTest($this->extend($request, $params));
         } else {
@@ -1497,7 +1513,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1522,7 +1540,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -1548,7 +1568,9 @@ class coinsph extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1575,7 +1597,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $clientOrderId = $this->safe_value_2($params, 'origClientOrderId', 'clientOrderId');
         if ($clientOrderId !== null) {
@@ -1601,7 +1625,9 @@ class coinsph extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         $request = array();
         if ($symbol !== null) {
@@ -1720,6 +1746,9 @@ class coinsph extends Exchange {
             'BUY' => 'buy',
             'SELL' => 'sell',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1728,6 +1757,9 @@ class coinsph extends Exchange {
             'buy' => 'BUY',
             'sell' => 'SELL',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1741,6 +1773,9 @@ class coinsph extends Exchange {
             'TAKE_PROFIT' => 'market',
             'TAKE_PROFIT_LIMIT' => 'limit',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1754,6 +1789,9 @@ class coinsph extends Exchange {
             'take_profit' => 'TAKE_PROFIT',
             'take_profit_limit' => 'TAKE_PROFIT_LIMIT',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1766,6 +1804,9 @@ class coinsph extends Exchange {
             'PARTIALLY_CANCELED' => 'canceled',
             'REJECTED' => 'rejected',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1775,6 +1816,9 @@ class coinsph extends Exchange {
             'FOK' => 'FOK',
             'IOC' => 'IOC',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -1788,7 +1832,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -1816,7 +1862,9 @@ class coinsph extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$fee-structure $fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetOpenapiV1AssetTradeFee($params);
         //
         //     array(
@@ -1836,7 +1884,9 @@ class coinsph extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $fee = $this->parse_trading_fee($response[$i]);
             $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
+            if ($symbol !== null) {
+                $result[$symbol] = $fee;
+            }
         }
         return $result;
     }
@@ -1881,11 +1931,13 @@ class coinsph extends Exchange {
             throw new InvalidAddress($this->id . " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account");
         }
         $networkCode = $this->safe_string($params, 'network');
-        $networkId = $this->network_code_to_id($networkCode, $code);
+        $networkId = ($networkCode === null) ? null : $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' withdraw() require network parameter');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -1914,7 +1966,9 @@ class coinsph extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         // todo => returns an empty array - find out why
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -1972,7 +2026,9 @@ class coinsph extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structures~
          */
         // todo => returns an empty array - find out why
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = null;
         $request = array();
         if ($code !== null) {
@@ -2122,6 +2178,9 @@ class coinsph extends Exchange {
             '2' => 'failed',
             '3' => 'pending',
         );
+        if ($status === null) {
+            return null;
+        }
         return $this->safe_string($statuses, $status, $status);
     }
 
@@ -2137,11 +2196,13 @@ class coinsph extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         $networkCode = $this->safe_string($params, 'network');
-        $networkId = $this->network_code_to_id($networkCode, $code);
+        $networkId = ($networkCode === null) ? null : $this->network_code_to_id($networkCode, $code);
         if ($networkId === null) {
             throw new BadRequest($this->id . ' fetchDepositAddress() require network parameter');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],

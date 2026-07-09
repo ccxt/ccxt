@@ -60,7 +60,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async virtual Task<object> subscribe(object name, object symbol = null, object messageHashStart = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object messageHash = messageHashStart;
         object productIds = new List<object>() {};
@@ -89,7 +92,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         symbols = this.marketSymbols(symbols);
         object messageHashes = new List<object>() {};
@@ -143,7 +149,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object symbolsLength = getArrayLength(symbols);
         if (isTrue(isEqual(symbolsLength, 0)))
         {
@@ -174,7 +183,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object name = "matches";
         object trades = await this.subscribe(name, symbol, name, parameters);
@@ -203,7 +215,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new BadRequest ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object name = "matches";
         object trades = await this.subscribeMultiple(name, symbols, name, parameters);
@@ -233,7 +248,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchMyTrades() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object name = "user";
         object messageHash = "myTrades";
@@ -260,7 +278,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     {
         parameters ??= new Dictionary<string, object>();
         symbols = this.marketSymbols(symbols, null, false);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object name = "user";
         object messageHash = "myTrades";
         object authentication = this.authenticate();
@@ -287,7 +308,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     public async override Task<object> watchOrdersForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object name = "user";
         object messageHash = "orders";
@@ -319,7 +343,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new BadSymbol ((string)add(this.id, " watchMyTrades requires a symbol")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object name = "user";
         object messageHash = "orders";
@@ -350,7 +377,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             throw new BadRequest ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         object name = "level2";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object marketIds = this.marketIds(symbols);
         object messageHashes = new List<object>() {};
@@ -390,7 +420,10 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
     {
         parameters ??= new Dictionary<string, object>();
         object name = "level2";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add(add(name, ":"), getValue(market, "id"));

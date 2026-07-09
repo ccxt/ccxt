@@ -49,7 +49,10 @@ public partial class luno : ccxt.luno
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object subscriptionHash = add("/stream/", getValue(market, "id"));
@@ -158,7 +161,10 @@ public partial class luno : ccxt.luno
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object subscriptionHash = add("/stream/", getValue(market, "id"));

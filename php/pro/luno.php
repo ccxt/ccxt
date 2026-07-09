@@ -52,7 +52,9 @@ class luno extends \ccxt\async\luno {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $this->check_required_credentials();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $subscriptionHash = '/stream/' . $market['id'];
@@ -152,7 +154,9 @@ class luno extends \ccxt\async\luno {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $this->check_required_credentials();
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $subscriptionHash = '/stream/' . $market['id'];

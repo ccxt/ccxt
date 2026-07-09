@@ -60,9 +60,11 @@ func  (this *NdaxCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
             var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes548 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes548)
+                retRes5512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes5512)
+            }
             var market any = this.Market(symbol)
             var name any = "SubscribeLevel1"
             var messageHash any = ccxt.Add(ccxt.Add(name, ":"), ccxt.GetValue(market, "id"))
@@ -80,9 +82,9 @@ func  (this *NdaxCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
             }
             var message any = this.Extend(request, params)
         
-                retRes7215 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes7215)
-                ch <- retRes7215
+                retRes7415 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes7415)
+                ch <- retRes7415
                 return nil
         
             }()
@@ -146,9 +148,11 @@ func  (this *NdaxCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any 
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
             var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1248 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1248)
+                retRes12712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes12712)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var name any = "SubscribeTrades"
@@ -206,7 +210,7 @@ func  (this *NdaxCore) HandleTrades(client any, message any)  {
     for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(payload)); i++ {
         var trade any = this.ParseTrade(ccxt.GetValue(payload, i))
         var symbol any = ccxt.GetValue(trade, "symbol")
-        var tradesArray any = this.SafeValue(this.Trades, symbol)
+        var tradesArray any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(symbol, nil))), nil, this.SafeValue(this.Trades, symbol))
         if ccxt.IsTrue(ccxt.IsEqual(tradesArray, nil)) {
             var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
             tradesArray = ccxt.NewArrayCache(limit)
@@ -250,9 +254,11 @@ func  (this *NdaxCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any {
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
             var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2098 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2098)
+                retRes21412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes21412)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var name any = "SubscribeTicker"
@@ -382,9 +388,11 @@ func  (this *NdaxCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
             var omsId any = this.SafeInteger(this.Options, "omsId", 1)
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3408 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3408)
+                retRes34712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes34712)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var name any = "SubscribeLevel2"
@@ -544,7 +552,7 @@ func  (this *NdaxCore) HandleSubscriptionStatus(client any, message any)  {
     //
     var subscriptionsById any = this.IndexBy(client.(ccxt.ClientInterface).GetSubscriptions(), "id")
     var id any = this.SafeInteger(message, "i")
-    var subscription any = this.SafeValue(subscriptionsById, id)
+    var subscription any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(id, nil))), nil, this.SafeValue(subscriptionsById, id))
     if ccxt.IsTrue(!ccxt.IsEqual(subscription, nil)) {
         var method any = this.SafeValue(subscription, "method")
         if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
@@ -591,7 +599,7 @@ func  (this *NdaxCore) HandleMessage(client any, message any)  {
         "TickerDataUpdateEvent": this.HandleOHLCV,
     }
     var event any = this.SafeString(message, "n")
-    var method any = this.SafeValue(methods, event)
+    var method any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(event, nil))), nil, this.SafeValue(methods, event))
     if ccxt.IsTrue(!ccxt.IsEqual(method, nil)) {
         ccxt.CallDynamically(method, client, message)
     }

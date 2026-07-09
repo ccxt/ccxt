@@ -85,7 +85,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_required_credentials();
             $market = null;
             $messageHash = $name;
@@ -147,7 +149,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_required_credentials();
             if ($this->is_empty($symbols)) {
                 $symbols = $this->symbols;
@@ -193,7 +197,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->subscribe('RISK', array( $symbol ), $params));
         })();
     }
@@ -212,7 +218,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             if ($symbols === null) {
                 throw new ArgumentsRequired($this->id . ' watchFundingRates() requires an array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $fundingRate = Async\await($this->subscribe_multiple('RISK', $symbols, $params));
             $symbol = $this->safe_string($fundingRate, 'symbol');
             if ($this->newUpdates) {
@@ -236,7 +244,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {string} [$params->channel] the $channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
             return Async\await($this->subscribe($channel, array( $symbol ), $params));
@@ -268,7 +278,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {string} [$params->channel] the $channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTickers', 'channel', 'LEVEL1');
             $ticker = Async\await($this->subscribe($channel, $symbols, $params));
@@ -478,7 +490,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $options = $this->safe_dict($this->options, 'timeframes', array());
@@ -557,7 +571,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false, true, true);
             $trades = Async\await($this->subscribe_multiple('MATCH', $symbols, $params));
             if ($this->newUpdates) {
@@ -659,7 +675,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->subscribe_multiple('LEVEL2', $symbols, $params));
         })();
     }

@@ -49,7 +49,8 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://github.com/ccxt/ccxt/wiki/Manual#public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
@@ -73,7 +74,8 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'trade:' + market['symbol']
@@ -164,7 +166,8 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
@@ -186,7 +189,8 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
@@ -260,7 +264,8 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'ohlcv:' + market['symbol']
@@ -287,7 +292,8 @@ class dydx(ccxt.async_support.dydx):
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']
         market = self.market(symbol)
         messageHash = 'ohlcv:' + market['symbol']

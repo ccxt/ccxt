@@ -25,7 +25,7 @@ declare function fetchBestBidAsk(exchange: any, method: any, symbol: any): Promi
 declare function fetchOrder(exchange: any, symbol: any, orderId: any, skippedProperties: any): Promise<Order>;
 declare function assertOrderState(exchange: any, skippedProperties: any, method: any, order: any, assertedStatus: any, strictCheck: any): void;
 declare function getActiveMarkets(exchange: any, includeUnknown?: boolean): any;
-declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): any[];
+declare function removeProxyOptions(exchange: Exchange, skippedProperties: object): string[];
 declare function setProxyOptions(exchange: Exchange, skippedProperties: object, proxyUrl: string, httpProxy: string, httpsProxy: string, socksProxy: string): void;
 declare function concat(a?: any[], b?: any[]): any[];
 declare function assertNonEmtpyArray(exchange: Exchange, skippedProperties: object, method: string, entry: any[] | object, hint?: Str): void;
@@ -33,6 +33,7 @@ declare function assertRoundMinuteTimestamp(exchange: Exchange, skippedPropertie
 declare function deepEqual(exchange: Exchange, a: any, b: any): boolean;
 declare function assertDeepEqual(exchange: Exchange, skippedProperties: any, method: string, a: any, b: any): void;
 declare function exchangeProp(exchange: Exchange, key: string, defaultValue?: any): any;
+declare function validateTickerExceptionForPercentage(ex: any, exchange: Exchange, ticker: any): Promise<void>;
 declare const _default: {
     exchangeProp: typeof exchangeProp;
     deepEqual: typeof deepEqual;
@@ -67,5 +68,6 @@ declare const _default: {
     assertRoundMinuteTimestamp: typeof assertRoundMinuteTimestamp;
     concat: typeof concat;
     getActiveMarkets: typeof getActiveMarkets;
+    validateTickerExceptionForPercentage: typeof validateTickerExceptionForPercentage;
 };
 export default _default;

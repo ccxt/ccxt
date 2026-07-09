@@ -77,7 +77,6 @@ class bitget extends bitget$1["default"] {
                 'watchTrades': {
                     'ignoreDuplicates': true,
                 },
-                'uta': false,
             },
             'streaming': {
                 'ping': this.ping,
@@ -118,7 +117,7 @@ class bitget extends bitget$1["default"] {
         let instypeAux = undefined;
         [instypeAux, params] = this.handleOptionAndParams(params, methodName, 'instType', instType);
         instType = instypeAux;
-        if (uta) {
+        if (uta && (instType !== undefined)) {
             instType = instType.toLowerCase();
         }
         return [instType, params];
@@ -136,7 +135,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
@@ -164,7 +165,9 @@ class bitget extends bitget$1["default"] {
      * @returns {any} status of the unwatch request
      */
     async unWatchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         return await this.unWatchChannel(symbol, 'ticker', 'ticker', 'watchTicker', params);
     }
     /**
@@ -180,8 +183,13 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const market = this.market(symbols[0]);
         let instType = undefined;
         let uta = undefined;
@@ -269,7 +277,9 @@ class bitget extends bitget$1["default"] {
         this.handleBidAsk(client, message);
         const ticker = this.parseWsTicker(message);
         const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.tickers[symbol] = ticker;
+        }
         const messageHash = 'ticker:' + symbol;
         client.resolve(ticker, messageHash);
     }
@@ -416,8 +426,13 @@ class bitget extends bitget$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, undefined, false);
+        if (symbols === undefined) {
+            symbols = [];
+        }
         const market = this.market(symbols[0]);
         let instType = undefined;
         let uta = undefined;
@@ -449,7 +464,9 @@ class bitget extends bitget$1["default"] {
     handleBidAsk(client, message) {
         const ticker = this.parseWsBidAsk(message);
         const symbol = ticker['symbol'];
-        this.bidsasks[symbol] = ticker;
+        if (symbol !== undefined) {
+            this.bidsasks[symbol] = ticker;
+        }
         const messageHash = 'bidask:' + symbol;
         client.resolve(ticker, messageHash);
     }
@@ -491,7 +508,9 @@ class bitget extends bitget$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const timeframes = this.safeValue(this.options, 'timeframes');
@@ -536,14 +555,13 @@ class bitget extends bitget$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const timeframes = this.safeDict(this.options, 'timeframes');
         const interval = this.safeString(timeframes, timeframe);
         let channel = undefined;
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market(symbol);
-        }
+        const market = this.market(symbol);
         let instType = undefined;
         let messageHash = undefined;
         const values = this.handleOptionAndParams(params, 'watchOHLCV', 'uta', false);
@@ -628,7 +646,7 @@ class bitget extends bitget$1["default"] {
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        const channel = this.safeString2(arg, 'channel', 'topic');
+        const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
         if (interval === undefined) {
@@ -640,6 +658,9 @@ class bitget extends bitget$1["default"] {
         }
         const timeframes = this.safeValue(this.options, 'timeframes');
         const timeframe = this.findTimeframe(interval, timeframes);
+        if (timeframe === undefined) {
+            return;
+        }
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -685,7 +706,10 @@ class bitget extends bitget$1["default"] {
         //         "turnover": "4616746.46654"
         //     }
         //
-        const volumeIndex = (market['inverse']) ? 6 : 5;
+        let volumeIndex = 5;
+        if ((market !== undefined) && market['inverse']) {
+            volumeIndex = 6;
+        }
         return [
             this.safeInteger2(ohlcv, 'start', 0),
             this.safeNumber2(ohlcv, 'open', 1),
@@ -725,7 +749,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async unWatchOrderBook(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let channel = 'books';
         const limit = this.safeInteger(params, 'limit');
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
@@ -735,7 +761,9 @@ class bitget extends bitget$1["default"] {
         return await this.unWatchChannel(symbol, channel, 'orderbook', 'watchOrderBook', params);
     }
     async unWatchChannel(symbol, channel, messageHashTopic, methodName, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'unsubscribe:' + messageHashTopic + ':' + market['symbol'];
         let instType = undefined;
@@ -772,7 +800,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let channel = 'books';
         let incrementalFeed = true;
@@ -858,7 +888,7 @@ class bitget extends bitget$1["default"] {
         // }
         //
         const arg = this.safeValue(message, 'arg');
-        const channel = this.safeString2(arg, 'channel', 'topic');
+        const channel = this.safeString2(arg, 'channel', 'topic', '');
         const instType = this.safeStringLower(arg, 'instType');
         const marketType = (instType === 'spot') ? 'spot' : 'contract';
         const marketId = this.safeString2(arg, 'instId', 'symbol');
@@ -987,7 +1017,9 @@ class bitget extends bitget$1["default"] {
         if (symbolsLength === 0) {
             throw new errors.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'watchTradesForSymbols', 'uta', false);
@@ -1253,7 +1285,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = '';
         const subscriptionHash = 'positions';
@@ -1261,7 +1295,7 @@ class bitget extends bitget$1["default"] {
         let uta = undefined;
         [uta, params] = this.handleOptionAndParams(params, 'watchPositions', 'uta', false);
         symbols = this.marketSymbols(symbols);
-        if (!this.isEmpty(symbols)) {
+        if ((symbols !== undefined) && !this.isEmpty(symbols)) {
             market = this.getMarketFromSymbols(symbols);
             [instType, params] = this.getInstType('watchPositions', market, uta, params);
         }
@@ -1516,7 +1550,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let marketId = undefined;
         let isTrigger = undefined;
@@ -1683,7 +1719,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const arg = this.safeDict(message, 'arg', {});
-        const channel = this.safeString2(arg, 'channel', 'topic');
+        const channel = this.safeString2(arg, 'channel', 'topic', '');
         const instType = this.safeStringLower(arg, 'instType');
         const argInstId = this.safeString(arg, 'instId');
         let marketType = undefined;
@@ -1718,7 +1754,9 @@ class bitget extends bitget$1["default"] {
             const parsed = this.parseWsOrder(order, market);
             stored.append(parsed);
             const symbol = parsed['symbol'];
-            marketSymbols[symbol] = true;
+            if (symbol !== undefined) {
+                marketSymbols[symbol] = true;
+            }
         }
         const keys = Object.keys(marketSymbols);
         for (let i = 0; i < keys.length; i++) {
@@ -1933,7 +1971,8 @@ class bitget extends bitget$1["default"] {
             // for spot trigger order, limit price is this
             price = this.safeNumber(order, 'executePrice');
         }
-        const avgPrice = this.omitZero(this.safeStringLowerN(order, ['priceAvg', 'fillPrice', 'avgPrice']));
+        const avgPriceString = this.safeStringLowerN(order, ['priceAvg', 'fillPrice', 'avgPrice']);
+        const avgPrice = (avgPriceString === undefined) ? undefined : this.omitZero(avgPriceString);
         const side = this.safeString(order, 'side');
         const type = this.safeString(order, 'orderType');
         const accBaseVolume = this.omitZero(this.safeString2(order, 'accBaseVolume', 'cumExecQty'));
@@ -2031,7 +2070,9 @@ class bitget extends bitget$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
@@ -2256,7 +2297,8 @@ class bitget extends bitget$1["default"] {
         else {
             params = this.extend(params, { 'uta': true });
         }
-        const messageHash = 'balance:' + instType.toLowerCase();
+        const instTypeLower = (instType === undefined) ? '' : instType.toLowerCase();
+        const messageHash = 'balance:' + instTypeLower;
         return await this.watchPrivate(uta, messageHash, messageHash, args, params);
     }
     handleBalance(client, message) {
@@ -2452,7 +2494,7 @@ class bitget extends bitget$1["default"] {
     }
     async authenticate(params = {}) {
         this.checkRequiredCredentials();
-        const url = this.safeString(params, 'url');
+        const url = this.safeString(params, 'url', '');
         const client = this.client(url);
         const messageHash = 'authenticated';
         const future = client.reusableFuture(messageHash);
@@ -2789,7 +2831,7 @@ class bitget extends bitget$1["default"] {
         const instType = this.safeStringLower(arg, 'instType');
         const type = (instType === 'spot') ? 'spot' : 'contract';
         const instId = this.safeString2(arg, 'instId', 'symbol');
-        const channel = this.safeString2(arg, 'channel', 'topic');
+        const channel = this.safeString2(arg, 'channel', 'topic', '');
         let interval = this.safeString(arg, 'interval');
         let isUta = undefined;
         if (interval === undefined) {
@@ -2814,7 +2856,7 @@ class bitget extends bitget$1["default"] {
             subMessageHash = 'candles:' + timeframe + ':' + symbol;
         }
         if (symbol in this.ohlcvs) {
-            if (timeframe in this.ohlcvs[symbol]) {
+            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
@@ -2846,7 +2888,7 @@ class bitget extends bitget$1["default"] {
         }
         for (let i = 0; i < argsList.length; i++) {
             const arg = argsList[i];
-            const channel = this.safeString2(arg, 'channel', 'topic');
+            const channel = this.safeString2(arg, 'channel', 'topic', '');
             if (channel.indexOf('books') >= 0) {
                 // for now only unWatchOrderBook is supporteod
                 this.handleOrderBookUnSubscription(client, message);

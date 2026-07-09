@@ -54,7 +54,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'SubscribeLevel1';
             $messageHash = $name . ':' . $market['id'];
@@ -126,7 +128,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeTrades';
@@ -179,7 +183,7 @@ class ndax extends \ccxt\async\ndax {
         for ($i = 0; $i < count($payload); $i++) {
             $trade = $this->parse_trade($payload[$i]);
             $symbol = $trade['symbol'];
-            $tradesArray = $this->safe_value($this->trades, $symbol);
+            $tradesArray = ($symbol === null) ? null : $this->safe_value($this->trades, $symbol);
             if ($tradesArray === null) {
                 $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
                 $tradesArray = new ArrayCache($limit);
@@ -213,7 +217,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeTicker';
@@ -346,7 +352,9 @@ class ndax extends \ccxt\async\ndax {
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
             $omsId = $this->safe_integer($this->options, 'omsId', 1);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $name = 'SubscribeLevel2';
@@ -504,7 +512,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $id = $this->safe_integer($message, 'i');
-        $subscription = $this->safe_value($subscriptionsById, $id);
+        $subscription = ($id === null) ? null : $this->safe_value($subscriptionsById, $id);
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {
@@ -552,7 +560,7 @@ class ndax extends \ccxt\async\ndax {
             'TickerDataUpdateEvent' => array($this, 'handle_ohlcv'),
         );
         $event = $this->safe_string($message, 'n');
-        $method = $this->safe_value($methods, $event);
+        $method = ($event === null) ? null : $this->safe_value($methods, $event);
         if ($method !== null) {
             $method($client, $message);
         }
