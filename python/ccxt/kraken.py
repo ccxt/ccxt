@@ -134,7 +134,7 @@ class kraken(Exchange, ImplicitAPI):
                     'zendesk': 'https://kraken.zendesk.com/api/v2/help_center/en-us/articles',  # use the public zendesk api to receive article bodies and bypass new anti-spam protections
                 },
                 'www': 'https://www.kraken.com',
-                'doc': 'https://docs.kraken.com/rest/',
+                'doc': 'https://docs.kraken.com/api-reference/',
                 'fees': 'https://www.kraken.com/en-us/features/fee-schedule',
             },
             'fees': {
@@ -189,7 +189,6 @@ class kraken(Exchange, ImplicitAPI):
                         'Ticker': 1,
                         'OHLC': 1.2,  # 1.2 because 1 triggers too many requests immediately
                         'Depth': 1.2,
-                        'Level3': 1.2,
                         'GroupedBook': 1.2,
                         'Trades': 1.2,
                         'Spread': 1,
@@ -199,6 +198,7 @@ class kraken(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'post': {
+                        'Level3': 1.2,
                         # account
                         'Balance': 3,
                         'BalanceEx': 3,
@@ -601,7 +601,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         retrieves data on all markets for kraken
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTradableAssetPairs
+        https://docs.kraken.com/api-reference/market-data/get-tradable-asset-pairs
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
@@ -762,7 +762,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         the latest known information on the availability of the exchange API
 
-        https://docs.kraken.com/api/docs/rest-api/get-system-status/
+        https://docs.kraken.com/api-reference/market-data/get-system-status
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/?id=exchange-status-structure>`
@@ -788,7 +788,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches all available currencies on an exchange
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getAssetInfo
+        https://docs.kraken.com/api-reference/market-data/get-asset-info
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
@@ -920,7 +920,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch the trading fees for a market
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradeVolume
+        https://docs.kraken.com/api-reference/account-data/get-trade-volume
 
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -990,7 +990,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getOrderBook
+        https://docs.kraken.com/api-reference/market-data/get-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -1088,7 +1088,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+        https://docs.kraken.com/api-reference/market-data/get-ticker-information
 
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1122,7 +1122,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getTickerInformation
+        https://docs.kraken.com/api-reference/market-data/get-ticker-information
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1164,7 +1164,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.kraken.com/api/docs/rest-api/get-ohlc-data
+        https://docs.kraken.com/api-reference/market-data/get-ohlc-data
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1278,7 +1278,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getLedgers
+        https://docs.kraken.com/api-reference/account-data/get-ledgers-info
 
         :param str [code]: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
@@ -1502,7 +1502,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getRecentTrades
+        https://docs.kraken.com/api-reference/market-data/get-recent-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -1569,7 +1569,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getExtendedBalance
+        https://docs.kraken.com/api-reference/account-data/get-extended-balance
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
@@ -1598,7 +1598,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         create a market order by providing the symbol, side and cost
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+        https://docs.kraken.com/api-reference/trading/add-order
 
         :param str symbol: unified symbol of the market to create an order in(only USD markets are supported)
         :param str side: 'buy' or 'sell'
@@ -1618,7 +1618,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         create a market buy order by providing the symbol, side and cost
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
+        https://docs.kraken.com/api-reference/trading/add-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
@@ -1633,7 +1633,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         create a trade order
 
-        https://docs.kraken.com/api/docs/rest-api/add-order
+        https://docs.kraken.com/api-reference/trading/add-order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1686,7 +1686,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         create a list of trade orders
 
-        https://docs.kraken.com/api/docs/rest-api/add-order-batch/
+        https://docs.kraken.com/api-reference/trading/add-order-batch
 
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2164,7 +2164,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         edit a trade order
 
-        https://docs.kraken.com/api/docs/rest-api/amend-order
+        https://docs.kraken.com/api-reference/trading/amend-order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -2231,7 +2231,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getOrdersInfo
+        https://docs.kraken.com/api-reference/account-data/query-orders-info
 
         :param str id: order id
         :param str symbol: not used by kraken fetchOrder
@@ -2297,7 +2297,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all the trades made from a single order
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getTradesInfo
+        https://docs.kraken.com/api-reference/account-data/query-trades-info
 
         :param str id: order id
         :param str symbol: unified market symbol
@@ -2371,7 +2371,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch orders by the list of order id
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getClosedOrders
+        https://docs.kraken.com/api-reference/account-data/get-closed-orders
 
         :param str[] [ids]: list of order id
         :param str [symbol]: unified ccxt market symbol
@@ -2398,7 +2398,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all trades made by the user
 
-        https://docs.kraken.com/api/docs/rest-api/get-trade-history
+        https://docs.kraken.com/api-reference/account-data/get-trades-history
 
         :param str symbol: unified market symbol
         :param int [since]: the earliest time in ms to fetch trades for
@@ -2466,7 +2466,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         cancels an open order
 
-        https://docs.kraken.com/api/docs/rest-api/cancel-order
+        https://docs.kraken.com/api-reference/trading/cancel-order
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
@@ -2511,7 +2511,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         cancel multiple orders
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
+        https://docs.kraken.com/api-reference/trading/cancel-order-batch
 
         :param str[] ids: open orders transaction ID(txid) or user reference(userref)
         :param str symbol: unified market symbol
@@ -2540,7 +2540,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         cancel all open orders
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
+        https://docs.kraken.com/api-reference/trading/cancel-all-orders
 
         :param str symbol: unified market symbol, not used by kraken cancelAllOrders(all open orders are cancelled)
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2567,7 +2567,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         dead man's switch, cancel all orders after the given timeout
 
-        https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrdersAfter
+        https://docs.kraken.com/api-reference/trading/cancel-all-orders-after-x
 
         :param number timeout: time in milliseconds, 0 represents cancel the timer
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -2596,7 +2596,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all unfilled currently open orders
 
-        https://docs.kraken.com/api/docs/rest-api/get-open-orders
+        https://docs.kraken.com/api-reference/account-data/get-open-orders
 
         :param str [symbol]: unified market symbol
         :param int [since]: the earliest time in ms to fetch open orders for
@@ -2674,7 +2674,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches information on multiple closed orders made by the user
 
-        https://docs.kraken.com/api/docs/rest-api/get-closed-orders
+        https://docs.kraken.com/api-reference/account-data/get-closed-orders
 
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -2887,7 +2887,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all deposits made to an account
 
-        https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentDeposits
+        https://docs.kraken.com/api-reference/funding/get-status-of-recent-deposits
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -2932,7 +2932,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
-        https://docs.kraken.com/rest/#tag/Spot-Market-Data/operation/getServerTime
+        https://docs.kraken.com/api-reference/market-data/get-server-time
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
@@ -2955,7 +2955,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all withdrawals made from an account
 
-        https://docs.kraken.com/rest/#tag/Funding/operation/getStatusRecentWithdrawals
+        https://docs.kraken.com/api-reference/funding/get-status-of-recent-withdrawals
 
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch withdrawals for
@@ -3046,7 +3046,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         create a currency deposit address
 
-        https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+        https://docs.kraken.com/api-reference/funding/get-deposit-addresses
 
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3061,7 +3061,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch deposit methods for a currency associated with self account
 
-        https://docs.kraken.com/rest/#tag/Funding/operation/getDepositMethods
+        https://docs.kraken.com/api-reference/funding/get-deposit-methods
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the kraken api endpoint
@@ -3103,7 +3103,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch the deposit address for a currency associated with self account
 
-        https://docs.kraken.com/rest/#tag/Funding/operation/getDepositAddresses
+        https://docs.kraken.com/api-reference/funding/get-deposit-addresses
 
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3179,7 +3179,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         make a withdrawal
 
-        https://docs.kraken.com/rest/#tag/Funding/operation/withdrawFunds
+        https://docs.kraken.com/api-reference/funding/withdraw-funds
 
         :param str code: unified currency code
         :param float amount: the amount to withdraw
@@ -3217,7 +3217,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         fetch all open positions
 
-        https://docs.kraken.com/rest/#tag/Account-Data/operation/getOpenPositions
+        https://docs.kraken.com/api-reference/account-data/get-open-positions
 
         :param str[] [symbols]: not used by kraken fetchPositions()
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3341,7 +3341,7 @@ class kraken(Exchange, ImplicitAPI):
         """
         transfer from spot wallet to futures wallet
 
-        https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+        https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
 
         :param str code: Unified currency code
         :param float amount: Size of the transfer
@@ -3353,7 +3353,7 @@ class kraken(Exchange, ImplicitAPI):
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
 
-        https://docs.kraken.com/rest/#tag/User-Funding/operation/walletTransfer
+        https://docs.kraken.com/api-reference/transfers/initiate-wallet-transfer
 
         transfers currencies between sub-accounts(only spot->swap direction is supported)
         :param str code: Unified currency code

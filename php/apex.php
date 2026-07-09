@@ -228,7 +228,6 @@ class apex extends Exchange {
             'commonCurrencies' => array(),
             'options' => array(
                 'defaultType' => 'swap',
-                'defaultSlippage' => 0.05,
                 'brokerId' => '6956',
             ),
             'features' => array(

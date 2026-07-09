@@ -1038,6 +1038,9 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1063,6 +1066,9 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbol, $timeframe, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-channel
+             *
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1079,6 +1085,9 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-$channel
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
@@ -1126,6 +1135,9 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbolsAndTimeframes, $params) {
             /**
              * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             *
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-candlesticks-$channel
+             *
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
@@ -2329,7 +2341,7 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              *
-             * @see https://okx-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-order
              *
              * cancel multiple orders
              * @param {string} $id order $id
@@ -2372,7 +2384,7 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              *
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-cancel-multiple-orders
              *
              * cancel multiple orders
              * @param {string[]} $ids order $ids
@@ -2418,7 +2430,7 @@ class okx extends \ccxt\async\okx {
         return Async\async(function () use ($symbol, $params) {
             /**
              *
-             * @see https://docs.okx.com/websockets/#message-cancelAll
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-ws-mass-cancel-order
              *
              * cancel all open orders of a type. Only applicable to Option in Portfolio Margin mode, and MMP privilege is required.
              * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null

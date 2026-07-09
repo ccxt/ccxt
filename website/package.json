@@ -18,6 +18,7 @@
     "ai": "^6.0.195",
     "ccxt": "^4.5.58",
     "class-variance-authority": "^0.7.1",
+    "feed": "^6.0.0",
     "flexsearch": "^0.8.212",
     "fumadocs-core": "16.9.2",
     "fumadocs-mdx": "15.0.9",

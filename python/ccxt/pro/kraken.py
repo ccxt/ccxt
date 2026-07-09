@@ -260,7 +260,7 @@ class kraken(ccxt.async_support.kraken):
         """
         create a trade order
 
-        https://docs.kraken.com/api/docs/websocket-v2/add_order
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/add_order
 
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -326,7 +326,7 @@ class kraken(ccxt.async_support.kraken):
         """
         edit a trade order
 
-        https://docs.kraken.com/api/docs/websocket-v2/amend_order
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/amend_order
 
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
@@ -358,7 +358,7 @@ class kraken(ccxt.async_support.kraken):
         """
         cancel multiple orders
 
-        https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
 
         :param str[] ids: order ids
         :param str [symbol]: unified market symbol, default is None
@@ -386,7 +386,7 @@ class kraken(ccxt.async_support.kraken):
         """
         cancels an open order
 
-        https://docs.kraken.com/api/docs/websocket-v2/cancel_order
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_order
 
         :param str id: order id
         :param str [symbol]: unified symbol of the market the order was made in
@@ -430,7 +430,7 @@ class kraken(ccxt.async_support.kraken):
         """
         cancel all open orders
 
-        https://docs.kraken.com/api/docs/websocket-v2/cancel_all
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/cancel_all
 
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -625,7 +625,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.kraken.com/api/docs/websocket-v2/ticker
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
 
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -640,7 +640,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
-        https://docs.kraken.com/api/docs/websocket-v2/ticker
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
 
         :param str[] symbols:
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -659,7 +659,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches best bid & ask for symbols
 
-        https://docs.kraken.com/api/docs/websocket-v2/ticker
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ticker
 
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -679,7 +679,7 @@ class kraken(ccxt.async_support.kraken):
         """
         get the list of most recent trades for a particular symbol
 
-        https://docs.kraken.com/api/docs/websocket-v2/trade
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
 
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -693,7 +693,7 @@ class kraken(ccxt.async_support.kraken):
         """
         get the list of most recent trades for a list of symbols
 
-        https://docs.kraken.com/api/docs/websocket-v2/trade
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/trade
 
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -712,7 +712,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.kraken.com/api/docs/websocket-v2/book
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -725,7 +725,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
-        https://docs.kraken.com/api/docs/websocket-v2/book
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/book
 
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
@@ -745,7 +745,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
-        https://docs.kraken.com/api/docs/websocket-v2/ohlc
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/ohlc
 
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1049,7 +1049,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on multiple trades made by the user
 
-        https://docs.kraken.com/api/docs/websocket-v2/executions
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
 
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
@@ -1172,7 +1172,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watches information on multiple orders made by the user
 
-        https://docs.kraken.com/api/docs/websocket-v2/executions
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/executions
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -1345,7 +1345,7 @@ class kraken(ccxt.async_support.kraken):
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
 
-        https://docs.kraken.com/api/docs/websocket-v2/balances
+        https://docs.kraken.com/exchange/api-reference/spot-websocket-v2/balances
 
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`

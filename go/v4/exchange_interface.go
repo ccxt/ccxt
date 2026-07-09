@@ -120,6 +120,7 @@ type ICoreExchange interface {
 	FeatureValue(symbol any, optionalArgs ...any) any
 	Market(symbol any) any
 	Nonce() any
+	Unique(obj any) []any
 	FetchTime(optionalArgs ...any) <-chan any
 	FetchCurrencies(optionalArgs ...any) <-chan any
 	FetchMarkets(optionalArgs ...any) <-chan any

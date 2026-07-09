@@ -7,11 +7,35 @@ RFC 6979:
 
 Many thanks to Coda Hale for his implementation in Go language:
     https://github.com/codahale/rfc6979
+
+Extracted from the python-ecdsa package (https://github.com/warner/python-ecdsa)
+so the STARK curve signing code no longer depends on the full ecdsa package.
 '''
 
+from __future__ import division
+
+import binascii
 import hmac
 from binascii import hexlify
-from .util import number_to_string, number_to_string_crop
+
+
+def orderlen(order):
+    return (1 + len("%x" % order)) // 2  # bytes
+
+
+def number_to_string(num, order):
+    l = orderlen(order)
+    fmt_str = "%0" + str(2 * l) + "x"
+    string = binascii.unhexlify((fmt_str % num).encode())
+    assert len(string) == l, (len(string), l)
+    return string
+
+
+def number_to_string_crop(num, order):
+    l = orderlen(order)
+    fmt_str = "%0" + str(2 * l) + "x"
+    string = binascii.unhexlify((fmt_str % num).encode())
+    return string[:l]
 
 
 def bit_length(num):

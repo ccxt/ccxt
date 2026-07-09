@@ -240,7 +240,6 @@ class apex(Exchange, ImplicitAPI):
             'commonCurrencies': {},
             'options': {
                 'defaultType': 'swap',
-                'defaultSlippage': 0.05,
                 'brokerId': '6956',
             },
             'features': {

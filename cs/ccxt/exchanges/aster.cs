@@ -420,10 +420,12 @@ public partial class aster : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
                 { "recvWindow", multiply(10, 1000) },
-                { "defaultTimeInForce", "GTC" },
                 { "zeroAddress", "0x0000000000000000000000000000000000000000" },
                 { "v3ChainId", 1666 },
-                { "quoteOrderQty", true },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "timeInForce", "GTC" },
+                    { "quoteOrderQty", true },
+                } },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
                     { "swap", "FUTURE" },
@@ -2795,7 +2797,7 @@ public partial class aster : Exchange
         {
             if (isTrue(getValue(market, "spot")))
             {
-                object quoteOrderQty = this.safeBool(this.options, "quoteOrderQty", true);
+                object quoteOrderQty = this.handleOption("createOrder", "quoteOrderQty", true);
                 if (isTrue(quoteOrderQty))
                 {
                     object quoteOrderQtyNew = this.safeString2(parameters, "quoteOrderQty", "cost");
@@ -2887,7 +2889,11 @@ public partial class aster : Exchange
         }
         if (isTrue(isTrue(isTrue(timeInForceIsRequired) && isTrue((isEqual(this.safeString(parameters, "timeInForce"), null)))) && isTrue((isEqual(this.safeString(request, "timeInForce"), null)))))
         {
-            ((IDictionary<string,object>)request)["timeInForce"] = this.safeString(this.options, "defaultTimeInForce"); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            object tif = null;
+            var tifparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+            tif = ((IList<object>)tifparametersVariable)[0];
+            parameters = ((IList<object>)tifparametersVariable)[1];
+            ((IDictionary<string,object>)request)["timeInForce"] = tif;
         }
         object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
         if (isTrue(isTrue(this.safeBool(this.options, "builderFee")) && isTrue(getValue(market, "swap"))))

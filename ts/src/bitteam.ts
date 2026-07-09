@@ -246,9 +246,11 @@ export default class bitteam extends Exchange {
                     'ufobject': 'ufobject',
                     'tonchain': 'tonchain',
                 },
-                'currenciesValuedInUsd': {
-                    'USDT': true,
-                    'BUSD': true,
+                'fetchMarkets': {
+                    'currenciesValuedInUsd': {
+                        'USDT': true,
+                        'BUSD': true,
+                    },
                 },
             },
             'features': {
@@ -467,7 +469,7 @@ export default class bitteam extends Exchange {
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost: Num = undefined;
-        const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
+        const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {}) as Dict;
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});

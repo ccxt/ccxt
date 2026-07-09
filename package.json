@@ -123,10 +123,10 @@
     "fast-force-transpileWs-py": "tsx build/transpileWS.ts --multiprocess --force --python",
     "fast-force-transpileWs-php": "tsx build/transpileWS.ts --multiprocess --force --php",
     "vss": "node build/vss",
-    "lint": "eslint \"ts/src/*.ts\" \"ts/src/base/Exchange.ts\" \"ts/src/pro/*.ts\" --cache --cache-location .cache/eslintcache --cache-strategy metadata",
+    "lint": "node -r ./build/use-typescript6.cjs node_modules/eslint/bin/eslint.js \"ts/src/*.ts\" \"ts/src/base/Exchange.ts\" \"ts/src/pro/*.ts\" --cache --cache-location .cache/eslintcache --cache-strategy metadata",
     "check-syntax": "npm run transpile && npm run check-js-syntax && npm run check-python-syntax && npm run check-php-syntax",
     "check-js-syntax": "node -e \"console.log(process.cwd())\" && eslint --version && npm run lint",
-    "eslint": "eslint",
+    "eslint": "node -r ./build/use-typescript6.cjs node_modules/eslint/bin/eslint.js",
     "check-python-syntax": "cd python && tox -e qa && cd ..",
     "check-python-style": "ruff check ./python/ccxt",
     "check-python-types": "cd python && tox -e type && cd ..",
@@ -263,7 +263,8 @@
     "rollup": "^2.70.1",
     "rollup-plugin-execute": "1.1.1",
     "tsx": "^4.22.4",
-    "typescript": "5.9.3"
+    "typescript": "7.0.2",
+    "typescript6": "npm:typescript@6.0.3"
   },
   "author": {
     "name": "Igor Kroitor",

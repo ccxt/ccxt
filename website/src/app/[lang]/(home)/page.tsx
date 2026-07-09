@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { CodeSwapHero } from '@/components/code-swap-hero';
 import { InstallCommands } from '@/components/install-commands';
 import { CcxtMark } from '@/components/ccxt-mark';
+import { SurveyPopup } from '@/components/survey-popup';
 import { SiDiscord, SiGithub, SiTelegram } from 'react-icons/si';
 import { appName, basePath, gitConfig } from '@/lib/shared';
 import { i18n } from '@/lib/i18n';
@@ -41,6 +42,7 @@ export default async function HomePage(props: PageProps<'/[lang]'>) {
   const prefix = lang === i18n.defaultLanguage ? '' : `/${lang}`;
   return (
     <main className="flex flex-1 flex-col items-center px-4 pt-8 pb-16 sm:pt-10 sm:pb-20">
+      <SurveyPopup />
       {/* hero heading */}
       <div className="mb-10 flex max-w-3xl flex-col items-center text-center">
         <span className="mb-6 inline-flex items-center gap-2 rounded-full border bg-fd-card px-3 py-1.5 text-xs font-medium text-fd-muted-foreground">

@@ -1499,63 +1499,66 @@ class bitget(Exchange, ImplicitAPI):
                 'uta': None,
                 'timeDifference': 0,  # the difference between system clock and Binance clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'timeframes': {
-                    'spot': {
-                        '1m': '1min',
-                        '5m': '5min',
-                        '3m': '3min',
-                        '15m': '15min',
-                        '30m': '30min',
-                        '1h': '1h',
-                        '4h': '4h',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'swap': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6Hutc',
-                        '12h': '12Hutc',
-                        '1d': '1Dutc',
-                        '3d': '3Dutc',
-                        '1w': '1Wutc',
-                        '1M': '1Mutc',
-                    },
-                    'uta': {
-                        '1m': '1m',
-                        '3m': '3m',
-                        '5m': '5m',
-                        '15m': '15m',
-                        '30m': '30m',
-                        '1h': '1H',
-                        '2h': '2H',
-                        '4h': '4H',
-                        '6h': '6H',
-                        '12h': '12H',
-                        '1d': '1D',
-                    },
-                },
                 'fetchMarkets': {
                     'types': ['spot', 'swap'],  # there is future markets but they use the same endpoints
                 },
                 'defaultType': 'spot',  # 'spot', 'swap', 'future'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
-                'createMarketBuyOrderRequiresPrice': True,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                    'timeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
+                },
                 'broker': 'p4sve',
                 'withdraw': {
                     'fillResponseFromRequest': True,
                 },
                 'fetchOHLCV': {
+                    'timeframes': {
+                        'spot': {
+                            '1m': '1min',
+                            '5m': '5min',
+                            '3m': '3min',
+                            '15m': '15min',
+                            '30m': '30min',
+                            '1h': '1h',
+                            '4h': '4h',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'swap': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6Hutc',
+                            '12h': '12Hutc',
+                            '1d': '1Dutc',
+                            '3d': '3Dutc',
+                            '1w': '1Wutc',
+                            '1M': '1Mutc',
+                        },
+                        'uta': {
+                            '1m': '1m',
+                            '3m': '3m',
+                            '5m': '5m',
+                            '15m': '15m',
+                            '30m': '30m',
+                            '1h': '1H',
+                            '2h': '2H',
+                            '4h': '4H',
+                            '6h': '6H',
+                            '12h': '12H',
+                            '1d': '1D',
+                        },
+                    },
                     #  ### Timeframe settings  ###
                     # after testing, the below values are real ones, because the values provided by API DOCS are wrong
                     # so, start timestamp should be within these thresholds to be able to call "recent" candles endpoint
@@ -1729,9 +1732,10 @@ class bitget(Exchange, ImplicitAPI):
                 'fetchPositions': {
                     'method': 'privateMixGetV2MixPositionAllPosition',  # or privateMixGetV2MixPositionHistoryPosition
                 },
-                'defaultTimeInForce': 'GTC',  # 'GTC' = Good To Cancel(default), 'IOC' = Immediate Or Cancel
-                # fiat currencies on deposit page
-                'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
+                'fetchCurrencies': {
+                    # fiat currencies on deposit page
+                    'fiatCurrencies': ['EUR', 'VND', 'PLN', 'CZK', 'HUF', 'DKK', 'AUD', 'CAD', 'NOK', 'SEK', 'CHF', 'MXN', 'COP', 'ARS', 'GBP', 'BRL', 'UAH', 'ZAR'],
+                },
             },
             'rollingWindowSize': 1000.0,
             'features': {
@@ -2514,7 +2518,7 @@ class bitget(Exchange, ImplicitAPI):
         return self.parse_currencies(data)
 
     def parse_currency(self, rawCurrency: dict) -> Currency:
-        fiatCurrencies = self.safe_list(self.options, 'fiatCurrencies', [])
+        fiatCurrencies = self.handle_option('fetchCurrencies', 'fiatCurrencies', [])
         entry = rawCurrency
         id = self.safe_string(entry, 'coin')  # we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints(deposit, withdraw, etc..)
         code = self.safe_currency_code(id)
@@ -4195,14 +4199,15 @@ class bitget(Exchange, ImplicitAPI):
         }
         marketType = None
         timeframes = None
+        timeframesOption = self.handle_option('fetchOHLCV', 'timeframes')
         uta = None
         uta, params = self.handle_uta_and_params(params, 'fetchOHLCV', False)
         if uta:
-            timeframes = self.options['timeframes']['uta']
+            timeframes = timeframesOption['uta']
             request['interval'] = self.safe_string(timeframes, timeframe, timeframe)
         else:
             marketType = 'spot' if market['spot'] else 'swap'
-            timeframes = self.options['timeframes'][marketType]
+            timeframes = timeframesOption[marketType]
             request['granularity'] = self.safe_string(timeframes, timeframe, timeframe)
         msInDay = 86400000
         now = self.milliseconds()
@@ -5133,8 +5138,10 @@ class bitget(Exchange, ImplicitAPI):
             exchangeSpecificTifParam = self.safe_string(params, 'timeInForce')
             postOnly = None
             postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
-            defaultTimeInForce = self.safe_string_upper(self.options, 'defaultTimeInForce')
-            timeInForce = self.safe_string_upper(params, 'timeInForce', defaultTimeInForce)
+            timeInForce = None
+            timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+            if timeInForce is not None:
+                timeInForce = timeInForce.upper()
             if postOnly:
                 request['timeInForce'] = 'post_only'
             elif timeInForce == 'GTC':
@@ -5209,8 +5216,10 @@ class bitget(Exchange, ImplicitAPI):
         exchangeSpecificTifParam = self.safe_string_2(params, 'force', 'timeInForce')
         postOnly = None
         postOnly, params = self.handle_post_only(isMarketOrder, exchangeSpecificTifParam == 'post_only', params)
-        defaultTimeInForce = self.safe_string_upper(self.options, 'defaultTimeInForce')
-        timeInForce = self.safe_string_upper(params, 'timeInForce', defaultTimeInForce)
+        timeInForce = None
+        timeInForce, params = self.handle_option_and_params(params, 'createOrder', 'timeInForce')
+        if timeInForce is not None:
+            timeInForce = timeInForce.upper()
         if postOnly:
             request['force'] = 'post_only'
         elif timeInForce == 'GTC':
@@ -5312,7 +5321,7 @@ class bitget(Exchange, ImplicitAPI):
                     quantity = self.cost_to_precision(symbol, cost)
                 elif createMarketBuyOrderRequiresPrice:
                     if price is None:
-                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to False and pass the cost to spend in the amount argument')
+                        raise InvalidOrder(self.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options["createOrder"] or params to False and pass the cost to spend in the amount argument')
                     else:
                         amountString = self.number_to_string(amount)
                         priceString = self.number_to_string(price)

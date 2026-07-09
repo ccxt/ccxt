@@ -203,7 +203,9 @@ public partial class alpaca : Exchange
             { "options", new Dictionary<string, object>() {
                 { "defaultExchange", "CBSE" },
                 { "exchanges", new List<object>() {"CBSE", "FTX", "GNSS", "ERSX"} },
-                { "defaultTimeInForce", "gtc" },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "timeInForce", "gtc" },
+                } },
                 { "clientOrderId", "ccxt_{id}" },
             } },
             { "features", new Dictionary<string, object>() {
@@ -1031,8 +1033,11 @@ public partial class alpaca : Exchange
         {
             ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
         }
-        object defaultTIF = this.safeString(this.options, "defaultTimeInForce");
-        ((IDictionary<string,object>)request)["time_in_force"] = this.safeString(parameters, "timeInForce", defaultTIF);
+        object defaultTIF = null;
+        var defaultTIFparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+        defaultTIF = ((IList<object>)defaultTIFparametersVariable)[0];
+        parameters = ((IList<object>)defaultTIFparametersVariable)[1];
+        ((IDictionary<string,object>)request)["time_in_force"] = defaultTIF;
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice"});
         ((IDictionary<string,object>)request)["client_order_id"] = this.generateClientOrderId(parameters);
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
@@ -1331,7 +1336,7 @@ public partial class alpaca : Exchange
             ((IDictionary<string,object>)request)["limit_price"] = this.priceToPrecision(symbol, price);
         }
         object timeInForce = null;
-        var timeInForceparametersVariable = this.handleOptionAndParams2(parameters, "editOrder", "timeInForce", "defaultTimeInForce");
+        var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
         timeInForce = ((IList<object>)timeInForceparametersVariable)[0];
         parameters = ((IList<object>)timeInForceparametersVariable)[1];
         if (isTrue(!isEqual(timeInForce, null)))

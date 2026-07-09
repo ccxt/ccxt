@@ -209,7 +209,9 @@ class bigone(Exchange, ImplicitAPI):
                 },
             },
             'options': {
-                'createMarketBuyOrderRequiresPrice': True,
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': True,
+                },
                 'accountsByType': {
                     'spot': 'SPOT',
                     'fund': 'FUND',
@@ -1564,7 +1566,7 @@ class bigone(Exchange, ImplicitAPI):
             request['amount'] = self.amount_to_precision(symbol, amount)
         else:
             if isBuy:
-                createMarketBuyOrderRequiresPrice = True
+                createMarketBuyOrderRequiresPrice = None
                 createMarketBuyOrderRequiresPrice, params = self.handle_option_and_params(params, 'createOrder', 'createMarketBuyOrderRequiresPrice', True)
                 cost = self.safe_number(params, 'cost')
                 params = self.omit(params, 'cost')
