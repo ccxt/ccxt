@@ -17,8 +17,11 @@ function _interopDefaultLegacy (e) { return e && typeof e === 'object' && 'defau
 var WebSocket__default = /*#__PURE__*/_interopDefaultLegacy(WebSocket);
 
 // ----------------------------------------------------------------------------
+// bun's 'ws' polyfill does not implement the 'upgrade' event (https://github.com/oven-sh/bun/issues/5951)
+// which makes the HTTP 101 Switching Protocols response fire the error handler,
+// so under bun we use its native WebSocket implementation instead of the 'ws' package
 // eslint-disable-next-line no-restricted-globals
-const WebSocketPlatform = platform.isNode || !misc.selfIsDefined() ? WebSocket__default["default"] : self.WebSocket;
+const WebSocketPlatform = platform.isBun ? globalThis.WebSocket : (platform.isNode || !misc.selfIsDefined() ? WebSocket__default["default"] : self.WebSocket);
 class WsClient extends Client["default"] {
     constructor() {
         super(...arguments);
@@ -45,7 +48,16 @@ class WsClient extends Client["default"] {
             connectionHeaders['Cookie'] = cookieStr;
             this.options['headers'] = Object.assign(this.options['headers'] || {}, connectionHeaders);
         }
-        if (platform.isNode) {
+        if (platform.isBun) {
+            // bun's native WebSocket supports non-standard options like 'headers'
+            const bunOptions = { 'protocols': this.protocols };
+            if (this.options && this.options['headers']) {
+                bunOptions['headers'] = this.options['headers'];
+            }
+            this.connection = new WebSocketPlatform(this.url, bunOptions);
+            this.connection.binaryType = 'nodebuffer'; // bun extension, keeps binary messages as Buffer like the 'ws' package
+        }
+        else if (platform.isNode) {
             // this patch yields the event loop between messages
             // which prevents starving futures with multiple synchronous message events
             this.options = this.options || {};
@@ -60,7 +72,7 @@ class WsClient extends Client["default"] {
         this.connection.onmessage = this.onMessage.bind(this);
         this.connection.onerror = this.onError.bind(this);
         this.connection.onclose = this.onClose.bind(this);
-        if (platform.isNode) {
+        if (platform.isNode && !platform.isBun) {
             this.connection
                 .on('ping', this.onPing.bind(this))
                 .on('pong', this.onPong.bind(this))

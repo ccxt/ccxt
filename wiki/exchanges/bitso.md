@@ -7,6 +7,7 @@
 
 * [fetchLedger](#fetchledger)
 * [fetchMarkets](#fetchmarkets)
+* [fetchCurrencies](#fetchcurrencies)
 * [fetchBalance](#fetchbalance)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTicker](#fetchticker)
@@ -67,6 +68,26 @@ retrieves data on all markets for bitso
 
 ```javascript
 bitso.fetchMarkets (params?)
+```
+
+
+<a name="fetchCurrencies" id="fetchcurrencies"></a>
+
+### fetchCurrencies{docsify-ignore}
+fetches all available currencies on an exchange
+
+**Kind**: instance method of [<code>bitso</code>](#bitso)  
+**Returns**: <code>object</code> - an associative dictionary of currencies
+
+**See**: https://docs.bitso.com/bitso-payouts-funding/docs  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+bitso.fetchCurrencies (params?)
 ```
 
 

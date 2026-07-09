@@ -55,13 +55,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitso API documentation:** [bitso.com](https://bitso.com/api_info)
 
-> 39 implicit endpoints across 2 access groups.
+> 40 implicit endpoints across 2 access groups.
 
 ## public
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `publicGetAvailableBooks` | GET | `available_books` |  |
+| `publicGetCatalogues` | GET | `catalogues` |  |
 | `publicGetTicker` | GET | `ticker` |  |
 | `publicGetOrderBook` | GET | `order_book` |  |
 | `publicGetTrades` | GET | `trades` |  |
