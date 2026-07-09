@@ -29,7 +29,6 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
@@ -1759,15 +1758,13 @@ export class BaseExchange {
     toDydxLong(numStr) {
         return Long.fromString(numStr);
     }
-    retrieveDydxCredentials(entropy) {
-        let credentials = undefined;
-        if (entropy.indexOf(' ') > 0) {
-            credentials = deriveHDKeyFromMnemonic(entropy);
-            credentials['mnemonic'] = entropy;
-            return credentials;
-        }
-        credentials = exportMnemonicAndPrivateKey(this.base16ToBinary(entropy));
-        return credentials;
+    retrieveDydxCredentials(privateKey) {
+        const privateKeyBytes = this.base16ToBinary(this.remove0xPrefix(privateKey));
+        const publicKeyBytes = secp256k1.getPublicKey(privateKeyBytes, true);
+        return {
+            'privateKey': privateKeyBytes,
+            'publicKey': publicKeyBytes,
+        };
     }
     encodeDydxTxForSimulation(message, memo, sequence, publicKey) {
         if (!encodeAsAny) {

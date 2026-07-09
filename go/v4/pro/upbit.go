@@ -49,9 +49,11 @@ func  (this *UpbitCore) WatchPublicMultiple(symbols any, channel any, optionalAr
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes408 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes408)
+                retRes4112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes4112)
+            }
             if ccxt.IsTrue(ccxt.IsEqual(symbols, nil)) {
                 symbols = this.Symbols
             }
@@ -91,9 +93,9 @@ func  (this *UpbitCore) WatchPublicMultiple(symbols any, channel any, optionalAr
                 ccxt.AppendToArray(&finalMessage, ccxt.GetValue(subscriptions, key))
             }
         
-                retRes8115 :=  (<-this.WatchMultiple(url, messageHashes, finalMessage, messageHashes))
-                ccxt.PanicOnError(retRes8115)
-                ch <- retRes8115
+                retRes8315 :=  (<-this.WatchMultiple(url, messageHashes, finalMessage, messageHashes))
+                ccxt.PanicOnError(retRes8315)
+                ch <- retRes8315
                 return nil
         
             }()
@@ -116,9 +118,9 @@ func  (this *UpbitCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-                retRes9415 :=  (<-this.WatchPublicMultiple([]any{symbol}, "ticker"))
-                ccxt.PanicOnError(retRes9415)
-                ch <- retRes9415
+                retRes9615 :=  (<-this.WatchPublicMultiple([]any{symbol}, "ticker"))
+                ccxt.PanicOnError(retRes9615)
+                ch <- retRes9615
                 return nil
         
             }()
@@ -182,9 +184,9 @@ func  (this *UpbitCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
         
-                retRes12815 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
-                ccxt.PanicOnError(retRes12815)
-                ch <- retRes12815
+                retRes13015 :=  (<-this.WatchTradesForSymbols([]any{symbol}, since, limit, params))
+                ccxt.PanicOnError(retRes13015)
+                ch <- retRes13015
                 return nil
         
             }()
@@ -287,9 +289,9 @@ func  (this *UpbitCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any 
             }
             var timeFrameOHLCV any = ccxt.Add("candle.", timeframe)
         
-                retRes18515 :=  (<-this.WatchPublicMultiple([]any{symbol}, timeFrameOHLCV))
-                ccxt.PanicOnError(retRes18515)
-                ch <- retRes18515
+                retRes18715 :=  (<-this.WatchPublicMultiple([]any{symbol}, timeFrameOHLCV))
+                ccxt.PanicOnError(retRes18715)
+                ch <- retRes18715
                 return nil
         
             }()
@@ -486,15 +488,15 @@ func  (this *UpbitCore) WatchPrivate(symbol any, channel any, messageHash any, o
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
         
-            retRes3668 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes3668)
+            retRes3688 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes3688)
             var request any = map[string]any {
                 "type": channel,
             }
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
         
-                retRes37112 := (<-this.LoadMarkets())
-                ccxt.PanicOnError(retRes37112)
+                retRes37312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes37312)
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
                 var symbols any = []any{symbol}
@@ -535,9 +537,9 @@ func  (this *UpbitCore) WatchPrivate(symbol any, channel any, messageHash any, o
                 ccxt.AppendToArray(&message, ccxt.GetValue(requests, i))
             }
         
-                retRes41315 :=  (<-this.Watch(url, messageHash, message, messageHash))
-                ccxt.PanicOnError(retRes41315)
-                ch <- retRes41315
+                retRes41515 :=  (<-this.Watch(url, messageHash, message, messageHash))
+                ccxt.PanicOnError(retRes41515)
+                ch <- retRes41515
                 return nil
         
             }()
@@ -567,9 +569,11 @@ func  (this *UpbitCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4288 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4288)
+                retRes43112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes43112)
+            }
             var channel any = "myOrder"
             var messageHash any = "myOrder"
         
@@ -609,9 +613,11 @@ func  (this *UpbitCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4508 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4508)
+                retRes45512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes45512)
+            }
             var channel any = "myOrder"
             var messageHash any = "myTrades"
         
@@ -815,15 +821,17 @@ func  (this *UpbitCore) WatchBalance(optionalArgs ...any) <- chan any {
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6448 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6448)
+                retRes65112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes65112)
+            }
             var channel any = "myAsset"
             var messageHash any = "myAsset"
         
-                retRes64715 :=  (<-this.WatchPrivate(nil, channel, messageHash))
-                ccxt.PanicOnError(retRes64715)
-                ch <- retRes64715
+                retRes65515 :=  (<-this.WatchPrivate(nil, channel, messageHash))
+                ccxt.PanicOnError(retRes65515)
+                ch <- retRes65515
                 return nil
         
             }()

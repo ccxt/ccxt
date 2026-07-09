@@ -79,7 +79,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         ordersRequest = self.createOrdersRequest(orders, params)
         wrapped = self.wrap_as_post_action(ordersRequest)
@@ -112,7 +113,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.vaultAddress]: the vault address for order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         order, globalParams = self.parseCreateEditOrderArgs(None, symbol, type, side, amount, price, params)
         orders = await self.create_orders_ws([order], globalParams)
         ordersLength = len(orders)
@@ -143,7 +145,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.vaultAddress]: the vault address for order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         url = self.urls['api']['ws']['public']
         order, globalParams = self.parseCreateEditOrderArgs(id, symbol, type, side, amount, price, params)
@@ -174,7 +177,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         request = self.cancelOrdersRequest(ids, symbol, params)
         url = self.urls['api']['ws']['public']
         wrapped = self.wrap_as_post_action(request)
@@ -220,7 +224,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
@@ -246,7 +251,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subMessageHash = 'orderbook:' + symbol
@@ -340,7 +346,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         messageHash = 'tickers'
         url = self.urls['api']['ws']['public']
@@ -377,7 +384,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         symbols = self.market_symbols(symbols, None, True)
         subMessageHash = 'tickers'
         messageHash = 'unsubscribe:' + subMessageHash
@@ -407,7 +415,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         userAddressResult = self.handlePublicAddress('watchMyTrades', params)
         userAddress = self.safe_string(userAddressResult, 0)
         params = self.safe_dict(userAddressResult, 1, params)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'myTrades'
         if symbol is not None:
             symbol = self.symbol(symbol)
@@ -437,7 +446,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only')
         userAddress = None
@@ -560,7 +570,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
@@ -588,7 +599,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subMessageHash = 'trade:' + symbol
@@ -717,7 +729,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
@@ -747,7 +760,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         url = self.urls['api']['ws']['public']
@@ -825,7 +839,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         userAddress = None
         userAddressResult = self.handlePublicAddress('watchBalance', params)
         userAddress = self.safe_string(userAddressResult, 0)
@@ -867,7 +882,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: status of the unwatch request
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         url = self.urls['api']['ws']['public']
         userAddress = None
         userAddressResult = self.handlePublicAddress('unWatchBalance', params)
@@ -1040,7 +1056,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.dex]: for hip3 tokens subscription, eg: 'xyz' or 'flx`, if symbols are provided we will infer it from the first symbol's market
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         userAddress = None
         userAddressResult = self.handlePublicAddress('watchPositions', params)
         userAddress = self.safe_string(userAddressResult, 0)
@@ -1113,7 +1130,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: status of the unwatch request
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if (symbols is not None) and not self.is_empty(symbols):
             raise NotSupported(self.id + ' unWatchPositions() does not support a symbol parameter, you must unwatch all orders')
         messageHash = 'unsubscribe:clearinghouseState'
@@ -1145,7 +1163,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         userAddress = None
         userAddressResult = self.handlePublicAddress('watchOrders', params)
         userAddress = self.safe_string(userAddressResult, 0)
@@ -1181,7 +1200,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             raise NotSupported(self.id + ' unWatchOrders() does not support a symbol argument, unWatch from all markets only')
         messageHash = 'unsubscribe:order'

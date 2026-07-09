@@ -705,7 +705,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -852,7 +854,9 @@ class woo extends Exchange {
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -882,7 +886,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetAccountInfo($params);
         //
         //     {
@@ -1113,7 +1119,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -1132,7 +1140,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         if (!$market['spot']) {
             throw new NotSupported($this->id . ' createMarketSellOrderWithCost() supports spot orders only');
@@ -1224,7 +1234,9 @@ class woo extends Exchange {
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
         $params = $this->omit($params, array( 'reduceOnly', 'reduce_only' ));
         $orderType = strtoupper($type);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $orderSide = strtoupper($side);
         $request = array(
@@ -1422,7 +1434,9 @@ class woo extends Exchange {
          * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
          * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             // 'quantity' => $this->amount_to_precision($symbol, $amount),
@@ -1510,7 +1524,9 @@ class woo extends Exchange {
         if (!$isTrigger && ($symbol === null)) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1568,7 +1584,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         $params = $this->omit($params, array( 'stop', 'trigger' ));
         $request = array();
@@ -1605,7 +1623,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} the api result
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'triggerAfter' => ($timeout > 0) ? min($timeout, 900000) : 0,
         );
@@ -1635,7 +1655,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->trigger] whether the order is a trigger/algo order
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1748,7 +1770,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch $orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate');
         if ($paginate) {
@@ -1887,7 +1911,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $extendedParams = $this->extend($params, array( 'status' => 'INCOMPLETE' ));
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
@@ -1910,7 +1936,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch orders with pagination
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $extendedParams = $this->extend($params, array( 'status' => 'COMPLETED' ));
         return $this->fetch_orders($symbol, $since, $limit, $extendedParams);
     }
@@ -2105,7 +2133,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2154,7 +2184,9 @@ class woo extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -2223,7 +2255,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -2267,7 +2301,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] set to true if you want to fetch $trades with pagination
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
         if ($paginate) {
@@ -2440,7 +2476,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetAssetBalances($params);
         //
         //     {
@@ -2496,7 +2534,9 @@ class woo extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
          */
         // this method is TODO because of networks unification
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
@@ -2545,7 +2585,9 @@ class woo extends Exchange {
     }
 
     public function get_asset_history_rows(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): mixed {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $currency = null;
         if ($code !== null) {
@@ -2839,7 +2881,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->currency($code);
         $request = array(
             'token' => $currency['id'],
@@ -3024,7 +3068,9 @@ class woo extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
@@ -3075,7 +3121,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -3258,7 +3306,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
         if ($paginate) {
@@ -3390,7 +3440,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3432,7 +3484,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by market $symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols);
         $response = $this->v3PublicGetFundingRate($params);
         //
@@ -3474,7 +3528,9 @@ class woo extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingRateHistory', 'paginate');
         if ($paginate) {
@@ -3577,7 +3633,9 @@ class woo extends Exchange {
          * @param {string} [$params->positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
          * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $response = null;
         if ($market['spot']) {
@@ -3713,7 +3771,9 @@ class woo extends Exchange {
          * @param {string} [$params->positionMode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
          * @return {array} response from the exchange
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'leverage' => $leverage,
         );
@@ -3765,7 +3825,9 @@ class woo extends Exchange {
     }
 
     public function modify_margin_helper(string $symbol, $amount, $type, $params = array()): array {
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3786,7 +3848,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'symbol' => $market['id'],
@@ -3839,7 +3903,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetFuturesPositions($params);
         //
         //     {
@@ -3995,7 +4061,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'sellToken' => strtoupper($fromCode),
             'buyToken' => strtoupper($toCode),
@@ -4039,7 +4107,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'quoteId' => $id,
         );
@@ -4069,7 +4139,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?$id=conversion-structure conversion structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             'quoteId' => $id,
         );
@@ -4115,7 +4187,9 @@ class woo extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest conversion to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=conversion-structure conversion structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         if ($since !== null) {
@@ -4214,7 +4288,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an associative dictionary of currencies
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->v3PrivateGetConvertAssetInfo($params);
         //
         //     {
@@ -4277,7 +4353,9 @@ class woo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
         $response = $this->v3PrivateGetFuturesPositions($params);
         //

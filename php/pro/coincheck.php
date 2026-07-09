@@ -58,7 +58,9 @@ class coincheck extends \ccxt\async\coincheck {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'orderbook:' . $market['symbol'];
             $url = $this->urls['api']['ws'];
@@ -122,7 +124,9 @@ class coincheck extends \ccxt\async\coincheck {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trade:' . $market['symbol'];

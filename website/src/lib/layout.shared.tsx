@@ -38,6 +38,8 @@ export function baseOptions(locale: string = i18n.defaultLanguage): BaseLayoutPr
       { text: t.exchanges, url: `${prefix}/docs/exchanges/binance` },
       { text: t.prediction, url: `${prefix}/docs/prediction/polymarket` },
       { text: t.examples, url: `${prefix}/docs/examples` },
+      // The blog is English-only, so it always lives at the un-prefixed /blog.
+      { text: t.blog, url: '/blog' },
       // Playground lives at the site root (not under /v2), so use an absolute URL.
       { text: 'Playground', url: 'https://docs.ccxt.com/playground', external: true },
       { text: 'Status', url: `${prefix}/docs/status` },

@@ -434,10 +434,12 @@ class aster extends Exchange {
             'options' => array(
                 'defaultType' => 'spot',
                 'recvWindow' => 10 * 1000, // 10 sec
-                'defaultTimeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
                 'zeroAddress' => '0x0000000000000000000000000000000000000000',
                 'v3ChainId' => 1666, // Aster chain ID used for EIP-712 v3 signing
-                'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                'createOrder' => array(
+                    'timeInForce' => 'GTC', // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+                    'quoteOrderQty' => true, // whether market orders support amounts in quote currency
+                ),
                 'accountsByType' => array(
                     'spot' => 'SPOT',
                     'swap' => 'FUTURE',
@@ -1019,7 +1021,9 @@ class aster extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch orders for
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             if ($since !== null) {
@@ -1184,7 +1188,9 @@ class aster extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1323,7 +1329,9 @@ class aster extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1460,7 +1468,9 @@ class aster extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1516,7 +1526,9 @@ class aster extends Exchange {
              * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
@@ -1572,7 +1584,9 @@ class aster extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of lastprices structures
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
@@ -1641,7 +1655,9 @@ class aster extends Exchange {
              * @param {string} [$params->subType] "linear" or "inverse"
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = $this->get_market_from_symbols($symbols);
             $marketType = null;
@@ -1740,7 +1756,9 @@ class aster extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRate() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1773,7 +1791,9 @@ class aster extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->fapiPublicGetV3PremiumIndex($this->extend($params)));
             //
@@ -1805,7 +1825,9 @@ class aster extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbols !== null) {
                 $symbols = $this->market_symbols($symbols);
             }
@@ -1840,7 +1862,9 @@ class aster extends Exchange {
              * @param {int} [$params->until] timestamp in ms of the latest funding rate
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = null;
             if ($symbol !== null) {
@@ -2704,7 +2728,7 @@ class aster extends Exchange {
         $request['type'] = $uppercaseType;
         if ($uppercaseType === 'MARKET') {
             if ($market['spot']) {
-                $quoteOrderQty = $this->safe_bool($this->options, 'quoteOrderQty', true);
+                $quoteOrderQty = $this->handle_option('createOrder', 'quoteOrderQty', true);
                 if ($quoteOrderQty) {
                     $quoteOrderQtyNew = $this->safe_string_2($params, 'quoteOrderQty', 'cost');
                     $precision = $market['precision']['price'];
@@ -2773,7 +2797,9 @@ class aster extends Exchange {
             }
         }
         if ($timeInForceIsRequired && ($this->safe_string($params, 'timeInForce') === null) && ($this->safe_string($request, 'timeInForce') === null)) {
-            $request['timeInForce'] = $this->safe_string($this->options, 'defaultTimeInForce'); // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+            $tif = null;
+            list($tif, $params) = $this->handle_option_and_params($params, 'createOrder', 'timeInForce');
+            $request['timeInForce'] = $tif;
         }
         $requestParams = $this->omit($params, array( 'newClientOrderId', 'clientOrderId', 'stopPrice', 'triggerPrice', 'trailingTriggerPrice', 'trailingPercent', 'trailingDelta', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
         if ($this->safe_bool($this->options, 'builderFee') && $market['swap']) {

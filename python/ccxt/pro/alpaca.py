@@ -81,7 +81,8 @@ class alpaca(ccxt.async_support.alpaca):
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
         request = {
@@ -160,7 +161,8 @@ class alpaca(ccxt.async_support.alpaca):
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         request = {
@@ -213,7 +215,8 @@ class alpaca(ccxt.async_support.alpaca):
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'orderbook' + ':' + symbol
@@ -290,7 +293,8 @@ class alpaca(ccxt.async_support.alpaca):
         """
         url = self.urls['api']['ws']['crypto']
         await self.authenticate(url)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         messageHash = 'trade:' + symbol
@@ -343,7 +347,8 @@ class alpaca(ccxt.async_support.alpaca):
         url = self.urls['api']['ws']['trading']
         await self.authenticate(url)
         messageHash = 'myTrades'
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbol is not None:
             symbol = self.symbol(symbol)
             messageHash += ':' + symbol
@@ -369,7 +374,8 @@ class alpaca(ccxt.async_support.alpaca):
         """
         url = self.urls['api']['ws']['trading']
         await self.authenticate(url)
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         messageHash = 'orders'
         if symbol is not None:
             market = self.market(symbol)

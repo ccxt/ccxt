@@ -1324,7 +1324,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=exchange-$status-structure $status structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchStatus', null, $params);
             $enabledForContracts = $this->handle_option('fetchStatus', 'enableForContracts', false); // temp fix for => https://status-linear-swap.huobigroup.com/api/v2/summary.json
@@ -1606,7 +1608,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbols' => $market['id'], // trading symbols comma-separated
@@ -1638,7 +1642,9 @@ class htx extends Exchange {
             // this method should not be called directly, use loadTradingLimits () instead
             //  by default it will try load withdrawal fees of all currencies (with separate requests)
             //  however if you define $symbols = array( 'ETH/BTC', 'LTC/BTC' ) in args it will only load those
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbols === null) {
                 $symbols = $this->symbols;
             }
@@ -2215,7 +2221,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $response = null;
@@ -2300,7 +2308,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $first = $this->safe_string($symbols, 0);
             $market = null;
@@ -2413,7 +2423,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of lastprices structures
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -2537,7 +2549,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 //
@@ -2832,7 +2846,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?$id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'order-id' => $id,
             );
@@ -2857,7 +2873,9 @@ class htx extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginate');
             if ($paginate) {
@@ -3056,7 +3074,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades $trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 // 'symbol' => $market['id'], // spot, future
@@ -3165,7 +3185,9 @@ class htx extends Exchange {
              * @param {string} [$params->useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate');
             if ($paginate) {
@@ -3305,7 +3327,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=account-structure account structures~ indexed by the account type
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->spotPrivateGetV1AccountAccounts($params));
             //
             //     {
@@ -3562,7 +3586,9 @@ class htx extends Exchange {
              * @param {bool} [$params->multiAssetMode] set to true if you are using multi-asset mode for USDT-margined contracts
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isUnifiedAccount = null;
             list($isUnifiedAccount, $params) = $this->handle_option_and_params_2($params, 'fetchBalance', 'unified', 'uta', false);
             if ($isUnifiedAccount) {
@@ -3826,7 +3852,9 @@ class htx extends Exchange {
              * @param {bool} [$params->trailing] *linear only* set to true if you want to fetch a $trailing $order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -4049,7 +4077,9 @@ class htx extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
                 }
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $request = array(
                 // spot_private_get_v1_order_orders GET /v1/order/orders ----------
@@ -4134,7 +4164,9 @@ class htx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array();
             $response = null;
@@ -4289,7 +4321,9 @@ class htx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchClosedContractOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array();
             $market = $this->market($symbol);
             if ($market['linear']) {
@@ -4335,7 +4369,9 @@ class htx extends Exchange {
              * @param {bool} [$params->takeProfit] *$contract only* set to true if you want to fetch take profit orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -4374,7 +4410,9 @@ class htx extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchCanceledOrders', 'paginate');
             if ($paginate) {
@@ -4433,7 +4471,9 @@ class htx extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'paginate');
             if ($paginate) {
@@ -4473,7 +4513,9 @@ class htx extends Exchange {
              * @param {bool} [$params->trailing] *contract only* set to true if you want to fetch $trailing stop $orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -5181,7 +5223,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' createMarketBuyOrderWithCost() supports spot orders only');
@@ -5232,7 +5276,9 @@ class htx extends Exchange {
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
              * @return {array} $request to be sent to the exchange
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->load_accounts());
             $market = $this->market($symbol);
             $marginMode = null;
@@ -5569,7 +5615,9 @@ class htx extends Exchange {
              * @param {string} [$params->stopLoss.type] $market is the default, limit, optimal_5, optimal_10, optimal_20
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'trigger_price' ));
             $stopLossTriggerPrice = $this->safe_number_2($params, 'stopLossPrice', 'sl_trigger_price');
@@ -5741,7 +5789,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ordersRequests = array();
             $symbol = null;
             $market = null;
@@ -5898,7 +5948,9 @@ class htx extends Exchange {
              * @param {bool} [$params->trailing] *contract only* set to true if you want to cancel a $trailing order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -6075,7 +6127,9 @@ class htx extends Exchange {
              * @param {bool} [$params->stopLossTakeProfit] *contract only* if the orders are stop-loss or take-profit orders
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -6351,7 +6405,9 @@ class htx extends Exchange {
              * @param {boolean} [$params->trailing] *contract only* set to true if you want to cancel all $trailing orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -6478,7 +6534,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} the api result
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'timeout' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
             );
@@ -6535,7 +6593,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=address-structure address structures~ indexed by the network
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -6571,7 +6631,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=address-structure address structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
             $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
@@ -6582,7 +6644,9 @@ class htx extends Exchange {
 
     public function fetch_withdraw_addresses(string $code, $note = null, $networkCode = null, $params = array()) {
         return Async\async(function () use ($code, $note, $networkCode, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -6633,7 +6697,9 @@ class htx extends Exchange {
             if ($limit === null || $limit > 100) {
                 $limit = 100;
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -6696,7 +6762,9 @@ class htx extends Exchange {
             if ($limit === null || $limit > 100) {
                 $limit = 100;
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
@@ -6877,7 +6945,9 @@ class htx extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             $currency = $this->currency($code);
             $request = array(
@@ -7004,7 +7074,9 @@ class htx extends Exchange {
              * @param {string} [$params->subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -7091,7 +7163,9 @@ class htx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch transfers for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = null;
             $request = array();
             if ($code !== null) {
@@ -7145,7 +7219,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure isolated borrow rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->spotPrivateGetV1MarginLoanInfo($params));
             //
             // {
@@ -7249,7 +7325,9 @@ class htx extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $params, 'current_page', 'page_index', 1, 50));
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'contract_code' => $market['id'],
@@ -7430,7 +7508,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'contract_code' => $market['id'],
@@ -7497,7 +7577,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rates-structure funding rate structures~, indexed by $market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'linear');
             $subType = null;
@@ -7557,7 +7639,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=borrow-$interest-structure borrow $interest structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
             $marginMode = ($marginMode === null) ? 'cross' : $marginMode;
@@ -7881,7 +7965,9 @@ class htx extends Exchange {
              * @param {int} [$params->until] the latest time in ms to fetch entries for
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('fetchFundingHistory', $market, $params);
@@ -7977,7 +8063,9 @@ class htx extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setLeverage() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             list($marketType, $query) = $this->handle_market_type_and_params('setLeverage', $market, $params);
             $request = array(
@@ -8228,7 +8316,9 @@ class htx extends Exchange {
              * @param {string} [$params->marginMode] *linear only* 'cross' or 'isolated'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $market = null;
             if ($symbols !== null) {
@@ -8368,7 +8458,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPosition', $params);
@@ -8605,7 +8697,9 @@ class htx extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
             if ($paginate) {
@@ -8680,7 +8774,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structures~, indexed by market $symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->contractPublicGetLinearSwapApiV1SwapAdjustfactor($params));
             //
             //    {
@@ -8764,7 +8860,9 @@ class htx extends Exchange {
             if ($timeframe !== '1h' && $timeframe !== '4h' && $timeframe !== '12h' && $timeframe !== '1d') {
                 throw new BadRequest($this->id . ' fetchOpenInterestHistory cannot only use the 1h, 4h, 12h and 1d timeframe');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $timeframes = array(
                 '1h' => '60min',
                 '4h' => '4hour',
@@ -8875,7 +8973,9 @@ class htx extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $market = null;
             if ($symbols !== null) {
@@ -8951,7 +9051,9 @@ class htx extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             if (!$market['contract']) {
                 throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
@@ -9124,7 +9226,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $market = $this->market($symbol);
             $request = array(
@@ -9161,7 +9265,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-loan-structure margin loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
@@ -9196,7 +9302,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-$loan-structure margin $loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $accountId = Async\await($this->fetch_account_id_by_type('spot', 'isolated', $symbol, $params));
             $request = array(
@@ -9238,7 +9346,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=margin-$loan-structure margin $loan structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $accountId = Async\await($this->fetch_account_id_by_type('spot', 'cross', null, $params));
             $request = array(
@@ -9442,7 +9552,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=fee-structure fees structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->spotPublicGetV2ReferenceCurrencies($params));
             //
             //    {
@@ -9688,7 +9800,9 @@ class htx extends Exchange {
              * @param {int} [$params->tradeType] *not supported for linear swap* default 0 => filled liquidated orders, 5 => liquidated close orders, 6 => liquidated open orders
              * @return {array} an array of ~@link https://docs.ccxt.com/?id=liquidation-structure liquidation structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $tradeType = $this->safe_integer_2($params, 'trade_type', 'tradeType', 0);
             $request = array();
@@ -9834,7 +9948,9 @@ class htx extends Exchange {
              * @param {string} [$params->position_side] linear swap supports 'long', 'short' and 'both', 'both' is the default
              * @return {array} ~@link https://docs.ccxt.com/?id=position-structure an order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if (!$market['contract']) {
@@ -9900,7 +10016,9 @@ class htx extends Exchange {
              * @param {string} [$params->marginMode] "cross" (default) or "isolated"
              * @return {array} $response from the exchange
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $posMode = $hedged ? 'dual_side' : 'single_side';
             $market = null;
             if ($symbol !== null) {
@@ -9940,7 +10058,9 @@ class htx extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of ~@link https://docs.ccxt.com/?id=auto-de-leverage-structure auto de leverage structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true, true, true);
             $market = null;
             if ($symbols !== null) {

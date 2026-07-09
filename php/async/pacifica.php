@@ -664,7 +664,9 @@ class pacifica extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-structure leverage structure~
              */
             Async\await($this->load_account_settings());
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $userAccount = null;
             list($userAccount, $params) = $this->handle_origin_and_single_address('fetchLeverage', $params);
@@ -860,7 +862,9 @@ class pacifica extends Exchange {
              * @param {int} [$params->aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $aggLevel = null;
             list($aggLevel, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'aggLevel', 1);
@@ -1019,7 +1023,9 @@ class pacifica extends Exchange {
                 throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a "symbol" argument');
             }
             $defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'paginate', false);
@@ -1112,7 +1118,9 @@ class pacifica extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'symbol' => $market['id'],
@@ -1158,7 +1166,9 @@ class pacifica extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -1314,7 +1324,9 @@ class pacifica extends Exchange {
              * @param {int} [$params->expiryWindow] time to live in milliseconds
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->initialize_client());
             list($request, $operationType) = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
             $params = $this->omit($params, array(
@@ -1542,7 +1554,9 @@ class pacifica extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->initialize_client());
             $request = $this->create_orders_request($orders);
             $response = Async\await($this->privatePostOrdersBatch($this->extend($request, $params)));
@@ -1598,7 +1612,9 @@ class pacifica extends Exchange {
              * @param {int} [$params->expiryWindow] time to live in milliseconds
              * @return {array} an list of ~@link https://docs.ccxt.com/?id=$order-structure $order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->initialize_client());
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrders() requires a "symbol" argument!');
@@ -1685,7 +1701,9 @@ class pacifica extends Exchange {
              * @param {int} [$params->expiryWindow] time to live in milliseconds
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->initialize_client());
             $request = $this->cancel_all_orders_request($symbol, $params);
             $params = $this->omit($params, array( 'excludeReduceOnly', 'expiryWindow' ));
@@ -1740,7 +1758,9 @@ class pacifica extends Exchange {
              * @param {int} [$params->expiryWindow] time to live in milliseconds
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->initialize_client());
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
@@ -1807,7 +1827,9 @@ class pacifica extends Exchange {
              * @param {int} [$params->expiryWindow] time to live in milliseconds
              * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->initialize_client());
             $market = $this->market($symbol);
             $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $market, $params);
@@ -1869,7 +1891,9 @@ class pacifica extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
             }
@@ -1934,7 +1958,9 @@ class pacifica extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $response = Async\await($this->publicGetInfoPrices($params));
             //
@@ -2013,7 +2039,9 @@ class pacifica extends Exchange {
              * @param {string} [$params->account] will default to walletAddress if not provided
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
             $closedOrders = $this->filter_by_array($orders, 'status', array( 'closed' ), false);
             return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
@@ -2031,7 +2059,9 @@ class pacifica extends Exchange {
              * @param {string} [$params->account] will default to walletAddress if not provided
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
             $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled' ), false);
             return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
@@ -2049,7 +2079,9 @@ class pacifica extends Exchange {
              * @param {string} [$params->account] will default to walletAddress if not provided
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $orders = Async\await($this->fetch_orders($symbol, null, null, $params)); // don't filter here because we don't want to catch open $orders
             $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled', 'closed', 'rejected' ), false);
             return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
@@ -2070,7 +2102,9 @@ class pacifica extends Exchange {
              * @param {string} [$params->account] will default to walletAddress if not provided
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $userAddress = null;
             list($userAddress, $params) = $this->handle_origin_and_single_address('fetchOpenOrders', $params);
             $request = array(
@@ -2128,7 +2162,9 @@ class pacifica extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'paginate', false);
             $defaultLimit = 100; // max default 100
@@ -2210,7 +2246,9 @@ class pacifica extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2482,7 +2520,9 @@ class pacifica extends Exchange {
              * @param {string} [$params->account] will default to walletAddress if not provided
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $userAddress = null;
             list($userAddress, $params) = $this->handle_origin_and_single_address('fetchPositions', $params);
             $symbols = $this->market_symbols($symbols);
@@ -2587,7 +2627,9 @@ class pacifica extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $isIsolated = ($marginMode === 'isolated');
             $sigPayload = array(
@@ -2621,7 +2663,9 @@ class pacifica extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' setMarginMode() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $sigPayload = array(
                 'symbol' => $market['id'],
@@ -2653,7 +2697,9 @@ class pacifica extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
             $operationType = 'withdraw';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $this->check_address($address);
             $sigPayload = array(
                 'amount' => (string) $amount,
@@ -2677,7 +2723,9 @@ class pacifica extends Exchange {
              * @param {string} [$params->account] will default to walletAddress if not provided
              * @return {array} a ~@link https://docs.ccxt.com/?id=fee-structure fee structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $userAddress = null;
             list($userAddress, $params) = $this->handle_origin_and_single_address('fetchTradingFee', $params);
             $market = $this->market($symbol);
@@ -2752,7 +2800,9 @@ class pacifica extends Exchange {
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/?id=open-interest-structure)
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $swapMarkets = Async\await($this->fetch_swap_markets());
             return $this->parse_open_interests($swapMarkets, $symbols);
@@ -2768,7 +2818,9 @@ class pacifica extends Exchange {
              * @return {array} an ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structure~
              */
             $symbol = $this->symbol($symbol);
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $ois = Async\await($this->fetch_open_interests(array( $symbol ), $params));
             return $ois[$symbol];
         })();
@@ -2828,7 +2880,9 @@ class pacifica extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=ledger-entry-structure ledger structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate', false);
             $userAddress = null;
@@ -2931,7 +2985,9 @@ class pacifica extends Exchange {
              * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {array} a ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);

@@ -233,7 +233,9 @@ class bitopro extends Exchange {
                     'BEP20' => 'BSC',
                     'BSC' => 'BSC',
                 ),
-                'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+                'fetchCurrencies' => array(
+                    'fiatCurrencies' => array( 'TWD' ), // the only fiat currency for exchange
+                ),
             ),
             'features' => array(
                 'spot' => array(
@@ -366,7 +368,7 @@ class bitopro extends Exchange {
     }
 
     public function parse_currency(array $rawCurrency): array {
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $currencyId = $this->safe_string($rawCurrency, 'currency');
         $code = $this->safe_currency_code($currencyId);
         $deposit = $this->safe_bool($rawCurrency, 'deposit');
@@ -542,7 +544,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -575,7 +579,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetTickers();
         $tickers = $this->safe_list($response, 'data', array());
         //
@@ -607,7 +613,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -738,7 +746,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -769,7 +779,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~ indexed by market symbols
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetProvisioningLimitationsAndFees($params);
         $tradingFeeRate = $this->safe_dict($response, 'tradingFeeRate', array());
         $first = $this->safe_value($tradingFeeRate, 0);
@@ -875,7 +887,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {int[][]} A list of candles ordered, open, high, low, close, volume
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $resolution = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $request = array(
@@ -996,7 +1010,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->privateGetAccountsBalance($params);
         $balances = $this->safe_list($response, 'data', array());
         //
@@ -1132,7 +1148,9 @@ class bitopro extends Exchange {
          * @param {array} [$params->triggerPrice] the $price at which a trigger order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'type' => $type,
@@ -1193,7 +1211,9 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'id' => $id,
@@ -1243,7 +1263,9 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $id = $market['uppercaseId'];
         $request = array();
@@ -1273,7 +1295,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array(
             // 'pair' => $market['id'], // optional
         );
@@ -1313,7 +1337,9 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'orderId' => $id,
@@ -1361,7 +1387,9 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1422,7 +1450,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $request = array();
         $market = null;
         if ($symbol !== null) {
@@ -1467,7 +1497,9 @@ class bitopro extends Exchange {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $market = $this->market($symbol);
         $request = array(
             'pair' => $market['id'],
@@ -1609,7 +1641,9 @@ class bitopro extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->safe_currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1662,7 +1696,9 @@ class bitopro extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->safe_currency($code);
         $request = array(
             'currency' => $currency['id'],
@@ -1713,7 +1749,9 @@ class bitopro extends Exchange {
         if ($code === null) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
         }
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $currency = $this->safe_currency($code);
         $request = array(
             'serial' => $id,
@@ -1754,7 +1792,9 @@ class bitopro extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $this->check_address($address);
         $currency = $this->currency($code);
         $request = array(
@@ -1828,7 +1868,9 @@ class bitopro extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a list of ~@link https://docs.ccxt.com/?id=fee-structure fee structures~
          */
-        $this->load_markets();
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
         $response = $this->publicGetProvisioningCurrencies($params);
         //
         //     {

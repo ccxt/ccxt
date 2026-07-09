@@ -101,6 +101,7 @@ public partial class okx
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -214,6 +215,7 @@ public partial class okx
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades"/>  <br/>
+    /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history"/>  <br/>
     /// See <see href="https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -1469,6 +1471,27 @@ public partial class okx
         var res = await this.transfer(code, amount, fromAccount, toAccount, parameters);
         return new TransferEntry(res);
     }
+    /// <summary>
+    /// fetch a transfer
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency transferred
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}.</returns>
     public async Task<TransferEntry> FetchTransfer(string id, string code = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTransfer(id, code, parameters);

@@ -53,7 +53,7 @@ response := <-kraken.ZendeskGet360000292886(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official kraken API documentation:** [docs.kraken.com](https://docs.kraken.com/rest/)
+📚 **Official kraken API documentation:** [docs.kraken.com](https://docs.kraken.com/api-reference/)
 
 > 61 implicit endpoints across 3 access groups.
 
@@ -79,7 +79,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTicker` | GET | `Ticker` | 1 |
 | `publicGetOHLC` | GET | `OHLC` | 1.2 |
 | `publicGetDepth` | GET | `Depth` | 1.2 |
-| `publicGetLevel3` | GET | `Level3` | 1.2 |
 | `publicGetGroupedBook` | GET | `GroupedBook` | 1.2 |
 | `publicGetTrades` | GET | `Trades` | 1.2 |
 | `publicGetSpread` | GET | `Spread` | 1 |
@@ -92,6 +91,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
+| `privatePostLevel3` | POST | `Level3` | 1.2 |
 | `privatePostBalance` | POST | `Balance` | 3 |
 | `privatePostBalanceEx` | POST | `BalanceEx` | 3 |
 | `privatePostCreditLines` | POST | `CreditLines` | 3 |

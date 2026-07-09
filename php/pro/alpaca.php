@@ -81,7 +81,9 @@ class alpaca extends \ccxt\async\alpaca {
              */
             $url = $this->urls['api']['ws']['crypto'];
             Async\await($this->authenticate($url));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'ticker:' . $market['symbol'];
             $request = array(
@@ -165,7 +167,9 @@ class alpaca extends \ccxt\async\alpaca {
              */
             $url = $this->urls['api']['ws']['crypto'];
             Async\await($this->authenticate($url));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $request = array(
@@ -224,7 +228,9 @@ class alpaca extends \ccxt\async\alpaca {
              */
             $url = $this->urls['api']['ws']['crypto'];
             Async\await($this->authenticate($url));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'orderbook' . ':' . $symbol;
@@ -310,7 +316,9 @@ class alpaca extends \ccxt\async\alpaca {
              */
             $url = $this->urls['api']['ws']['crypto'];
             Async\await($this->authenticate($url));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'trade:' . $symbol;
@@ -369,7 +377,9 @@ class alpaca extends \ccxt\async\alpaca {
             $url = $this->urls['api']['ws']['trading'];
             Async\await($this->authenticate($url));
             $messageHash = 'myTrades';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
@@ -400,7 +410,9 @@ class alpaca extends \ccxt\async\alpaca {
              */
             $url = $this->urls['api']['ws']['trading'];
             Async\await($this->authenticate($url));
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $messageHash = 'orders';
             if ($symbol !== null) {
                 $market = $this->market($symbol);

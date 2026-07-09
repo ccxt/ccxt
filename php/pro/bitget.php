@@ -136,7 +136,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ticker:' . $symbol;
@@ -167,7 +169,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch request
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             return Async\await($this->un_watch_channel($symbol, 'ticker', 'ticker', 'watchTicker', $params));
         })();
     }
@@ -186,7 +190,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             if ($symbols === null) {
                 $symbols = array();
@@ -432,7 +438,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             if ($symbols === null) {
                 $symbols = array();
@@ -517,7 +525,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $timeframes = $this->safe_value($this->options, 'timeframes');
@@ -564,7 +574,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $timeframes = $this->safe_dict($this->options, 'timeframes');
             $interval = $this->safe_string($timeframes, $timeframe);
             $channel = null;
@@ -767,7 +779,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account (uta), defaults to false
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $channel = 'books';
             $limit = $this->safe_integer($params, 'limit');
             if (($limit === 1) || ($limit === 5) || ($limit === 15) || ($limit === 50)) {
@@ -780,7 +794,9 @@ class bitget extends \ccxt\async\bitget {
 
     public function un_watch_channel(string $symbol, string $channel, string $messageHashTopic, string $methodName, $params = array()): PromiseInterface {
         return Async\async(function () use ($symbol, $channel, $messageHashTopic, $methodName, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'unsubscribe:' . $messageHashTopic . ':' . $market['symbol'];
             $instType = null;
@@ -819,7 +835,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $channel = 'books';
             $incrementalFeed = true;
@@ -1044,7 +1062,9 @@ class bitget extends \ccxt\async\bitget {
             if ($symbolsLength === 0) {
                 throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols);
             $uta = null;
             list($uta, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'uta', false);
@@ -1317,7 +1337,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = '';
             $subscriptionHash = 'positions';
@@ -1584,7 +1606,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $marketId = null;
             $isTrigger = null;
@@ -2093,7 +2117,9 @@ class bitget extends \ccxt\async\bitget {
              * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = null;
             $messageHash = 'myTrades';
             if ($symbol !== null) {

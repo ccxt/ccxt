@@ -106,9 +106,11 @@ func  (this *DeriveCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes838 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes838)
+                retRes8412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes8412)
+            }
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 limit = 10
             }
@@ -186,9 +188,11 @@ func  (this *DeriveCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1528 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1528)
+                retRes15512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes15512)
+            }
             var market any = this.Market(symbol)
             var topic any = ccxt.Add(ccxt.Add("ticker.", ccxt.GetValue(market, "id")), ".100")
             var request any = map[string]any {
@@ -203,9 +207,9 @@ func  (this *DeriveCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 "params": params,
             }
         
-                retRes16815 :=  (<-this.WatchPublic(topic, request, subscription))
-                ccxt.PanicOnError(retRes16815)
-                ch <- retRes16815
+                retRes17215 :=  (<-this.WatchPublic(topic, request, subscription))
+                ccxt.PanicOnError(retRes17215)
+                ch <- retRes17215
                 return nil
         
             }()
@@ -304,9 +308,11 @@ func  (this *DeriveCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- ch
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2598 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2598)
+                retRes26412 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes26412)
+            }
             var limit any = this.SafeInteger(params, "limit")
             if ccxt.IsTrue(ccxt.IsEqual(limit, nil)) {
                 limit = 10
@@ -324,9 +330,9 @@ func  (this *DeriveCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <- ch
                 "name": topic,
             }
         
-                retRes27815 :=  (<-this.UnWatchPublic(messageHash, request, subscription))
-                ccxt.PanicOnError(retRes27815)
-                ch <- retRes27815
+                retRes28415 :=  (<-this.UnWatchPublic(messageHash, request, subscription))
+                ccxt.PanicOnError(retRes28415)
+                ch <- retRes28415
                 return nil
         
             }()
@@ -347,9 +353,11 @@ func  (this *DeriveCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2908 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2908)
+                retRes29712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes29712)
+            }
             var market any = this.Market(symbol)
             var topic any = ccxt.Add("trades.", ccxt.GetValue(market, "id"))
             var messageHah any = ccxt.Add("unwatch", topic)
@@ -363,9 +371,9 @@ func  (this *DeriveCore) UnWatchTrades(symbol any, optionalArgs ...any) <- chan 
                 "name": topic,
             }
         
-                retRes30515 :=  (<-this.UnWatchPublic(messageHah, request, subscription))
-                ccxt.PanicOnError(retRes30515)
-                ch <- retRes30515
+                retRes31315 :=  (<-this.UnWatchPublic(messageHah, request, subscription))
+                ccxt.PanicOnError(retRes31315)
+                ch <- retRes31315
                 return nil
         
             }()
@@ -386,9 +394,9 @@ func  (this *DeriveCore) UnWatchPublic(messageHash any, message any, subscriptio
                 "method": "unsubscribe",
             })
         
-                retRes31815 :=  (<-this.Watch(url, messageHash, request, messageHash, subscription))
-                ccxt.PanicOnError(retRes31815)
-                ch <- retRes31815
+                retRes32615 :=  (<-this.Watch(url, messageHash, request, messageHash, subscription))
+                ccxt.PanicOnError(retRes32615)
+                ch <- retRes32615
                 return nil
         
             }()
@@ -471,9 +479,11 @@ func  (this *DeriveCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3918 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3918)
+                retRes40012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes40012)
+            }
             var market any = this.Market(symbol)
             var topic any = ccxt.Add("trades.", ccxt.GetValue(market, "id"))
             var request any = map[string]any {
@@ -558,9 +568,9 @@ func  (this *DeriveCore) Authenticate(optionalArgs ...any) <- chan any {
                 this.Watch(url, messageHash, message, messageHash, message)
             }
         
-                retRes46615 := <- future.(*ccxt.Future).Await()
-                ccxt.PanicOnError(retRes46615)
-                ch <- retRes46615
+                retRes47615 := <- future.(*ccxt.Future).Await()
+                ccxt.PanicOnError(retRes47615)
+                ch <- retRes47615
                 return nil
         
             }()
@@ -572,8 +582,8 @@ func  (this *DeriveCore) WatchPrivate(messageHash any, message any, subscription
                 defer close(ch)
                 defer ccxt.ReturnPanicError(ch)
                 
-            retRes4708 := (<-this.Authenticate())
-            ccxt.PanicOnError(retRes4708)
+            retRes4808 := (<-this.Authenticate())
+            ccxt.PanicOnError(retRes4808)
             var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
             var requestId any = this.RequestId(url)
             var request any = this.Extend(message, map[string]any {
@@ -584,9 +594,9 @@ func  (this *DeriveCore) WatchPrivate(messageHash any, message any, subscription
                 "method": "subscribe",
             })
         
-                retRes48015 :=  (<-this.Watch(url, messageHash, request, messageHash, subscription))
-                ccxt.PanicOnError(retRes48015)
-                ch <- retRes48015
+                retRes49015 :=  (<-this.Watch(url, messageHash, request, messageHash, subscription))
+                ccxt.PanicOnError(retRes49015)
+                ch <- retRes49015
                 return nil
         
             }()
@@ -617,9 +627,11 @@ func  (this *DeriveCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4968 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4968)
+                retRes50712 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes50712)
+            }
             var subaccountId any = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchOrders", params)
             subaccountId = ccxt.GetValue(subaccountIdparamsVariable,0)
@@ -758,9 +770,11 @@ func  (this *DeriveCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6188 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6188)
+                retRes63112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes63112)
+            }
             var subaccountId any = nil
             subaccountIdparamsVariable := this.HandleDeriveSubaccountId("watchMyTrades", params)
             subaccountId = ccxt.GetValue(subaccountIdparamsVariable,0)

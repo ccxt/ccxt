@@ -669,3 +669,27 @@ function exchange_prop($exchange, $key, $default_value = null) {
     $key_upper = $exchange->capitalize(((string) $key));
     return $exchange->get_property($exchange, $key_upper, $default_value);
 }
+
+
+function validate_ticker_exception_for_percentage($ex, $exchange, $ticker) {
+    // only skip cases of "too far price" when it's the first day of listing, otherwise rethrow abnormality
+    $e_message = $exchange->exception_message($ex, false);
+    if (in_array('percentage should be above', $e_message) || in_array('percentage should be below', $e_message)) {
+        $symbol = $ticker['symbol'];
+        if ($symbol !== null) {
+            // if it's not in markets, then maybe newly added symbol, so can can compromise there
+            if (!(is_array($exchange->markets) && array_key_exists($symbol, $exchange->markets))) {
+                return;
+            }
+            // if OHLCV supported
+            if ($exchange->feature_value($symbol, 'fetchOHLCV') !== null) {
+                $ohlcv = $exchange->fetch_ohlcv($symbol, '1d', null, 5);
+                if (count($ohlcv) <= 1) {
+                    // if only 1 day, then allow it
+                    return;
+                }
+            }
+        }
+    }
+    assert($e_message === '', $e_message); // trigger error
+}

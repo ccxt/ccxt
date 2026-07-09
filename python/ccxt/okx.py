@@ -936,6 +936,18 @@ class okx(Exchange, ImplicitAPI):
                     '51734': AuthenticationError,  # User KYC Country is not supported
                     '51735': ExchangeError,  # Sub-account is not supported
                     '51736': InsufficientFunds,  # Insufficient {ccy} balance
+                    '51763': AccountNotEnabled,  # Your account does not meet the VIP tier requirement for self product
+                    '51764': InsufficientFunds,  # Insufficient balance
+                    '51765': BadRequest,  # Exceed your remaining daily quota of {x} USDT
+                    '51766': ExchangeError,  # Platform daily subscription limit reached
+                    '51767': OnMaintenance,  # System maintenance, please retry
+                    '51768': BadRequest,  # Exceed your remaining fast redemption quota of {x} OKUSD
+                    '51769': ExchangeError,  # Platform fast redemption limit reached
+                    '51770': BadRequest,  # Exceed your remaining standard redemption quota of {x} OKUSD
+                    '51771': ExchangeError,  # Platform standard redemption limit reached
+                    '51772': InsufficientFunds,  # Instant redemption pool insufficient
+                    '51773': PermissionDenied,  # Feature not available in your region
+                    '51774': OnMaintenance,  # OKUSD API is under maintenance
                     # Data class
                     '52000': ExchangeError,  # No updates
                     # SPOT/MARGIN error codes 54000-54999
@@ -947,6 +959,7 @@ class okx(Exchange, ImplicitAPI):
                     '54072': ExchangeError,  # This contract is currently view-only and not tradable.
                     '54073': BadRequest,  # Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': ExchangeError,  # Your settings failed have positions, bot or open orders for USD contracts.
+                    '54094': InvalidOrder,  # Order rejected. The cool-off period is active for the current instId.
                     # Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,  # Take profit % should be within the range of {parameter1}-{parameter2}
                     '55101': InvalidOrder,  # Stop loss % should be within the range of {parameter1}-{parameter2}
@@ -1021,6 +1034,7 @@ class okx(Exchange, ImplicitAPI):
                     '59107': ExchangeError,  # You have pending orders under the service, please modify the leverage after canceling all pending orders
                     '59108': InsufficientFunds,  # Low leverage and insufficient margin, please adjust the leverage
                     '59109': ExchangeError,  # Account equity less than the required margin amount after adjustment. Please adjust the leverage
+                    '59113': AuthenticationError,  # KYC level 2 or above is required for placing orders
                     '59128': InvalidOrder,  # As a lead trader, you can't lead trades in {instrument} with leverage higher than {num}
                     '59200': InsufficientFunds,  # Insufficient account balance
                     '59201': InsufficientFunds,  # Negative account balance
@@ -1093,6 +1107,8 @@ class okx(Exchange, ImplicitAPI):
                     '64001': BadRequest,  # This channel has been migrated to the business URL. Please subscribe using the new URL. More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64002': BadRequest,  # This channel is not supported by business URL. Please use "/private" URL(for private channels), or "/public" URL(for public channels). More details can refer to: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url,
                     '64003': AccountNotEnabled,  # Your trading fee tier doesnt meet the requirement to access self channel
+                    '64004': BadRequest,  # Subscribe to both {channelName} and books-l2-tbt for {instId} is not allowed. Unsubscribe books-l2-tbt first.
+                    '64008': NetworkError,  # The connection will soon be closed for a service upgrade. Please reconnect.
                     '70010': BadRequest,  # Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest,  # endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest,  # Please specify your instrument settings for at least one instType.
@@ -2076,6 +2092,7 @@ class okx(Exchange, ImplicitAPI):
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -2083,7 +2100,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.method]: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2214,7 +2232,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2260,7 +2279,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -2315,7 +2335,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2348,7 +2369,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         market = self.get_market_from_symbols(symbols)
         marketType = None
@@ -2462,6 +2484,7 @@ class okx(Exchange, ImplicitAPI):
         get the list of most recent trades for a particular symbol
 
         https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+        https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
         https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
 
         :param str symbol: unified symbol of the market to fetch trades for
@@ -2472,7 +2495,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: *only applies to publicGetMarketHistoryTrades* default False, when True will automatically paginate by calling self endpoint multiple times
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
         if paginate:
@@ -2579,7 +2603,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOHLCV', 'paginate')
@@ -2675,7 +2700,8 @@ class okx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
         if paginate:
@@ -2806,7 +2832,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instType': self.convert_to_instrument_type(market['type']),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
@@ -2854,7 +2881,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.type]: wallet type, ['funding' or 'trading'] default is 'trading'
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         request = {
             # 'ccy': 'BTC,ETH',  # comma-separated list of currency ids
@@ -2979,7 +3007,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketBuyOrderWithCost() supports spot markets only')
@@ -3000,7 +3029,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' createMarketSellOrderWithCost() supports spot markets only')
@@ -3299,7 +3329,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated', the default is 'cross'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
         method = self.safe_string(self.options, 'createOrder', 'privatePostTradeBatchOrders')
@@ -3337,7 +3368,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
             rawOrder = orders[i]
@@ -3486,7 +3518,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.newTpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         isAlgoOrder = None
@@ -3540,7 +3573,8 @@ class okx(Exchange, ImplicitAPI):
         if trigger or trailing:
             orderInner = self.cancel_orders([id], symbol, params)
             return self.safe_dict(orderInner, 0)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -3587,7 +3621,8 @@ class okx(Exchange, ImplicitAPI):
         # TODO : the original endpoint signature differs, according to that you can skip individual symbol and assign ids in batch. At self moment, `params` is not being used too.
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = []
         options = self.safe_value(self.options, 'cancelOrders', {})
@@ -3680,7 +3715,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to cancel trailing orders
         :returns dict: an list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = []
         options = self.safe_dict(self.options, 'cancelOrders', {})
         defaultMethod = self.safe_string(options, 'method', 'privatePostTradeCancelBatchOrders')
@@ -3758,7 +3794,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: the api result
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         timeOut = 0
         if (timeout is not None) and (timeout > 0):
             timeOut = self.parse_to_int(timeout / 1000)
@@ -4084,7 +4121,8 @@ class okx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -4232,7 +4270,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'paginate')
@@ -4389,7 +4428,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns dict: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'instType': type.upper(),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'uly': currency['id'],
@@ -4567,7 +4607,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.trailing]: set to True if you want to fetch trailing orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'paginate')
@@ -4737,7 +4778,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
         if paginate:
@@ -4830,7 +4872,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `ledger structure <https://docs.ccxt.com/?id=ledger-entry-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         if paginate:
@@ -5116,7 +5159,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'ccy': currency['id'],
@@ -5159,7 +5203,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.network]: the network name for the deposit address
         :returns dict: an `address structure <https://docs.ccxt.com/?id=address-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         rawNetwork = self.safe_string(params, 'network')  # some networks are like "Dora Vota Mainnet"
         params = self.omit(params, 'network')
         code = self.safe_currency_code(code)
@@ -5193,7 +5238,8 @@ class okx(Exchange, ImplicitAPI):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         if (tag is not None) and (len(tag) > 0):
             address = address + ':' + tag
@@ -5251,7 +5297,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
         if paginate:
@@ -5325,7 +5372,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'depId': id,
         }
@@ -5352,7 +5400,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
         if paginate:
@@ -5418,7 +5467,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/?id=transaction-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'wdId': id,
         }
@@ -5611,7 +5661,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :returns dict: a `leverage structure <https://docs.ccxt.com/?id=leverage-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
@@ -5677,7 +5728,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.instType]: MARGIN, SWAP, FUTURES, OPTION
         :returns dict: a `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         type, query = self.handle_market_type_and_params('fetchPosition', market, params)
         request = {
@@ -5752,7 +5804,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.instType]: MARGIN, SWAP, FUTURES, OPTION
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'instType': 'MARGIN',  # optional string, MARGIN, SWAP, FUTURES, OPTION
             # 'instId': market['id'],  # optional string, e.g. 'BTC-USD-190927-5000-C'
@@ -6013,7 +6066,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
@@ -6144,7 +6198,18 @@ class okx(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def fetch_transfer(self, id: str, code: Str = None, params={}) -> TransferEntry:
-        self.load_markets()
+        """
+        fetch a transfer
+
+        https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+
+        :param str id: transfer id
+        :param str [code]: unified currency code of the currency transferred
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
         request = {
             'transId': id,
             # 'type': 0,  # default is 0 transfer within account, 1 master to sub, 2 sub to master
@@ -6186,7 +6251,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `transfer structures <https://docs.ccxt.com/?id=transfer-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = None
         request = {
             'type': '1',  # https://www.okx.com/docs-v5/en/#rest-api-account-get-bills-details-last-3-months
@@ -6378,7 +6444,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['swap']:
             raise ExchangeError(self.id + ' fetchFundingRate() is only valid for swap markets')
@@ -6416,7 +6483,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `funding rates structure <https://docs.ccxt.com/?id=funding-rates-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, 'swap', True)
         request = {'instId': 'ANY'}
         response = self.publicGetPublicFundingRate(self.extend(request, params))
@@ -6451,7 +6519,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `funding history structure <https://docs.ccxt.com/?id=funding-history-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'instType': 'SPOT',  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # 'ccy': currency['id'],
@@ -6617,7 +6686,8 @@ class okx(Exchange, ImplicitAPI):
         # AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         if (leverage < 1) or (leverage > 125):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and 125')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
@@ -6736,7 +6806,8 @@ class okx(Exchange, ImplicitAPI):
         marginMode = marginMode.lower()
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setMarginMode() marginMode must be either cross or isolated')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         lever = self.safe_integer_2(params, 'lever', 'leverage')
         if (lever is None) or (lever < 1) or (lever > 125):
@@ -6773,7 +6844,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a list of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAccountInterestRate(params)
         #
         #    {
@@ -6803,7 +6875,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `borrow rate structure <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'ccy': currency['id'],
@@ -6886,7 +6959,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>` indexed by the market symbol
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             # 'ccy': currency['id'],
             # 'after': self.milliseconds(),  # Pagination of data to return records earlier than the requested ts,
@@ -6927,7 +7001,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of `borrow rate structures <https://docs.ccxt.com/?id=borrow-rate-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'ccy': currency['id'],
@@ -6958,7 +7033,8 @@ class okx(Exchange, ImplicitAPI):
         return self.parse_borrow_rate_history(data, code, since, limit)
 
     def modify_margin_helper(self, symbol: str, amount, type, params={}) -> MarginModification:
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         posSide = self.safe_string(params, 'posSide', 'net')
         params = self.omit(params, ['posSide'])
@@ -7100,7 +7176,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         type = 'MARGIN' if market['spot'] else self.convert_to_instrument_type(market['type'])
         uly = self.safe_string(market['info'], 'uly')
@@ -7198,7 +7275,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.marginMode]: 'cross' or 'isolated'
         :returns dict[]: An list of `borrow interest structures <https://docs.ccxt.com/?id=borrow-interest-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         if marginMode is None:
@@ -7269,7 +7347,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'ccy': currency['id'],
@@ -7308,7 +7387,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.id]: the order ID of borrowing, it is necessary while repaying
         :returns dict: a `margin loan structure <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         id = self.safe_string_2(params, 'id', 'ordId')
         params = self.omit(params, 'id')
         if id is None:
@@ -7373,7 +7453,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: exchange specific parameters
         :returns dict} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure:
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         if not market['contract']:
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
@@ -7416,7 +7497,8 @@ class okx(Exchange, ImplicitAPI):
         :param str params['instFamily']: Instrument family, Applicable to FUTURES/SWAP/OPTION, if instType is 'OPTION', either uly or instFamily is required
         :returns dict: an dictionary of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         market = None
         if symbols is not None:
@@ -7476,7 +7558,8 @@ class okx(Exchange, ImplicitAPI):
         timeframe = self.safe_string(timeframes, timeframe, timeframe)
         if timeframe != '5m' and timeframe != '1H' and timeframe != '1D':
             raise BadRequest(self.id + ' fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         # handle unified currency code or symbol
         currencyId = None
         market = None
@@ -7590,7 +7673,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `fees structures <https://docs.ccxt.com/?id=fee-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         if codes is not None:
             ids = self.currency_ids(codes)
@@ -7716,7 +7800,8 @@ class okx(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchSettlementHistory() requires a symbol argument')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         type = None
         type, params = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
@@ -7807,7 +7892,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.type]: the contract market type, 'option', 'swap' or 'future', the default is 'option'
         :returns dict[]: a list of `underlying assets <https://docs.ccxt.com/?id=underlying-assets-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchUnderlyingAssets', None, params)
         if (marketType is None) or (marketType == 'spot'):
@@ -7843,7 +7929,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marketId = self.safe_string(market, 'id', '')
         optionParts = marketId.split('-')
@@ -7902,7 +7989,8 @@ class okx(Exchange, ImplicitAPI):
         :param str params['instFamily']: Instrument family, either uly or instFamily is required
         :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         symbols = self.market_symbols(symbols, None, True, True, True)
         symbolsLength = None
@@ -8027,7 +8115,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.tag]: order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
         :returns dict[]: `A list of position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         code = self.safe_string(params, 'code')
@@ -8081,7 +8170,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `option chain structure <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -8128,7 +8218,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.uly]: the underlying asset, can be obtained from fetchUnderlyingAssets()
         :returns dict: a list of `option chain structures <https://docs.ccxt.com/?id=option-chain-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         currency = self.currency(code)
         request = {
             'uly': currency['code'] + '-USD',
@@ -8220,7 +8311,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'baseCcy': fromCode.upper(),
             'quoteCcy': toCode.upper(),
@@ -8273,7 +8365,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'quoteId': id,
             'baseCcy': fromCode,
@@ -8324,7 +8417,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `conversion structure <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {
             'clTReqId': id,
         }
@@ -8375,7 +8469,8 @@ class okx(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest conversion to fetch
         :returns dict[]: a list of `conversion structures <https://docs.ccxt.com/?id=conversion-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         request, params = self.handle_until_option('after', request, params)
         if since is not None:
@@ -8487,7 +8582,8 @@ class okx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         response = self.privateGetAssetConvertCurrencies(params)
         #
         #     {
@@ -8590,7 +8686,8 @@ class okx(Exchange, ImplicitAPI):
         :param boolean [params.auto]: True if fetching auto margin increases
         :returns dict[]: a list of `margin structures <https://docs.ccxt.com/?id=margin-loan-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         auto = self.safe_bool(params, 'auto')
         if type is None:
             raise ArgumentsRequired(self.id + ' fetchMarginAdjustmentHistory() requires a type argument')
@@ -8689,7 +8786,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.after]: timestamp in ms of the latest position to fetch based on the last update time of the position
         :returns dict[]: a list of `position structures <https://docs.ccxt.com/?id=position-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         marginMode = self.safe_string(params, 'marginMode')
         instType = self.safe_string_upper(params, 'instType')
         params = self.omit(params, ['until', 'marginMode', 'instType'])
@@ -8759,7 +8857,8 @@ class okx(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest ratio to fetch
         :returns dict[]: an array of `long short ratio structures <https://docs.ccxt.com/?id=long-short-ratio-structure>`
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchLongShortRatioHistory() requires a symbol argument')
         market = self.market(symbol)

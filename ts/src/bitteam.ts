@@ -246,9 +246,11 @@ export default class bitteam extends Exchange {
                     'ufobject': 'ufobject',
                     'tonchain': 'tonchain',
                 },
-                'currenciesValuedInUsd': {
-                    'USDT': true,
-                    'BUSD': true,
+                'fetchMarkets': {
+                    'currenciesValuedInUsd': {
+                        'USDT': true,
+                        'BUSD': true,
+                    },
                 },
             },
             'features': {
@@ -467,7 +469,7 @@ export default class bitteam extends Exchange {
         const timeStart = this.safeString (market, 'timeStart');
         const created = this.parse8601 (timeStart);
         let minCost: Num = undefined;
-        const currenciesValuedInUsd = this.safeValue (this.options, 'currenciesValuedInUsd', {});
+        const currenciesValuedInUsd = this.handleOption ('fetchMarkets', 'currenciesValuedInUsd', {}) as Dict;
         const quoteInUsd = this.safeBool (currenciesValuedInUsd, quote, false);
         if (quoteInUsd) {
             const settings = this.safeValue (market, 'settings', {});
@@ -756,7 +758,9 @@ export default class bitteam extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
@@ -828,7 +832,9 @@ export default class bitteam extends Exchange {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -879,7 +885,9 @@ export default class bitteam extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const type = this.safeString (params, 'type', 'all');
         const request: Dict = {
             'type': type,
@@ -991,7 +999,9 @@ export default class bitteam extends Exchange {
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
@@ -1053,7 +1063,9 @@ export default class bitteam extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'type': 'active',
         };
@@ -1072,7 +1084,9 @@ export default class bitteam extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'type': 'closed',
         };
@@ -1091,7 +1105,9 @@ export default class bitteam extends Exchange {
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'type': 'cancelled',
         };
@@ -1112,7 +1128,9 @@ export default class bitteam extends Exchange {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pairId': this.safeString (market, 'numericId'),
@@ -1166,7 +1184,9 @@ export default class bitteam extends Exchange {
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {
             'id': id,
         };
@@ -1193,7 +1213,9 @@ export default class bitteam extends Exchange {
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {
@@ -1400,7 +1422,9 @@ export default class bitteam extends Exchange {
      * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let response = await this.publicGetTradeApiCmcSummary ();
         //
         //     [
@@ -1455,7 +1479,9 @@ export default class bitteam extends Exchange {
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'name': market['id'],
@@ -1789,7 +1815,9 @@ export default class bitteam extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
     async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'pair': market['id'],
@@ -1831,7 +1859,9 @@ export default class bitteam extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -2096,7 +2126,9 @@ export default class bitteam extends Exchange {
      * @returns {object} a [balance structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#balance-structure}
      */
     async fetchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const response = await this.privateGetTradeApiCcxtBalance (params);
         return this.parseBalance (response);
     }
@@ -2180,7 +2212,9 @@ export default class bitteam extends Exchange {
      * @returns {object} a list of [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
      */
     async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let currency: Currency = undefined;
         const request: Dict = {};
         if (code !== undefined) {

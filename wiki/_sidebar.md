@@ -11,7 +11,6 @@
 - [Changelog](CHANGELOG.md)
 - [Awesome](Awesome.md)
 - API Spec by Exchange
-	- [aftermath](exchanges/aftermath.md)
 	- [alpaca](exchanges/alpaca.md)
 	- [apex](exchanges/apex.md)
 	- [aster](exchanges/aster.md)

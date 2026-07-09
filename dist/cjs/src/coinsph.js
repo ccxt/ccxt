@@ -886,7 +886,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (symbols !== undefined) {
             const ids = [];
@@ -924,7 +926,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1033,7 +1037,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1073,7 +1079,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const interval = this.safeString(this.timeframes, timeframe);
         const until = this.safeInteger(params, 'until');
@@ -1147,7 +1155,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1192,7 +1202,9 @@ class coinsph extends coinsph$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1324,7 +1336,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetOpenapiV1Account(params);
         //
         //     {
@@ -1384,7 +1398,9 @@ class coinsph extends coinsph$1["default"] {
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         // todo: add test order low priority
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
@@ -1499,7 +1515,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1524,7 +1542,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1549,7 +1569,9 @@ class coinsph extends coinsph$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchClosedOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1576,7 +1598,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeValue2(params, 'origClientOrderId', 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -1602,7 +1626,9 @@ class coinsph extends coinsph$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelAllOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         const request = {};
         if (symbol !== undefined) {
@@ -1799,7 +1825,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchTradingFee(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'symbol': market['id'],
@@ -1826,7 +1854,9 @@ class coinsph extends coinsph$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetOpenapiV1AssetTradeFee(params);
         //
         //     [
@@ -1895,7 +1925,9 @@ class coinsph extends coinsph$1["default"] {
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' withdraw() require network parameter');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
@@ -1923,7 +1955,9 @@ class coinsph extends coinsph$1["default"] {
      */
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         // todo: returns an empty array - find out why
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -1980,7 +2014,9 @@ class coinsph extends coinsph$1["default"] {
      */
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         // todo: returns an empty array - find out why
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let currency = undefined;
         const request = {};
         if (code !== undefined) {
@@ -2150,7 +2186,9 @@ class coinsph extends coinsph$1["default"] {
         if (networkId === undefined) {
             throw new errors.BadRequest(this.id + ' fetchDepositAddress() require network parameter');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'coin': currency['id'],

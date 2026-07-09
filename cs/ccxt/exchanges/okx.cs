@@ -867,6 +867,18 @@ public partial class okx : Exchange
                     { "51734", typeof(AuthenticationError) },
                     { "51735", typeof(ExchangeError) },
                     { "51736", typeof(InsufficientFunds) },
+                    { "51763", typeof(AccountNotEnabled) },
+                    { "51764", typeof(InsufficientFunds) },
+                    { "51765", typeof(BadRequest) },
+                    { "51766", typeof(ExchangeError) },
+                    { "51767", typeof(OnMaintenance) },
+                    { "51768", typeof(BadRequest) },
+                    { "51769", typeof(ExchangeError) },
+                    { "51770", typeof(BadRequest) },
+                    { "51771", typeof(ExchangeError) },
+                    { "51772", typeof(InsufficientFunds) },
+                    { "51773", typeof(PermissionDenied) },
+                    { "51774", typeof(OnMaintenance) },
                     { "52000", typeof(ExchangeError) },
                     { "54000", typeof(ExchangeError) },
                     { "54001", typeof(ExchangeError) },
@@ -876,6 +888,7 @@ public partial class okx : Exchange
                     { "54072", typeof(ExchangeError) },
                     { "54073", typeof(BadRequest) },
                     { "54074", typeof(ExchangeError) },
+                    { "54094", typeof(InvalidOrder) },
                     { "55100", typeof(InvalidOrder) },
                     { "55101", typeof(InvalidOrder) },
                     { "55102", typeof(InvalidOrder) },
@@ -947,6 +960,7 @@ public partial class okx : Exchange
                     { "59107", typeof(ExchangeError) },
                     { "59108", typeof(InsufficientFunds) },
                     { "59109", typeof(ExchangeError) },
+                    { "59113", typeof(AuthenticationError) },
                     { "59128", typeof(InvalidOrder) },
                     { "59200", typeof(InsufficientFunds) },
                     { "59201", typeof(InsufficientFunds) },
@@ -1018,6 +1032,8 @@ public partial class okx : Exchange
                     { "64001", typeof(BadRequest) },
                     { "64002", typeof(BadRequest) },
                     { "64003", typeof(AccountNotEnabled) },
+                    { "64004", typeof(BadRequest) },
+                    { "64008", typeof(NetworkError) },
                     { "70010", typeof(BadRequest) },
                     { "70013", typeof(BadRequest) },
                     { "70016", typeof(BadRequest) },
@@ -2095,6 +2111,7 @@ public partial class okx : Exchange
      * @name okx#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2104,7 +2121,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -2251,7 +2271,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -2300,7 +2323,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -2365,7 +2391,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -2401,7 +2430,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarkPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object market = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -2530,6 +2562,7 @@ public partial class okx : Exchange
      * @name okx#fetchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades
+     * @see https://www.okx.com/docs-v5/en/#rest-api-market-data-get-trades-history
      * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-option-trades
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -2542,7 +2575,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2662,7 +2698,10 @@ public partial class okx : Exchange
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
@@ -2793,7 +2832,10 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2958,7 +3000,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instType", this.convertToInstrumentType(getValue(market, "type")) },
@@ -3010,7 +3055,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
@@ -3141,7 +3189,10 @@ public partial class okx : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -3167,7 +3218,10 @@ public partial class okx : Exchange
     public async override Task<object> createMarketSellOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -3574,7 +3628,10 @@ public partial class okx : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object method = this.safeString(this.options, "createOrder", "privatePostTradeBatchOrders");
@@ -3625,7 +3682,10 @@ public partial class okx : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -3822,7 +3882,10 @@ public partial class okx : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object isAlgoOrder = null;
@@ -3888,7 +3951,10 @@ public partial class okx : Exchange
             object orderInner = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
             return this.safeDict(orderInner, 0);
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -3948,7 +4014,10 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrders() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new List<object>() {};
         object options = this.safeValue(this.options, "cancelOrders", new Dictionary<string, object>() {});
@@ -4066,7 +4135,10 @@ public partial class okx : Exchange
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new List<object>() {};
         object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
@@ -4162,7 +4234,10 @@ public partial class okx : Exchange
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object timeOut = 0;
         if (isTrue(isTrue((!isEqual(timeout, null))) && isTrue((isGreaterThan(timeout, 0)))))
         {
@@ -4516,7 +4591,10 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOrder() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -4676,7 +4754,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object maxLimit = 100;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
@@ -4843,7 +4924,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -5037,7 +5121,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object maxLimit = 100;
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
@@ -5226,7 +5313,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -5327,7 +5417,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -5642,7 +5735,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchDepositAddressesByNetwork(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
@@ -5688,7 +5784,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object rawNetwork = this.safeString(parameters, "network"); // some networks are like "Dora Vota Mainnet"
         parameters = this.omit(parameters, "network");
         code = this.safeCurrencyCode(code);
@@ -5733,7 +5832,10 @@ public partial class okx : Exchange
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         if (isTrue(isTrue((!isEqual(tag, null))) && isTrue((isGreaterThan(((string)tag).Length, 0)))))
         {
@@ -5802,7 +5904,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -5885,7 +5990,10 @@ public partial class okx : Exchange
     public async virtual Task<object> fetchDeposit(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "depId", id },
         };
@@ -5917,7 +6025,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -5992,7 +6103,10 @@ public partial class okx : Exchange
     public async virtual Task<object> fetchWithdrawal(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "wdId", id },
         };
@@ -6206,7 +6320,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -6289,7 +6406,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchPosition(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         var typequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
@@ -6371,7 +6491,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -6675,7 +6798,10 @@ public partial class okx : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -6813,10 +6939,23 @@ public partial class okx : Exchange
         return this.safeString(statuses, status, status);
     }
 
+    /**
+     * @method
+     * @name okx#fetchTransfer
+     * @description fetch a transfer
+     * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-funds-transfer-state
+     * @param {string} id transfer id
+     * @param {string} [code] unified currency code of the currency transferred
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
+     */
     public async override Task<object> fetchTransfer(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "transId", id },
         };
@@ -6860,7 +6999,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {
             { "type", "1" },
@@ -7098,7 +7240,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
@@ -7141,7 +7286,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, "swap", true);
         object request = new Dictionary<string, object>() {
             { "instId", "ANY" },
@@ -7181,7 +7329,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "type", "8" },
         };
@@ -7299,7 +7450,10 @@ public partial class okx : Exchange
         {
             throw new BadRequest ((string)add(this.id, " setLeverage() leverage should be between 1 and 125")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
@@ -7450,7 +7604,10 @@ public partial class okx : Exchange
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode must be either cross or isolated")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object lever = this.safeInteger2(parameters, "lever", "leverage");
         if (isTrue(isTrue(isTrue((isEqual(lever, null))) || isTrue((isLessThan(lever, 1)))) || isTrue((isGreaterThan(lever, 125)))))
@@ -7492,7 +7649,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchCrossBorrowRates(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAccountInterestRate(parameters);
         //
         //    {
@@ -7527,7 +7687,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchCrossBorrowRate(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
@@ -7625,7 +7788,10 @@ public partial class okx : Exchange
     public async virtual Task<object> fetchBorrowRateHistories(object codes = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(since, null)))
         {
@@ -7668,7 +7834,10 @@ public partial class okx : Exchange
     public async virtual Task<object> fetchBorrowRateHistory(object code, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
@@ -7703,7 +7872,10 @@ public partial class okx : Exchange
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object posSide = this.safeString(parameters, "posSide", "net");
         parameters = this.omit(parameters, new List<object>() {"posSide"});
@@ -7859,7 +8031,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarketLeverageTiers(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object type = ((bool) isTrue(getValue(market, "spot"))) ? "MARGIN" : this.convertToInstrumentType(getValue(market, "type"));
         object uly = this.safeString(getValue(market, "info"), "uly");
@@ -7975,7 +8150,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchBorrowInterest(object code = null, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -8065,7 +8243,10 @@ public partial class okx : Exchange
     public async override Task<object> borrowCrossMargin(object code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "ccy", getValue(currency, "id") },
@@ -8107,7 +8288,10 @@ public partial class okx : Exchange
     public async override Task<object> repayCrossMargin(object code, object amount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object id = this.safeString2(parameters, "id", "ordId");
         parameters = this.omit(parameters, "id");
         if (isTrue(isEqual(id, null)))
@@ -8179,7 +8363,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchOpenInterest(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "contract")))
         {
@@ -8227,7 +8414,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true);
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
@@ -8308,7 +8498,10 @@ public partial class okx : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchOpenInterestHistory cannot only use the 5m, 1h, and 1d timeframe")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         // handle unified currency code or symbol
         object currencyId = null;
         object market = null;
@@ -8450,7 +8643,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchDepositWithdrawFees(object codes = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(codes, null)))
         {
@@ -8597,7 +8793,10 @@ public partial class okx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchSettlementHistory() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
@@ -8707,7 +8906,10 @@ public partial class okx : Exchange
     public async virtual Task<object> fetchUnderlyingAssets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
@@ -8752,7 +8954,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchGreeks(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object marketId = this.safeString(market, "id", "");
         object optionParts = ((string)marketId).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
@@ -8818,7 +9023,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchAllGreeks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         symbols = this.marketSymbols(symbols, null, true, true, true);
         object symbolsLength = null;
@@ -8962,7 +9170,10 @@ public partial class okx : Exchange
     public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         object code = this.safeString(parameters, "code");
@@ -9031,7 +9242,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchOption(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
@@ -9081,7 +9295,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchOptionChain(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "uly", add(getValue(currency, "code"), "-USD") },
@@ -9178,7 +9395,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchConvertQuote(object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "baseCcy", ((string)fromCode).ToUpper() },
             { "quoteCcy", ((string)toCode).ToUpper() },
@@ -9234,7 +9454,10 @@ public partial class okx : Exchange
     public async override Task<object> createConvertTrade(object id, object fromCode, object toCode, object amount = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "quoteId", id },
             { "baseCcy", fromCode },
@@ -9288,7 +9511,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchConvertTrade(object id, object code = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "clTReqId", id },
         };
@@ -9346,7 +9572,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchConvertTradeHistory(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         var requestparametersVariable = this.handleUntilOption("after", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -9469,7 +9698,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchConvertCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetAssetConvertCurrencies(parameters);
         //
         //     {
@@ -9585,7 +9817,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchMarginAdjustmentHistory(object symbol = null, object type = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object auto = this.safeBool(parameters, "auto");
         if (isTrue(isEqual(type, null)))
         {
@@ -9704,7 +9939,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchPositionsHistory(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marginMode = this.safeString(parameters, "marginMode");
         object instType = this.safeStringUpper(parameters, "instType");
         parameters = this.omit(parameters, new List<object>() {"until", "marginMode", "instType"});
@@ -9787,7 +10025,10 @@ public partial class okx : Exchange
     public async override Task<object> fetchLongShortRatioHistory(object symbol = null, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchLongShortRatioHistory() requires a symbol argument")) ;

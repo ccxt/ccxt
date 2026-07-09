@@ -25,7 +25,7 @@ public partial class kucoin : ccxt.kucoin
                 { "watchOrderBook", true },
                 { "watchOrders", true },
                 { "watchPosition", true },
-                { "watchPositions", false },
+                { "watchPositions", true },
                 { "watchMyTrades", true },
                 { "watchTickers", true },
                 { "watchTicker", true },
@@ -40,7 +40,7 @@ public partial class kucoin : ccxt.kucoin
                 { "unWatchOHLCV", true },
                 { "unWatchOrderBook", true },
                 { "unWatchTrades", true },
-                { "unWatchhTradesForSymbols", true },
+                { "unWatchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -362,7 +362,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("ticker:", symbol);
@@ -407,7 +410,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object isFuturesMethod = getValue(market, "contract");
@@ -469,7 +475,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, true, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object marketType = null;
@@ -567,7 +576,10 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<object> watchUtaTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object messageHash = "uta:ticker";
         object messageHashes = new List<object>() {};
@@ -819,7 +831,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true, false);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isFuturesMethod = getValue(firstMarket, "contract");
@@ -841,7 +856,10 @@ public partial class kucoin : ccxt.kucoin
     public async virtual Task<object> watchMultiHelper(object methodName, object channelName, object isFuturesChannel, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true, false);
         object length = getArrayLength((IList<string>)(symbols));
         if (isTrue(isGreaterThan(length, 100)))
@@ -969,7 +987,10 @@ public partial class kucoin : ccxt.kucoin
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1024,7 +1045,10 @@ public partial class kucoin : ccxt.kucoin
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object uta = false;
@@ -1239,7 +1263,10 @@ public partial class kucoin : ccxt.kucoin
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object firstMarket = this.getMarketFromSymbols(symbols);
         object isFuturesMethod = getValue(firstMarket, "contract");
@@ -1283,7 +1310,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object marketIds = this.marketIds(symbols);
         object firstMarket = this.getMarketFromSymbols(symbols);
@@ -1558,10 +1588,13 @@ public partial class kucoin : ccxt.kucoin
     /**
      * @method
      * @name kucoin#unWatchOrderBook
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
-     * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+     * @see https://www.kucoin.com/docs-new/3470069w0 // spot level 5
+     * @see https://www.kucoin.com/docs-new/3470070w0 // spot level 50
+     * @see https://www.kucoin.com/docs-new/3470068w0 // spot incremental
+     * @see https://www.kucoin.com/docs-new/3470083w0 // futures level 5
+     * @see https://www.kucoin.com/docs-new/3470097w0 // futures level 50
+     * @see https://www.kucoin.com/docs-new/3470082w0 // futures incremental
+     * @see https://www.kucoin.com/docs-new/3470221w0 // uta
      * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1634,7 +1667,10 @@ public partial class kucoin : ccxt.kucoin
                 throw new ExchangeError ((string)add(this.id, " watchOrderBook 'limit' argument must be undefined, 5, 20, 50 or 100")) ;
             }
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object marketIds = this.marketIds(symbols);
         object firstMarket = this.getMarketFromSymbols(symbols);
@@ -1699,7 +1735,10 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         object limit = this.safeInteger(parameters, "limit");
         parameters = this.omit(parameters, "limit");
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false, true);
         object marketIds = this.marketIds(symbols);
         object firstMarket = this.getMarketFromSymbols(symbols);
@@ -2114,7 +2153,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object uta = await this.isUTAEnabled();
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -2537,7 +2579,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object messageHash = "myTrades";
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2781,7 +2826,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object uta = await this.isUTAEnabled();
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -3048,7 +3096,10 @@ public partial class kucoin : ccxt.kucoin
         {
             throw new ArgumentsRequired ((string)add(this.id, " watchPosition() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = await this.negotiate(true);
         object market = this.market(symbol);
         object topic = add("/contract/position:", getValue(market, "id"));
@@ -3084,7 +3135,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchPositions(object symbols = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object uta = await this.isUTAEnabled();
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
@@ -3458,7 +3512,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object channel = "funding-fee";
         object messageHash = add("fundingRate:", symbol);
@@ -3477,7 +3534,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object channel = "funding-fee";
         object subMessageHash = add("fundingRate:", symbol);
@@ -3568,7 +3628,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> watchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object channel = "mark-price";
         object messageHash = add("uta:ticker:", symbol);
@@ -3587,7 +3650,10 @@ public partial class kucoin : ccxt.kucoin
     public async override Task<object> unWatchMarkPrice(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.safeSymbol(symbol);
         object channel = "mark-price";
         object subMessageHash = add("uta:ticker:", symbol);

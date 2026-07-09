@@ -624,7 +624,10 @@ async function loadSettingsAndCreateExchange (
         exchange.verbose = true;
     }
 
-    const no_load_markets = cliOptions.noSend ? true : cliOptions.noLoadMarkets;
+    // commander maps the negated flags --no-send / --no-load-markets to 'send: false' / 'loadMarkets: false'
+    const noSend = cliOptions.send === false;
+    // --no-send forces markets loading (see printUsage) so the method can build the request it prints
+    const no_load_markets = noSend ? false : (cliOptions.loadMarkets === false);
     if (!no_load_markets && !printUsageOnly) {
         await handleMarketsLoading (exchange, cliOptions.refreshMarkets);
         await handleEventsLoading (exchange, cliOptions.refreshMarkets);
@@ -636,7 +639,7 @@ async function loadSettingsAndCreateExchange (
 
     exchange.verbose = cliOptions.verbose;
 
-    if (cliOptions.noSend) {
+    if (noSend) {
         exchange = setNoSend (exchange);
     }
     return exchange;

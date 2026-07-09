@@ -704,7 +704,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
     async fetchAccounts(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccounts(params);
         //
         //     [
@@ -770,7 +772,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccounts(params);
         return this.parseBalance(response);
     }
@@ -785,7 +789,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         // level 1 - only the best bid and ask
         // level 2 - top 50 bids and asks (aggregated)
         // level 3 - full order book (non aggregated)
@@ -904,7 +910,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const request = {};
         const response = await this.publicGetProductsSparkLines(this.extend(request, params));
@@ -951,7 +959,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': market['id'],
@@ -1078,7 +1088,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params, 100);
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'product_id': market['id'],
@@ -1109,7 +1121,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': market['id'], // fixes issue #2
@@ -1140,7 +1154,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetFees(params);
         //
         //    {
@@ -1200,7 +1216,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
@@ -1364,7 +1382,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOrderId', 'client_oid');
         let method = undefined;
@@ -1392,7 +1412,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async fetchOrderTrades(id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -1435,7 +1457,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'paginate');
         if (paginate) {
@@ -1493,7 +1517,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             // common params --------------------------------------------------
@@ -1586,7 +1612,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'product_id': market['id'], // the request will be more performant if you include it
         };
@@ -1619,7 +1647,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1648,7 +1678,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         this.checkAddress(address);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         const request = {
             'currency': currency['id'],
@@ -1775,7 +1807,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchLedger() requires a code param');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         const currency = this.currency(code);
         const accountsByCurrencyCode = this.indexBy(this.accounts, 'code');
@@ -1823,7 +1857,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
     async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.loadAccounts();
         let currency = undefined;
         let id = this.safeString(params, 'id'); // account id
@@ -2054,7 +2090,9 @@ class coinbaseexchange extends coinbaseexchange$1["default"] {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     async createDepositAddress(code, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.currency(code);
         let accounts = this.safeValue(this.options, 'coinbaseAccounts');
         if (accounts === undefined) {

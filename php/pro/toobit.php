@@ -195,7 +195,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $subParams = array();
@@ -303,7 +305,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['common'] . '/quote/ws/v1';
             $messageHashes = array();
             $timeframes = $this->safe_dict($this->options['ws'], 'timeframes', array());
@@ -417,7 +421,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbol = $this->symbol($symbol);
             $tickers = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $tickers[$symbol];
@@ -435,7 +441,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
             $subParams = array();
@@ -545,7 +553,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'channel', 'depth');
@@ -684,7 +694,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('watchBalance', null, $params);
@@ -802,7 +814,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market_or_null($symbol);
             $symbol = $this->safe_string($market, 'symbol', $symbol);
@@ -924,7 +938,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {boolean} [$params->unifiedMargin] use unified margin account
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $market = $this->market_or_null($symbol);
             $symbol = $this->safe_string($market, 'symbol', $symbol);
@@ -1004,7 +1020,9 @@ class toobit extends \ccxt\async\toobit {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             Async\await($this->authenticate());
             $messageHash = '';
             if (!$this->is_empty($symbols)) {

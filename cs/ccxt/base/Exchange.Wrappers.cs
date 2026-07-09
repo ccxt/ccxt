@@ -714,7 +714,6 @@ public partial class BaseExchange
     }
 }
 // class wrappers
-public class  Aftermath: aftermath { public Aftermath(object args = null) : base(args) { } }
 public class  Alpaca: alpaca { public Alpaca(object args = null) : base(args) { } }
 public class  Apex: apex { public Apex(object args = null) : base(args) { } }
 public class  Aster: aster { public Aster(object args = null) : base(args) { } }

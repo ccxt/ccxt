@@ -549,7 +549,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.fetchTickers(new List<object>() {symbol}, parameters);
         return this.safeDict(response, symbol, new Dictionary<string, object>() {});
     }
@@ -566,7 +569,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
@@ -645,7 +651,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -733,7 +742,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -787,7 +799,10 @@ public partial class cex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV requires a parameter \"dataType\" to be either \"bestBid\" or \"bestAsk\"")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
@@ -859,7 +874,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetMyCurrentFee(parameters);
         //
         //    {
@@ -919,7 +937,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostGetMyAccountStatusV3(parameters);
         //
         //    {
@@ -1054,7 +1075,10 @@ public partial class cex : Exchange
     public async virtual Task<object> fetchOrdersByStatus(object status, object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object isClosedOrders = (isEqual(status, "closed"));
         if (isTrue(isClosedOrders))
@@ -1179,7 +1203,10 @@ public partial class cex : Exchange
     public async virtual Task<object> fetchOpenOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
@@ -1200,7 +1227,10 @@ public partial class cex : Exchange
     public async virtual Task<object> fetchClosedOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
         };
@@ -1333,7 +1363,10 @@ public partial class cex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() : API trading is now allowed from main account, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "clientOrderId", this.uuid() },
@@ -1429,7 +1462,10 @@ public partial class cex : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "orderId", parseInt(id) },
             { "cancelRequestId", add("c_", ((object)(this.milliseconds())).ToString()) },
@@ -1455,7 +1491,10 @@ public partial class cex : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privatePostDoCancelAllOrders(parameters);
         //
         //    {
@@ -1495,7 +1534,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
@@ -1600,7 +1642,10 @@ public partial class cex : Exchange
     public async override Task<object> fetchDepositsWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -1726,7 +1771,10 @@ public partial class cex : Exchange
     public async virtual Task<object> transferBetweenMainAndSubAccount(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object fromMain = (isEqual(fromAccount, ""));
         object targetAccount = ((bool) isTrue(fromMain)) ? toAccount : fromAccount;
@@ -1765,7 +1813,10 @@ public partial class cex : Exchange
     public async virtual Task<object> transferBetweenSubAccounts(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
@@ -1846,7 +1897,10 @@ public partial class cex : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddress() : main account is not allowed to fetch deposit address from api, set params[\"accountId\"] or .options[\"createOrder\"][\"accountId\"] to the name of your sub-account")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object networkCode = null;
         var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];

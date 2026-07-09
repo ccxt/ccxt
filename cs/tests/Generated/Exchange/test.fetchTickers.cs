@@ -40,7 +40,13 @@ public partial class testMainClass : BaseTest
         {
             // todo: symbol check here
             object ticker = getValue(values, i);
-            testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+            try
+            {
+                testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+            } catch(Exception ex)
+            {
+                await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+            }
         }
         return response;
     }

@@ -239,7 +239,9 @@ class bitopro extends bitopro$1["default"] {
                     'BEP20': 'BSC',
                     'BSC': 'BSC',
                 },
-                'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['TWD'], // the only fiat currency for exchange
+                },
             },
             'features': {
                 'spot': {
@@ -369,7 +371,7 @@ class bitopro extends bitopro$1["default"] {
         return this.parseCurrencies(currencies);
     }
     parseCurrency(rawCurrency) {
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
         const currencyId = this.safeString(rawCurrency, 'currency');
         const code = this.safeCurrencyCode(currencyId);
         const deposit = this.safeBool(rawCurrency, 'deposit');
@@ -541,7 +543,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -573,7 +577,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async fetchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetTickers();
         const tickers = this.safeList(response, 'data', []);
         //
@@ -604,7 +610,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async fetchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -736,7 +744,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -766,7 +776,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
     async fetchTradingFees(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetProvisioningLimitationsAndFees(params);
         const tradingFeeRate = this.safeDict(response, 'tradingFeeRate', {});
         const first = this.safeValue(tradingFeeRate, 0);
@@ -870,7 +882,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const resolution = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
@@ -992,7 +1006,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async fetchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.privateGetAccountsBalance(params);
         const balances = this.safeList(response, 'data', []);
         //
@@ -1125,7 +1141,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'type': type,
@@ -1187,7 +1205,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'id': id,
@@ -1235,7 +1255,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' cancelOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const id = market['uppercaseId'];
         const request = {};
@@ -1264,7 +1286,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrders(symbol = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {
         // 'pair': market['id'], // optional
         };
@@ -1304,7 +1328,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'orderId': id,
@@ -1351,7 +1377,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchOrders() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1411,7 +1439,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -1454,7 +1484,9 @@ class bitopro extends bitopro$1["default"] {
         if (symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const request = {
             'pair': market['id'],
@@ -1593,7 +1625,9 @@ class bitopro extends bitopro$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchDeposits() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -1645,7 +1679,9 @@ class bitopro extends bitopro$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawals() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'currency': currency['id'],
@@ -1695,7 +1731,9 @@ class bitopro extends bitopro$1["default"] {
         if (code === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawal() requires the code argument');
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const currency = this.safeCurrency(code);
         const request = {
             'serial': id,
@@ -1735,7 +1773,9 @@ class bitopro extends bitopro$1["default"] {
      */
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         const currency = this.currency(code);
         const request = {
@@ -1807,7 +1847,9 @@ class bitopro extends bitopro$1["default"] {
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     async fetchDepositWithdrawFees(codes = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const response = await this.publicGetProvisioningCurrencies(params);
         //
         //     {

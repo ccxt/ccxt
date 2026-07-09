@@ -52,7 +52,8 @@ class luno(ccxt.async_support.luno):
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=public-trades>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']
@@ -143,7 +144,8 @@ class luno(ccxt.async_support.luno):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/?id=order-book-structure>`
         """
         self.check_required_credentials()
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
         subscriptionHash = '/stream/' + market['id']

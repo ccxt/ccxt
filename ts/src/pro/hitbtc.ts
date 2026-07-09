@@ -141,7 +141,9 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async subscribePublic (name: string, messageHashPrefix: string, symbols: Strings = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const isBatch = name.indexOf ('batch') >= 0;
         const url = this.urls['api']['ws']['public'];
@@ -170,7 +172,9 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async subscribePrivate (name: string, symbol: Str = undefined, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const splitName = name.split ('_subscribe');
@@ -193,7 +197,9 @@ export default class hitbtc extends hitbtcRest {
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
     async tradeRequest (name: string, params = {}) {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
@@ -345,7 +351,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols);
         const options = this.safeValue (this.options, 'watchTicker');
         const defaultMethod = this.safeString (options, 'method', 'ticker/{speed}/batch');
@@ -502,7 +510,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         symbols = this.marketSymbols (symbols, undefined, false);
         const options = this.safeValue (this.options, 'watchBidsAsks');
         const defaultMethod = this.safeString (options, 'method', 'orderbook/top/{speed}/batch');
@@ -586,7 +596,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         const request: Dict = {
             'params': {
@@ -837,7 +849,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let marketType: Str = undefined;
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -1081,7 +1095,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [balance structures]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance (params = {}): Promise<Balances> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const name = this.getSupportedMapping (type, {
@@ -1118,7 +1134,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
     async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const market = this.market (symbol);
         let request: Dict = {};
         let marketType: Str = undefined;
@@ -1151,7 +1169,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrderWs (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         let request = {
             'client_order_id': id,
@@ -1185,7 +1205,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelAllOrdersWs (symbol: Str = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1219,7 +1241,9 @@ export default class hitbtc extends hitbtcRest {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOpenOrdersWs (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        await this.loadMarkets ();
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         let market: Market = undefined;
         const request: Dict = {};
         if (symbol !== undefined) {

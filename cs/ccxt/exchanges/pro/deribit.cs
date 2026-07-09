@@ -174,12 +174,18 @@ public partial class deribit : ccxt.deribit
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object interval = this.safeString(parameters, "interval", "100ms");
         parameters = this.omit(parameters, "interval");
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(interval, "raw")))
         {
             await this.authenticate();
@@ -210,12 +216,18 @@ public partial class deribit : ccxt.deribit
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object interval = this.safeString(parameters, "interval", "100ms");
         parameters = this.omit(parameters, "interval");
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(interval, "raw")))
         {
             await this.authenticate();
@@ -298,7 +310,10 @@ public partial class deribit : ccxt.deribit
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object channels = new List<object>() {};
@@ -767,7 +782,10 @@ public partial class deribit : ccxt.deribit
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate(parameters);
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -873,7 +891,10 @@ public partial class deribit : ccxt.deribit
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         object ohlcvs = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
         return getValue(getValue(ohlcvs, symbol), timeframe);
@@ -976,7 +997,10 @@ public partial class deribit : ccxt.deribit
     public async virtual Task<object> watchMultipleWrapper(object channelName, object channelDescriptor, object symbolsArray = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object url = getValue(getValue(this.urls, "api"), "ws");
         object rawSubscriptions = new List<object>() {};
         object messageHashes = new List<object>() {};

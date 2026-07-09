@@ -1227,7 +1227,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1270,7 +1273,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1317,7 +1323,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchMyTrades";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1515,7 +1524,10 @@ public partial class hashkey : Exchange
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOHLCV";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, methodName, "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -1596,7 +1608,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1634,7 +1649,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetQuoteV1Ticker24hr(parameters);
         return this.parseTickers(response, symbols);
@@ -1698,7 +1716,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchLastPrices(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {};
         object response = await this.publicGetQuoteV1TickerPrice(this.extend(request, parameters));
@@ -1741,7 +1762,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object methodName = "fetchBalance";
         object marketType = "spot";
@@ -1866,7 +1890,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -1945,7 +1972,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchDeposits";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -2005,7 +2035,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchWithdrawals";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
@@ -2077,7 +2110,10 @@ public partial class hashkey : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2242,7 +2278,10 @@ public partial class hashkey : Exchange
     public async override Task<object> transfer(object code, object amount, object fromAccount, object toAccount, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
@@ -2296,7 +2335,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchAccounts(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetApiV1AccountType(parameters);
         //
         //     [
@@ -2396,7 +2438,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires an until argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object currency = this.currency(((string)code));
         object request = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)request)["startTime"] = since;
@@ -2533,7 +2578,10 @@ public partial class hashkey : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (isTrue(getValue(market, "spot")))
         {
@@ -2559,7 +2607,10 @@ public partial class hashkey : Exchange
     public async override Task<object> createMarketBuyOrderWithCost(object symbol, object cost, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "spot")))
         {
@@ -2598,7 +2649,10 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((string)add(this.id, " trigger orders are not supported for spot markets")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isMarketBuy = isTrue((isEqual(type, "market"))) && isTrue((isEqual(side, "buy")));
         object cost = this.safeString(parameters, "cost");
@@ -2801,7 +2855,10 @@ public partial class hashkey : Exchange
     public async virtual Task<object> createSwapOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
         object response = await this.privatePostApiV1FuturesOrder(this.extend(request, parameters));
@@ -2842,7 +2899,10 @@ public partial class hashkey : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ordersRequests = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
@@ -2909,7 +2969,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrder";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
@@ -2974,7 +3037,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3016,7 +3082,10 @@ public partial class hashkey : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object methodName = "cancelOrders";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object orderIds = String.Join(",", ((IList<object>)ids).ToArray());
         ((IDictionary<string,object>)request)["ids"] = orderIds;
@@ -3066,7 +3135,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOrder";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         object clientOrderId = null;
         var clientOrderIdparametersVariable = this.handleParamString(parameters, "clientOrderId");
@@ -3137,7 +3209,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchOpenOrders";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -3181,7 +3256,10 @@ public partial class hashkey : Exchange
     public async virtual Task<object> fetchOpenSpotOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object methodName = "fetchOpenSpotOrders";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -3302,7 +3380,10 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         object methodName = "fetchCanceledAndClosedOrders";
         this.checkTypeParam(methodName, parameters);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
@@ -3657,7 +3738,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchFundingRate(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3685,7 +3769,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object request = new Dictionary<string, object>() {
             { "timestamp", this.milliseconds() },
@@ -3751,7 +3838,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -3819,7 +3909,10 @@ public partial class hashkey : Exchange
                 throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() is supported for a symbol argument with one single market symbol only")) ;
             }
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         return await this.fetchPositionsForSymbol(getValue(symbols, 0), this.extend(new Dictionary<string, object>() {
             { "methodName", "fetchPositions" },
         }, parameters));
@@ -3839,7 +3932,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchPositionsForSymbol(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object methodName = "fetchPosition";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
@@ -3926,7 +4022,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchLeverage(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3975,7 +4074,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setLeverage() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object request = new Dictionary<string, object>() {
             { "leverage", leverage },
         };
@@ -4009,7 +4111,10 @@ public partial class hashkey : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         marginMode = ((string)marginMode).ToUpper();
         if (isTrue(isEqual(marginMode, "CROSSED")))
         {
@@ -4068,7 +4173,10 @@ public partial class hashkey : Exchange
     public async virtual Task<object> modifyMarginHelper(object symbol, object amount, object type, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         if (!isTrue(getValue(market, "swap")))
         {
@@ -4145,7 +4253,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchLeverageTiers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.publicGetApiV1ExchangeInfo(parameters);
         // response is the same as in fetchMarkets()
         object data = this.safeList(response, "contracts", new List<object>() {});
@@ -4267,7 +4378,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object methodName = "fetchTradingFee";
         object response = null;
@@ -4298,7 +4412,10 @@ public partial class hashkey : Exchange
     public async override Task<object> fetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object response = await this.privateGetApiV1AccountVipInfo(parameters);
         //
         //     {

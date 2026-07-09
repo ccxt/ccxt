@@ -13,10 +13,8 @@ add margin
 | symbol | <code>string</code> | Yes | unified market symbol |
 | amount | <code>float</code> | Yes | amount of margin to add |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#addmargin)
 * [aster](/exchanges/aster.md#addmargin)
 * [binance](/exchanges/binance.md#addmargin)
 * [bitget](/exchanges/bitget.md#addmargin)
@@ -351,7 +349,6 @@ cancels an open order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#cancelorder)
 * [alpaca](/exchanges/alpaca.md#cancelorder)
 * [apex](/exchanges/apex.md#cancelorder)
 * [aster](/exchanges/aster.md#cancelorder)
@@ -482,18 +479,18 @@ cancel multiple orders
 cancel multiple orders
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;Order&gt;</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
+**Returns**: <code>object</code> - an list of [order structures](https://docs.ccxt.com/?id=order-structure)
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | ids | <code>Array&lt;string&gt;</code> | Yes | order ids |
 | symbol | <code>string</code> | No | unified market symbol |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account to cancel orders for, required |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint EXCHANGE SPECIFIC PARAMETERS |
+| params.origClientOrderIdList | <code>Array&lt;string&gt;</code> | No | max length 10 e.g. ["my_id_1","my_id_2"], encode the double quotes. No space after comma |
+| params.recvWindow | <code>Array&lt;int&gt;</code> | No |  |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#cancelorders)
 * [aster](/exchanges/aster.md#cancelorders)
 * [binance](/exchanges/binance.md#cancelorders)
 * [bingx](/exchanges/bingx.md#cancelorders)
@@ -1048,16 +1045,15 @@ create a trade order
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to create an order in |
-| type | <code>string</code> | Yes | 'market' or 'limit' |
+| type | <code>string</code> | Yes | 'market', 'limit' or 'stop_limit' |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of currency you want to trade in units of base currency |
 | price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
-| params.account | <code>Account</code> | No | account id to use, required |
+| params.triggerPrice | <code>float</code> | No | The price at which a trigger order is triggered at |
+| params.cost | <code>float</code> | No | *market orders only* the cost of the order in units of the quote currency |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#createorder)
 * [alpaca](/exchanges/alpaca.md#createorder)
 * [apex](/exchanges/apex.md#createorder)
 * [aster](/exchanges/aster.md#createorder)
@@ -1200,10 +1196,8 @@ create a list of trade orders
 | --- | --- | --- | --- |
 | orders | <code>Array</code> | Yes | list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#createorders)
 * [aster](/exchanges/aster.md#createorders)
 * [backpack](/exchanges/backpack.md#createorders)
 * [binance](/exchanges/binance.md#createorders)
@@ -1615,6 +1609,7 @@ edit a trade order
 * [lighter](/exchanges/lighter.md#editorder)
 * [modetrade](/exchanges/modetrade.md#editorder)
 * [mudrex](/exchanges/mudrex.md#editorder)
+* [ndax](/exchanges/ndax.md#editorder)
 * [okx](/exchanges/okx.md#editorder)
 * [pacifica](/exchanges/pacifica.md#editorder)
 * [paradex](/exchanges/paradex.md#editorder)
@@ -1804,10 +1799,10 @@ fetch account's market settings. Settings are cached for walletAddress. To refre
 <a name="fetchAccounts" id="fetchaccounts"></a>
 
 ## fetchAccounts
-query for accounts owned by the walletAddress. An Account is needed for all trading methods.
+fetch all the accounts associated with a profile
 
 **Kind**: instance   
-**Returns**: <code>Array</code> - a list of [account structures](https://github.com/ccxt/ccxt/wiki/Manual#accounts)
+**Returns**: <code>object</code> - a dictionary of [account structures](https://docs.ccxt.com/?id=account-structure) indexed by the account type
 
 
 | Param | Type | Required | Description |
@@ -1815,7 +1810,6 @@ query for accounts owned by the walletAddress. An Account is needed for all trad
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchaccounts)
 * [bittrade](/exchanges/bittrade.md#fetchaccounts)
 * [bitvavo](/exchanges/bitvavo.md#fetchaccounts)
 * [bullish](/exchanges/bullish.md#fetchaccounts)
@@ -1864,7 +1858,7 @@ fetches all option contracts greeks, financial metrics used to measure the facto
 <a name="fetchBalance" id="fetchbalance"></a>
 
 ## fetchBalance
-query for balance and get the amount of funds available for trading or funds locked in positions
+query for balance and get the amount of funds available for trading or funds locked in orders
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [balance structure](https://docs.ccxt.com/?id=balance-structure)
@@ -1873,10 +1867,8 @@ query for balance and get the amount of funds available for trading or funds loc
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>string</code> | No | account object ID, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchbalance)
 * [alpaca](/exchanges/alpaca.md#fetchbalance)
 * [apex](/exchanges/apex.md#fetchbalance)
 * [aster](/exchanges/aster.md#fetchbalance)
@@ -2175,6 +2167,7 @@ fetches information on multiple canceled orders made by the user
 * [derive](/exchanges/derive.md#fetchcanceledorders)
 * [exmo](/exchanges/exmo.md#fetchcanceledorders)
 * [extended](/exchanges/extended.md#fetchcanceledorders)
+* [hibachi](/exchanges/hibachi.md#fetchcanceledorders)
 * [htx](/exchanges/htx.md#fetchcanceledorders)
 * [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledorders)
 * [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
@@ -2259,6 +2252,7 @@ fetches information on multiple closed orders made by the user
 * [extended](/exchanges/extended.md#fetchclosedorders)
 * [foxbit](/exchanges/foxbit.md#fetchclosedorders)
 * [gate](/exchanges/gate.md#fetchclosedorders)
+* [hibachi](/exchanges/hibachi.md#fetchclosedorders)
 * [hitbtc](/exchanges/hitbtc.md#fetchclosedorders)
 * [hollaex](/exchanges/hollaex.md#fetchclosedorders)
 * [htx](/exchanges/htx.md#fetchclosedorders)
@@ -2601,7 +2595,6 @@ fetches all available currencies on an exchange
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchcurrencies)
 * [apex](/exchanges/apex.md#fetchcurrencies)
 * [aster](/exchanges/aster.md#fetchcurrencies)
 * [backpack](/exchanges/backpack.md#fetchcurrencies)
@@ -2614,6 +2607,7 @@ fetches all available currencies on an exchange
 * [bitmex](/exchanges/bitmex.md#fetchcurrencies)
 * [bitopro](/exchanges/bitopro.md#fetchcurrencies)
 * [bitrue](/exchanges/bitrue.md#fetchcurrencies)
+* [bitso](/exchanges/bitso.md#fetchcurrencies)
 * [bitstamp](/exchanges/bitstamp.md#fetchcurrencies)
 * [bitteam](/exchanges/bitteam.md#fetchcurrencies)
 * [bittrade](/exchanges/bittrade.md#fetchcurrencies)
@@ -3067,6 +3061,7 @@ fetch history of deposits and withdrawals
 * [dydx](/exchanges/dydx.md#fetchdepositswithdrawals)
 * [exmo](/exchanges/exmo.md#fetchdepositswithdrawals)
 * [gemini](/exchanges/gemini.md#fetchdepositswithdrawals)
+* [hibachi](/exchanges/hibachi.md#fetchdepositswithdrawals)
 * [hitbtc](/exchanges/hitbtc.md#fetchdepositswithdrawals)
 * [indodax](/exchanges/indodax.md#fetchdepositswithdrawals)
 * [modetrade](/exchanges/modetrade.md#fetchdepositswithdrawals)
@@ -3922,7 +3917,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 <a name="fetchMarkets" id="fetchmarkets"></a>
 
 ## fetchMarkets
-retrieves data on all markets for woo
+retrieves data on all markets for alpaca
 
 **Kind**: instance   
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
@@ -3930,10 +3925,9 @@ retrieves data on all markets for woo
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params | <code>object</code> | No | extra parameters specific to the exchange api endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchmarkets)
 * [alpaca](/exchanges/alpaca.md#fetchmarkets)
 * [apex](/exchanges/apex.md#fetchmarkets)
 * [aster](/exchanges/aster.md#fetchmarkets)
@@ -4142,6 +4136,7 @@ fetches historical settlement records of the user
 * [binance](/exchanges/binance.md#fetchmysettlementhistory)
 * [bybit](/exchanges/bybit.md#fetchmysettlementhistory)
 * [gate](/exchanges/gate.md#fetchmysettlementhistory)
+* [hibachi](/exchanges/hibachi.md#fetchmysettlementhistory)
 
 ---
 
@@ -4340,11 +4335,12 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | max=1000, max=100 when since is defined and is less than (now - (999 * (timeframe in ms))) |
-| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| params | <code>object</code> | No | extra parameters specific to the alpha api endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
+| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocBars |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchohlcv)
 * [alpaca](/exchanges/alpaca.md#fetchohlcv)
 * [apex](/exchanges/apex.md#fetchohlcv)
 * [aster](/exchanges/aster.md#fetchohlcv)
@@ -4588,14 +4584,13 @@ fetch all unfilled currently open orders
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
-| since | <code>int</code> | No | the earliest time in ms to fetch open orders for |
-| limit | <code>int</code> | No | the maximum number of  open orders structures to retrieve |
+| symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
+| params.until | <code>int</code> | No | the latest time in ms to fetch orders for |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchopenorders)
 * [alpaca](/exchanges/alpaca.md#fetchopenorders)
 * [apex](/exchanges/apex.md#fetchopenorders)
 * [aster](/exchanges/aster.md#fetchopenorders)
@@ -4883,7 +4878,7 @@ fetches information on an order made by the user
 fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
 
 **Kind**: instance   
-**Returns**: <code>object</code> - A dictionary of [order book structures](https://docs.ccxt.com/?id=order-book-structure)
+**Returns**: <code>object</code> - A dictionary of [order book structures](https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure) indexed by market symbols
 
 
 | Param | Type | Required | Description |
@@ -4891,9 +4886,9 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
 | limit | <code>int</code> | No | the maximum amount of order book entries to return |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchorderbook)
 * [alpaca](/exchanges/alpaca.md#fetchorderbook)
 * [apex](/exchanges/apex.md#fetchorderbook)
 * [aster](/exchanges/aster.md#fetchorderbook)
@@ -5351,10 +5346,8 @@ fetch data on an open position
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market the position is held in |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchposition)
 * [binance](/exchanges/binance.md#fetchposition)
 * [bingx](/exchanges/bingx.md#fetchposition)
 * [bitget](/exchanges/bitget.md#fetchposition)
@@ -5495,12 +5488,10 @@ fetch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query positions for, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchpositions)
 * [apex](/exchanges/apex.md#fetchpositions)
 * [aster](/exchanges/aster.md#fetchpositions)
 * [backpack](/exchanges/backpack.md#fetchpositions)
@@ -5815,6 +5806,7 @@ the latest known information on the availability of the exchange API
 * [lighter](/exchanges/lighter.md#fetchstatus)
 * [mexc](/exchanges/mexc.md#fetchstatus)
 * [modetrade](/exchanges/modetrade.md#fetchstatus)
+* [ndax](/exchanges/ndax.md#fetchstatus)
 * [okx](/exchanges/okx.md#fetchstatus)
 * [paradex](/exchanges/paradex.md#fetchstatus)
 * [toobit](/exchanges/toobit.md#fetchstatus)
@@ -5858,9 +5850,9 @@ fetches a price ticker, a statistical calculation with the information calculate
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.loc | <code>string</code> | No | crypto location, default: us |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchticker)
 * [alpaca](/exchanges/alpaca.md#fetchticker)
 * [apex](/exchanges/apex.md#fetchticker)
 * [aster](/exchanges/aster.md#fetchticker)
@@ -6044,6 +6036,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 * [luno](/exchanges/luno.md#fetchtickers)
 * [mexc](/exchanges/mexc.md#fetchtickers)
 * [mudrex](/exchanges/mudrex.md#fetchtickers)
+* [ndax](/exchanges/ndax.md#fetchtickers)
 * [okx](/exchanges/okx.md#fetchtickers)
 * [onetrading](/exchanges/onetrading.md#fetchtickers)
 * [p2b](/exchanges/p2b.md#fetchtickers)
@@ -6144,10 +6137,10 @@ get the list of most recent trades for a particular symbol
 | since | <code>int</code> | No | timestamp in ms of the earliest trade to fetch |
 | limit | <code>int</code> | No | the maximum amount of trades to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.until | <code>int</code> | No | the latest time in ms to fetch trades for |
+| params.loc | <code>string</code> | No | crypto location, default: us |
+| params.method | <code>string</code> | No | method, default: marketPublicGetV1beta3CryptoLocTrades |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchtrades)
 * [alpaca](/exchanges/alpaca.md#fetchtrades)
 * [apex](/exchanges/apex.md#fetchtrades)
 * [aster](/exchanges/aster.md#fetchtrades)
@@ -6277,7 +6270,6 @@ fetch the trading fees for a market
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#fetchtradingfee)
 * [aster](/exchanges/aster.md#fetchtradingfee)
 * [binance](/exchanges/binance.md#fetchtradingfee)
 * [bingx](/exchanges/bingx.md#fetchtradingfee)
@@ -6501,6 +6493,7 @@ fetches a transfer
 ##### Supported exchanges
 * [bitvavo](/exchanges/bitvavo.md#fetchtransfer)
 * [mexc](/exchanges/mexc.md#fetchtransfer)
+* [okx](/exchanges/okx.md#fetchtransfer)
 
 ---
 
@@ -6937,12 +6930,10 @@ remove margin from a position
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol |
-| amount | <code>float</code> | Yes | amount of margin to remove |
+| amount | <code>float</code> | Yes | the amount of margin to remove |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#reducemargin)
 * [aster](/exchanges/aster.md#reducemargin)
 * [binance](/exchanges/binance.md#reducemargin)
 * [bitget](/exchanges/bitget.md#reducemargin)
@@ -6954,6 +6945,7 @@ remove margin from a position
 * [hashkey](/exchanges/hashkey.md#reducemargin)
 * [hitbtc](/exchanges/hitbtc.md#reducemargin)
 * [hyperliquid](/exchanges/hyperliquid.md#reducemargin)
+* [kucoin](/exchanges/kucoin.md#reducemargin)
 * [lighter](/exchanges/lighter.md#reducemargin)
 * [mexc](/exchanges/mexc.md#reducemargin)
 * [mudrex](/exchanges/mudrex.md#reducemargin)
@@ -7116,10 +7108,8 @@ set the level of leverage for a market
 | leverage | <code>float</code> | Yes | the rate of leverage |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#setleverage)
 * [apex](/exchanges/apex.md#setleverage)
 * [aster](/exchanges/aster.md#setleverage)
 * [binance](/exchanges/binance.md#setleverage)
@@ -7324,24 +7314,6 @@ sign in, must be called prior to using other authenticated methods
 
 ---
 
-<a name="signTxEd25519" id="signtxed25519"></a>
-
-## signTxEd25519
-Helper to sign some transaction bytes and return a generic transaction execution request.
-
-**Kind**: instance   
-**Returns**: <code>object</code> - the input transaction bytes and the signed digest
-
-
-| Param | Type | Required | Description |
-| --- | --- | --- | --- |
-| tx | <code>object</code> | No | transaction bytes and the signing digest for them |
-
-##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#signtxed25519)
-
----
-
 <a name="transfer" id="transfer"></a>
 
 ## transfer
@@ -7358,9 +7330,9 @@ transfer currency internally between wallets on the same account
 | fromAccount | <code>string</code> | Yes | account to transfer from |
 | toAccount | <code>string</code> | Yes | account to transfer to |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.transferId | <code>string</code> | No | UUID, which is unique across the platform |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#transfer)
 * [apex](/exchanges/apex.md#transfer)
 * [aster](/exchanges/aster.md#transfer)
 * [bigone](/exchanges/bigone.md#transfer)
@@ -8444,7 +8416,6 @@ watches information on open orders with bid (buy) and ask (sell) prices, volumes
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#watchorderbook)
 * [alpaca](/exchanges/alpaca.md#watchorderbook)
 * [apex](/exchanges/apex.md#watchorderbook)
 * [aster](/exchanges/aster.md#watchorderbook)
@@ -8665,14 +8636,12 @@ watch all open positions
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code>, <code>undefined</code> | Yes | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
 | since | <code>int</code> | No | the earliest time in ms to fetch positions for |
-| limit | <code>int</code> | No | the maximum number of position structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of positions to retrieve |
 | params | <code>object</code> | Yes | extra parameters specific to the exchange API endpoint |
-| params.accountNumber | <code>int</code> | No | account number to query orders for, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#watchpositions)
 * [apex](/exchanges/apex.md#watchpositions)
 * [aster](/exchanges/aster.md#watchpositions)
 * [backpack](/exchanges/backpack.md#watchpositions)
@@ -8836,12 +8805,11 @@ watches information on multiple trades made in a market
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market trades were made in |
-| since | <code>int</code> | No | the earliest time in ms to fetch trades for |
+| since | <code>int</code> | No | the earliest time in ms to fetch orders for |
 | limit | <code>int</code> | No | the maximum number of trade structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#watchtrades)
 * [alpaca](/exchanges/alpaca.md#watchtrades)
 * [apex](/exchanges/apex.md#watchtrades)
 * [aster](/exchanges/aster.md#watchtrades)
@@ -8956,12 +8924,10 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
+| tag | <code>string</code> | Yes | a memo for the transaction |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.account | <code>Account</code> | No | account id to use, required |
 
 ##### Supported exchanges
-* [aftermath](/exchanges/aftermath.md#withdraw)
 * [alpaca](/exchanges/alpaca.md#withdraw)
 * [aster](/exchanges/aster.md#withdraw)
 * [backpack](/exchanges/backpack.md#withdraw)

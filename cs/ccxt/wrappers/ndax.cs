@@ -7,6 +7,26 @@ namespace ccxt;
 public partial class ndax
 {
     /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#ping"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchStatus(parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
     /// retrieves data on all markets for ndax
     /// </summary>
     /// <remarks>
@@ -52,6 +72,26 @@ public partial class ndax
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchOrderBook(symbol, limit, parameters);
         return new OrderBook(res);
+    }
+    /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#cmc-summary"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
     }
     /// <summary>
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
@@ -259,6 +299,33 @@ public partial class ndax
         var res = await this.createOrder(symbol, type, side, amount, price, parameters);
         return new Order(res);
     }
+    /// <summary>
+    /// cancels an open order and places a new order
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://apidoc.ndax.io/#cancelreplaceorder"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>amount</term>
+    /// <description>
+    /// float : how much of currency you want to trade in units of base currency
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>price</term>
+    /// <description>
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/?id=order-structure}.</returns>
     public async Task<Order> EditOrder(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
     {
         var amount = amount2 == 0 ? null : (object)amount2;

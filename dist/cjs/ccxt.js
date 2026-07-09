@@ -9,7 +9,6 @@ var Exchange = require('./src/base/Exchange.js');
 var Precise = require('./src/base/Precise.js');
 var functions = require('./src/base/functions.js');
 var errors = require('./src/base/errors.js');
-var aftermath = require('./src/aftermath.js');
 var alpaca = require('./src/alpaca.js');
 var apex = require('./src/apex.js');
 var aster = require('./src/aster.js');
@@ -114,7 +113,6 @@ var woofipro = require('./src/woofipro.js');
 var xt = require('./src/xt.js');
 var zaif = require('./src/zaif.js');
 var zebpay = require('./src/zebpay.js');
-var aftermath$1 = require('./src/pro/aftermath.js');
 var alpaca$1 = require('./src/pro/alpaca.js');
 var apex$1 = require('./src/pro/apex.js');
 var aster$1 = require('./src/pro/aster.js');
@@ -203,7 +201,6 @@ var polymarket = require('./src/prediction/polymarket.js');
 // this is updated by vss.js when building
 const version = '4.5.64';
 const exchanges = {
-    'aftermath': aftermath["default"],
     'alpaca': alpaca["default"],
     'apex': apex["default"],
     'aster': aster["default"],
@@ -310,7 +307,6 @@ const exchanges = {
     'zebpay': zebpay["default"],
 };
 const pro = {
-    'aftermath': aftermath$1["default"],
     'alpaca': alpaca$1["default"],
     'apex': apex$1["default"],
     'aster': aster$1["default"],
@@ -451,7 +447,6 @@ exports.RequestTimeout = errors.RequestTimeout;
 exports.RestrictedLocation = errors.RestrictedLocation;
 exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
-exports.aftermath = aftermath["default"];
 exports.alpaca = alpaca["default"];
 exports.apex = apex["default"];
 exports.aster = aster["default"];

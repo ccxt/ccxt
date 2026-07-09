@@ -68,7 +68,9 @@ export default class bitopro extends bitoproRest {
                 throw new ExchangeError(this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
             }
         }
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
@@ -130,7 +132,9 @@ export default class bitopro extends bitoproRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'TRADE' + ':' + symbol;
@@ -191,7 +195,9 @@ export default class bitopro extends bitoproRest {
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let messageHash = 'USER_TRADE';
         if (symbol !== undefined) {
             const market = this.market(symbol);
@@ -332,7 +338,9 @@ export default class bitopro extends bitoproRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'TICKER' + ':' + symbol;
@@ -414,7 +422,9 @@ export default class bitopro extends bitoproRest {
      */
     async watchBalance(params = {}) {
         this.checkRequiredCredentials();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const messageHash = 'ACCOUNT_BALANCE';
         const url = this.urls['ws']['private'] + '/' + 'account-balance';
         this.authenticate(url);

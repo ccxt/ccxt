@@ -228,9 +228,11 @@ func  (this *BitrueCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes1988 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes1988)
+                retRes19912 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes19912)
+            }
             if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
                 var market any = this.Market(symbol)
                 symbol = ccxt.GetValue(market, "symbol")
@@ -363,9 +365,11 @@ func  (this *BitrueCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3158 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3158)
+                retRes31812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes31812)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var messageHash any = ccxt.Add("orderbook:", symbol)
@@ -394,9 +398,9 @@ func  (this *BitrueCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan
             }
             var request any = this.DeepExtend(message, params)
         
-                retRes34315 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes34315)
-                ch <- retRes34315
+                retRes34715 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes34715)
+                ch <- retRes34715
                 return nil
         
             }()
@@ -527,9 +531,11 @@ func  (this *BitrueCore) WatchTrades(symbol any, optionalArgs ...any) <- chan an
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes4658 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes4658)
+                retRes47012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes47012)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
@@ -660,9 +666,11 @@ func  (this *BitrueCore) WatchOHLCV(symbol any, optionalArgs ...any) <- chan any
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5788 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5788)
+                retRes58512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes58512)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
@@ -777,9 +785,11 @@ func  (this *BitrueCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6818 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6818)
+                retRes69012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes69012)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             if !ccxt.IsTrue(ccxt.GetValue(market, "swap")) {
@@ -800,9 +810,9 @@ func  (this *BitrueCore) WatchTicker(symbol any, optionalArgs ...any) <- chan an
             }
             var request any = this.DeepExtend(message, params)
         
-                retRes70115 :=  (<-this.Watch(url, messageHash, request, messageHash))
-                ccxt.PanicOnError(retRes70115)
-                ch <- retRes70115
+                retRes71115 :=  (<-this.Watch(url, messageHash, request, messageHash))
+                ccxt.PanicOnError(retRes71115)
+                ch <- retRes71115
                 return nil
         
             }()
@@ -914,8 +924,8 @@ func  (this *BitrueCore) Pong(client any, message any) <- chan any {
                 "pong": time,
             }
         
-            retRes8088 := (<-client.(ccxt.ClientInterface).Send(pong))
-            ccxt.PanicOnError(retRes8088)
+            retRes8188 := (<-client.(ccxt.ClientInterface).Send(pong))
+            ccxt.PanicOnError(retRes8188)
                 return nil
             }()
             return ch
@@ -1012,8 +1022,8 @@ func  (this *BitrueCore) KeepAliveListenKey(optionalArgs ...any) <- chan any {
                         }()
             		    // try block:
                         
-                    retRes86712 := (<-this.OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.Extend(request, params)))
-                    ccxt.PanicOnError(retRes86712)
+                    retRes87712 := (<-this.OpenV1PrivatePutPoseidonApiV1ListenKeyListenKey(this.Extend(request, params)))
+                    ccxt.PanicOnError(retRes87712)
             		    return nil
             	    }(this)
                 

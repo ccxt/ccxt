@@ -34,7 +34,12 @@ async function fetchTickersHelperTest(exchange, skippedProperties, argSymbols, a
     for (let i = 0; i < values.length; i++) {
         // todo: symbol check here
         const ticker = values[i];
-        testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+        try {
+            testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+        }
+        catch (ex) {
+            await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+        }
     }
     return response;
 }

@@ -49,7 +49,10 @@ public partial class ndax : ccxt.ndax
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object name = "SubscribeLevel1";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
@@ -121,7 +124,10 @@ public partial class ndax : ccxt.ndax
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object name = "SubscribeTrades";
@@ -214,7 +220,10 @@ public partial class ndax : ccxt.ndax
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object name = "SubscribeTicker";
@@ -344,7 +353,10 @@ public partial class ndax : ccxt.ndax
     {
         parameters ??= new Dictionary<string, object>();
         object omsId = this.safeInteger(this.options, "omsId", 1);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object name = "SubscribeLevel2";

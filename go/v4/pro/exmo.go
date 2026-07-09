@@ -238,9 +238,11 @@ func  (this *ExmoCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
                 defer ccxt.ReturnPanicError(ch)
                     params := ccxt.GetArg(optionalArgs, 0, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2198 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2198)
+                retRes22012 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes22012)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -252,9 +254,9 @@ func  (this *ExmoCore) WatchTicker(symbol any, optionalArgs ...any) <- chan any 
             }
             var request any = this.DeepExtend(message, params)
         
-                retRes23215 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
-                ccxt.PanicOnError(retRes23215)
-                ch <- retRes23215
+                retRes23415 :=  (<-this.Watch(url, messageHash, request, messageHash, request))
+                ccxt.PanicOnError(retRes23415)
+                ch <- retRes23415
                 return nil
         
             }()
@@ -278,9 +280,11 @@ func  (this *ExmoCore) WatchTickers(optionalArgs ...any) <- chan any {
             _ = symbols
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes2458 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes2458)
+                retRes24812 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes24812)
+            }
             symbols = this.MarketSymbols(symbols, nil, false)
             var messageHashes any = []any{}
             var args any = []any{}
@@ -297,8 +301,8 @@ func  (this *ExmoCore) WatchTickers(optionalArgs ...any) <- chan any {
             }
             var request any = this.DeepExtend(message, params)
         
-            retRes2618 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, request))
-            ccxt.PanicOnError(retRes2618)
+            retRes2658 := (<-this.WatchMultiple(url, messageHashes, request, messageHashes, request))
+            ccxt.PanicOnError(retRes2658)
         
             ch <- this.FilterByArray(this.Tickers, "symbol", symbols)
             return nil
@@ -358,9 +362,11 @@ func  (this *ExmoCore) WatchTrades(symbol any, optionalArgs ...any) <- chan any 
             _ = limit
             params := ccxt.GetArg(optionalArgs, 2, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3088 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3088)
+                retRes31312 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes31312)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -441,12 +447,14 @@ func  (this *ExmoCore) WatchMyTrades(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes3748 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes3748)
+                retRes38112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes38112)
+            }
         
-            retRes3758 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes3758)
+            retRes3838 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes3838)
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchMyTrades", nil, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
@@ -586,9 +594,11 @@ func  (this *ExmoCore) WatchOrderBook(symbol any, optionalArgs ...any) <- chan a
             _ = limit
             params := ccxt.GetArg(optionalArgs, 1, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes5028 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes5028)
+                retRes51112 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes51112)
+            }
             var market any = this.Market(symbol)
             symbol = ccxt.GetValue(market, "symbol")
             var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "public")
@@ -703,12 +713,14 @@ func  (this *ExmoCore) WatchOrders(optionalArgs ...any) <- chan any {
             _ = limit
             params := ccxt.GetArg(optionalArgs, 3, map[string]any {})
             _ = params
+            if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
         
-            retRes6048 := (<-this.LoadMarkets())
-            ccxt.PanicOnError(retRes6048)
+                retRes61512 := (<-this.LoadMarkets())
+                ccxt.PanicOnError(retRes61512)
+            }
         
-            retRes6058 := (<-this.Authenticate(params))
-            ccxt.PanicOnError(retRes6058)
+            retRes6178 := (<-this.Authenticate(params))
+            ccxt.PanicOnError(retRes6178)
             typeVarqueryVariable := this.HandleMarketTypeAndParams("watchOrders", nil, params)
             typeVar := ccxt.GetValue(typeVarqueryVariable,0)
             query := ccxt.GetValue(typeVarqueryVariable,1)
