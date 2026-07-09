@@ -374,13 +374,11 @@ export default class bydfi extends Exchange {
                 'networks': {
                     'ERC20': 'ETH', // todo add more networks
                 },
-                'createOrder': {
-                    'timeInForceMap': {
-                        'GTC': 'GTC', // Good Till Cancelled
-                        'FOK': 'FOK', // Fill Or Kill
-                        'IOC': 'IOC', // Immediate Or Cancel
-                        'PO': 'POST_ONLY', // Post Only
-                    },
+                'timeInForce': {
+                    'GTC': 'GTC', // Good Till Cancelled
+                    'FOK': 'FOK', // Fill Or Kill
+                    'IOC': 'IOC', // Immediate Or Cancel
+                    'PO': 'POST_ONLY', // Post Only
                 },
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1314,11 +1312,7 @@ export default class bydfi extends Exchange {
         } else if ((type !== 'STOP_MARKET') && (type !== 'TAKE_PROFIT_MARKET')) {
             throw new NotSupported (this.id + ' createOrder() closePosition is only supported for stopLoss and takeProfit market orders');
         }
-        let timeInForce = this.safeString (params, 'timeInForce');
-        if (timeInForce !== undefined) {
-            const supported = this.handleOption ('createOrder', 'timeInForceMap') as Dict;
-            timeInForce = this.safeString (supported, timeInForce);
-        }
+        let timeInForce = this.handleTimeInForce (params);
         let postOnly = false;
         [ postOnly, params ] = this.handlePostOnly (isMarketOrder, timeInForce === 'POST_ONLY', params);
         if (postOnly) {
