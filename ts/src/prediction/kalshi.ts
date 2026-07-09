@@ -1121,6 +1121,9 @@ export default class kalshi extends Exchange {
                 usableCandles.push (candle);
             }
         }
+        // kalshi candles carry only the period-END timestamp; thread the candle duration through so
+        // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
+        this.options['ohlcvCandleDurationSeconds'] = tf;
         return this.parseOHLCVs (usableCandles, outcomeObj as any, timeframe, since, limit);
     }
 
@@ -1166,8 +1169,16 @@ export default class kalshi extends Exchange {
         const price = this.safeDict (ohlcv, 'price', {});
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
         const previous = this.safeNumber (price, 'previous_dollars');
+        // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
+        // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
+        const endTimestamp = this.safeTimestamp (ohlcv, 'end_period_ts');
+        const durationSeconds = this.safeInteger (this.options, 'ohlcvCandleDurationSeconds', 0);
+        let timestamp = endTimestamp;
+        if (endTimestamp !== undefined) {
+            timestamp = endTimestamp - durationSeconds * 1000;
+        }
         return [
-            this.safeTimestamp (ohlcv, 'end_period_ts'),
+            timestamp,
             this.safeNumber (price, 'open_dollars', previous),
             this.safeNumber (price, 'high_dollars', previous),
             this.safeNumber (price, 'low_dollars', previous),
@@ -1899,10 +1910,22 @@ export default class kalshi extends Exchange {
         order['side'] = side;
         order['amount'] = amount;
         order['price'] = price;
+        // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
+        // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
+        // otherwise a fully-filled order would return status 'closed' with filled 0
+        const remainingCount = this.safeNumber (response, 'remaining_count');
+        const filledCount = this.safeNumber (response, 'fill_count');
+        if (filledCount !== undefined) {
+            order['filled'] = filledCount;
+        } else if ((remainingCount !== undefined) && (amount !== undefined)) {
+            order['filled'] = amount - remainingCount;
+        }
+        if (remainingCount !== undefined) {
+            order['remaining'] = remainingCount;
+        }
         if (order['status'] === undefined) {
-            const remaining = this.safeNumber (response, 'remaining_count');
             let resolvedStatus = 'open';
-            if ((remaining !== undefined) && (remaining === 0)) {
+            if ((remainingCount !== undefined) && (remainingCount === 0)) {
                 resolvedStatus = 'closed';
             }
             order['status'] = resolvedStatus;

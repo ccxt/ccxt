@@ -412,9 +412,15 @@ export default class limitless extends Exchange {
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString (raw, 'conditionId');
         const tokens = this.safeValue (raw, 'tokens', {});
-        const active = this.safeBool (raw, 'active', true);
-        const endDate = this.safeString (raw, 'deadline', this.safeString (raw, 'expiresAt'));
-        const volume24h = this.safeNumber (raw, 'volume24h');
+        // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
+        // market is tradeable only while it is FUNDED and not yet expired
+        const isExpired = this.safeBool (raw, 'expired', false);
+        const marketStatus = this.safeString (raw, 'status');
+        const active = !isExpired && (marketStatus === 'FUNDED');
+        // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
+        const expiryTimestamp = this.safeInteger (raw, 'expirationTimestamp');
+        // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
+        const volume24h = this.safeNumber (raw, 'volumeFormatted');
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
         const winningOutcomeIndex = this.safeInteger (raw, 'winningOutcomeIndex');
         const marketResolved = (winningOutcomeIndex !== undefined);
@@ -508,8 +514,8 @@ export default class limitless extends Exchange {
             'linear': undefined,
             'inverse': undefined,
             'contractSize': undefined,
-            'expiry': endDate ? this.parse8601 (endDate) : undefined,
-            'expiryDatetime': endDate,
+            'expiry': expiryTimestamp,
+            'expiryDatetime': this.iso8601 (expiryTimestamp),
             'strike': undefined,
             'optionType': undefined,
             'taker': 0.02,
