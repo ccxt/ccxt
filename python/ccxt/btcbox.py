@@ -162,7 +162,6 @@ class btcbox(Exchange, ImplicitAPI):
                     'webApiEnable': True,  # fetches from WEB
                     'webApiRetries': 3,
                 },
-                'amountPrecision': '0.0001',  # exchange has only few pairs and all of them
             },
             'features': {
                 'spot': {

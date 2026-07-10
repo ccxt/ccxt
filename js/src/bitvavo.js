@@ -407,13 +407,15 @@ export default class bitvavo extends Exchange {
             'options': {
                 'mica': true,
                 'currencyToPrecisionRoundingMode': TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW': 10000, // default 10 sec
+                'recvWindow': 10000, // default 10 sec
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
                 },
                 'operatorId': undefined, // this will be required soon for order-related endpoints
-                'fiatCurrencies': ['EUR'], // only fiat atm
+                'fetchCurrencies': {
+                    'fiatCurrencies': ['EUR'], // only fiat atm
+                },
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
@@ -613,7 +615,7 @@ export default class bitvavo extends Exchange {
         //         },
         //     ]
         //
-        const fiatCurrencies = this.safeList(this.options, 'fiatCurrencies', []);
+        const fiatCurrencies = this.handleOption('fetchCurrencies', 'fiatCurrencies', []);
         const id = this.safeString(rawCurrency, 'symbol');
         const code = this.safeCurrencyCode(id);
         const isFiat = this.inArray(code, fiatCurrencies);
@@ -2655,7 +2657,7 @@ export default class bitvavo extends Exchange {
             const timestamp = this.milliseconds().toString();
             const auth = timestamp + method + url + payload;
             const signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            const accessWindow = this.safeString(this.options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            const accessWindow = this.safeString2(this.options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
             headers = {
                 'BITVAVO-ACCESS-KEY': this.apiKey,
                 'BITVAVO-ACCESS-SIGNATURE': signature,

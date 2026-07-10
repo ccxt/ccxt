@@ -1144,16 +1144,20 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'usePrivateInstrumentsInfo': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': {
+                    'usePrivateInstrumentsInfo': False,
                     'types': ['spot', 'linear', 'inverse', 'option'],
                     'options': ['BTC', 'ETH', 'SOL', 'XRP', 'MNT', 'DOGE'],
+                    'loadAllOptions': False,  # load all possible option markets, adds signficant load time
+                    'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 },
                 'enableUnifiedMargin': None,
                 'enableUnifiedAccount': None,
                 'unifiedMarginStatus': None,
-                'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
+                'createOrder': {
+                    'createMarketBuyOrderRequiresPrice': False,  # only True for classic accounts
+                },
                 'createUnifiedMarginAccount': False,
                 'defaultType': 'swap',  # 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  # 'linear', 'inverse'
@@ -1162,8 +1166,6 @@ class bybit(Exchange, ImplicitAPI):
                 'recvWindow': 5 * 1000,  # 5 sec default
                 'timeDifference': 0,  # the difference between system clock and exchange server clock
                 'adjustForTimeDifference': False,  # controls the adjustment logic upon instantiation
-                'loadAllOptions': False,  # load all possible option markets, adds signficant load time
-                'loadExpiredOptions': False,  # loads expired options, to load all possible expired options set loadAllOptions to True
                 'brokerId': 'CCXT',
                 'accountsByType': {
                     'spot': 'SPOT',
@@ -1916,7 +1918,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'category': 'spot',
         }
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response: dict
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
@@ -2031,7 +2033,7 @@ class bybit(Exchange, ImplicitAPI):
         params = self.extend(params, {})
         params['limit'] = 1000  # minimize number of requests
         preLaunchMarkets = []
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response = None
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(params)
@@ -2214,7 +2216,7 @@ class bybit(Exchange, ImplicitAPI):
         request = {
             'category': 'option',
         }
-        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        usePrivateInstrumentsInfo = self.handle_option('fetchMarkets', 'usePrivateInstrumentsInfo', False)
         response: dict
         if usePrivateInstrumentsInfo:
             response = await self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
@@ -2222,7 +2224,8 @@ class bybit(Exchange, ImplicitAPI):
             response = await self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
-        if self.options['loadAllOptions']:
+        loadAllOptions = self.handle_option('fetchMarkets', 'loadAllOptions')
+        if loadAllOptions:
             request['limit'] = 1000
             paginationCursor = self.safe_string(data, 'nextPageCursor')
             if paginationCursor is not None:
@@ -2294,7 +2297,8 @@ class bybit(Exchange, ImplicitAPI):
             optionLetter = self.safe_string(splitId, 3)
             isActive = (status == 'Trading')
             isInverse = base == settle
-            if isActive or (self.options['loadAllOptions']) or (self.options['loadExpiredOptions']):
+            loadExpiredOptions = self.handle_option('fetchMarkets', 'loadExpiredOptions')
+            if isActive or loadAllOptions or loadExpiredOptions:
                 result.append(self.safe_market_structure({
                     'id': id,
                     'symbol': base + '/' + quote + ':' + settle + '-' + self.yymmdd(expiry) + '-' + strike + '-' + optionLetter,
