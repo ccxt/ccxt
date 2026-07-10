@@ -770,8 +770,11 @@ class Exchange(object):
     def safe_string(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
-                return str(value)
+            if value is not None and value != '':
+                if type(value) is str:
+                    return value
+                if isinstance(value, Number) and type(value) is not bool:
+                    return str(value)
         except Exception:
             pass
         return default_value
@@ -780,21 +783,27 @@ class Exchange(object):
     def safe_string_lower(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
-                return str(value).lower()
+            if value is not None and value != '':
+                if type(value) is str:
+                    return value.lower()
+                if isinstance(value, Number) and type(value) is not bool:
+                    return str(value).lower()
         except Exception:
             pass
-        return default_value.lower() if default_value is not None else default_value
+        return default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
-                return str(value).upper()
+            if value is not None and value != '':
+                if type(value) is str:
+                    return value.upper()
+                if isinstance(value, Number) and type(value) is not bool:
+                    return str(value).upper()
         except Exception:
             pass
-        return default_value.upper() if default_value is not None else default_value
+        return default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
