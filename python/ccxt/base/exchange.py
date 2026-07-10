@@ -742,7 +742,7 @@ class Exchange(object):
         try:
             if Exchange.is_json_encoded_object(http_response):
                 return self.on_json_response(http_response)
-        except ValueError as e:  # superclass of JsonDecodeError (python2)
+        except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
     def is_text_response(self, headers):
