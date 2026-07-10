@@ -776,7 +776,7 @@ async function exportEverything () {
     const predictionIds = getIncludedExchangeIds ('./ts/src/prediction')
 
     // prediction WS methods now live in the REST prediction classes (no separate prediction/pro)
-    const predictionWsIds = []
+    const predictionWsIds: string[] = []
 
     // when one or more language flags are passed we only update that language's files;
     // an empty selection means update every language (the default behaviour)
@@ -944,8 +944,10 @@ async function exportEverything () {
 
     exportExchanges (selectedReplacements)
 
-    // exchanges.json is always (re)generated, even on language-scoped runs
-    exportExchangeIdsToExchangesJson (ids, wsIds)
+    // exchanges.json is always (re)generated, even on language-scoped runs — including the
+    // prediction ids: language-scoped runs return early below and never reach the second
+    // (full) export, and the per-language prediction transpile CI steps read these ids
+    exportExchangeIdsToExchangesJson (ids, wsIds, predictionIds, predictionWsIds)
 
     // the js/ts build owns the docs/wiki/tables generation, so only skip it for
     // language-scoped runs that do NOT include js/ts
