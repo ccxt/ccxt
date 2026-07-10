@@ -343,11 +343,11 @@ export default class bithumb extends bithumbRest {
                     'codes': [ market['id'] ],
                 }, params),
             ];
-            const gen2Orderbook = await this.watch (url, messageHash, request, messageHash);
-            return gen2Orderbook.limit (limit);
+        } else {
+            request = this.extend (request, params);
         }
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
-        return orderbook.limit (limit);
+        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
