@@ -7,7 +7,6 @@ declare class testMainClass {
     requestTests: boolean;
     wsTests: boolean;
     responseTests: boolean;
-    predictionTests: boolean;
     info: boolean;
     verbose: boolean;
     debug: boolean;
@@ -43,11 +42,6 @@ declare class testMainClass {
     getMarketsFromExchange(exchange: any, spot?: boolean): {};
     getValidSymbol(exchange: any, spot?: boolean): any;
     testExchange(exchange: any, providedSymbol?: any): Promise<boolean>;
-    runPredictionTests(exchange: any): Promise<boolean>;
-    assertPredictionEvents(exchange: any, events: any): boolean;
-    assertPredictionEvent(exchange: any, event: any): boolean;
-    testPredictionCreateCancelOrder(exchange: any, outcome: any): Promise<boolean>;
-    cancelPredictionOrder(exchange: any, orderId: any, outcome: any): Promise<boolean>;
     runPrivateTests(exchange: any, symbol: any): Promise<boolean>;
     testProxies(exchange: any): Promise<boolean>;
     checkConstructor(exchange: Exchange): void;
@@ -56,7 +50,6 @@ declare class testMainClass {
     testHasProps(exchange: Exchange): void;
     assertStaticError(cond: boolean, message: string, calculatedOutput: any, storedOutput: any, key?: Str): void;
     loadMarketsFromFile(id: string): any;
-    loadEventsFromFile(id: string): any;
     loadCurrenciesFromFile(id: string): any;
     loadStaticData(folder: string, targetExchange?: Str): {};
     removeHostnamefromUrl(url: string): string;

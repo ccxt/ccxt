@@ -12,13 +12,6 @@ import io.github.ccxt.errors.*;
 public class TestTrade extends BaseTest {
     public static void testTrade(Exchange exchange, Object skippedProperties, Object method, Object entry, Object symbol, Object now)
     {
-        // prediction-market structures are keyed by an outcome handle, not a `symbol`
-        if (Helpers.isTrue(exchange.safeBool(exchange.has, "prediction", false)))
-        {
-            skippedProperties = exchange.extend(new java.util.HashMap<String, Object>() {{
-                put( "symbol", true );
-            }}, skippedProperties);
-        }
         Object format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "12345-67890:09876/54321" );

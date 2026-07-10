@@ -223,11 +223,6 @@ import whitebitPro from './src/pro/whitebit.js';
 import wooPro from './src/pro/woo.js';
 import woofiproPro from './src/pro/woofipro.js';
 import xtPro from './src/pro/xt.js';
-import hyperliquidPrediction from './src/prediction/hyperliquid.js';
-import kalshiPrediction from './src/prediction/kalshi.js';
-import limitlessPrediction from './src/prediction/limitless.js';
-import myriadPrediction from './src/prediction/myriad.js';
-import polymarketPrediction from './src/prediction/polymarket.js';
 const exchanges = {
     'alpaca': alpaca,
     'apex': apex,

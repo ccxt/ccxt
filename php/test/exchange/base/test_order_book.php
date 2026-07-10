@@ -10,12 +10,6 @@ namespace ccxt;
 use \ccxt\Precise;
 
 function test_order_book($exchange, $skipped_properties, $method, $orderbook, $symbol) {
-    // prediction-market structures are keyed by an outcome handle, not a `symbol`
-    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
-        $skipped_properties = $exchange->extend(array(
-            'symbol' => true,
-        ), $skipped_properties);
-    }
     $format = array(
         'symbol' => 'ETH/BTC',
         'asks' => [[$exchange->parse_number('1.24'), $exchange->parse_number('0.453')], [$exchange->parse_number('1.25'), $exchange->parse_number('0.157')]],

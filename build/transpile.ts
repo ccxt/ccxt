@@ -1083,6 +1083,7 @@ class Transpiler {
         }
 
         const precisionImports: string[] = []
+        const constImports: string[] = []
         const libraryImports: string[] = []
 
         if (needsRootImports) {
@@ -1096,7 +1097,7 @@ class Transpiler {
                 const numberConstant = numberConstants[i]
                 const regex = new RegExp ("[^'\"\\w]" + numberConstant + "[^'\"\\w]")
                 if (bodyAsString.match (regex)) {
-                    precisionImports.push ('use const ccxt\\' + numberConstant + ';')
+                    constImports.push ('use const ccxt\\' + numberConstant + ';')
                 }
             }
         }
@@ -1129,6 +1130,11 @@ class Transpiler {
         }
 
         header = header.concat (errorImports).concat (precisionImports).concat (libraryImports)
+        if (constImports.length) {
+            // PSR-12 (enforced by the php-cs-fixer style gate): `use const` imports form their
+            // own group placed after the class imports, separated by a blank line
+            header = header.concat ([ '' ]).concat (constImports)
+        }
 
         // transpile camelCase base method names to underscore base method names
         const baseMethods = this.getPHPBaseMethods ()

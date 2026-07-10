@@ -51,15 +51,7 @@ public class TestSharedMethods extends BaseTest {
         Object same_numeric = Helpers.isTrue(((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double))) && Helpers.isTrue(((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double)));
         Object same_boolean = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(entryKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(entryKeyVal, false))))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(formatKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(formatKeyVal, false)))));
         Object same_array = Helpers.isTrue(Helpers.isArray(entryKeyVal)) && Helpers.isTrue(Helpers.isArray(formatKeyVal));
-        // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
-        // returns false for an empty {} format marker — accept a dict entry against an empty-array format
-        Object formatIsEmptyArray = false;
-        if (Helpers.isTrue(Helpers.isArray(formatKeyVal)))
-        {
-            Object formatLen = Helpers.getArrayLength(formatKeyVal);
-            formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
-        }
-        Object same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue((Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Helpers.isTrue(formatIsEmptyArray)));
+        Object same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue(exchange.isDictionary(formatKeyVal));
         Object result = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryKeyVal, null))) || Helpers.isTrue(same_string)) || Helpers.isTrue(same_numeric)) || Helpers.isTrue(same_boolean)) || Helpers.isTrue(same_array)) || Helpers.isTrue(same_object);
         return result;
     }

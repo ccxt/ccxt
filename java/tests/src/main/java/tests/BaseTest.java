@@ -12,7 +12,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import io.github.ccxt.Exchange;
-import io.github.ccxt.BaseExchange;
 import io.github.ccxt.Helpers;
 import io.github.ccxt.base.Crypto;
 import io.github.ccxt.base.Functions;
@@ -425,8 +424,8 @@ public class BaseTest {
         return Functions.json(data);
     }
 
-    public static BaseExchange setFetchResponse(Object exchange2, Object response) {
-        var exchange = (BaseExchange) exchange2;
+    public static Exchange setFetchResponse(Object exchange2, Object response) {
+        var exchange = (Exchange) exchange2;
         exchange.setFetchResponse(response);
         return exchange;
     }
@@ -663,27 +662,26 @@ public class BaseTest {
         }
     }
 
-    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
+    public static Exchange initExchange(Object exchangeId, Object exchangeArgs, boolean isWs) {
         if (!(exchangeId instanceof String)) {
             return null;
         }
 
         String id = (String) exchangeId;
 
+        // if (isWs) {
+        //     id = "ccxt.pro." + id;
+        // }
+
         if (id == "Exchange") {
-            // Exchange is a special case because it lives in a different package
+            // Exchange is a special case because lives in a different package
             return new Exchange(exchangeArgs);
         }
 
-        // the --prediction flag forces the prediction-markets package for ids present in both (e.g. hyperliquid)
-        boolean forcePrediction = getCliArgValue("--prediction");
-        // dynamicallyCreateInstance returns the shared BaseExchange supertype: a regular venue is an
-        // Exchange, a prediction venue a PredictionExchange. The shared static harness types the handle
-        // as BaseExchange and drives the tested method by reflection, so both run through the same path.
-        return BaseExchange.dynamicallyCreateInstance(id, exchangeArgs, isWs, forcePrediction);
+        return Exchange.dynamicallyCreateInstance(id, exchangeArgs, isWs);
     }
 
-    public static BaseExchange initExchange(Object exchangeId, Object exchangeArgs) {
+    public static Exchange initExchange(Object exchangeId, Object exchangeArgs) {
         return initExchange(exchangeId, exchangeArgs, false);
     }
 

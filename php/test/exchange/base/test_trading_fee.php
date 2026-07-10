@@ -10,12 +10,6 @@ namespace ccxt;
 
 
 function test_trading_fee($exchange, $skipped_properties, $method, $symbol, $entry) {
-    // prediction-market fee structures are keyed by an outcome handle, not a `symbol`
-    if ($exchange->safe_bool($exchange->has, 'prediction', false)) {
-        $skipped_properties = $exchange->extend(array(
-            'symbol' => true,
-        ), $skipped_properties);
-    }
     $format = array(
         'info' => array(),
         'symbol' => 'ETH/BTC',
