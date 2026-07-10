@@ -1850,7 +1850,43 @@
                         }
                     }
                 ],
-                "httpResponse": null,
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "debugMsg": "",
+                    "data": {
+                        "orderId": "2075327764731486208",
+                        "orderID": "2075327764731486208",
+                        "symbol": "ETH-USDT",
+                        "positionSide": "BOTH",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "price": "1000",
+                        "quantity": "0.01",
+                        "quoteOrderQty": "0",
+                        "stopPrice": "0",
+                        "workingType": "MARK_PRICE",
+                        "clientOrderID": "",
+                        "clientOrderId": "",
+                        "timeInForce": "GTC",
+                        "priceRate": "0",
+                        "stopLoss": {
+                            "stopPrice": "900",
+                            "workingType": "MARK_PRICE",
+                            "type": "STOP",
+                            "price": "890",
+                            "quantity": "0.01"
+                        },
+                        "takeProfit": "",
+                        "reduceOnly": false,
+                        "activationPrice": "0",
+                        "closePosition": "",
+                        "stopGuaranteed": "",
+                        "status": "PENDING",
+                        "avgPrice": "0.00",
+                        "executedQty": "0.00"
+                    }
+                },
                 "parsedResponse": {
                     "info": {
                         "orderId": "2075327764731486208",
@@ -1935,7 +1971,42 @@
                         }
                     }
                 ],
-                "httpResponse": null,
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "",
+                    "debugMsg": "",
+                    "data": {
+                        "orderId": "2075327018132791296",
+                        "orderID": "2075327018132791296",
+                        "symbol": "ETH-USDT",
+                        "positionSide": "BOTH",
+                        "side": "BUY",
+                        "type": "LIMIT",
+                        "price": "1000",
+                        "quantity": "0.01",
+                        "quoteOrderQty": "0",
+                        "stopPrice": "0",
+                        "workingType": "MARK_PRICE",
+                        "clientOrderID": "",
+                        "clientOrderId": "",
+                        "timeInForce": "GTC",
+                        "priceRate": "0",
+                        "stopLoss": {
+                            "stopPrice": "900",
+                            "workingType": "MARK_PRICE",
+                            "type": "STOP_MARKET",
+                            "quantity": "0.01"
+                        },
+                        "takeProfit": "",
+                        "reduceOnly": false,
+                        "activationPrice": "0",
+                        "closePosition": "",
+                        "stopGuaranteed": "",
+                        "status": "PENDING",
+                        "avgPrice": "0.00",
+                        "executedQty": "0.00"
+                    }
+                },
                 "parsedResponse": {
                     "info": {
                         "orderId": "2075327018132791296",
