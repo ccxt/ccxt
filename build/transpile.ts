@@ -1583,6 +1583,11 @@ class Transpiler {
         if (!child && classNames.length > 1) {
 
             function deleteOldTranspiledFiles (folder: string, pattern: any) {
+                // generated output folders are not committed (git can't track them when empty),
+                // so on a fresh checkout they may not exist yet — nothing to clean up then
+                if (!fs.existsSync (folder)) {
+                    return
+                }
                 fs.readdirSync (folder)
                     .filter (file =>
                         !fs.lstatSync (path.join (folder, file)).isDirectory () &&
