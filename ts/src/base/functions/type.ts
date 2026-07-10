@@ -11,11 +11,7 @@ const isObject = (o: any) => ((o !== null) && (typeof o === 'object'));
 const isRegExp = (o: any) => (o instanceof RegExp);
 const isDictionary = (o: any) => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
 const isStringCoercible = (x: any) => ((hasProps (x) && x.toString) || isNumber (x));
-const isNumberOrString = (val: any): boolean => {
-    // 1. Check if the type is 'number' or 'string'
-    // 2. Explicitly exclude NaN, because typeof NaN is 'number'
-    return (typeof val === 'string' || (typeof val === 'number' && !Number.isNaN(val)));
-}
+
 /*  .............................................   */
 
 const prop = (o: any, k: IndexType) => (isObject (o) && o[k] !== '' && o[k] !== null ? o[k] : undefined);
@@ -69,30 +65,30 @@ function safeString (o: implicitReturnType, k: IndexType, $default: string): str
 function safeString (o: implicitReturnType, k: IndexType, $default?: string): Str;
 function safeString (o: implicitReturnType, k: IndexType, $default?: string): Str {
     const x = prop (o, k);
-    if (isNumberOrString (x)) {
+    if (isString (x)) {
+        return x;
+    } else if (isNumber (x)) {
         return String (x);
-    } else if (isNumberOrString ($default)) {
-        return String ($default);
     }
     return $default;
 }
 
 const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
     const x = prop (o, k);
-    if (isNumberOrString (x)) {
+    if (isString (x)) {
+        return x.toLowerCase ();
+    } else if (isNumber (x)) {
         return String (x).toLowerCase ();
-    } else if (isNumberOrString ($default)) {
-        return String ($default).toLowerCase ();
     }
     return $default;
 };
 
 const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
     const x = prop (o, k)
-    if (isStringCoercible (x)) {
+    if (isString (x)) {
+        return x.toUpperCase ();
+    } else if (isNumber (x)) {
         return String (x).toUpperCase ();
-    } else if (isStringCoercible ($default)) {
-        return String ($default).toUpperCase ();
     }
     return $default;
 };
