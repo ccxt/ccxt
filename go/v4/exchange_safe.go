@@ -449,7 +449,32 @@ func SafeValue(obj any, key any, defaultValue any) any {
 
 // SafeString retrieves a string value from a nested structure
 func SafeString(obj any, key any, defaultValue any) any {
-	return SafeStringN(obj, []any{key}, defaultValue)
+	value := SafeValue(obj, key, defaultValue)
+	if value == nil {
+		return defaultValue
+	}
+
+	switch v := value.(type) {
+	case string:
+		if v == "" {
+			return defaultValue
+		}
+		return v
+	case int:
+		return strconv.Itoa(v)
+	case int8, int16, int32, int64:
+		return strconv.FormatInt(v.(int64), 10)
+	case uint, uint8, uint16, uint32, uint64:
+		return strconv.FormatUint(v.(uint64), 10)
+	case float32:
+		return strconv.FormatFloat(float64(v), 'f', -1, 32)
+	case float64:
+		return strconv.FormatFloat(v, 'f', -1, 64)
+	case json.Number:
+		return string(v)
+	default:
+		return defaultValue
+	}
 }
 
 func SafeString2(obj any, key any, key2 any, defaultValue any) any {

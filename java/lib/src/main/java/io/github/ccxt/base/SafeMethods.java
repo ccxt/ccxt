@@ -171,8 +171,26 @@ public final class SafeMethods {
     }
 
     public static Object SafeString(Object obj, Object key, Object... defaultValue) {
-        Object res = SafeStringN(obj, Arrays.asList(key), defaultValue);
-        return (res == null) ? null : res;
+        Object defaultValue = opt(defaultValue2);
+        Object result = SafeValue(obj, key, defaultValue);
+        if (result == null) return defaultValue;
+
+        if (result instanceof List<?> || result instanceof Map<?, ?>) {
+            return defaultValue;
+        }
+
+        String ret;
+        if (result instanceof Float f) {
+            ret = String.valueOf(f);
+        } else if (result instanceof Double d) {
+            ret = String.valueOf(d);
+        } else if (result instanceof java.math.BigDecimal bd) {
+            ret = bd.toPlainString();
+        } else {
+            ret = String.valueOf(result);
+        }
+        if (ret != null && !ret.isEmpty()) return ret;
+        return defaultValue;
     }
 
     public static Object safeString(Object obj, Object key, Object... defaultValue) {
