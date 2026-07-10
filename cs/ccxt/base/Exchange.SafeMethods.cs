@@ -95,8 +95,44 @@ public partial class Exchange
 
     public static string SafeString(object obj, object key, object defaultValue = null)
     {
-        var res = SafeStringN(obj, new List<object> { key });
-        return res == null ? null : (string)res;
+        var result = SafeValue(obj, key, defaultValue);
+        if (result == null)
+            return defaultValue;
+        string returnResult = null;
+        if (result is IList || result is IDictionary)
+        {
+            return defaultValue;
+        }
+        if (result.GetType() == typeof(float))
+        {
+            returnResult = ((float)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else if (result.GetType() == typeof(double))
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else if (result is double)
+        {
+            returnResult = ((double)result).ToString(CultureInfo.InvariantCulture);
+
+        }
+        else if (result is decimal)
+        {
+            returnResult = ((decimal)result).ToString(CultureInfo.InvariantCulture);
+        }
+        else
+        {
+            returnResult = result.ToString();
+        }
+        if (returnResult != null)
+        {
+            var stringRest = (string)returnResult;
+            if (stringRest.Length > 0)
+            {
+                return stringRest;
+            }
+        }
+        return defaultValue;
     }
     public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
