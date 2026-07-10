@@ -125,12 +125,7 @@
                     0.01,
                     1000,
                     {
-                        "stopLoss": {
-                            "type": "STOP",
-                            "stopPrice": 900,
-                            "price": 890,
-                            "workingType": "MARK_PRICE"
-                        }
+                        "stopLoss": "{\"type\":\"STOP\",\"stopPrice\": 900,\"price\": 890,\"workingType\": \"MARK_PRICE\"}"
                     }
                 ],
                 "output": null
