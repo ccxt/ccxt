@@ -39,6 +39,9 @@ function testSafeMethods () {
         'floatNumeric': 0.123,
         'floatString': '0.123',
         'longInt': 123456789012345,
+        //
+        'nestedDict': { 'a': { 'b': 2 } },
+        'nestedArray': { 'a': [ 1, 2 ] },
     };
 
     const inputList = [ 'Hi', 2 ];
@@ -133,6 +136,8 @@ function testSafeMethods () {
     assert (exchange.safeString (inputDict, 'str') === 'heLlo');
     assert (exchange.safeString (inputDict, 'strNumber') === '3');
     assert (exchange.safeString (inputList, 0) === 'Hi');
+    const nestedDict = exchange.safeDict (inputDict, 'nestedDict');
+    assert (exchange.safeString (nestedDict, 'a') === undefined);
 
     // safeString2
     assert (exchange.safeString2 (inputDict, 'a', 'i') === '1');
