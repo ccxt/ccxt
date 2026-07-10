@@ -927,6 +927,44 @@ export default class bithumb extends Exchange {
         //         "timestamp": 1782981333650
         //     }
         //
+        // generation 2: watchTicker
+        //
+        //     {
+        //         "type": "ticker",
+        //         "code": "KRW-BTC",
+        //         "opening_price": 94223000,
+        //         "high_price": 95465000,
+        //         "low_price": 93601000,
+        //         "trade_price": 95299000,
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1098000,
+        //         "signed_change_price": 1098000,
+        //         "change_rate": 0.01165593,
+        //         "signed_change_rate": 0.01165593,
+        //         "trade_volume": 0.0094,
+        //         "acc_trade_volume": 151.44914647,
+        //         "acc_trade_volume_24h": 310.44065227,
+        //         "acc_trade_price": 14330306973.41015,
+        //         "acc_trade_price_24h": 29226371799.56915,
+        //         "trade_date": "20260710",
+        //         "trade_time": "124548",
+        //         "trade_timestamp": 1783655148303,
+        //         "ask_bid": "BID",
+        //         "acc_ask_volume": 52.30413928,
+        //         "acc_bid_volume": 99.14500719,
+        //         "highest_52_week_price": 179734000,
+        //         "highest_52_week_date": "2025-10-09",
+        //         "lowest_52_week_price": 81110000,
+        //         "lowest_52_week_date": "2026-02-06",
+        //         "market_state": "ACTIVE",
+        //         "is_trading_suspended": false,
+        //         "delisting_date": "",
+        //         "market_warning": "NONE",
+        //         "timestamp": 1783655148485,
+        //         "stream_type": "REALTIME"
+        //     }
+        //
         const timestamp = this.safeInteger2 (ticker, 'date', 'trade_timestamp');
         const marketId = this.safeString (ticker, 'market');
         const symbol = this.safeSymbol (marketId, market);
@@ -959,9 +997,9 @@ export default class bithumb extends Exchange {
             'high': high,
             'low': low,
             'bid': this.safeString (ticker, 'buy_price'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString (ticker, 'acc_bid_volume'),
             'ask': this.safeString (ticker, 'sell_price'),
-            'askVolume': undefined,
+            'askVolume': this.safeString (ticker, 'acc_ask_volume'),
             'vwap': undefined,
             'open': open,
             'close': close,
@@ -1421,6 +1459,25 @@ export default class bithumb extends Exchange {
         //         "change_price": "-2.7E-7",
         //         "ask_bid": "ASK",
         //         "sequential_id": "17829816707050000"
+        //     }
+        //
+        // generation 2: watchTrades
+        //
+        //     {
+        //         "type": "trade",
+        //         "code": "KRW-BTC",
+        //         "trade_price": 95539000,
+        //         "trade_volume": 0.00022664,
+        //         "ask_bid": "ASK",
+        //         "prev_closing_price": 94201000,
+        //         "change": "RISE",
+        //         "change_price": 1338000,
+        //         "trade_date": "2026-07-10",
+        //         "trade_time": "13:39:41",
+        //         "trade_timestamp": 1783658381138,
+        //         "sequential_id": "862683813820523888",
+        //         "timestamp": 1783658381398,
+        //         "stream_type": "REALTIME"
         //     }
         //
         // a workaround for their bug in date format, hours are not 0-padded
