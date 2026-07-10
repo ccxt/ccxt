@@ -742,7 +742,7 @@ class Exchange(object):
         try:
             if Exchange.is_json_encoded_object(http_response):
                 return self.on_json_response(http_response)
-        except ValueError:  # superclass of JsonDecodeError (python2)
+        except ValueError as e:  # superclass of JsonDecodeError (python2)
             pass
 
     def is_text_response(self, headers):
@@ -770,7 +770,7 @@ class Exchange(object):
     def safe_string(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
+            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
                 return str(value)
         except Exception:
             pass
@@ -780,7 +780,7 @@ class Exchange(object):
     def safe_string_lower(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
+            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
                 return str(value).lower()
         except Exception:
             pass
@@ -790,7 +790,7 @@ class Exchange(object):
     def safe_string_upper(dictionary, key, default_value=None):
         try:
             value = dictionary[key]
-            if value is not None and value != '':
+            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
                 return str(value).upper()
         except Exception:
             pass
@@ -844,13 +844,13 @@ class Exchange(object):
     def safe_string_2(dictionary, key1, key2, default_value=None):
         try:
             value = dictionary[key1]
-            if value is not None and value != '':
+            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
                 return str(value)
         except Exception:
             pass
         try:
             value = dictionary[key2]
-            if value is not None and value != '':
+            if value is not None and isinstance(value, (Number, str)) and not isinstance(value, bool) and value != '':
                 return str(value)
         except Exception:
             pass

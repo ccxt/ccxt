@@ -132,12 +132,16 @@ function testSafeMethods () {
     // safeString
     assert (exchange.safeString (inputDict, 'i') === '1');
     assert (exchange.safeString (inputDict, 'f') === '0.123');
-    // assert (exchange.safeString (inputDict, 'bool') === 'true'); returns True in python and 'true' in js
+    assert (exchange.safeString (inputDict, 'bool') === undefined);
+    assert (exchange.safeString (inputDict, 'list') === undefined);
+    assert (exchange.safeString (inputDict, 'dict') === undefined);
     assert (exchange.safeString (inputDict, 'str') === 'heLlo');
     assert (exchange.safeString (inputDict, 'strNumber') === '3');
+    assert (exchange.safeString (inputDict, 'zeroNumeric') === '0');
+    assert (exchange.safeString (inputDict, 'zeroString') === '0');
+    assert (exchange.safeString (inputDict, 'undefined') === undefined);
+    assert (exchange.safeString (inputDict, 'emptyString') === undefined);
     assert (exchange.safeString (inputList, 0) === 'Hi');
-    const nestedDict = exchange.safeDict (inputDict, 'nestedDict');
-    assert (exchange.safeString (nestedDict, 'a') === undefined);
 
     // safeString2
     assert (exchange.safeString2 (inputDict, 'a', 'i') === '1');
