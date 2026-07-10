@@ -3023,7 +3023,7 @@ class NewTranspiler {
             if (filename === 'test.sharedMethods') {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/public void /g, 'public static void '], // make tests static
-                    [/public java.util.concurrent.CompletableFuture<Object> /g, 'public static java.util.concurrent.CompletableFuture<Object> '], // make tests static
+                    [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
                 // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
