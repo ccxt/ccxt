@@ -74,23 +74,15 @@ function safeString (o: implicitReturnType, k: IndexType, $default?: string): St
 }
 
 const safeStringLower = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
-    const x = prop (o, k);
-    if (isString (x)) {
-        return x.toLowerCase ();
-    } else if (isNumber (x)) {
-        return String (x).toLowerCase ();
-    }
-    return $default;
+    const val = safeString(o, k, $default);
+    // Only lowercase if a valid non-default string was found
+    return val !== $default ? val.toLowerCase() : $default;
 };
 
 const safeStringUpper = (o: implicitReturnType, k: IndexType, $default?: string): Str => {
-    const x = prop (o, k)
-    if (isString (x)) {
-        return x.toUpperCase ();
-    } else if (isNumber (x)) {
-        return String (x).toUpperCase ();
-    }
-    return $default;
+    const val = safeString(o, k, $default);
+    // Only uppercase if a valid non-default string was found
+    return val !== $default ? val.toUpperCase() : $default;
 };
 /*  .............................................   */
 
