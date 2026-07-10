@@ -983,7 +983,9 @@ class testMainClass {
         // optional typed fields must have the right type when present
         const active = exchange.safeValue (event, 'active');
         if (active !== undefined) {
-            assert ((active === true) || (active === false), exchange.id + ' event active must be a bool' + logText);
+            // typeof check, not `=== true || === false` — the latter transpiles to `== False`
+            // in Python, which ruff rejects (E712)
+            assert (typeof active === 'boolean', exchange.id + ' event active must be a bool' + logText);
         }
         const tags = exchange.safeValue (event, 'tags');
         if (tags !== undefined) {
