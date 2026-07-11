@@ -918,9 +918,16 @@ public class BackpackCore extends BackpackApi
         Object low = this.safeString(ticker, "low");
         Object baseVolume = this.safeString(ticker, "volume");
         Object quoteVolume = this.safeString(ticker, "quoteVolume");
-        Object percentage = this.safeString(ticker, "priceChangePercent");
+        Object percentage = null;
+        Object percentageNumber = this.safeFloat(ticker, "priceChangePercent");
+        // in some cases priceChangePercent is a non-numeric string like "N/A"
+        if (Helpers.isTrue(!Helpers.isEqual(percentageNumber, null)))
+        {
+            percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
+        }
         Object change = this.safeString(ticker, "priceChange");
-        return this.safeTicker(new java.util.HashMap<String, Object>() {{
+        final Object finalPercentage = percentage;
+        Object parsedTicker = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -936,7 +943,7 @@ public class BackpackCore extends BackpackApi
             put( "last", last );
             put( "previousClose", null );
             put( "change", change );
-            put( "percentage", percentage );
+            put( "percentage", finalPercentage );
             put( "average", null );
             put( "baseVolume", baseVolume );
             put( "quoteVolume", quoteVolume );
@@ -944,6 +951,7 @@ public class BackpackCore extends BackpackApi
             put( "indexPrice", null );
             put( "info", ticker );
         }}, market);
+        return parsedTicker;
     }
 
     /**
