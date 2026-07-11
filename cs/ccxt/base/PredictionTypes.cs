@@ -70,6 +70,8 @@ public struct PredictionOrder
     public Int64? timestamp;
     public string? datetime;
     public string? lastTradeTimestamp;
+    public Int64? lastUpdateTimestamp;
+    public string? timeInForce;
     public string? type;
     public string? side;
     public double? price;
@@ -99,6 +101,8 @@ public struct PredictionOrder
         timestamp = Exchange.SafeInteger(order, "timestamp");
         datetime = Exchange.SafeString(order, "datetime");
         lastTradeTimestamp = Exchange.SafeString(order, "lastTradeTimestamp");
+        lastUpdateTimestamp = Exchange.SafeInteger(order, "lastUpdateTimestamp");
+        timeInForce = Exchange.SafeString(order, "timeInForce");
         type = Exchange.SafeString(order, "type");
         side = Exchange.SafeString(order, "side");
         price = Exchange.SafeFloat(order, "price");
@@ -171,7 +175,7 @@ public struct PredictionPosition
     public double? timestamp;
     public string? datetime;
     public double? contracts;
-    public double? contractsSize;
+    public double? contractSize;
     public string? side;
     public double? notional;
     public double? unrealizedPnl;
@@ -201,7 +205,7 @@ public struct PredictionPosition
         timestamp = Exchange.SafeInteger(position, "timestamp");
         datetime = Exchange.SafeString(position, "datetime");
         contracts = Exchange.SafeFloat(position, "contracts");
-        contractsSize = Exchange.SafeFloat(position, "contractsSize");
+        contractSize = Exchange.SafeFloat(position, "contractSize");
         side = Exchange.SafeString(position, "side");
         notional = Exchange.SafeFloat(position, "notional");
         unrealizedPnl = Exchange.SafeFloat(position, "unrealizedPnl");

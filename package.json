@@ -54,7 +54,7 @@
     "transpile-prediction-php": "tsx build/transpile.ts --php --prediction --force",
     "transpile-prediction-cs": "tsx build/csharpTranspiler.ts --prediction",
     "transpile-prediction-go": "tsx build/goTranspiler.ts --prediction",
-    "transpile-prediction-java": "tsx build/javaTranspiler.ts --prediction",
+    "transpile-prediction-java": "tsx build/javaTranspiler.ts --prediction && tsx build/generateJavaWrappers.ts",
     "buildCSTests": "dotnet build cs/tests/tests.csproj",
     "buildCSRelease": "dotnet build cs --configuration Release",
     "csharp": "npm run transpileCS && npm run transpileCSWs && npm run buildCS",

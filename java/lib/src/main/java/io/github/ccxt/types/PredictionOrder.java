@@ -14,6 +14,7 @@ public final class PredictionOrder {
     public Long timestamp;
     public String datetime;
     public String lastTradeTimestamp;
+    public Long lastUpdateTimestamp;
     public String type;
     public String timeInForce;
     public String side;
@@ -44,6 +45,7 @@ public final class PredictionOrder {
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.lastTradeTimestamp = TypeHelper.safeString(data, "lastTradeTimestamp");
+        this.lastUpdateTimestamp = TypeHelper.safeInteger(data, "lastUpdateTimestamp");
         this.type = TypeHelper.safeString(data, "type");
         this.timeInForce = TypeHelper.safeString(data, "timeInForce");
         this.side = TypeHelper.safeString(data, "side");
