@@ -605,9 +605,11 @@ func (this *LatokenCore) FetchBalance(optionalArgs ...any) <-chan any {
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes5658 := (<-this.LoadMarkets())
-		PanicOnError(retRes5658)
+			retRes56612 := (<-this.LoadMarkets())
+			PanicOnError(retRes56612)
+		}
 
 		response := (<-this.PrivateGetAuthAccount(params))
 		PanicOnError(response)
@@ -691,9 +693,11 @@ func (this *LatokenCore) FetchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		_ = limit
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes6348 := (<-this.LoadMarkets())
-		PanicOnError(retRes6348)
+			retRes63712 := (<-this.LoadMarkets())
+			PanicOnError(retRes63712)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "baseId"),
@@ -794,9 +798,11 @@ func (this *LatokenCore) FetchTicker(symbol any, optionalArgs ...any) <-chan any
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7218 := (<-this.LoadMarkets())
-		PanicOnError(retRes7218)
+			retRes72612 := (<-this.LoadMarkets())
+			PanicOnError(retRes72612)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"base":  GetValue(market, "baseId"),
@@ -851,9 +857,11 @@ func (this *LatokenCore) FetchTickers(optionalArgs ...any) <-chan any {
 		_ = symbols
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes7618 := (<-this.LoadMarkets())
-		PanicOnError(retRes7618)
+			retRes76812 := (<-this.LoadMarkets())
+			PanicOnError(retRes76812)
+		}
 
 		response := (<-this.PublicGetTicker(params))
 		PanicOnError(response)
@@ -996,9 +1004,11 @@ func (this *LatokenCore) FetchTrades(symbol any, optionalArgs ...any) <-chan any
 		_ = limit
 		params := GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes8868 := (<-this.LoadMarkets())
-		PanicOnError(retRes8868)
+			retRes89512 := (<-this.LoadMarkets())
+			PanicOnError(retRes89512)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "baseId"),
@@ -1048,15 +1058,15 @@ func (this *LatokenCore) FetchTradingFee(symbol any, optionalArgs ...any) <-chan
 		params = this.Omit(params, "method")
 		if IsTrue(IsEqual(method, "fetchPrivateTradingFee")) {
 
-			retRes92419 := (<-this.FetchPrivateTradingFee(symbol, params))
-			PanicOnError(retRes92419)
-			ch <- retRes92419
+			retRes93419 := (<-this.FetchPrivateTradingFee(symbol, params))
+			PanicOnError(retRes93419)
+			ch <- retRes93419
 			return nil
 		} else if IsTrue(IsEqual(method, "fetchPublicTradingFee")) {
 
-			retRes92619 := (<-this.FetchPublicTradingFee(symbol, params))
-			PanicOnError(retRes92619)
-			ch <- retRes92619
+			retRes93619 := (<-this.FetchPublicTradingFee(symbol, params))
+			PanicOnError(retRes93619)
+			ch <- retRes93619
 			return nil
 		} else {
 			panic(NotSupported(Add(this.Id, " not support this method")))
@@ -1072,9 +1082,11 @@ func (this *LatokenCore) FetchPublicTradingFee(symbol any, optionalArgs ...any) 
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9338 := (<-this.LoadMarkets())
-		PanicOnError(retRes9338)
+			retRes94412 := (<-this.LoadMarkets())
+			PanicOnError(retRes94412)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "baseId"),
@@ -1112,9 +1124,11 @@ func (this *LatokenCore) FetchPrivateTradingFee(symbol any, optionalArgs ...any)
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9598 := (<-this.LoadMarkets())
-		PanicOnError(retRes9598)
+			retRes97212 := (<-this.LoadMarkets())
+			PanicOnError(retRes97212)
+		}
 		var market any = this.Market(symbol)
 		var request any = map[string]any{
 			"currency": GetValue(market, "baseId"),
@@ -1171,9 +1185,11 @@ func (this *LatokenCore) FetchMyTrades(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes9978 := (<-this.LoadMarkets())
-		PanicOnError(retRes9978)
+			retRes101212 := (<-this.LoadMarkets())
+			PanicOnError(retRes101212)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		if IsTrue(!IsEqual(limit, nil)) {
@@ -1376,9 +1392,11 @@ func (this *LatokenCore) FetchOpenOrders(optionalArgs ...any) <-chan any {
 		if IsTrue(IsEqual(symbol, nil)) {
 			panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires a symbol argument")))
 		}
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes11868 := (<-this.LoadMarkets())
-		PanicOnError(retRes11868)
+			retRes120312 := (<-this.LoadMarkets())
+			PanicOnError(retRes120312)
+		}
 		var response any = nil
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
 		params = this.Omit(params, "stop")
@@ -1455,9 +1473,11 @@ func (this *LatokenCore) FetchOrders(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes12428 := (<-this.LoadMarkets())
-		PanicOnError(retRes12428)
+			retRes126112 := (<-this.LoadMarkets())
+			PanicOnError(retRes126112)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1541,9 +1561,11 @@ func (this *LatokenCore) FetchOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13108 := (<-this.LoadMarkets())
-		PanicOnError(retRes13108)
+			retRes133112 := (<-this.LoadMarkets())
+			PanicOnError(retRes133112)
+		}
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -1615,9 +1637,11 @@ func (this *LatokenCore) CreateOrder(symbol any, typeVar any, side any, amount a
 		_ = price
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes13658 := (<-this.LoadMarkets())
-		PanicOnError(retRes13658)
+			retRes138812 := (<-this.LoadMarkets())
+			PanicOnError(retRes138812)
+		}
 		var market any = this.Market(symbol)
 		var uppercaseType any = ToUpper(typeVar)
 		var request any = map[string]any{
@@ -1687,9 +1711,11 @@ func (this *LatokenCore) CancelOrder(id any, optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14208 := (<-this.LoadMarkets())
-		PanicOnError(retRes14208)
+			retRes144512 := (<-this.LoadMarkets())
+			PanicOnError(retRes144512)
+		}
 		var request any = map[string]any{
 			"id": id,
 		}
@@ -1742,9 +1768,11 @@ func (this *LatokenCore) CancelAllOrders(optionalArgs ...any) <-chan any {
 		_ = symbol
 		params := GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes14568 := (<-this.LoadMarkets())
-		PanicOnError(retRes14568)
+			retRes148312 := (<-this.LoadMarkets())
+			PanicOnError(retRes148312)
+		}
 		var request any = map[string]any{}
 		var market any = nil
 		var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1815,9 +1843,11 @@ func (this *LatokenCore) FetchTransactions(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes15078 := (<-this.LoadMarkets())
-		PanicOnError(retRes15078)
+			retRes153612 := (<-this.LoadMarkets())
+			PanicOnError(retRes153612)
+		}
 		var request any = map[string]any{}
 
 		response := (<-this.PrivateGetAuthTransaction(this.Extend(request, params)))
@@ -1968,9 +1998,11 @@ func (this *LatokenCore) FetchTransfers(optionalArgs ...any) <-chan any {
 		_ = limit
 		params := GetArg(optionalArgs, 3, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16438 := (<-this.LoadMarkets())
-		PanicOnError(retRes16438)
+			retRes167412 := (<-this.LoadMarkets())
+			PanicOnError(retRes167412)
+		}
 		var currency any = this.Currency(code)
 
 		response := (<-this.PrivateGetAuthTransfer(params))
@@ -2036,9 +2068,11 @@ func (this *LatokenCore) Transfer(code any, amount any, fromAccount any, toAccou
 		defer ReturnPanicError(ch)
 		params := GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
+		if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes16968 := (<-this.LoadMarkets())
-		PanicOnError(retRes16968)
+			retRes172912 := (<-this.LoadMarkets())
+			PanicOnError(retRes172912)
+		}
 		var currency any = this.Currency(code)
 		var request any = map[string]any{
 			"currency":  GetValue(currency, "id"),

@@ -65,7 +65,13 @@ public partial class testMainClass : BaseTest
                 for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
                     object ticker = getValue(values, i);
-                    testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    try
+                    {
+                        testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    } catch(Exception ex)
+                    {
+                        await testSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker);
+                    }
                 }
                 now = exchange.milliseconds();
             }

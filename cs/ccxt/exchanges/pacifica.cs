@@ -669,7 +669,10 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadAccountSettings();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object userAccount = null;
         var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchLeverage", parameters);
@@ -889,7 +892,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object aggLevel = null;
         var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
@@ -1056,7 +1062,10 @@ public partial class pacifica : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchOHLCV() requires a \"symbol\" argument")) ;
         }
         object defaultMaxLimit = 3950; // 4000 by docs, but in fact >~3960 returns error
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
@@ -1152,7 +1161,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -1198,7 +1210,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1372,7 +1387,10 @@ public partial class pacifica : Exchange
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         var requestoperationTypeVariable = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         var request = ((IList<object>) requestoperationTypeVariable)[0];
@@ -1636,7 +1654,10 @@ public partial class pacifica : Exchange
     public async override Task<object> createOrders(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         object request = this.createOrdersRequest(orders);
         object response = await this.privatePostOrdersBatch(this.extend(request, parameters));
@@ -1699,7 +1720,10 @@ public partial class pacifica : Exchange
     public async override Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1798,7 +1822,10 @@ public partial class pacifica : Exchange
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         object request = this.cancelAllOrdersRequest(symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"excludeReduceOnly", "expiryWindow"});
@@ -1855,7 +1882,10 @@ public partial class pacifica : Exchange
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         if (isTrue(isEqual(symbol, null)))
         {
@@ -1936,7 +1966,10 @@ public partial class pacifica : Exchange
     public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.initializeClient();
         object market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
@@ -2009,7 +2042,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchFundingRateHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         if (isTrue(isEqual(symbol, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -2080,7 +2116,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object response = await this.publicGetInfoPrices(parameters);
         //
@@ -2163,7 +2202,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"closed"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2183,7 +2225,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2203,7 +2248,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
         object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled", "closed", "rejected"}, false);
         return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
@@ -2224,7 +2272,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOpenOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -2285,7 +2336,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -2377,7 +2431,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2659,7 +2716,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchPositions(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchPositions", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -2770,7 +2830,10 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object isIsolated = (isEqual(marginMode, "isolated"));
         object sigPayload = new Dictionary<string, object>() {
@@ -2805,7 +2868,10 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " setMarginMode() requires a symbol argument")) ;
         }
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -2837,7 +2903,10 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object operationType = "withdraw";
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         this.checkAddress(address);
         object sigPayload = new Dictionary<string, object>() {
             { "amount", ((object)amount).ToString() },
@@ -2863,7 +2932,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object userAddress = null;
         var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
@@ -2943,7 +3015,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchOpenInterests(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object swapMarkets = await this.fetchSwapMarkets();
         return this.parseOpenInterests(swapMarkets, symbols);
@@ -2961,7 +3036,10 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         symbol = this.symbol(symbol);
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object ois = await this.fetchOpenInterests(new List<object>() {symbol}, parameters);
         return getValue(ois, symbol);
     }
@@ -3024,7 +3102,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3137,7 +3218,10 @@ public partial class pacifica : Exchange
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {

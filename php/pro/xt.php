@@ -292,7 +292,9 @@ class xt extends \ccxt\async\xt {
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $options = $this->safe_dict($this->options, 'watchTicker');
             $defaultMethod = $this->safe_string($options, 'method', 'ticker');
@@ -316,7 +318,9 @@ class xt extends \ccxt\async\xt {
              * @param {string} [$params->method] 'agg_ticker' (contract only) or 'ticker', default = 'ticker' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $options = $this->safe_dict($this->options, 'unWatchTicker');
             $defaultMethod = $this->safe_string($options, 'method', 'ticker');
@@ -341,7 +345,9 @@ class xt extends \ccxt\async\xt {
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $options = $this->safe_dict($this->options, 'watchTickers');
             $defaultMethod = $this->safe_string($options, 'method', 'tickers');
             $name = $this->safe_string($params, 'method', $defaultMethod);
@@ -371,7 +377,9 @@ class xt extends \ccxt\async\xt {
              * @param {string} [$params->method] 'agg_tickers' (contract only) or 'tickers', default = 'tickers' - the endpoint that will be streamed
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $options = $this->safe_dict($this->options, 'unWatchTickers');
             $defaultMethod = $this->safe_string($options, 'method', 'tickers');
             $name = $this->safe_string($params, 'method', $defaultMethod);
@@ -402,7 +410,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
             $ohlcv = Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
@@ -426,7 +436,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
             $messageHash = 'unsubscribe::' . $name;
@@ -449,7 +461,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'trade@' . $market['id'];
             $trades = Async\await($this->subscribe($name, 'public', 'watchTrades', $market, null, $params));
@@ -472,7 +486,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $name = 'trade@' . $market['id'];
             $messageHash = 'unsubscribe::' . $name;
@@ -496,7 +512,9 @@ class xt extends \ccxt\async\xt {
              * @param {int} [$params->levels] 5, 10, 20, or 50
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $levels = $this->safe_string($params, 'levels');
             $params = $this->omit($params, 'levels');
@@ -524,7 +542,9 @@ class xt extends \ccxt\async\xt {
              * @param {int} [$params->levels] 5, 10, 20, or 50
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $levels = $this->safe_string($params, 'levels');
             $params = $this->omit($params, 'levels');
@@ -551,7 +571,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'order';
             $market = null;
             if ($symbol !== null) {
@@ -579,7 +601,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the kucoin api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'trade';
             $market = null;
             if ($symbol !== null) {
@@ -604,7 +628,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the xt api endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=balance-structure balance structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $name = 'balance';
             return Async\await($this->subscribe($name, 'private', 'watchBalance', null, null, $params));
         })();
@@ -623,7 +649,9 @@ class xt extends \ccxt\async\xt {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws']['contract'] . '/' . 'user';
             $client = $this->client($url);
             $this->set_positions_cache($client);

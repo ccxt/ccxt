@@ -41,14 +41,13 @@ from ccxt.base.types import ConstructorArgs, BalanceAccount, Currency, IndexType
 # rsa jwt signing
 from cryptography.hazmat import backends
 from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import padding, ed25519
-# from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
+from cryptography.hazmat.primitives.asymmetric import ec, padding, ed25519
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature, Prehashed
+from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, load_pem_private_key
 
 # -----------------------------------------------------------------------------
 
 # ecdsa signing
-from ccxt.static_dependencies import ecdsa
 from ccxt.static_dependencies import keccak
 
 try:
@@ -70,8 +69,6 @@ from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as Type
 
 # dydx
 try:
-    from ccxt.static_dependencies.mnemonic import Mnemonic
-    from ccxt.static_dependencies.bip.bip44 import Bip44
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.signing.v1beta1.signing_pb2 import SignMode
     from ccxt.static_dependencies.dydx_v4_client.cosmos.tx.v1beta1.tx_pb2 import (
         AuthInfo,
@@ -1508,32 +1505,23 @@ class Exchange(object):
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
+    def secp256k1_uncompressed_public_key(private_key_bytes):
+        # returns the 64-byte uncompressed public key (X || Y), no 0x04 prefix
+        if coincurve is not None:
+            return coincurve.PrivateKey(private_key_bytes).public_key.format(compressed=False)[1:]
+        private_value = int.from_bytes(private_key_bytes, 'big')
+        public_key = ec.derive_private_key(private_value, ec.SECP256K1()).public_key()
+        return public_key.public_bytes(Encoding.X962, PublicFormat.UncompressedPoint)[1:]
+
+    @staticmethod
     def eth_get_address_from_private_key(private_key):
         # method returns the Ethereum address from a "0x"-prefixed private key
         # Remove "0x" prefix if present
-        if coincurve is not None:
-            return Exchange.eth_get_address_from_private_key_with_coincurve(private_key)
         clean_private_key = Exchange.remove0x_prefix(private_key)
         # Build secp256k1 private key from raw 32-byte hex
         private_key_bytes = bytes.fromhex(clean_private_key)
-        signing_key = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1)
         # 64-byte uncompressed public key (X || Y), no 0x04 prefix
-        public_key_bytes = signing_key.verifying_key.to_string()
-        # Hash the public key with Keccak256
-        address_bytes = keccak.SHA3(public_key_bytes)[-20:]
-        # Convert to hex and add 0x prefix
-        address_hex = '0x' + address_bytes.hex()
-        return address_hex
-
-    @staticmethod
-    def eth_get_address_from_private_key_with_coincurve(private_key):
-        # method returns the Ethereum address from a "0x"-prefixed private key
-        # Remove "0x" prefix if present
-        clean_private_key = Exchange.remove0x_prefix(private_key)
-        # Use coincurve to get the public key
-        private_key_obj = coincurve.PrivateKey(bytes.fromhex(clean_private_key))
-        # Get uncompressed public key (remove the 0x04 prefix)
-        public_key_bytes = private_key_obj.public_key.format(compressed=False)[1:]
+        public_key_bytes = Exchange.secp256k1_uncompressed_public_key(private_key_bytes)
         # Hash the public key with Keccak256
         address_bytes = keccak.SHA3(public_key_bytes)[-20:]
         # Convert to hex and add 0x prefix
@@ -1623,44 +1611,53 @@ class Exchange(object):
     def random_bytes(length):
         return format(random.getrandbits(length * 8), 'x')
 
+    # curve group orders, needed for canonical (low-s) signatures and for
+    # computing the recovery id without any hand-rolled elliptic curve math
+    ecdsa_curves = {
+        'p192': [ec.SECP192R1, 0xffffffffffffffffffffffff99def836146bc9b1b4d22831],
+        'p224': [ec.SECP224R1, 0xffffffffffffffffffffffffffff16a2e0b8f03e13dd29455c5c2a3d],
+        'p256': [ec.SECP256R1, 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551],
+        'p384': [ec.SECP384R1, 0xffffffffffffffffffffffffffffffffffffffffffffffffc7634d81f4372ddf581a0db248b0a77aecec196accc52973],
+        'p521': [ec.SECP521R1, 0x01fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa51868783bf2f966b7fcc0148f709a5d03bb5c9b8899c47aebb6fb71e91386409],
+        'secp256k1': [ec.SECP256K1, 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141],
+    }
+
+    ecdsa_prehashed_algorithms = {
+        20: hashes.SHA1,
+        28: hashes.SHA224,
+        32: hashes.SHA256,
+        48: hashes.SHA384,
+        64: hashes.SHA512,
+    }
+
     @staticmethod
     def ecdsa(request, secret, algorithm='p256', hash=None, fixed_length=False):
         """
-        ECDSA signing with support for multiple algorithms and coincurve for SECP256K1.
+        Deterministic (RFC 6979) ECDSA signing using coincurve for SECP256K1
+        and the cryptography library for the NIST curves.
         Args:
             request: The message to sign
             secret: The private key (hex string or PEM format)
             algorithm: The elliptic curve algorithm ('p192', 'p224', 'p256', 'p384', 'p521', 'secp256k1')
-            hash: The hash function to use (defaults to algorithm-specific hash)
-            fixed_length: Whether to ensure fixed-length signatures (for deterministic signing)
-            Note: coincurve produces non-deterministic signatures
+            hash: The hash function to use (when None, the request is treated as a hex-encoded digest)
+            fixed_length: Kept for backwards compatibility, signatures are always fixed length
         Returns:
             dict: {'r': r_value, 's': s_value, 'v': v_value}
         Note:
             If coincurve is not available or fails for SECP256K1, the method automatically
-            falls back to the standard ecdsa implementation.
+            falls back to the cryptography implementation.
         """
         # your welcome - frosty00
-        algorithms = {
-            'p192': [ecdsa.NIST192p, 'sha256'],
-            'p224': [ecdsa.NIST224p, 'sha256'],
-            'p256': [ecdsa.NIST256p, 'sha256'],
-            'p384': [ecdsa.NIST384p, 'sha384'],
-            'p521': [ecdsa.NIST521p, 'sha512'],
-            'secp256k1': [ecdsa.SECP256k1, 'sha256'],
-        }
-        if algorithm not in algorithms:
+        if algorithm not in Exchange.ecdsa_curves:
             raise ArgumentsRequired(algorithm + ' is not a supported algorithm')
         # Use coincurve for SECP256K1 if available
         if algorithm == 'secp256k1' and coincurve is not None:
             try:
                 return Exchange._ecdsa_secp256k1_coincurve(request, secret, hash, fixed_length)
             except Exception:
-                # If coincurve fails, fall back to ecdsa implementation
+                # If coincurve fails, fall back to the cryptography implementation
                 pass
-        # Fall back to original ecdsa implementation for other algorithms or when deterministic signing is needed
-        curve_info = algorithms[algorithm]
-        hash_function = getattr(hashlib, curve_info[1])
+        curve_class, order = Exchange.ecdsa_curves[algorithm]
         encoded_request = Exchange.encode(request)
         if hash is not None:
             digest = Exchange.hash(encoded_request, hash, 'binary')
@@ -1668,27 +1665,36 @@ class Exchange(object):
             digest = base64.b16decode(encoded_request, casefold=True)
         if isinstance(secret, str):
             secret = Exchange.encode(secret)
-        if secret.find(b'-----BEGIN EC PRIVATE KEY-----') > -1:
-            key = ecdsa.SigningKey.from_pem(secret, hash_function)
+        if secret.find(b'-----BEGIN') > -1:
+            key = load_pem_private_key(secret, None, backends.default_backend())
         else:
-            key = ecdsa.SigningKey.from_string(base64.b16decode(secret,
-                                                            casefold=True), curve=curve_info[0])
-        r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
-                                                              sigencode=ecdsa.util.sigencode_strings_canonize)
-        r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
-        counter = 0
-        minimum_size = (1 << (8 * 31)) - 1
-        half_order = key.privkey.order / 2
-        while fixed_length and (r_int > half_order or r_int <= minimum_size or s_int <= minimum_size):
-            r_binary, s_binary, v = key.sign_digest_deterministic(digest, hashfunc=hash_function,
-                                                                  sigencode=ecdsa.util.sigencode_strings_canonize,
-                                                                  extra_entropy=Exchange.number_to_le(counter, 32))
-            r_int, s_int = ecdsa.util.sigdecode_strings((r_binary, s_binary), key.privkey.order)
-            counter += 1
-        r, s = Exchange.decode(base64.b16encode(r_binary)).lower(), Exchange.decode(base64.b16encode(s_binary)).lower()
+            private_value = int.from_bytes(base64.b16decode(secret, casefold=True), 'big')
+            key = ec.derive_private_key(private_value, curve_class())
+        digest_length = len(digest)
+        if digest_length not in Exchange.ecdsa_prehashed_algorithms:
+            raise ArgumentsRequired('unsupported digest length: ' + str(digest_length))
+        prehashed = Prehashed(Exchange.ecdsa_prehashed_algorithms[digest_length]())
+        der_signature = key.sign(digest, ec.ECDSA(prehashed, deterministic_signing=True))
+        r_int, s_int = decode_dss_signature(der_signature)
+        # left-truncate the digest to the bit length of the curve order (FIPS 186-4)
+        e = int.from_bytes(digest, 'big')
+        excess_bits = digest_length * 8 - order.bit_length()
+        if excess_bits > 0:
+            e >>= excess_bits
+        # recover v without any hand-written curve arithmetic:
+        # k = s^-1 * (e + r * d) mod n, then R = k * G
+        d = key.private_numbers().private_value
+        k = (pow(s_int, order - 2, order) * (e + r_int * d)) % order  # order is prime, Fermat inverse
+        r_point = ec.derive_private_key(k, curve_class()).public_key().public_numbers()
+        v = (r_point.y & 1) | (0 if (r_point.x % order) == r_int else 2)
+        # canonicalize to the low-s form
+        if s_int > order // 2:
+            s_int = order - s_int
+            v ^= 1
+        hex_length = 2 * ((1 + len('%x' % order)) // 2)
         return {
-            'r': r,
-            's': s,
+            'r': ('%0' + str(hex_length) + 'x') % r_int,
+            's': ('%0' + str(hex_length) + 'x') % s_int,
             'v': v,
         }
 
@@ -1895,7 +1901,7 @@ class Exchange(object):
 
     def privateKeyToAddress(self, privateKey):
         private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
-        public_key_bytes = ecdsa.SigningKey.from_string(private_key_bytes, curve=ecdsa.SECP256k1).verifying_key.to_string()
+        public_key_bytes = Exchange.secp256k1_uncompressed_public_key(private_key_bytes)
         public_key_hash = keccak.SHA3(public_key_bytes)
         return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
@@ -2154,20 +2160,16 @@ class Exchange(object):
     def is_binary_message(self, message):
         return isinstance(message, bytes) or isinstance(message, bytearray)
 
-    def retrieve_dydx_credentials(self, entropy):
-        mnemo = Mnemonic("english")
-        if ' ' in entropy:
-            mnemonic = entropy
-        else:
-            mnemonic = mnemo.to_mnemonic(self.base16_to_binary(entropy))
-        seed = mnemo.to_seed(mnemonic)
-        keyPair = Bip44.FromSeed(seed).DeriveDefaultPath()
-        privateKey = keyPair.PrivateKey().Raw().ToBytes()
-        publicKey = keyPair.PublicKey().RawCompressed().ToBytes()
+    def retrieve_dydx_credentials(self, privateKey):
+        if coincurve is None:
+            raise NotSupported(self.id + ' retrieve_dydx_credentials() requires the coincurve library, please install it with `pip install coincurve`')
+        clean_private_key = Exchange.remove0x_prefix(privateKey)
+        private_key_bytes = bytes.fromhex(clean_private_key)
+        private_key_obj = coincurve.PrivateKey(private_key_bytes)
+        public_key_bytes = private_key_obj.public_key.format(compressed=True)
         return {
-            'mnemonic': mnemonic,
-            'privateKey': privateKey,
-            'publicKey': publicKey,
+            'privateKey': private_key_bytes,
+            'publicKey': public_key_bytes,
         }
 
     def load_dydx_protos(self):

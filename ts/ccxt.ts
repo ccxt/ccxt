@@ -44,7 +44,6 @@ const version = '4.5.64';
 
 //-----------------------------------------------------------------------------
 
-import aftermath from  './src/aftermath.js'
 import alpaca from  './src/alpaca.js'
 import apex from  './src/apex.js'
 import aster from  './src/aster.js'
@@ -152,7 +151,6 @@ import zebpay from  './src/zebpay.js'
 
 
 // pro exchanges
-import aftermathPro from  './src/pro/aftermath.js'
 import alpacaPro from  './src/pro/alpaca.js'
 import apexPro from  './src/pro/apex.js'
 import asterPro from  './src/pro/aster.js'
@@ -233,7 +231,6 @@ import woofiproPro from  './src/pro/woofipro.js'
 import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
-    'aftermath':              aftermath,
     'alpaca':                 alpaca,
     'apex':                   apex,
     'aster':                  aster,
@@ -341,7 +338,6 @@ const exchanges = {
 }
 
 const pro = {
-    'aftermath':              aftermathPro,
     'alpaca':                 alpacaPro,
     'apex':                   apexPro,
     'aster':                  asterPro,
@@ -566,7 +562,6 @@ export {
     IsolatedBorrowRates,
     CrossBorrowRates,
     LeverageTiers,
-    aftermath,
     alpaca,
     apex,
     aster,

@@ -1,6 +1,6 @@
 module github.com/ccxt/ccxt/go/v4
 
-go 1.24.0
+go 1.25.0
 
 require (
 	github.com/NethermindEth/juno v0.14.0
@@ -11,8 +11,8 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/vmihailenco/msgpack/v5 v5.4.1
-	golang.org/x/crypto v0.45.0
-	golang.org/x/net v0.47.0
+	golang.org/x/crypto v0.54.0
+	golang.org/x/net v0.56.0
 	google.golang.org/protobuf v1.36.11
 )
 
@@ -34,7 +34,7 @@ require (
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
 	golang.org/x/sync v0.18.0 // indirect
-	golang.org/x/sys v0.39.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

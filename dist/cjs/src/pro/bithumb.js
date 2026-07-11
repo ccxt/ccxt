@@ -49,7 +49,9 @@ class bithumb extends bithumb$1["default"] {
      */
     async watchTicker(symbol, params = {}) {
         const url = this.urls['api']['ws']['public'];
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         const messageHash = 'ticker:' + market['symbol'];
         const request = {
@@ -69,7 +71,9 @@ class bithumb extends bithumb$1["default"] {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['public'];
         const marketIds = [];
         const messageHashes = [];
@@ -188,7 +192,9 @@ class bithumb extends bithumb$1["default"] {
      * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['public'];
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -276,7 +282,9 @@ class bithumb extends bithumb$1["default"] {
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const url = this.urls['api']['ws']['public'];
         const market = this.market(symbol);
         symbol = market['symbol'];
@@ -393,7 +401,9 @@ class bithumb extends bithumb$1["default"] {
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
     async watchBalance(params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         const messageHash = 'myAsset';
@@ -477,7 +487,9 @@ class bithumb extends bithumb$1["default"] {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const url = this.urls['api']['ws']['privateV2'];
         let messageHash = 'myOrder';

@@ -125,7 +125,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object isBatch = isGreaterThanOrEqual(getIndexOf(name, "batch"), 0);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -159,7 +162,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async virtual Task<object> subscribePrivate(object name, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object splitName = ((string)name).Split(new [] {((string)"_subscribe")}, StringSplitOptions.None).ToList<object>();
@@ -185,7 +191,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async virtual Task<object> tradeRequest(object name, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         object messageHash = ((object)this.nonce()).ToString();
@@ -353,7 +362,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> watchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         object options = this.safeValue(this.options, "watchTicker");
         object defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
@@ -522,7 +534,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols, null, false);
         object options = this.safeValue(this.options, "watchBidsAsks");
         object defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
@@ -615,7 +630,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
@@ -882,7 +900,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object marketType = null;
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -1143,7 +1164,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> watchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
@@ -1184,7 +1208,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         object marketType = null;
@@ -1228,7 +1255,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> cancelOrderWs(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {
             { "client_order_id", id },
@@ -1272,7 +1302,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> cancelAllOrdersWs(object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1316,7 +1349,10 @@ public partial class hitbtc : ccxt.hitbtc
     public async override Task<object> fetchOpenOrdersWs(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMarkets();
+        if (isTrue(isEqual(this.markets, null)))
+        {
+            await this.loadMarkets();
+        }
         object market = null;
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))

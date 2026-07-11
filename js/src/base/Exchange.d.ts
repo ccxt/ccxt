@@ -51,7 +51,6 @@ export default class Exchange {
     origin: string;
     MAX_VALUE: number;
     agent: any;
-    nodeHttpModuleLoaded: boolean;
     httpAgent: any;
     httpsAgent: any;
     minFundingAddressLength: number;
@@ -63,6 +62,12 @@ export default class Exchange {
     fetchImplementation: any;
     AbortError: any;
     FetchError: any;
+    fetchImplementationLoading: Promise<any>;
+    fetchIsNative: boolean;
+    undiciModule: any;
+    zlibModule: any;
+    httpStatusTexts: any;
+    fetchDispatcher: any;
     validateServerSsl: boolean;
     validateClientSsl: boolean;
     timeout: number;
@@ -197,106 +202,107 @@ export default class Exchange {
     socksProxyAgentModule: any;
     socksProxyAgentModuleChecked: boolean;
     proxyDictionaries: Dictionary<any>;
+    proxyDictionariesMaxSize: number;
     proxiesModulesLoading: Promise<any>;
     alias: boolean;
     clients: Dictionary<WsClient>;
     newUpdates: boolean;
     streaming: Dictionary<any>;
-    sleep: (ms: any) => Promise<unknown>;
-    deepExtend: (...args: any) => any;
-    deepExtendSafe: (...args: any) => any;
+    sleep: typeof functions.sleep;
+    deepExtend: typeof functions.deepExtend;
+    deepExtendSafe: typeof functions.deepExtend;
     isNode: boolean;
-    extend: (...args: any[]) => any;
-    clone: (x: any) => any;
-    unique: (x: any[]) => any[];
-    indexBy: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
-    indexBySafe: (x: Dictionary<any>, k: IndexType, out?: Dictionary<any>) => Dictionary<any>;
-    roundTimeframe: (timeframe: string, timestamp: number, direction?: number) => number;
-    sortBy: (array: any[], key: IndexType, descending?: boolean, defaultValue?: any, direction?: number) => any[];
-    sortBy2: (array: any[], key1: IndexType, key2: IndexType, descending?: boolean, direction?: number) => any[];
-    groupBy: (x: Dictionary<any>, k: string, out?: Dictionary<any>) => Dictionary<any>;
+    extend: typeof functions.extend;
+    clone: typeof functions.clone;
+    unique: typeof functions.unique;
+    indexBy: typeof functions.indexBy;
+    indexBySafe: typeof functions.indexBy;
+    roundTimeframe: typeof functions.roundTimeframe;
+    sortBy: typeof functions.sortBy;
+    sortBy2: typeof functions.sortBy2;
+    groupBy: typeof functions.groupBy;
     aggregate: typeof functions.aggregate;
-    uuid: (a?: any) => string;
-    unCamelCase: (s: string) => string;
+    uuid: typeof functions.uuid;
+    unCamelCase: typeof functions.unCamelCase;
     precisionFromString: typeof functions.precisionFromString;
-    capitalize: (s: string) => string;
+    capitalize: typeof functions.capitalize;
     now: () => number;
-    decimalToPrecision: (x: string, roundingMode: number, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => string;
-    safeValue: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: any) => any;
-    safeValue2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: any) => any;
+    decimalToPrecision: typeof functions.decimalToPrecision;
+    safeValue: typeof functions.safeValue;
+    safeValue2: typeof functions.safeValue2;
     safeString: typeof functions.safeString;
     safeString2: typeof functions.safeString2;
-    safeFloat: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: number) => Num;
-    safeFloat2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: number) => Num;
-    seconds: () => number;
+    safeFloat: typeof functions.safeFloat;
+    safeFloat2: typeof functions.safeFloat2;
+    seconds: typeof functions.seconds;
     milliseconds: () => number;
     binaryToBase16: (data: Uint8Array) => string;
-    numberToBE: (n: number, padding: number) => Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
+    numberToBE: typeof functions.numberToBE;
     base16ToBinary: (str: string) => Uint8Array;
-    iso8601: (timestamp: any) => string;
-    omit: (x: Dictionary<any>, ...args: any) => any;
-    isJsonEncodedObject: (object: any) => boolean;
+    iso8601: typeof functions.iso8601;
+    omit: typeof functions.omit;
+    isJsonEncodedObject: typeof functions.isJsonEncodedObject;
     safeInteger: typeof functions.safeInteger;
-    sum: (...xs: any[]) => any;
+    sum: typeof functions.sum;
     omitZero: typeof functions.omitZero;
-    implodeParams: (string: string, params: Dictionary<any> | any[]) => string;
-    extractParams: (string: string) => string[];
-    json: (data: any, params?: any) => string;
+    implodeParams: typeof functions.implodeParams;
+    extractParams: typeof functions.extractParams;
+    json: typeof functions.json;
     binaryConcat: (...arrays: import("@noble/curves/utils.js").TArg<Uint8Array[]>) => import("@noble/curves/utils.js").TRet<Uint8Array>;
-    hash: (request: string | Uint8Array<ArrayBufferLike>, hash: import("@noble/hashes/utils.js").CHash, digest?: "binary" | "hex" | "base64") => any;
-    arrayConcat: (a: any[], b: any[]) => any[];
+    hash: typeof functions.hash;
+    arrayConcat: typeof functions.arrayConcat;
     encode: (str: string) => Uint8Array;
-    urlencode: (object: object, sort?: boolean) => string;
-    hmac: (request: string | Uint8Array<ArrayBufferLike>, secret: string | Uint8Array<ArrayBufferLike>, hash: import("@noble/hashes/utils.js").CHash, digest?: "binary" | "hex" | "base64") => any;
+    urlencode: typeof functions.urlencode;
+    hmac: typeof functions.hmac;
     numberToString: typeof functions.numberToString;
-    parseTimeframe: (timeframe: string) => number;
+    parseTimeframe: typeof functions.parseTimeframe;
     safeInteger2: typeof functions.safeInteger2;
-    safeStringLower: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: string) => Str;
-    parse8601: (x: any) => number;
-    yyyymmdd: (timestamp: any, infix?: string) => string;
-    safeStringUpper: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: string) => Str;
-    safeTimestamp: (o: import("./types.js").implicitReturnType, k: IndexType, $default?: number) => Int;
-    binaryConcatArray: (arr: any[]) => Uint8Array<ArrayBufferLike> & Uint8Array<ArrayBuffer>;
-    ymdhms: (timestamp: any, infix?: string) => string;
-    yymmdd: (timestamp: any, infix?: string) => string;
-    stringToBase64: (string: string) => string;
+    safeStringLower: typeof functions.safeStringLower;
+    parse8601: typeof functions.parse8601;
+    yyyymmdd: typeof functions.yyyymmdd;
+    safeStringUpper: typeof functions.safeStringUpper;
+    safeTimestamp: typeof functions.safeTimestamp;
+    binaryConcatArray: typeof functions.binaryConcatArray;
+    ymdhms: typeof functions.ymdhms;
+    yymmdd: typeof functions.yymmdd;
+    stringToBase64: typeof functions.stringToBase64;
     decode: (data: Uint8Array) => string;
-    uuid22: (a?: any) => string;
-    safeIntegerProduct2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $factor: number, $default?: number) => Int;
-    safeIntegerProduct: (o: import("./types.js").implicitReturnType, k: IndexType, $factor: number, $default?: number) => Int;
+    uuid22: typeof functions.uuid22;
+    safeIntegerProduct2: typeof functions.safeIntegerProduct2;
+    safeIntegerProduct: typeof functions.safeIntegerProduct;
     binaryToBase58: (data: Uint8Array) => string;
     base58ToBinary: (str: string) => Uint8Array;
     base64ToBinary: (str: string) => Uint8Array;
-    safeTimestamp2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: Int) => Int;
-    rawencode: (object: object, sort?: boolean) => string;
-    keysort: (x: Dictionary<any>, out?: Dictionary<any>) => Dictionary<any>;
-    sort: (array: string[] | any) => any;
-    inArray: (needle: any, haystack: any[]) => boolean;
-    safeStringLower2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: string) => Str;
-    safeStringUpper2: (o: import("./types.js").implicitReturnType, k1: IndexType, k2: IndexType, $default?: string) => Str;
-    isEmpty: (object: any[] | Dictionary<any>) => boolean;
-    filterBy: (x: Dictionary<any>, k: string, value?: any, out?: Dictionary<any>[]) => Dictionary<any>[];
-    uuid16: (a?: any) => string;
-    urlencodeWithArrayRepeat: (object: object) => string;
-    microseconds: () => number;
+    safeTimestamp2: typeof functions.safeTimestamp2;
+    rawencode: typeof functions.rawencode;
+    keysort: typeof functions.keysort;
+    sort: typeof functions.sort;
+    inArray: typeof functions.inArray;
+    safeStringLower2: typeof functions.safeStringLower2;
+    safeStringUpper2: typeof functions.safeStringUpper2;
+    isEmpty: typeof functions.isEmpty;
+    filterBy: typeof functions.filterBy;
+    uuid16: typeof functions.uuid16;
+    urlencodeWithArrayRepeat: typeof functions.urlencodeWithArrayRepeat;
+    microseconds: typeof functions.microseconds;
     binaryToBase64: (data: Uint8Array) => string;
-    strip: (s: string) => string;
-    toArray: (object: Dictionary<any> | any[]) => any[];
-    safeFloatN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: number) => Num;
+    strip: typeof functions.strip;
+    toArray: typeof functions.toArray;
+    safeFloatN: typeof functions.safeFloatN;
     safeIntegerN: typeof functions.safeIntegerN;
-    safeIntegerProductN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $factor: number, $default?: number) => Int;
-    safeTimestampN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: number) => Int;
-    safeValueN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: any) => any;
+    safeIntegerProductN: typeof functions.safeIntegerProductN;
+    safeTimestampN: typeof functions.safeTimestampN;
+    safeValueN: typeof functions.safeValueN;
     safeStringN: typeof functions.safeStringN;
-    safeStringLowerN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: string) => Str;
-    safeStringUpperN: (o: import("./types.js").implicitReturnType, k: (IndexType)[], $default?: string) => Str;
-    urlencodeNested: (object: object) => string;
-    parseDate: (x: any) => number;
-    ymd: (timestamp: any, infix: any, fullYear?: boolean) => string;
-    base64ToString: (string: string) => string;
+    safeStringLowerN: typeof functions.safeStringLowerN;
+    safeStringUpperN: typeof functions.safeStringUpperN;
+    urlencodeNested: typeof functions.urlencodeNested;
+    parseDate: typeof functions.parseDate;
+    ymd: typeof functions.ymd;
+    base64ToString: typeof functions.base64ToString;
     crc32: typeof functions.crc32;
     packb: typeof functions.packb;
-    urlencodeBase64: (payload: string | Uint8Array) => string;
+    urlencodeBase64: typeof functions.urlencodeBase64;
     readFile: typeof functions.readFile;
     writeFile: typeof functions.writeFile;
     existsFile: typeof functions.existsFile;
@@ -320,8 +326,113 @@ export default class Exchange {
     stringToBinary(content: any): Uint8Array<ArrayBufferLike>;
     binaryToString(binary: any): string;
     decodeProtoMsg(data: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#loadFetchImplementation
+     * @description resolves the fetch implementation once per instance - the platform-native fetch is used everywhere (undici in node, native fetch in bun / browsers / deno), a user-supplied this.fetchImplementation always takes precedence
+     * @returns {Promise<any>} a promise that resolves when the fetch client is ready
+     */
+    loadFetchImplementation(): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getDispatcherOptions
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
+     * @returns {object} undici dispatcher options
+     */
+    getDispatcherOptions(isPlainAgent?: boolean): {
+        keepAliveTimeout: number;
+        keepAliveMaxTimeout: number;
+        connections: number;
+        pipelining: number;
+        allowH2: boolean;
+    };
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#shouldValidateServerSsl
+     * @description whether server certificates should be validated, honoring both this.validateServerSsl and legacy agents constructed with rejectUnauthorized false
+     * @returns {boolean} true when server ssl certificates must be validated
+     */
+    shouldValidateServerSsl(): boolean;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#extractProxyFromAgent
+     * @description backwards compatibility helper - http-proxy-agent, https-proxy-agent and socks-proxy-agent instances all carry their target on a `proxy` property (URL object or string), extract it so it can be passed to the native fetch
+     * @param {object} [agent] a legacy proxy-carrying agent object
+     * @returns {string|undefined} the proxy url, or undefined when the agent does not carry one
+     */
+    extractProxyFromAgent(agent: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#cacheProxyDictionary
+     * @description stores a per-proxy-url transport handle (undici dispatcher or legacy node-style agent) in this.proxyDictionaries, evicting the oldest entry beyond proxyDictionariesMaxSize so rotating-proxy setups cannot grow the cache without bound - evicted or replaced undici dispatchers are closed gracefully (in-flight requests finish first), legacy agents are just dropped because live ws connections may still hold them
+     * @param {string} proxyUrl the proxy url the handle serves
+     * @param {any} value an undici dispatcher or a node-style agent
+     * @returns {any} the cached value
+     */
+    cacheProxyDictionary(proxyUrl: any, value: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#releaseProxyDictionaryEntry
+     * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
+     * @param {any} entry the evicted or replaced proxyDictionaries value
+     */
+    releaseProxyDictionaryEntry(entry: any): void;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getFetchProxyDispatcher
+     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; dispatchers share this.proxyDictionaries with the legacy node-style agents (entries are distinguished by the 'dispatch' method) and the cache is FIFO-capped at proxyDictionariesMaxSize entries so rotating-proxy setups cannot grow it without bound
+     * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
+     * @returns {any} an undici dispatcher
+     */
+    getFetchProxyDispatcher(proxyUrl: any): any;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciRequest
+     * @description dispatches through the low-level undici.request api and adapts the result to the minimal fetch-Response surface that handleRestResponse consumes - profiled ~2x faster end-to-end than undici.fetch (node streams instead of the WHATWG Response/Headers/web-streams machinery)
+     * @param {string} url the request url
+     * @param {object} params fetch-style request params ('method', 'headers', 'body', 'signal', 'dispatcher')
+     * @returns {Promise<object>} an object with 'status', 'statusText', 'headers' (plain object), 'text' and 'arrayBuffer' methods
+     */
+    undiciRequest(url: any, params: any): Promise<{
+        status: any;
+        statusText: any;
+        headers: any;
+        text: () => Promise<any>;
+        arrayBuffer: () => Promise<any>;
+    }>;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciBody
+     * @description reads an undici.request response body, transparently decompressing gzip/br/deflate content-encodings via node:zlib (undici.request performs no decompression, unlike fetch)
+     * @param {object} res an undici.request response
+     * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
+     * @returns {Promise<any>} the response body
+     */
+    undiciBody(res: any, binary?: boolean): Promise<any>;
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#setFetchProxyOptions
+     * @description attaches per-platform proxy transport options to the native fetch request params - undici dispatcher on node, the built-in `proxy` option on bun; the shared keep-alive dispatcher is attached when no proxy applies
+     * @param {object} params the fetch RequestInit params, mutated in place
+     * @param {string} [httpProxy] unified httpProxy setting
+     * @param {string} [httpsProxy] unified httpsProxy setting
+     * @param {string} [socksProxy] unified socksProxy setting
+     */
+    setFetchProxyOptions(params: any, httpProxy: any, httpsProxy: any, socksProxy: any): void;
     fetch(url: any, method?: string, headers?: any, body?: any): Promise<any>;
     jsonStringifyWithNull(obj: any): string;
+    hasUnsafeInteger(value: any): boolean;
     parseJson(jsonString: any): any;
     getResponseHeaders(response: any): {};
     handleRestResponse(response: any, url: any, method?: string, requestHeaders?: any, requestBody?: any): any;
@@ -394,7 +505,7 @@ export default class Exchange {
     getZKTransferSignatureObj(seed: any, params?: {}): Promise<any>;
     loadDydxProtos(): Promise<void>;
     toDydxLong(numStr: string): object;
-    retrieveDydxCredentials(entropy: string): object;
+    retrieveDydxCredentials(privateKey: string): object;
     encodeDydxTxForSimulation(message: any, memo: any, sequence: any, publicKey: any): string;
     encodeDydxTxForSigning(message: any, memo: any, chainId: any, account: any, authenticators: any, fee?: any): [string, Dict];
     encodeDydxTxRaw(signDoc: Dict, signature: string): string;

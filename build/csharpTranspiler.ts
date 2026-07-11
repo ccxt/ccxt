@@ -1,5 +1,6 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -282,6 +283,31 @@ class NewTranspiler {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         this.transpiler.setVerboseMode(false);
         this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
+        // TS >= 5/6 (ast-transpiler 0.0.91) can report dictionary key types like `Str`
+        // (string | undefined) as a union whose first member is not the string one.
+        // The default printer only inspects the first union member, so dictionary
+        // assignments (`result[symbol] = value`) would be wrongly emitted as list index
+        // writes (`((List<object>)result)[Convert.ToInt32(symbol)]`). Handle unions
+        // containing a string member here (matches the previous TS 4.9 output).
+        const csharp = this.transpiler.csharpTranspiler;
+        csharp.printElementAccessExpressionExceptionIfAny = (node: any) => {
+            const { expression, argumentExpression } = node;
+            const parent = node.parent;
+            const isLeftSideOfAssignment = parent?.kind === ts.SyntaxKind.BinaryExpression
+                && (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken || parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken)
+                && parent?.left === node;
+            if (isLeftSideOfAssignment && csharp.ELEMENT_ACCESS_WRAPPER_OPEN && csharp.ELEMENT_ACCESS_WRAPPER_CLOSE) {
+                const type = (global as any).checker.getTypeAtLocation (argumentExpression);
+                const isUnion = ((type.flags & ts.TypeFlags.Union) !== 0) && Array.isArray (type.types);
+                if (isUnion && type.types.some ((t: any) => csharp.isStringType (t.flags))) {
+                    const expressionAsString = csharp.printNode (expression, 0);
+                    const argumentAsString = csharp.printNode (argumentExpression, 0);
+                    const cast = ts.isStringLiteralLike (argumentExpression) ? '' : '(string)';
+                    return `((IDictionary<string,object>)${expressionAsString})[${cast}${argumentAsString}]`;
+                }
+            }
+            return undefined;
+        };
     }
 
     createGeneratedHeader() {
@@ -309,7 +335,7 @@ class NewTranspiler {
     }
 
     isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
+        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'NullableDict') || ((type.startsWith('{')) && (type.endsWith('}')))
     }
 
     isStringType(type: string) {
@@ -346,6 +372,32 @@ class NewTranspiler {
         const isPromise = type.startsWith('Promise<') && type.endsWith('>');
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
+        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
+        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            if (wrappedType.trim().endsWith('[]')) {
+                isList = true; // e.g. `{ id: Str; ... }[]` → List<Dictionary<string, object>>
+            }
+            return addTaskIfNeeded('Dictionary<string, object>');
+        }
+
+        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
+        // without an explicit annotation (e.g. `OpenInterest | undefined`, `Dict | Leverage`).
+        // Normalize them here: drop undefined/null members and collapse remaining
+        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
+            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
+            wrappedType = members.length > 0 ? members[0] : 'object';
+        }
+
+        // TS >= 5/6 keeps type alias names (e.g. `Market[]`) instead of expanding them;
+        // map the nullable alias back to its concrete interface (matches the previous
+        // TS 4.9 output, e.g. `List<MarketInterface>` in the committed wrappers).
+        if (wrappedType === 'Market' || wrappedType === 'Market[]') {
+            wrappedType = wrappedType.replace ('Market', 'MarketInterface');
+        }
 
         function addTaskIfNeeded(type: string) {
             if (type == 'void') {
@@ -565,8 +617,8 @@ class NewTranspiler {
             return `return (double)res;`;
         }
 
-        // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
+        // handle the typescript type Dict (and its nullable alias from TS >= 5/6 inference)
+        if (unwrappedType === 'Dict' || unwrappedType === 'NullableDict') {
             return `return (Dictionary<string, object>)res;`;
         }
 
@@ -619,7 +671,8 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc

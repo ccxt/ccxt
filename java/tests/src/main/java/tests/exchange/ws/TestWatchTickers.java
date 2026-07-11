@@ -77,7 +77,13 @@ public class TestWatchTickers extends BaseTest {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)
                 {
                     Object ticker = Helpers.GetValue(values, i);
-                    TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    try
+                    {
+                        TestTicker.testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);
+                    } catch(Exception ex)
+                    {
+                        (TestSharedMethods.validateTickerExceptionForPercentage(ex, exchange, ticker)).join();
+                    }
                 }
                 now = exchange.milliseconds();
             }

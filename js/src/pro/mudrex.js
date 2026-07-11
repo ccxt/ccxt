@@ -62,7 +62,9 @@ export default class mudrex extends mudrexRest {
         this.options['ws'] = wsOptions;
     }
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const messageHash = 'ticker:' + symbol;
@@ -78,7 +80,9 @@ export default class mudrex extends mudrexRest {
         return await this.watch(url, messageHash, request, messageHash);
     }
     async watchTickers(symbols = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const messageHashes = [];
         const assets = [];
@@ -107,7 +111,9 @@ export default class mudrex extends mudrexRest {
         return this.filterByArrayTickers(this.tickers, 'symbol', symbols);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const market = this.market(symbol);
         symbol = market['symbol'];
         const priceType = this.safeString(params, 'price');

@@ -38,7 +38,8 @@ class upbit(ccxt.async_support.upbit):
         })
 
     async def watch_public_multiple(self, symbols: Strings, channel, params={}):
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         if symbols is None:
             symbols = self.symbols
         symbols = self.market_symbols(symbols)
@@ -392,7 +393,8 @@ class upbit(ccxt.async_support.upbit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         channel = 'myOrder'
         messageHash = 'myOrder'
         orders = await self.watch_private(symbol, channel, messageHash)
@@ -412,7 +414,8 @@ class upbit(ccxt.async_support.upbit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/?id=trade-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         channel = 'myOrder'
         messageHash = 'myTrades'
         trades = await self.watch_private(symbol, channel, messageHash)
@@ -587,7 +590,8 @@ class upbit(ccxt.async_support.upbit):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/?id=balance-structure>`
         """
-        await self.load_markets()
+        if self.markets is None:
+            await self.load_markets()
         channel = 'myAsset'
         messageHash = 'myAsset'
         return await self.watch_private(None, channel, messageHash)

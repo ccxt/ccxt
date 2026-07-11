@@ -216,7 +216,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'ticker' . '::' . $market['symbol'];
             return Async\await($this->watch_public($market, $messageHash, '7', $params));
@@ -234,7 +236,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'ticker' . '::' . $market['symbol'];
             $subscription = array(
@@ -361,7 +365,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'trades' . '::' . $market['symbol'];
             $trades = Async\await($this->watch_public($market, $messageHash, '2', $params));
@@ -383,7 +389,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'trades' . '::' . $market['symbol'];
             $subscription = array(
@@ -525,7 +533,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $timeframes = $this->safe_dict($this->options, 'timeframes', array());
@@ -552,7 +562,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $timeframes = $this->safe_dict($this->options, 'timeframes', array());
@@ -651,7 +663,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'orderbook' . '::' . $market['symbol'];
             $suffix = '_0.1';
@@ -671,7 +685,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'orderbook' . '::' . $market['symbol'];
             $suffix = '_0.1';
@@ -819,7 +835,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $messageHash = 'myTrades';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= '::' . $symbol;
@@ -898,7 +916,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
             $messageHash = 'orders';
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($symbol !== null) {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= '::' . $symbol;
@@ -1039,7 +1059,9 @@ class deepcoin extends \ccxt\async\deepcoin {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $listenKey = Async\await($this->authenticate());
             $symbols = $this->market_symbols($symbols);
             $messageHash = 'positions';

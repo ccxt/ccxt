@@ -161,7 +161,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $marketId = $market['id'];
             $messageHash = 'ticker::' . $symbol;
@@ -197,7 +199,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true);
             $messageHashes = array();
             $messageHash = 'ticker::';
@@ -360,7 +364,9 @@ class bydfi extends \ccxt\async\bydfi {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and $timeframes, like  ['ETH/USDC', '1m']");
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $channels = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -397,7 +403,9 @@ class bydfi extends \ccxt\async\bydfi {
             if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
                 throw new ArgumentsRequired($this->id . " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']");
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $channels = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -497,7 +505,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $depth = '100';
             list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
@@ -532,7 +542,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {string} [$params->method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, false);
             $depth = '100';
             list($depth, $params) = $this->handle_option_and_params($params, 'watchOrderBookForSymbols', 'depth', $depth);
@@ -617,7 +629,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true);
             $messageHashes = array();
             if ($symbols === null) {
@@ -764,7 +778,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $symbols = $this->market_symbols($symbols, null, true);
             $messageHashes = array();
             $messageHash = 'positions';
@@ -846,7 +862,7 @@ class bydfi extends \ccxt\async\bydfi {
         $client->resolve(array( $parsedPosition ), $symbolMessageHash);
     }
 
-    public function parse_ws_position($position, $market = null) {
+    public function parse_ws_position($position, ?array $market = null) {
         //
         //     {
         //         "S" => "1",
@@ -919,7 +935,9 @@ class bydfi extends \ccxt\async\bydfi {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $url = $this->urls['api']['ws'];
             $client = $this->client($url);
             $this->fetch_balance_snapshot($client);

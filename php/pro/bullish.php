@@ -135,7 +135,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=public-$trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $messageHash = 'trades::' . $market['symbol'];
             $url = '/trading-api/v1/market-data/trades';
@@ -207,7 +209,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $url = $this->urls['api']['ws']['public'] . '/trading-api/v1/market-data/tick/' . $market['id'];
@@ -290,7 +294,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $url = '/trading-api/v1/market-data/orderbook';
             $messageHash = 'orderbook::' . $market['symbol'];
@@ -382,7 +388,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} [$params->tradingAccountId] the trading account id to fetch entries for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscribeHash = 'orders';
             $messageHash = $subscribeHash;
             if ($symbol !== null) {
@@ -499,7 +507,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} [$params->tradingAccountId] the trading account id to fetch entries for
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscribeHash = 'myTrades';
             $messageHash = $subscribeHash;
             if ($symbol !== null) {
@@ -606,7 +616,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {string} [$params->tradingAccountId] the trading account id to fetch entries for
              * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'topic' => 'assetAccounts',
             );
@@ -704,7 +716,9 @@ class bullish extends \ccxt\async\bullish {
              * @param {array} $params extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subscribeHash = 'positions';
             $messageHash = $subscribeHash;
             if (($symbols !== null) && !$this->is_empty($symbols)) {

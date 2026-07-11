@@ -1,5 +1,6 @@
 import Transpiler from "ast-transpiler";
-import ts from "typescript";
+// "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API (typescript@7 is the native compiler and only provides the tsc binary)
+import ts from "typescript6";
 import path from 'path'
 import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
@@ -717,7 +718,8 @@ class NewTranspiler {
     }
 
     createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        const isAsync = methodWrapper.async;
+        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
+        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
         if (!this.shouldCreateWrapper(methodName, isWs)) {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
@@ -3022,7 +3024,7 @@ class NewTranspiler {
             if (filename === 'test.sharedMethods') {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/public void /g, 'public static void '], // make tests static
-                    [/public java.util.concurrent.CompletableFuture<Object> /g, 'public static java.util.concurrent.CompletableFuture<Object> '], // make tests static
+                    [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
                 // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');

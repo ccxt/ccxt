@@ -91,7 +91,7 @@ class mudrex(Exchange, ImplicitAPI):
                 '1M': '1mth',
             },
             'urls': {
-                'logo': 'https://github.com/user-attachments/assets/12a65022-f416-4bf8-98eb-5b6b9b05cb6a',
+                'logo': 'https://github.com/user-attachments/assets/72368864-84ed-43eb-8c75-d4fb77023b42',
                 'api': {
                     'public': 'https://trade.mudrex.com/fapi/v1',
                     'private': 'https://trade.mudrex.com/fapi/v1',
@@ -268,7 +268,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.price]: "mark" to fetch mark price candles
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         priceType = self.safe_string(params, 'price')
         params = self.omit(params, 'price')
@@ -343,7 +344,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'asset_id': market['id'],
@@ -363,7 +365,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         request = {}
         response = self.privateGetFutures(self.extend(request, params))
         data = self.safe_value(response, 'data', [])
@@ -522,7 +525,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.trade_currency]: the settlement currency to query the balance for
         :returns dict: a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params, 'swap')
         requested = self.safe_string_n(params, ['trade_currency', 'tradeCurrency', 'currency'])
@@ -575,7 +579,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         request = {
             'asset_id': market['id'],
@@ -605,7 +610,8 @@ class mudrex(Exchange, ImplicitAPI):
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' setLeverage() requires a symbol')
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         marginType = self.safe_string(params, 'marginType', 'ISOLATED')
         request = {
@@ -642,7 +648,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.trade_currency]: the settlement currency for the order
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = self.market(symbol)
         # standalone stop-loss / take-profit orders(stopLossPrice/takeProfitPrice) are attached to
         # an existing position through the riskorder endpoint, so a positionId is required
@@ -710,7 +717,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -801,7 +809,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -823,7 +832,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -845,7 +855,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns Order[]: a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         q = {}
         if limit is not None:
             q['limit'] = limit
@@ -918,7 +929,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.trade_currency]: the settlement currency to query positions for
         :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         q = {}
         response = self.privateGetFuturesPositions(self.extend(q, params))
         data = self.safe_value(response, 'data', [])
@@ -947,7 +959,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.trade_currency]: the settlement currency to filter positions by
         :returns dict[]: a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         symbols = self.market_symbols(symbols)
         request = {}
         if limit is not None:
@@ -1040,7 +1053,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param float [params.amount]: the amount to close for a partial close, closes the whole position if not provided
         :returns dict: an [order structure](https://docs.ccxt.com/#/?id=order-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         positionId = self.safe_string(params, 'position_id')
         amount = self.safe_value(params, 'amount')
         if positionId is None:
@@ -1082,7 +1096,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.position_id]: the id of the position to add margin to, resolved from the symbol if not provided
         :returns dict: a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         positionId = self.safe_string(params, 'position_id')
         if positionId is None:
             positions = self.fetch_positions([symbol], params)
@@ -1126,7 +1141,8 @@ class mudrex(Exchange, ImplicitAPI):
         :param str [params.trade_currency]: the settlement currency to filter trades by
         :returns Trade[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
         """
-        self.load_markets()
+        if self.markets is None:
+            self.load_markets()
         market = None
         if symbol is not None:
             market = self.market(symbol)

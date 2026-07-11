@@ -568,7 +568,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=$balance-structure $balance structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->privateGetAuthAccount($params));
             //
             //     array(
@@ -639,7 +641,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'currency' => $market['baseId'],
@@ -728,7 +732,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'base' => $market['baseId'],
@@ -770,7 +776,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $response = Async\await($this->publicGetTicker($params));
             //
             //    array(
@@ -897,7 +905,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=public-trades trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'currency' => $market['baseId'],
@@ -948,7 +958,9 @@ class latoken extends Exchange {
 
     public function fetch_public_trading_fee(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'currency' => $market['baseId'],
@@ -976,7 +988,9 @@ class latoken extends Exchange {
 
     public function fetch_private_trading_fee(string $symbol, $params = array()) {
         return Async\async(function () use ($symbol, $params) {
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $request = array(
                 'currency' => $market['baseId'],
@@ -1016,7 +1030,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'currency' => $market['baseId'],
                 // 'quote' => $market['quoteId'],
@@ -1206,7 +1222,9 @@ class latoken extends Exchange {
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
             }
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
             $params = $this->omit($params, 'stop');
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
@@ -1263,7 +1281,9 @@ class latoken extends Exchange {
              * @param {boolean} [$params->trigger] true if fetching trigger orders
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'currency' => $market['baseId'],
                 // 'quote' => $market['quoteId'],
@@ -1332,7 +1352,9 @@ class latoken extends Exchange {
              * @param {boolean} [$params->trigger] true if fetching a trigger order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'id' => $id,
             );
@@ -1388,7 +1410,9 @@ class latoken extends Exchange {
              * @param {string} [$params->clientOrderId] array( 0 .. 50 ) characters, client's custom order id (free field for your convenience)
              * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $uppercaseType = strtoupper($type);
             $request = array(
@@ -1444,7 +1468,9 @@ class latoken extends Exchange {
              * @param {boolean} [$params->trigger] true if cancelling a trigger order
              * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 'id' => $id,
             );
@@ -1481,7 +1507,9 @@ class latoken extends Exchange {
              * @param {boolean} [$params->trigger] true if cancelling trigger orders
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'currency' => $market['baseId'],
                 // 'quote' => $market['quoteId'],
@@ -1533,7 +1561,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a list of ~@link https://docs.ccxt.com/?id=transaction-structure transaction structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $request = array(
                 // 'page' => '1',
                 // 'size' => 100,
@@ -1671,7 +1701,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $response = Async\await($this->privateGetAuthTransfer($params));
             //
@@ -1726,7 +1758,9 @@ class latoken extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=transfer-structure transfer structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],

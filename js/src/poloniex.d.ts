@@ -159,7 +159,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    orderRequest(symbol: any, type: any, side: any, amount: any, request: any, price?: any, params?: {}): any[];
+    orderRequest(symbol: any, type: any, side: any, amount: any, request: any, price?: Num, params?: {}): any[];
     /**
      * @method
      * @name poloniex#editOrder
@@ -204,7 +204,7 @@ export default class poloniex extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
-    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<"open" | "closed">;
+    fetchOrderStatus(id: string, symbol?: Str, params?: {}): Promise<"closed" | "open">;
     /**
      * @method
      * @name poloniex#fetchOrderTrades
@@ -334,7 +334,7 @@ export default class poloniex extends Exchange {
      * @returns {object[]} a list of [fees structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchDepositWithdrawFees(codes?: Strings, params?: {}): Promise<Dict>;
-    parseDepositWithdrawFees(response: any, codes?: any, currencyIdKey?: any): Dict;
+    parseDepositWithdrawFees(response: any, codes?: Strings, currencyIdKey?: any): Dict;
     parseDepositWithdrawFee(fee: any, currency?: Currency): any;
     /**
      * @method

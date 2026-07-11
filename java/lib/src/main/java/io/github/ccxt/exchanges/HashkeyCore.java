@@ -1016,7 +1016,7 @@ public class HashkeyCore extends HashkeyApi
         Object isSpot = true;
         Object isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split(marketId, "-");
+        Object parts = Helpers.split(((String)marketId), "-");
         Object secondPart = this.safeString(parts, 1);
         if (Helpers.isTrue(Helpers.isEqual(secondPart, "PERPETUAL")))
         {
@@ -1050,7 +1050,7 @@ public class HashkeyCore extends HashkeyApi
         Object priceFilter = this.safeDict(filters, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
         Object amountFilter = this.safeDict(filters, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
         Object costFilter = this.safeDict(filters, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
-        Object minCostString = this.omitZero(this.safeString(costFilter, "min_notional"));
+        Object minCostString = this.omitZero(((String)this.safeString(costFilter, "min_notional")));
         Object contractSizeString = this.safeString(market, "contractMultiplier");
         Object amountPrecisionString = this.safeString(amountFilter, "stepSize");
         Object amountMinLimitString = this.safeString(amountFilter, "minQty");
@@ -1210,14 +1210,14 @@ public class HashkeyCore extends HashkeyApi
         {
             Object network = Helpers.GetValue(networks, j);
             Object networkId = this.safeString(network, "chainType");
-            Object networkCode = this.networkCodeToId(networkId, code);
+            Object networkCode = this.networkCodeToId(((String)networkId), code);
             Helpers.addElementToObject(parsedNetworks, networkCode, new java.util.HashMap<String, Object>() {{
     put( "id", networkId );
     put( "network", networkCode );
     put( "limits", new java.util.HashMap<String, Object>() {{
         put( "withdraw", new java.util.HashMap<String, Object>() {{
             put( "min", HashkeyCore.this.safeNumber(network, "minWithdrawQuantity") );
-            put( "max", HashkeyCore.this.parseNumber(HashkeyCore.this.omitZero(HashkeyCore.this.safeString(network, "maxWithdrawQuantity"))) );
+            put( "max", HashkeyCore.this.parseNumber(HashkeyCore.this.omitZero(((String)HashkeyCore.this.safeString(network, "maxWithdrawQuantity")))) );
         }} );
         put( "deposit", new java.util.HashMap<String, Object>() {{
             put( "min", HashkeyCore.this.safeNumber(network, "minDepositQuantity") );
@@ -1276,7 +1276,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1326,7 +1329,10 @@ public class HashkeyCore extends HashkeyApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1381,7 +1387,10 @@ public class HashkeyCore extends HashkeyApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchMyTrades";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1593,7 +1602,10 @@ public class HashkeyCore extends HashkeyApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchOHLCV";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, methodName, "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1681,7 +1693,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1725,7 +1740,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object response = (this.publicGetQuoteV1Ticker24hr(parameters)).join();
             return this.parseTickers(response, symbols);
@@ -1796,7 +1814,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = (this.publicGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
@@ -1846,7 +1867,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object methodName = "fetchBalance";
             Object marketType = "spot";
@@ -1976,7 +2000,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -1989,7 +2016,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 networkCode = this.defaultNetworkCode(code);
             }
-            Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
+            Helpers.addElementToObject(request, "chainType", this.networkCodeToId(((String)networkCode), code));
             Object response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
@@ -2035,7 +2062,7 @@ public class HashkeyCore extends HashkeyApi
         final Object finalTag = tag;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
-            put( "currency", Helpers.GetValue(currency, "code") );
+            put( "currency", HashkeyCore.this.safeString(currency, "code") );
             put( "network", null );
             put( "address", address );
             put( "tag", finalTag );
@@ -2065,7 +2092,10 @@ public class HashkeyCore extends HashkeyApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchDeposits";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2133,7 +2163,10 @@ public class HashkeyCore extends HashkeyApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchWithdrawals";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2211,7 +2244,10 @@ public class HashkeyCore extends HashkeyApi
             var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -2385,7 +2421,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -2446,7 +2485,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privateGetApiV1AccountType(parameters)).join();
             //
             //     [
@@ -2554,8 +2596,11 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires an until argument")) ;
             }
-            (this.loadMarkets()).join();
-            Object currency = this.currency(code);
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
+            Object currency = this.currency(((String)code));
             Object request = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(request, "startTime", since);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2643,7 +2688,7 @@ public class HashkeyCore extends HashkeyApi
         Object amountString = this.safeString(item, "change");
         Object amount = this.parseNumber(amountString);
         Object direction = "in";
-        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountString, "-"), 0)))
+        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)amountString), "-"), 0)))
         {
             direction = "out";
         }
@@ -2699,7 +2744,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -2730,7 +2778,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "spot")))
             {
@@ -2777,7 +2828,10 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " trigger orders are not supported for spot markets")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object isMarketBuy = Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(side, "buy")));
             Object cost = this.safeString(parameters, "cost");
@@ -2847,7 +2901,7 @@ public class HashkeyCore extends HashkeyApi
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
-            put( "side", ((String)side).toUpperCase() );
+            put( "side", ((String)((String)side)).toUpperCase() );
             put( "type", finalType );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
@@ -2933,7 +2987,7 @@ public class HashkeyCore extends HashkeyApi
         {
             suffix = "_CLOSE";
         }
-        Helpers.addElementToObject(request, "side", Helpers.add(((String)side).toUpperCase(), suffix));
+        Helpers.addElementToObject(request, "side", Helpers.add(((String)((String)side)).toUpperCase(), suffix));
         Object timeInForce = null;
         var timeInForceparametersVariable = this.handleParamString(parameters, "timeInForce");
         timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
@@ -2990,7 +3044,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.privatePostApiV1FuturesOrder(this.extend(request, parameters))).join();
@@ -3036,7 +3093,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -3047,7 +3107,7 @@ public class HashkeyCore extends HashkeyApi
                 Object amount = this.safeNumber(rawOrder, "amount");
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
+                Object orderRequest = this.createOrderRequest(((String)symbol), ((String)type), side, amount, price, orderParams);
                 Object clientOrderId = this.safeString(orderRequest, "clientOrderId");
                 if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
                 {
@@ -3057,7 +3117,7 @@ public class HashkeyCore extends HashkeyApi
             }
             Object firstOrder = Helpers.GetValue(ordersRequests, 0);
             Object firstSymbol = this.safeString(firstOrder, "symbol");
-            Object market = this.market(firstSymbol);
+            Object market = this.market(((String)firstSymbol));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
@@ -3109,7 +3169,10 @@ public class HashkeyCore extends HashkeyApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "cancelOrder";
             this.checkTypeParam(methodName, parameters);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -3180,7 +3243,10 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3228,7 +3294,10 @@ public class HashkeyCore extends HashkeyApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "cancelOrders";
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object orderIds = String.join((String)",", (java.util.List<String>)ids);
             Helpers.addElementToObject(request, "ids", orderIds);
@@ -3284,7 +3353,10 @@ public class HashkeyCore extends HashkeyApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchOrder";
             this.checkTypeParam(methodName, parameters);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = null;
             var clientOrderIdparametersVariable = this.handleParamString(parameters, "clientOrderId");
@@ -3363,7 +3435,10 @@ public class HashkeyCore extends HashkeyApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchOpenOrders";
             this.checkTypeParam(methodName, parameters);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3415,7 +3490,10 @@ public class HashkeyCore extends HashkeyApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object methodName = "fetchOpenSpotOrders";
             var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
             methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -3552,7 +3630,10 @@ public class HashkeyCore extends HashkeyApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object methodName = "fetchCanceledAndClosedOrders";
             this.checkTypeParam(methodName, parameters);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -3922,7 +4003,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3956,7 +4040,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timestamp", HashkeyCore.this.milliseconds() );
@@ -4032,7 +4119,10 @@ public class HashkeyCore extends HashkeyApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
@@ -4106,7 +4196,10 @@ public class HashkeyCore extends HashkeyApi
                     throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is supported for a symbol argument with one single market symbol only")) ;
                 }
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             return (this.fetchPositionsForSymbol(Helpers.GetValue(symbols, 0), this.extend(new java.util.HashMap<String, Object>() {{
                 put( "methodName", "fetchPositions" );
             }}, parameters))).join();
@@ -4131,7 +4224,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object methodName = "fetchPosition";
             var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
@@ -4224,7 +4320,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4280,7 +4379,10 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "leverage", leverage );
             }};
@@ -4320,7 +4422,10 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             marginMode = ((String)marginMode).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "CROSSED")))
             {
@@ -4395,7 +4500,10 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object type = type3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -4483,7 +4591,10 @@ public class HashkeyCore extends HashkeyApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
             // response is the same as in fetchMarkets()
             Object data = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -4613,7 +4724,10 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object methodName = "fetchTradingFee";
             Object response = null;
@@ -4649,7 +4763,10 @@ final Object finalI = i;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privateGetApiV1AccountVipInfo(parameters)).join();
             //
             //     {
@@ -4753,7 +4870,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
                 body = this.json(this.safeList(parameters, "orders"));
-                signature = this.hmac(this.encode(this.customUrlencode(additionalParams)), this.encode(this.secret), sha256());
+                signature = this.hmac(this.encode(((String)this.customUrlencode(additionalParams))), this.encode(((String)this.secret)), sha256());
                 final Object finalSignature = signature;
                 query = this.customUrlencode(this.extend(additionalParams, new java.util.HashMap<String, Object>() {{
                     put( "signature", finalSignature );
@@ -4762,7 +4879,7 @@ final Object finalI = i;
             } else
             {
                 Object totalParams = this.extend(additionalParams, parameters);
-                signature = this.hmac(this.encode(this.customUrlencode(totalParams)), this.encode(this.secret), sha256());
+                signature = this.hmac(this.encode(((String)this.customUrlencode(totalParams))), this.encode(((String)this.secret)), sha256());
                 Helpers.addElementToObject(totalParams, "signature", signature);
                 query = this.customUrlencode(totalParams);
                 if (Helpers.isTrue(Helpers.isEqual(method, "GET")))

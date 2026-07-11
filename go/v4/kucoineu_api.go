@@ -1263,6 +1263,14 @@ func (this *KucoineuCore) UtaGetMarketBorrowableCurrency(args ...any) <-chan any
 	return this.callEndpointAsync("utaGetMarketBorrowableCurrency", args...)
 }
 
+func (this *KucoineuCore) UtaGetUserMyIp(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetUserMyIp", args...)
+}
+
+func (this *KucoineuCore) UtaGetMarketFiatPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("utaGetMarketFiatPrice", args...)
+}
+
 func (this *KucoineuCore) UtaPrivateGetMarketOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("utaPrivateGetMarketOrderbook", args...)
 }

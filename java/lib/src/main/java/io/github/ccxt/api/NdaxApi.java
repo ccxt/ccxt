@@ -34,6 +34,11 @@ public class NdaxApi extends Exchange
         return this.callAsync ("publicGetAuthenticateUser", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetEnableXP2FA (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetEnableXP2FA", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetGetL2Snapshot (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetL2Snapshot", optionalArgs);
@@ -79,9 +84,34 @@ public class NdaxApi extends Exchange
         return this.callAsync ("publicGetGetInstruments", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  publicGetGetEarliestTickTime (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetEarliestTickTime", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  publicGetPing (Object... optionalArgs)
     {
         return this.callAsync ("publicGetPing", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetAssets", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetOrderbook", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTicker", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetSummary", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetTrades (Object... optionalArgs)
@@ -92,6 +122,11 @@ public class NdaxApi extends Exchange
     public java.util.concurrent.CompletableFuture<Object>  publicGetGetLastTrades (Object... optionalArgs)
     {
         return this.callAsync ("publicGetGetLastTrades", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  publicGetConfirmWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetConfirmWithdraw", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  publicGetSubscribeLevel1 (Object... optionalArgs)
@@ -349,14 +384,34 @@ public class NdaxApi extends Exchange
         return this.callAsync ("privateGetGetWithdrawTicket", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetGetWithdrawTicketAttachment (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetWithdrawTicketAttachment", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privateGetGetWithdrawTickets (Object... optionalArgs)
     {
         return this.callAsync ("privateGetGetWithdrawTickets", optionalArgs);
     }
 
+    public java.util.concurrent.CompletableFuture<Object>  privateGetGetDepositTicketAttachment (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetGetDepositTicketAttachment", optionalArgs);
+    }
+
     public java.util.concurrent.CompletableFuture<Object>  privatePostAddUserAffiliateTag (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAddUserAffiliateTag", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostAddDepositTicketAttachment (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAddDepositTicketAttachment", optionalArgs);
+    }
+
+    public java.util.concurrent.CompletableFuture<Object>  privatePostAddWithdrawTicketAttachment (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAddWithdrawTicketAttachment", optionalArgs);
     }
 
     public java.util.concurrent.CompletableFuture<Object>  privatePostCancelUserReport (Object... optionalArgs)

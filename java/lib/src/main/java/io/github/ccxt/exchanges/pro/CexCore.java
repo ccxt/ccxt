@@ -164,7 +164,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")) ;
             }
             Helpers.addElementToObject(Helpers.GetValue(this.options, "watchTrades"), "symbol", symbol);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -305,7 +308,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -348,7 +354,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = "tickers";
@@ -389,7 +398,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = this.requestId();
@@ -519,7 +531,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = this.requestId();
@@ -556,7 +571,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object market = this.market(symbol);
@@ -605,7 +623,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchMyTrades() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object market = this.market(symbol);
@@ -1094,7 +1115,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
@@ -1243,7 +1267,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ohlcv:", symbol);
@@ -1392,7 +1419,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1439,7 +1469,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrdersWs requires a symbol.")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -1483,7 +1516,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrderWs requires a price argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -1536,7 +1572,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.market(symbol);
             final Object finalAmount = amount;
@@ -1578,7 +1617,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1622,7 +1664,10 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 throw new BadRequest((String)Helpers.add(this.id, " cancelOrderWs does not allow filtering by symbol")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object messageHash = this.requestId();
             Object data = this.extend(new java.util.HashMap<String, Object>() {{

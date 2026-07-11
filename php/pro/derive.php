@@ -88,7 +88,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             if ($limit === null) {
                 $limit = 10;
             }
@@ -159,7 +161,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'ticker.' . $market['id'] . '.100';
             $request = array(
@@ -266,7 +270,9 @@ class derive extends \ccxt\async\derive {
              * @param {int} [$params->limit] orderbook $limit, default is null
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $limit = $this->safe_integer($params, 'limit');
             if ($limit === null) {
                 $limit = 10;
@@ -297,7 +303,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {any} status of the unwatch $request
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'trades.' . $market['id'];
             $messageHah = 'unwatch' . $topic;
@@ -402,7 +410,9 @@ class derive extends \ccxt\async\derive {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $market = $this->market($symbol);
             $topic = 'trades.' . $market['id'];
             $request = array(
@@ -513,7 +523,9 @@ class derive extends \ccxt\async\derive {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handleDeriveSubaccountId('watchOrders', $params);
             $topic = $this->number_to_string($subaccountId) . '.orders';
@@ -637,7 +649,9 @@ class derive extends \ccxt\async\derive {
              * @param {string} [$params->subaccount_id] *required* the subaccount id
              * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
              */
-            Async\await($this->load_markets());
+            if ($this->markets === null) {
+                Async\await($this->load_markets());
+            }
             $subaccountId = null;
             list($subaccountId, $params) = $this->handleDeriveSubaccountId('watchMyTrades', $params);
             $topic = $this->number_to_string($subaccountId) . '.trades';

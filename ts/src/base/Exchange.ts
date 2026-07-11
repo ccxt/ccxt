@@ -52,11 +52,11 @@ import ethers from '../static_dependencies/ethers/index.js';
 import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
 import * as Starknet from '../static_dependencies/starknet/index.js';
-import { exportMnemonicAndPrivateKey, deriveHDKeyFromMnemonic } from '../static_dependencies/dydx-v4-client/onboarding.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
 const {
     isNode,
+    isBun,
     selfIsDefined,
     deepExtend,
     extend,
@@ -173,6 +173,10 @@ let TxBody = undefined;
 let TxRaw = undefined;
 let SignDoc = undefined;
 let SignMode = undefined;
+// onJsonResponse regex, hoisted to module scope (shared safely: String.replace resets
+// lastIndex on the global regex) - profiled neutral vs a function-local literal
+// (<2%, within noise, V8 caches the compiled literal anyway), kept hoisted for tidiness
+const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
 
 // -----------------------------------------------------------------------------
 /**
@@ -230,13 +234,12 @@ export default class Exchange {
     MAX_VALUE: number = Number.MAX_VALUE;
     //
     agent: any = undefined;  // maintained for backwards compatibility
-    nodeHttpModuleLoaded: boolean = false;
     httpAgent: any = undefined;
     httpsAgent: any = undefined;
 
     minFundingAddressLength: number = 1;  // used in checkAddress
     substituteCommonCurrencyCodes: boolean = true;  // reserved
-    quoteJsonNumbers: boolean = true;  // treat numbers in json as quoted precise strings
+    quoteJsonNumbers: boolean = true;  // quote json numbers as precise strings when a response carries precision-risky (16+ digit or exponent) numbers
     // eslint-disable-next-line no-unused-vars
     number: (numberString: string) => number = Number;  // or String (a pointer to a function)
     handleContentTypeApplicationZip: boolean = false;
@@ -248,6 +251,13 @@ export default class Exchange {
     fetchImplementation: any;
     AbortError: any;
     FetchError: any;
+    // native fetch client state (see loadFetchImplementation)
+    fetchImplementationLoading: Promise<any> = undefined;
+    fetchIsNative: boolean = false;
+    undiciModule: any = undefined;
+    zlibModule: any = undefined;  // node:zlib, for transparent response decompression on the undici.request path
+    httpStatusTexts: any = {};  // node:http STATUS_CODES, undici.request carries no reason phrases
+    fetchDispatcher: any = undefined;  // shared keep-alive undici Agent (node only)
 
     validateServerSsl: boolean = true;
     validateClientSsl: boolean = false;
@@ -407,8 +417,9 @@ export default class Exchange {
     httpsProxyAgentModule: any = undefined;
     socksProxyAgentModule: any = undefined;
     socksProxyAgentModuleChecked: boolean = false;
-    proxyDictionaries: Dictionary<any> = {};
-    proxiesModulesLoading!: Promise<any>;
+    proxyDictionaries: Dictionary<any> = {};  // proxyUrl -> undici dispatcher (native fetch path) or node-style agent (legacy fetchImplementation / ws paths), distinguished by the 'dispatch' method
+    proxyDictionariesMaxSize: number = 8;  // FIFO cap - an undici dispatcher entry holds ~23KB of eagerly-allocated pool state, so rotating-proxy setups would otherwise grow the cache without bound; evicted undici dispatchers are closed gracefully, evicted legacy agents are just dropped (they may still back live ws connections)
+    proxiesModulesLoading: Promise<any> = undefined;
     alias: boolean = false;
 
     // WS/PRO options
@@ -538,7 +549,7 @@ export default class Exchange {
         // underlying properties
         this.minFundingAddressLength = 1; // used in checkAddress
         this.substituteCommonCurrencyCodes = true;  // reserved
-        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        this.quoteJsonNumbers = true; // quote json numbers as precise strings when a response carries precision-risky numbers
         this.number = Number; // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false;
         // whether fees should be summed by currency code
@@ -593,14 +604,6 @@ export default class Exchange {
             } else {
                 this[property] = value;
             }
-        }
-        // http client options
-        const agentOptions = {
-            'keepAlive': true,
-        };
-        // ssl options
-        if (!this.validateServerSsl) {
-            agentOptions['rejectUnauthorized'] = false;
         }
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has);
@@ -725,30 +728,24 @@ export default class Exchange {
         // when loading markets, multiple parallel calls are made, so need one promise
         if (this.proxiesModulesLoading === undefined) {
             this.proxiesModulesLoading = (async () => {
-                // we have to handle it with below nested way, because of dynamic
-                // import issues (https://github.com/ccxt/ccxt/pull/20687)
+                // the vendored proxy agents were removed together with the node-fetch transport -
+                // the native fetch paths handle proxies through undici (see getFetchProxyDispatcher),
+                // so the node-style agent modules below back only the legacy paths (user-supplied
+                // fetchImplementation and ws connections) and are optional user-installed packages
                 try {
-                    // todo: possible sync alternatives: https://stackoverflow.com/questions/51069002/convert-import-to-synchronous
-                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/http-proxy-agent/index.js');
-                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ '../static_dependencies/proxies/https-proxy-agent/index.js');
+                    // @ts-ignore
+                    this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
+                    // @ts-ignore
+                    this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
                 } catch (e) {
-                    // if several users are using those frameworks which cause exceptions,
-                    // let them to be able to load modules still, by installing them
-                    try {
-                        // @ts-ignore
-                        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
-                        // @ts-ignore
-                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
-                    } catch (err) {
-                        // TODO: handle error
-                    }
+                    // optional modules, setProxyAgents raises NotSupported with install instructions when they are actually needed
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
                     try {
                         // @ts-ignore
                         this.socksProxyAgentModule = await import (/* webpackIgnore: true */ 'socks-proxy-agent');
                     } catch (e) {
-                        // TODO: handle error
+                        // optional module, setProxyAgents raises NotSupported with install instructions when it is actually needed
                     }
                     this.socksProxyAgentModuleChecked = true;
                 }
@@ -765,18 +762,21 @@ export default class Exchange {
         }
         if (httpProxy) {
             if (this.httpProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' - to use httpProxy with ccxt, at first you need install module "npm i http-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(httpProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[httpProxy] = new this.httpProxyAgentModule.HttpProxyAgent (httpProxy);
+            const cachedHttpAgent = this.proxyDictionaries[httpProxy];
+            if ((cachedHttpAgent === undefined) || (typeof cachedHttpAgent.dispatch === 'function')) {
+                // absent, or the url is occupied by an undici dispatcher from the native fetch path - (re)create the node-style agent
+                this.cacheProxyDictionary (httpProxy, new this.httpProxyAgentModule.HttpProxyAgent (httpProxy));
             }
             chosenAgent = this.proxyDictionaries[httpProxy];
         } else if (httpsProxy) {
             if (this.httpsProxyAgentModule === undefined) {
-                throw new NotSupported (this.id + ' you need to load JS proxy modules with `await instance.loadProxyModules()` method at first to use proxies');
+                throw new NotSupported (this.id + ' - to use httpsProxy with ccxt, at first you need install module "npm i https-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(httpsProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[httpsProxy] = new this.httpsProxyAgentModule.HttpsProxyAgent (httpsProxy);
+            const cachedHttpsAgent = this.proxyDictionaries[httpsProxy];
+            if ((cachedHttpsAgent === undefined) || (typeof cachedHttpsAgent.dispatch === 'function')) {
+                this.cacheProxyDictionary (httpsProxy, new this.httpsProxyAgentModule.HttpsProxyAgent (httpsProxy));
             }
             chosenAgent = this.proxyDictionaries[httpsProxy];
             chosenAgent.keepAlive = true;
@@ -784,8 +784,9 @@ export default class Exchange {
             if (this.socksProxyAgentModule === undefined) {
                 throw new NotSupported (this.id + ' - to use SOCKS proxy with ccxt, at first you need install module "npm i socks-proxy-agent" and then initialize proxies with `await instance.loadProxyModules()` method');
             }
-            if (!(socksProxy in this.proxyDictionaries)) {
-                this.proxyDictionaries[socksProxy] = new this.socksProxyAgentModule.SocksProxyAgent (socksProxy);
+            const cachedSocksAgent = this.proxyDictionaries[socksProxy];
+            if ((cachedSocksAgent === undefined) || (typeof cachedSocksAgent.dispatch === 'function')) {
+                this.cacheProxyDictionary (socksProxy, new this.socksProxyAgentModule.SocksProxyAgent (socksProxy));
             }
             chosenAgent = this.proxyDictionaries[socksProxy];
         }
@@ -874,30 +875,342 @@ export default class Exchange {
         return data;
     }
 
-    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
-        // load node-http(s) modules only on first call
-        if (isNode) {
-            if (!this.nodeHttpModuleLoaded) {
-                this.nodeHttpModuleLoaded = true;
-                const httpsModule = await import (/* webpackIgnore: true */'node:https');
-                this.httpsAgent = new httpsModule.Agent ({ 'keepAlive': true });
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#loadFetchImplementation
+     * @description resolves the fetch implementation once per instance - the platform-native fetch is used everywhere (undici in node, native fetch in bun / browsers / deno), a user-supplied this.fetchImplementation always takes precedence
+     * @returns {Promise<any>} a promise that resolves when the fetch client is ready
+     */
+    async loadFetchImplementation () {
+        // one shared promise, so parallel first-requests initialize the client only once
+        if (this.fetchImplementationLoading === undefined) {
+            this.fetchImplementationLoading = (async () => {
+                if (this.fetchImplementation !== undefined) {
+                    // user-supplied custom implementation - ensure the error classes have sane defaults
+                    if (this.AbortError === undefined) {
+                        this.AbortError = DOMException;
+                    }
+                    if (this.FetchError === undefined) {
+                        this.FetchError = TypeError;
+                    }
+                    return;
+                }
+                this.AbortError = DOMException;
+                this.FetchError = TypeError;
+                // in the browser (and webworkers / deno / bun) default to the platform's
+                // built-in fetch - the undici import below is never even attempted there
+                if (!isNode || isBun) {
+                    if (selfIsDefined ()) {
+                        // fetchImplementation cannot be called on this. in browsers:
+                        // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
+                        // eslint-disable-next-line
+                        this.fetchImplementation = self.fetch;
+                    } else if (typeof fetch === 'function') {
+                        this.fetchImplementation = fetch;
+                    } else {
+                        throw new NotSupported (this.id + ' the built-in "fetch" function is not available in this environment, please use a modern browser, bun, or node.js 18+');
+                    }
+                    this.fetchIsNative = true;
+                    return;
+                }
+                // node: prefer the undici module for tunable pooling and proxy support
+                try {
+                    // undici is the engine behind node's built-in fetch - importing it directly gives us
+                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
+                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
+                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
+                    //
+                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
+                    // unconditionally defers every write on an idle kept-alive socket behind a
+                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
+                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
+                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
+                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    const undiciModule = await import (/* webpackIgnore: true */ 'undici');
+                    this.undiciModule = undiciModule;
+                    this.fetchImplementation = undiciModule.fetch;
+                    // redirects are never followed - exchange rest apis do not redirect legitimately,
+                    // so a redirect response raises NetworkError instead (see undiciRequest, and the
+                    // 'redirect': 'error' request param on the whatwg-fetch paths)
+                    this.fetchDispatcher = new undiciModule.Agent (this.getDispatcherOptions (true));
+                    // node:zlib for transparent gzip/br/deflate response decompression (see undiciBody),
+                    // node:http for the reason phrases that undici.request responses do not carry
+                    this.zlibModule = await import (/* webpackIgnore: true */ 'node:zlib');
+                    const httpModule = await import (/* webpackIgnore: true */ 'node:http');
+                    this.httpStatusTexts = httpModule.STATUS_CODES;
+                    this.fetchIsNative = true;
+                    return;
+                } catch (e) {
+                    // some environments cannot resolve the undici module (custom bundlers, https://github.com/ccxt/ccxt/pull/20687)
+                    // fall through to node's built-in global fetch below (same undici engine, default pooling)
+                }
+                if (typeof fetch === 'function') {
+                    this.fetchImplementation = fetch;
+                    this.fetchIsNative = true;
+                } else {
+                    throw new NotSupported (this.id + ' the built-in "fetch" function is not available in this environment, please use node.js 18+, bun, or a modern browser');
+                }
+            }) ();
+        }
+        return await this.fetchImplementationLoading;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getDispatcherOptions
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly
+     * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
+     * @returns {object} undici dispatcher options
+     */
+    getDispatcherOptions (isPlainAgent = false) {
+        const options = {
+            'keepAliveTimeout': 60 * 1000, // hold idle sockets for 60s (server keep-alive hints still apply)
+            'keepAliveMaxTimeout': 10 * 60 * 1000, // cap server-suggested keep-alive at 10 minutes
+            'connections': 256, // per-origin socket cap, prevents fd exhaustion under bursts
+            'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
+            'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
+        };
+        if (!this.shouldValidateServerSsl ()) {
+            const tlsOptions = { 'rejectUnauthorized': false };
+            if (isPlainAgent) {
+                options['connect'] = tlsOptions;
+            } else {
+                options['requestTls'] = tlsOptions;
             }
         }
+        return options;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#shouldValidateServerSsl
+     * @description whether server certificates should be validated, honoring both this.validateServerSsl and legacy agents constructed with rejectUnauthorized false
+     * @returns {boolean} true when server ssl certificates must be validated
+     */
+    shouldValidateServerSsl () {
+        if (!this.validateServerSsl) {
+            return false;
+        }
+        // backwards compatibility: users disabled tls validation by passing an agent object
+        const legacyAgents = [ this.agent, this.httpsAgent ];
+        for (let i = 0; i < legacyAgents.length; i++) {
+            const legacyAgent = legacyAgents[i];
+            if (legacyAgent && legacyAgent.options && (legacyAgent.options.rejectUnauthorized === false)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#extractProxyFromAgent
+     * @description backwards compatibility helper - http-proxy-agent, https-proxy-agent and socks-proxy-agent instances all carry their target on a `proxy` property (URL object or string), extract it so it can be passed to the native fetch
+     * @param {object} [agent] a legacy proxy-carrying agent object
+     * @returns {string|undefined} the proxy url, or undefined when the agent does not carry one
+     */
+    extractProxyFromAgent (agent) {
+        if (agent !== undefined && agent !== null) {
+            const proxy = agent.proxy;
+            if (proxy !== undefined && proxy !== null) {
+                if (typeof proxy === 'string') {
+                    return proxy;
+                }
+                if (proxy.href !== undefined) {
+                    return proxy.href; // URL instance
+                }
+            }
+        }
+        return undefined;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#cacheProxyDictionary
+     * @description stores a per-proxy-url transport handle (undici dispatcher or legacy node-style agent) in this.proxyDictionaries, evicting the oldest entry beyond proxyDictionariesMaxSize so rotating-proxy setups cannot grow the cache without bound - evicted or replaced undici dispatchers are closed gracefully (in-flight requests finish first), legacy agents are just dropped because live ws connections may still hold them
+     * @param {string} proxyUrl the proxy url the handle serves
+     * @param {any} value an undici dispatcher or a node-style agent
+     * @returns {any} the cached value
+     */
+    cacheProxyDictionary (proxyUrl, value) {
+        const existing = this.proxyDictionaries[proxyUrl];
+        if (existing !== undefined) {
+            // same url switching between the dispatcher and agent families
+            this.releaseProxyDictionaryEntry (existing);
+        } else {
+            const cachedProxyUrls = Object.keys (this.proxyDictionaries);
+            if (cachedProxyUrls.length >= this.proxyDictionariesMaxSize) {
+                const oldestProxyUrl = cachedProxyUrls[0]; // js objects preserve string-key insertion order
+                const oldestEntry = this.proxyDictionaries[oldestProxyUrl];
+                delete this.proxyDictionaries[oldestProxyUrl];
+                this.releaseProxyDictionaryEntry (oldestEntry);
+            }
+        }
+        this.proxyDictionaries[proxyUrl] = value;
+        return value;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#releaseProxyDictionaryEntry
+     * @description closes an undici dispatcher that left this.proxyDictionaries - close () drains in-flight requests before releasing sockets, and any close failure is irrelevant because the dispatcher is already unreferenced; legacy node-style agents are left untouched (never destroyed, matching the long-standing behavior, because live ws connections may still use them)
+     * @param {any} entry the evicted or replaced proxyDictionaries value
+     */
+    releaseProxyDictionaryEntry (entry) {
+        if ((entry !== undefined) && (entry !== null) && (typeof entry.dispatch === 'function') && (typeof entry.close === 'function')) {
+            entry.close ().catch (() => {});
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#getFetchProxyDispatcher
+     * @description returns a cached undici ProxyAgent dispatcher for the given proxy url - undici handles http, https, socks5 and socks schemes natively; dispatchers share this.proxyDictionaries with the legacy node-style agents (entries are distinguished by the 'dispatch' method) and the cache is FIFO-capped at proxyDictionariesMaxSize entries so rotating-proxy setups cannot grow it without bound
+     * @param {string} proxyUrl the proxy url, e.g. http://user:pass@host:port or socks5://host:port
+     * @returns {any} an undici dispatcher
+     */
+    getFetchProxyDispatcher (proxyUrl) {
+        const cached = this.proxyDictionaries[proxyUrl];
+        if ((cached !== undefined) && (typeof cached.dispatch === 'function')) {
+            return cached;
+        }
+        // absent, or the url is occupied by a legacy node-style agent - (re)create the dispatcher
+        const lowercaseProxyUrl = proxyUrl.toLowerCase ();
+        if ((lowercaseProxyUrl.indexOf ('socks4:') === 0) || (lowercaseProxyUrl.indexOf ('socks4a:') === 0)) {
+            throw new NotSupported (this.id + ' - socks4 proxies are not supported by the built-in fetch, please use a socks5:// proxy');
+        }
+        const options = this.getDispatcherOptions (false);
+        options['uri'] = proxyUrl;
+        return this.cacheProxyDictionary (proxyUrl, new this.undiciModule.ProxyAgent (options));
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciRequest
+     * @description dispatches through the low-level undici.request api and adapts the result to the minimal fetch-Response surface that handleRestResponse consumes - profiled ~2x faster end-to-end than undici.fetch (node streams instead of the WHATWG Response/Headers/web-streams machinery)
+     * @param {string} url the request url
+     * @param {object} params fetch-style request params ('method', 'headers', 'body', 'signal', 'dispatcher')
+     * @returns {Promise<object>} an object with 'status', 'statusText', 'headers' (plain object), 'text' and 'arrayBuffer' methods
+     */
+    async undiciRequest (url, params) {
+        const headers = params['headers'];
+        if (!('Accept-Encoding' in headers) && !('accept-encoding' in headers)) {
+            headers['Accept-Encoding'] = 'gzip, deflate, br'; // fetch/node-fetch parity, inflated in undiciBody
+        }
+        const res = await this.undiciModule.request (url, { 'method': params['method'], 'headers': headers, 'body': params['body'], 'signal': params['signal'], 'dispatcher': params['dispatcher'] });
+        // undici.request follows no redirects by default and none are composed onto the
+        // dispatchers - exchange rest apis do not redirect legitimately, so surface a
+        // redirect response as a NetworkError instead of following it or handing its
+        // (usually empty) body to handleRestResponse
+        const statusCode = res.statusCode;
+        const location = res.headers['location'];
+        if ((statusCode >= 300) && (statusCode < 400) && (location !== undefined)) {
+            try {
+                await res.body.dump (); // drain the body so the socket returns to the keep-alive pool
+            } catch (e) {
+                // a drain failure only costs the connection, the throw below is what matters
+            }
+            throw new NetworkError (this.id + ' ' + params['method'] + ' ' + url + ' redirect to ' + location + ' was not followed (HTTP ' + statusCode + ', following redirects is disabled)');
+        }
+        return {
+            'status': res.statusCode,
+            'statusText': this.httpStatusTexts[res.statusCode] || '',
+            'headers': res.headers,
+            'text': () => this.undiciBody (res, false),
+            'arrayBuffer': () => this.undiciBody (res, true),
+        };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#undiciBody
+     * @description reads an undici.request response body, transparently decompressing gzip/br/deflate content-encodings via node:zlib (undici.request performs no decompression, unlike fetch)
+     * @param {object} res an undici.request response
+     * @param {boolean} [binary] true to return a Buffer, false to return a utf8 string
+     * @returns {Promise<any>} the response body
+     */
+    async undiciBody (res, binary = false) {
+        let contentEncoding = res.headers['content-encoding'];
+        if ((res.statusCode === 204) || (res.statusCode === 304)) {
+            contentEncoding = undefined; // bodyless statuses, nothing to inflate
+        }
+        let decompressor = undefined;
+        if ((contentEncoding === 'gzip') || (contentEncoding === 'x-gzip')) {
+            decompressor = this.zlibModule.createGunzip ();
+        } else if (contentEncoding === 'br') {
+            decompressor = this.zlibModule.createBrotliDecompress ();
+        } else if (contentEncoding === 'deflate') {
+            decompressor = this.zlibModule.createInflate ();
+        }
+        // ponytail: chained content-encodings ('gzip, br') are not handled - no exchange sends them,
+        // and neither did the previous node-fetch implementation
+        if (decompressor === undefined) {
+            return binary ? await res.body.arrayBuffer () : await res.body.text ();
+        }
+        const chunks = [];
+        res.body.pipe (decompressor);
+        for await (const chunk of decompressor) {
+            chunks.push (chunk);
+        }
+        const buffer = Buffer.concat (chunks);
+        return binary ? buffer : buffer.toString ('utf8');
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name Exchange#setFetchProxyOptions
+     * @description attaches per-platform proxy transport options to the native fetch request params - undici dispatcher on node, the built-in `proxy` option on bun; the shared keep-alive dispatcher is attached when no proxy applies
+     * @param {object} params the fetch RequestInit params, mutated in place
+     * @param {string} [httpProxy] unified httpProxy setting
+     * @param {string} [httpsProxy] unified httpsProxy setting
+     * @param {string} [socksProxy] unified socksProxy setting
+     */
+    setFetchProxyOptions (params, httpProxy, httpsProxy, socksProxy) {
+        // unified proxy settings take precedence over legacy proxy-carrying agent objects
+        let selectedProxy = httpProxy || httpsProxy || socksProxy;
+        if (!selectedProxy) {
+            selectedProxy = this.extractProxyFromAgent (this.agent) || this.extractProxyFromAgent (this.httpsAgent) || this.extractProxyFromAgent (this.httpAgent);
+        }
+        if (!selectedProxy) {
+            if (this.fetchDispatcher !== undefined) {
+                params['dispatcher'] = this.fetchDispatcher;
+            }
+            return;
+        }
+        if (!isNode) {
+            throw new NotSupported (this.id + ' - proxies in browser-side projects are not supported. You have several choices: [A] Use `exchange.proxyUrl` property to redirect requests through local/remote cors-proxy server (find sample file named "sample-local-proxy-server-with-cors" in https://github.com/ccxt/ccxt/tree/master/examples/ folder, which can be used for REST requests only) [B] override `exchange.fetch` && `exchange.watch` methods to send requests through your custom proxy');
+        }
+        if (isBun) {
+            // bun's native fetch has first-class proxy support
+            params['proxy'] = selectedProxy;
+            return;
+        }
+        if (this.undiciModule === undefined) {
+            throw new NotSupported (this.id + ' - proxy support with the built-in fetch requires the undici module, please install it with "npm i undici"');
+        }
+        params['dispatcher'] = this.getFetchProxyDispatcher (selectedProxy);
+    }
+
+    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
         // ##### PROXY & HEADERS #####
         headers = this.extend (this.headers, headers);
         // proxy-url
         const proxyUrl = this.checkProxyUrlSettings (url, method, headers, body);
-        let httpProxyAgent = false;
         if (proxyUrl !== undefined) {
             // part only for node-js
             if (isNode) {
                 // in node-js we need to set header to *
                 headers = this.extend ({ 'Origin': this.origin }, headers);
-                // only for http proxy
-                if (proxyUrl.substring (0, 5) === 'http:') {
-                    await this.loadHttpProxyAgent ();
-                    httpProxyAgent = this.httpAgent;
-                }
             }
             url = proxyUrl + this.urlEncoderForProxyUrl (url);
         }
@@ -909,7 +1222,6 @@ export default class Exchange {
             // this is needed in JS, independently whether proxy properties were set or not, we have to load them because of necessity in WS, which would happen beyond 'fetch' method (WS/etc)
             await this.loadProxyModules ();
         }
-        const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
         // user-agent
         const userAgent = (this.userAgent !== undefined) ? this.userAgent : this.user_agent;
         if (userAgent && isNode) {
@@ -949,78 +1261,103 @@ export default class Exchange {
             this.log ('fetch Request:\n', this.id, method, url, '\nRequestHeaders:\n', headers, '\nRequestBody:\n', body, '\n');
         }
         // end of proxies & headers
-        if (this.fetchImplementation === undefined) {
-            if (isNode) {
-                if (this.agent === undefined) {
-                    this.agent = this.httpsAgent;
-                }
-                try {
-                    const nodeFetchModule = await import (/* webpackIgnore: true */'../static_dependencies/node-fetch/index.js');
-                    this.AbortError = nodeFetchModule.AbortError;
-                    this.fetchImplementation = nodeFetchModule.default;
-                    this.FetchError = nodeFetchModule.FetchError;
-                } catch (e) {
-                    // some users having issues with dynamic imports (https://github.com/ccxt/ccxt/pull/20687)
-                    // so let them to fallback to node's native fetch
-                    if (typeof fetch === 'function') {
-                        this.fetchImplementation = fetch;
-                        // as it's browser-compatible implementation ( https://nodejs.org/dist/latest-v20.x/docs/api/globals.html#fetch )
-                        // it throws same error types
-                        this.AbortError = DOMException;
-                        this.FetchError = TypeError;
-                    } else {
-                        throw new Error ('Seems, "fetch" function is not available in your node-js version, please use latest node-js version');
-                    }
-                }
-            } else {
-                // eslint-disable-next-line
-                this.fetchImplementation = (selfIsDefined ()) ? self.fetch : fetch;
-                this.AbortError = DOMException;
-                this.FetchError = TypeError;
-            }
+        if (this.fetchImplementationLoading === undefined || this.fetchImplementation === undefined) {
+            await this.loadFetchImplementation ();
         }
-        // fetchImplementation cannot be called on this. in browsers:
-        // TypeError Failed to execute 'fetch' on 'Window': Illegal invocation
         const fetchImplementation = this.fetchImplementation;
-        const params = { method, headers, body, 'timeout': this.timeout };
-        if (this.agent) {
-            params['agent'] = this.agent;
-        }
-        // override agent, if needed
-        if (httpProxyAgent) {
-            // if proxyUrl is being used, then specifically in nodejs, we need http module, not https
-            params['agent'] = httpProxyAgent;
-        } else if (chosenAgent) {
-            // if http(s)Proxy is being used
-            params['agent'] = chosenAgent;
+        const params = { method, headers, body };
+        if (this.fetchIsNative) {
+            // never follow redirects: the whatwg-fetch paths (browser / bun / global-fetch
+            // fallback) reject with TypeError on a redirect response, which the catch below
+            // surfaces as NetworkError; the undici.request path raises in undiciRequest instead
+            params['redirect'] = 'error';
+            this.setFetchProxyOptions (params, httpProxy, httpsProxy, socksProxy);
+        } else {
+            // backwards compatibility for user-supplied fetchImplementation functions
+            // that expect node-style 'agent' and 'timeout' request options
+            params['timeout'] = this.timeout;
+            const chosenAgent = this.setProxyAgents (httpProxy, httpsProxy, socksProxy);
+            const legacyAgent = chosenAgent || this.agent || this.httpsAgent;
+            if (legacyAgent) {
+                params['agent'] = legacyAgent;
+            }
         }
         const controller = new AbortController ();
         params['signal'] = controller.signal;
         const timeout = setTimeout (() => {
             controller.abort ();
         }, this.timeout);
+        let response = undefined;
         try {
-            const response = await fetchImplementation (url, params);
-            clearTimeout (timeout);
-            return this.handleRestResponse (response, url, method, headers, body);
-        } catch (e) {
-            if (e instanceof this.AbortError) {
+            if (this.fetchIsNative && (this.undiciModule !== undefined)) {
+                response = await this.undiciRequest (url, params);
+            } else {
+                response = await fetchImplementation (url, params);
+            }
+        } catch (e: any) {
+            if ((e instanceof this.AbortError) || ((e !== undefined) && ((e.name === 'AbortError') || (e.name === 'TimeoutError')))) {
                 throw new RequestTimeout (this.id + ' ' + method + ' ' + url + ' request timed out (' + this.timeout + ' ms)');
-            } else if (e instanceof this.FetchError) {
-                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed');
+            }
+            // undici wraps the underlying transport error into TypeError('fetch failed') with a cause
+            const causeMessage = ((e !== undefined) && (e.cause !== undefined) && (e.cause !== null) && (e.cause.message !== undefined)) ? (': ' + e.cause.message) : '';
+            if ((e instanceof this.FetchError) || (e instanceof TypeError)) {
+                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed' + causeMessage);
+            }
+            // undici.request and other runtimes signal connection failures with error classes carrying a string code
+            const networkErrorCodes = [ 'ConnectionRefused', 'ConnectionClosed', 'ConnectionReset', 'DNSError', 'FailedToOpenSocket', 'ECONNREFUSED', 'ECONNRESET', 'ENOTFOUND', 'ETIMEDOUT', 'EPIPE', 'EAI_AGAIN', 'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_SOCKET', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT' ];
+            if ((e !== undefined) && (typeof e.code === 'string') && (networkErrorCodes.indexOf (e.code) !== -1)) {
+                throw new NetworkError (this.id + ' ' + method + ' ' + url + ' fetch failed: ' + e.message);
             }
             throw e;
+        } finally {
+            clearTimeout (timeout);
         }
+        return await this.handleRestResponse (response, url, method, headers, body);
     }
 
     jsonStringifyWithNull (obj) {
         return JSON.stringify (obj, (_, v) => (v === undefined ? null : v));
     }
 
+    hasUnsafeInteger (value) {
+        if (typeof value === 'number') {
+            return (value > Number.MAX_SAFE_INTEGER) || (value < -Number.MAX_SAFE_INTEGER);
+        }
+        if (value !== null && typeof value === 'object') {
+            if (Array.isArray (value)) {
+                for (let i = 0; i < value.length; i++) {
+                    if (this.hasUnsafeInteger (value[i])) {
+                        return true;
+                    }
+                }
+            } else {
+                for (const key in value) {
+                    if (this.hasUnsafeInteger (value[key])) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
-                return JSON.parse (this.onJsonResponse (jsonString));
+                if (!this.quoteJsonNumbers) {
+                    return JSON.parse (jsonString);
+                }
+                // fast path: a plain parse followed by a scan for integers beyond
+                // Number.MAX_SAFE_INTEGER (2^53), the only values whose original
+                // digits a plain parse can lose in practice (exchanges cap decimal
+                // precision well below 16 significant digits) — any lossy integer
+                // token rounds to a double >= 2^53, so it is always detected here
+                const parsed = JSON.parse (jsonString);
+                if (this.hasUnsafeInteger (parsed)) {
+                    // slow path: requote all numbers as strings and reparse
+                    return JSON.parse (this.onJsonResponse (jsonString));
+                }
+                return parsed;
             }
         } catch (e) {
             // SyntaxError
@@ -1030,17 +1367,35 @@ export default class Exchange {
 
     getResponseHeaders (response) {
         const result = {};
-        response.headers.forEach ((value, key) => {
-            key = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
-            result[key] = value;
-        });
+        const headers = response.headers;
+        if (typeof headers.forEach === 'function') {
+            // fetch Headers object
+            headers.forEach ((value, key) => {
+                key = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
+                result[key] = value;
+            });
+            return result;
+        }
+        // undici.request responses carry a plain object (repeated headers arrive as arrays)
+        const keys = Object.keys (headers);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            let value = headers[key];
+            if (Array.isArray (value)) {
+                value = value.join (', ');
+            }
+            const capitalizedKey = key.split ('-').map ((word) => this.capitalize (word)).join ('-');
+            result[capitalizedKey] = value;
+        }
         return result;
     }
 
     handleRestResponse (response, url, method = 'GET', requestHeaders = undefined, requestBody = undefined) {
         const responseHeaders = this.getResponseHeaders (response);
         if (this.handleContentTypeApplicationZip && (responseHeaders['Content-Type'] === 'application/zip')) {
-            const responseBuffer = response.buffer ();
+            // native fetch responses have no buffer() method, polyfill it from arrayBuffer()
+            // Buffer on node/bun for backwards compatibility, Uint8Array in browsers
+            const responseBuffer = response.arrayBuffer ().then ((arrayBuffer) => ((typeof Buffer !== 'undefined') ? Buffer.from (arrayBuffer) : new Uint8Array (arrayBuffer)));
             if (this.enableLastResponseHeaders) {
                 this.last_response_headers = responseHeaders;
             }
@@ -1084,7 +1439,18 @@ export default class Exchange {
     }
 
     onJsonResponse (responseBody) {
-        return this.quoteJsonNumbers ? responseBody.replace (/":([+.0-9eE-]+)([,}])/g, '":"$1"$2') : responseBody;
+        // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
+        // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
+        //
+        // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
+        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
+        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
+        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
+        //
+        // no quoteJsonNumbers guard needed here: parseJson returns early when
+        // quoteJsonNumbers is false, so this is only reached after an integer
+        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        return responseBody.replace (QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
 
     async loadMarketsHelper (reload = false, params = {}) {
@@ -1779,15 +2145,13 @@ export default class Exchange {
         return Long.fromString (numStr);
     }
 
-    retrieveDydxCredentials (entropy: string): object {
-        let credentials = undefined;
-        if (entropy.indexOf (' ') > 0) {
-            credentials = deriveHDKeyFromMnemonic (entropy);
-            credentials['mnemonic'] = entropy;
-            return credentials;
-        }
-        credentials = exportMnemonicAndPrivateKey (this.base16ToBinary (entropy));
-        return credentials;
+    retrieveDydxCredentials (privateKey: string): object {
+        const privateKeyBytes = this.base16ToBinary (this.remove0xPrefix (privateKey));
+        const publicKeyBytes = secp256k1.getPublicKey (privateKeyBytes, true);
+        return {
+            'privateKey': privateKeyBytes,
+            'publicKey': publicKeyBytes,
+        };
     }
 
     encodeDydxTxForSimulation (

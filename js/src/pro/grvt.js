@@ -136,7 +136,9 @@ export default class grvt extends grvtRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     async watchTicker(symbol, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         const tickers = await this.watchTickers([symbol], this.extend(params, { 'callerMethodName': 'watchTicker' }));
         return tickers[symbol];
@@ -158,7 +160,9 @@ export default class grvt extends grvtRest {
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'v1.ticker.s');
         let interval = undefined;
         [interval, params] = this.handleOptionAndParams(params, 'watchTickers', 'interval', 500);
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
@@ -299,7 +303,9 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbols = this.marketSymbols(symbols);
         const rawHashes = [];
         const messageHashes = [];
@@ -378,7 +384,9 @@ export default class grvt extends grvtRest {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols([[symbol, timeframe]], since, limit, params);
@@ -396,7 +404,9 @@ export default class grvt extends grvtRest {
      * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     async watchOHLCVForSymbols(symbolsAndTimeframes, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
@@ -478,7 +488,9 @@ export default class grvt extends grvtRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBook(symbol, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         symbol = this.symbol(symbol);
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
@@ -494,7 +506,9 @@ export default class grvt extends grvtRest {
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'channel', 'v1.book.d');
         const isSnapshot = channel === 'v1.book.s';
@@ -630,7 +644,9 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const subAccountId = this.getSubAccountId(params);
         const messageHashes = [];
@@ -716,7 +732,9 @@ export default class grvt extends grvtRest {
      */
     async watchPositions(symbols = undefined, since = undefined, limit = undefined, params = {}) {
         await this.authenticate();
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const subAccountId = this.getSubAccountId(params);
         symbols = this.marketSymbols(symbols);
         const rawHashes = [];
@@ -800,7 +818,9 @@ export default class grvt extends grvtRest {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets();
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         await this.authenticate();
         const subAccountId = this.getSubAccountId(params);
         const messageHashes = [];

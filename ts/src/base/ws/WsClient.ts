@@ -5,13 +5,17 @@ import Client from './Client.js';
 import {
     sleep,
     isNode,
+    isBun,
     milliseconds,
     selfIsDefined,
 } from '../../base/functions.js';
 import { Future } from './Future.js';
 
+// bun's 'ws' polyfill does not implement the 'upgrade' event (https://github.com/oven-sh/bun/issues/5951)
+// which makes the HTTP 101 Switching Protocols response fire the error handler,
+// so under bun we use its native WebSocket implementation instead of the 'ws' package
 // eslint-disable-next-line no-restricted-globals
-const WebSocketPlatform = isNode || !selfIsDefined () ? WebSocket : self.WebSocket;
+const WebSocketPlatform = isBun ? globalThis.WebSocket : (isNode || !selfIsDefined () ? WebSocket : self.WebSocket);
 
 export default class WsClient extends Client {
 
@@ -47,7 +51,15 @@ export default class WsClient extends Client {
             connectionHeaders['Cookie'] = cookieStr;
             this.options['headers'] = Object.assign (this.options['headers'] || {}, connectionHeaders);
         }
-        if (isNode) {
+        if (isBun) {
+            // bun's native WebSocket supports non-standard options like 'headers'
+            const bunOptions: any = { 'protocols': this.protocols };
+            if (this.options && this.options['headers']) {
+                bunOptions['headers'] = this.options['headers'];
+            }
+            this.connection = new WebSocketPlatform (this.url, bunOptions);
+            this.connection.binaryType = 'nodebuffer'; // bun extension, keeps binary messages as Buffer like the 'ws' package
+        } else if (isNode) {
             this.options = this.options || {};
             this.connection = new WebSocketPlatform (this.url, this.protocols, this.options);
             // message delivery goes through a duplex stream wrapper instead of
@@ -71,14 +83,14 @@ export default class WsClient extends Client {
         }
 
         this.connection.onopen = this.onConnectionOpen.bind (this)
-        if (!isNode) {
-            // browsers deliver through native WebSocket events; on node the
-            // duplex deliverLoop above owns message delivery
+        if (!isNode || isBun) {
+            // browsers and bun deliver through native WebSocket events; on
+            // node the duplex deliverLoop above owns message delivery
             this.connection.onmessage = this.onMessage.bind (this)
         }
         this.connection.onerror = this.onError.bind (this)
         this.connection.onclose = this.onClose.bind (this)
-        if (isNode) {
+        if (isNode && !isBun) {
             this.connection
                 .on ('ping', this.onPing.bind (this))
                 .on ('pong', this.onPong.bind (this))
@@ -89,7 +101,9 @@ export default class WsClient extends Client {
     }
 
     onConnectionOpen () {
-        if (isNode) {
+        if (isNode && !isBun) {
+            // under bun there is no duplex - messages arrive through the
+            // native WebSocket onmessage handler instead
             this.deliverLoop ();
         }
         this.onOpen ();
