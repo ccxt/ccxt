@@ -1,0 +1,50 @@
+Sure! Here’s a simple *MetaTrader 5 (MT5)* Expert Advisor using *RSI + Stochastic* for buy/sell signals on the *M1 timeframe* — good for scalping.
+
+---
+
+✅ *Strategy Rules:*
+- *Buy* when:
+  - RSI < 30  
+  - Stochastic K% < 20 and crosses up  
+- *Sell* when:
+  - RSI > 70  
+  - Stochastic K% > 80 and crosses down  
+- *TP*: 10 points  
+- *SL*: 10 points  
+- *One trade at a time*
+
+---
+
+..
+
+```mql5
+//+------------------------------------------------------------------+
+//| RSI + Stochastic EA for MT5                                     |
+//+------------------------------------------------------------------+
+#property strict
+
+input double LotSize = 0.01;
+input int StopLoss = 10;
+input int TakeProfit = 10;
+input int RSI_Period = 14;
+input int RSI_Buy_Level = 30;
+input int RSI_Sell_Level = 70;
+input int Stoch_K = 5;
+input int Stoch_D = 3;
+input int Stoch_Slow = 3;
+
+int rsiHandle, stochHandle;
+double rsi[], k[], d[];
+
+int OnInit()
+{
+    rsiHandle = iRSI(_Symbol, _Period, RSI_Period, PRICE_CLOSE);
+    stochHandle = iStochastic(_Symbol, _Period, Stoch_K, Stoch_D, Stoch_Slow, MODE_SMA, STO_LOWHIGH);
+    return INIT_SUCCEEDED;
+}
+
+void OnTick()
+{
+    if (PositionsTotal() > 0) return;  // Only one position at a time
+
+    CopyBuffer(rsiHandle, 0, 0, 2, rsi);
