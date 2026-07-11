@@ -211,11 +211,11 @@ public final class SafeMethods {
 
     public static Object SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
-        Object result = SafeValueN(obj, keys, defaultValue);
-        if (result == null) return (defaultValue instanceof String s) ? s : null;
+        Object result = SafeValueN(obj, keys);
+        if (result == null) return defaultValue;
 
         if (result instanceof List<?> || result instanceof Map<?, ?>) {
-            return (defaultValue instanceof String s) ? s : null;
+            return defaultValue;
         }
 
         String ret;
@@ -229,7 +229,7 @@ public final class SafeMethods {
             ret = String.valueOf(result);
         }
         if (ret != null && !ret.isEmpty()) return ret;
-        return (defaultValue instanceof String s) ? s : null;
+        return defaultValue;
     }
 
     // ----------------------------
@@ -358,39 +358,33 @@ public final class SafeMethods {
     // ----------------------------
 
     public static Object safeStringUpper(Object obj, Object key, Object... defaultValues) {
-        Object defaultValue = opt(defaultValues);
-        Object result = toStringOrNull(safeString(obj, key, defaultValue));
-        return (result == null)? defaultValue : ((String)result).toUpperCase();
+        Object result = toStringOrNull(safeString(obj, key));
+        return (result == null)? opt(defaultValues) : ((String)result).toUpperCase();
     }
 
     public static Object safeStringUpper2(Object obj, Object key1, Object key2, Object... defaultValues) {
-        Object defaultValue = opt(defaultValues);
-        Object result = safeString2(obj, key1, key2, defaultValue);
-        return (result == null)? defaultValue : ((String)result).toUpperCase();
+        Object result = safeString2(obj, key1, key2);
+        return (result == null)? opt(defaultValues) : ((String)result).toUpperCase();
     }
 
     public static Object safeStringUpperN(Object obj, Object keys, Object... defaultValues) {
-        Object defaultValue = opt(defaultValues);
-        Object result = safeStringN(obj, keys, defaultValue);
-        return (result == null)? defaultValue : ((String)result).toUpperCase();
+        Object result = safeStringN(obj, keys);
+        return (result == null)? opt(defaultValues) : ((String)result).toUpperCase();
     }
 
     public static Object safeStringLower(Object obj, Object key, Object... defaultValues) {
-        Object defaultValue = opt(defaultValues);
-        Object result = safeString(obj, key, defaultValue);
-        return (result == null)? defaultValue : ((String)result).toLowerCase();
+        Object result = safeString(obj, key);
+        return (result == null)? opt(defaultValues) : ((String)result).toLowerCase();
     }
 
     public static Object safeStringLower2(Object obj, Object key1, Object key2, Object... defaultValues) {
-        Object defaultValue = opt(defaultValues);
-        Object result = safeString2(obj, key1, key2, defaultValue);
-        return (result == null)? defaultValue : ((String)result).toLowerCase();
+        Object result = safeString2(obj, key1, key2);
+        return (result == null)? opt(defaultValues) : ((String)result).toLowerCase();
     }
 
     public static Object safeStringLowerN(Object obj, Object keys, Object... defaultValues) {
-        Object defaultValue = opt(defaultValues);
-        Object result = safeStringN(obj, keys, defaultValue);
-        return (result == null) ? defaultValue : ((String)result).toLowerCase();
+        Object result = safeStringN(obj, keys);
+        return (result == null) ? opt(defaultValues) : ((String)result).toLowerCase();
     }
 
     // ----------------------------

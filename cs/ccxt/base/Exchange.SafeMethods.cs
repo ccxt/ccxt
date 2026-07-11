@@ -146,41 +146,37 @@ public partial class Exchange
 
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
-        var result = safeString(obj, key, defaultValue);
-        if (ReferenceEquals(result, defaultValue))
-        {
-            return defaultValue as string;
-        }
-        return toStringOrNull(result)?.ToUpper();
+        var result = safeString(obj, key);
+        return result != null ? toStringOrNull(result)?.ToUpper() : defaultValue;
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, key1, key2, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToUpper();
+        var result = safeString2(obj, key1, key2);
+        return result != null ? toStringOrNull(result)?.ToUpper() : defaultValue;
     }
 
     public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
-        var result = safeStringN(obj, keys, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToUpper();
+        var result = safeStringN(obj, keys);
+        return result != null ? toStringOrNull(result)?.ToUpper() : defaultValue;
     }
 
     public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
-        var result = safeString(obj, key, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToLower();
+        var result = safeString(obj, key);
+        return result != null ? toStringOrNull(result)?.ToLower() : defaultValue;
     }
 
     public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
-        var result = safeString2(obj, key1, key2, defaultValue);
-        return result == null ? defaultValue as string : ((string)result).ToLower();
+        var result = safeString2(obj, key1, key2);
+        return result != null ? toStringOrNull(result)?.ToLower() : defaultValue;
     }
 
     public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)
     {
-        var result = safeStringN(obj, keys, defaultValue);
+        var result = safeStringN(obj, keys);
         return result == null ? defaultValue : ((string)result).ToLower();
     }
 
