@@ -312,7 +312,7 @@ public partial class Exchange
         {
             returnResult = Convert.ToString(result, CultureInfo.InvariantCulture);
         }
-        else if (result is string || (result.GetType().IsPrimitive || !(result is bool)))
+        else if (result is string || (result.GetType().IsPrimitive && !(result is bool)))
         {
             returnResult = result.ToString();
         }

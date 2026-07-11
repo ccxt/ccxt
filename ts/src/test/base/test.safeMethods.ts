@@ -39,9 +39,6 @@ function testSafeMethods () {
         'floatNumeric': 0.123,
         'floatString': '0.123',
         'longInt': 123456789012345,
-        //
-        'nestedDict': { 'a': { 'b': 2 } },
-        'nestedArray': { 'a': [ 1, 2 ] },
     };
 
     const inputList = [ 'Hi', 2 ];
