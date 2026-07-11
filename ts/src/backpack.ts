@@ -893,7 +893,7 @@ export default class backpack extends Exchange {
             'last': last,
             'previousClose': undefined,
             'change': change,
-            'percentage': this.parseNumber (percentage),
+            'percentage': percentage,
             'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
