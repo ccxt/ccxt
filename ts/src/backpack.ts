@@ -873,7 +873,7 @@ export default class backpack extends Exchange {
         let percentage: Num = undefined;
         const percentageNumber = this.safeFloat (ticker, 'priceChangePercent');
         if (percentageNumber !== undefined) {
-            percentage = this.parseNumber (Precise.stringMul (percentageRaw, '100'));
+            percentage = this.parseNumber (Precise.stringMul (percentageNumber, '100'));
         }
         const change = this.safeString (ticker, 'priceChange');
         const parsedTicker = this.safeTicker ({
