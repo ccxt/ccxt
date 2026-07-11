@@ -870,7 +870,7 @@ export default class backpack extends Exchange {
         const low = this.safeString (ticker, 'low');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
-        let percentage: Str = undefined;
+        let percentage: Num = undefined;
         const percentageNumber = this.safeFloat (ticker, 'priceChangePercent');
         if (percentageNumber !== undefined) {
             percentage = this.parseNumber (Precise.stringMul (percentageRaw, '100'));
