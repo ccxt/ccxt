@@ -1865,7 +1865,7 @@ public partial class gate : ccxt.gate
     public async override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**

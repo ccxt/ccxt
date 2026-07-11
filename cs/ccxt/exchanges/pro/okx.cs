@@ -1127,10 +1127,6 @@ public partial class okx : ccxt.okx
     {
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
     }
 

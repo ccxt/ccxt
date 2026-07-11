@@ -539,7 +539,7 @@ public partial class binance : ccxt.binance
     public async override Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     /**
@@ -1422,10 +1422,6 @@ public partial class binance : ccxt.binance
     public async override Task<object> unWatchTrades(object symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(this.markets, null)))
-        {
-            await this.loadMarkets();
-        }
         return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
