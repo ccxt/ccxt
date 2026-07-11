@@ -684,7 +684,7 @@ func (this *Exchange) SafeStringLowerN(obj any, keys2 any, defaultValue ...any) 
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	res := SafeStringN(obj, keys)
+	res := SafeStringN(obj, keys, nil)
 	if res != "" && res != nil {
 		return strings.ToLower(res.(string))
 	}
