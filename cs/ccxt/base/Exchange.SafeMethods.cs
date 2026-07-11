@@ -97,11 +97,11 @@ public partial class Exchange
     {
         var result = SafeValue(obj, key, defaultValue);
         if (result == null)
-            return defaultValue;
+            return defaultValue as string;
         string returnResult = null;
         if (result is IList || result is IDictionary)
         {
-            return defaultValue;
+            return defaultValue as string;
         }
         if (result.GetType() == typeof(float))
         {
@@ -132,7 +132,7 @@ public partial class Exchange
                 return stringRest;
             }
         }
-        return defaultValue;
+        return defaultValue as string;
     }
     public string? safeString(object obj, object key, object defaultValue = null) => safeStringN(obj, new List<object> { key }, defaultValue);
 
@@ -146,8 +146,12 @@ public partial class Exchange
 
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
-        var result = toStringOrNull(safeString(obj, key, defaultValue));
-        return result == null ? defaultValue as string : result.ToUpper();
+        var result = safeString(obj, key, defaultValue);
+        if (ReferenceEquals(result, defaultValue))
+        {
+            return defaultValue as string;
+        }
+        return toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)

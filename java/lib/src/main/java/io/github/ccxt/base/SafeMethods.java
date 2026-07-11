@@ -170,7 +170,7 @@ public final class SafeMethods {
         return (res == null) ? "" : (String) res;
     }
 
-    public static Object SafeString(Object obj, Object key, Object... defaultValue) {
+    public static Object SafeString(Object obj, Object key, Object... defaultValue2) {
         Object defaultValue = opt(defaultValue2);
         Object result = SafeValue(obj, key, defaultValue);
         if (result == null) return defaultValue;

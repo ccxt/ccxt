@@ -853,16 +853,10 @@ public partial class Exchange
         return results.ToList();
     }
 
-    public static string toStringOrNull(object value)
+    public static string? toStringOrNull(object? value)
     {
-        if (value == null)
-        {
-            return null;
-        }
-        else
-        {
-            return (string)value;
-        }
+        // A safe direct cast or null return
+        return value as string;
     }
 
     public void throwDynamicException(object exception, object message)
