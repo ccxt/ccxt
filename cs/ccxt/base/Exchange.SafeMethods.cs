@@ -147,31 +147,31 @@ public partial class Exchange
     public string? safeStringUpper(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key);
-        return result != null ? toStringOrNull(result)?.ToUpper() : defaultValue;
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringUpper2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2);
-        return result != null ? toStringOrNull(result)?.ToUpper() : defaultValue;
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringUpperN(object obj, List<object> keys, object defaultValue = null)
     {
         var result = safeStringN(obj, keys);
-        return result != null ? toStringOrNull(result)?.ToUpper() : defaultValue;
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToUpper();
     }
 
     public string? safeStringLower(object obj, object key, object defaultValue = null)
     {
         var result = safeString(obj, key);
-        return result != null ? toStringOrNull(result)?.ToLower() : defaultValue;
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToLower();
     }
 
     public string? safeStringLower2(object obj, object key1, object key2, object defaultValue = null)
     {
         var result = safeString2(obj, key1, key2);
-        return result != null ? toStringOrNull(result)?.ToLower() : defaultValue;
+        return result == null ? defaultValue as string : toStringOrNull(result)?.ToLower();
     }
 
     public string? safeStringLowerN(object obj, List<object> keys, string defaultValue = null)

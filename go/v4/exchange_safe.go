@@ -356,13 +356,13 @@ func SafeStringN(obj any, keys []any, defaultValue any) any {
 	}
 }
 
-func (this *Exchange) SafeStringUpperN(obj any, keys2 any, defaultValue ...any) any {
+func (this *Exchange) SafeStringUpperN(obj any, keys2 []any, defaultValue ...any) any {
 	keys := keys2.([]any)
 	var defVal any = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	res := SafeStringN(obj, keys)
+	res := SafeStringN(obj, keys, nil)
 	if res != "" && res != nil {
 		return strings.ToUpper(res.(string))
 	}
