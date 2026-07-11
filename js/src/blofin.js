@@ -429,7 +429,6 @@ export default class blofin extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
-                'brokerId': 'ec6dd3a7dd982d0b',
                 'accountsByType': {
                     'swap': 'futures',
                     'funding': 'funding',
@@ -469,28 +468,13 @@ export default class blofin extends Exchange {
                         '1D': '1D',
                     },
                 },
-                'fetchOHLCV': {
-                    // 'type': 'Candles', // Candles or HistoryCandles, IndexCandles, MarkPriceCandles
-                    'timezone': 'UTC', // UTC, HK
-                },
-                'fetchPositions': {
-                    'method': 'privateGetAccountPositions', // privateGetAccountPositions or privateGetAccountPositionsHistory
-                },
-                'createOrder': 'privatePostTradeOrder', // or 'privatePostTradeOrderTpsl'
-                'createMarketBuyOrderRequiresPrice': false,
-                'fetchMarkets': ['swap'],
                 'defaultType': 'swap',
-                'fetchLedger': {
-                    'method': 'privateGetAssetBills',
-                },
+                'brokerId': 'ec6dd3a7dd982d0b',
                 'fetchOpenOrders': {
                     'method': 'privateGetTradeOrdersPending',
                 },
                 'cancelOrders': {
                     'method': 'privatePostTradeCancelBatchOrders',
-                },
-                'fetchCanceledOrders': {
-                    'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
                 },
                 'fetchClosedOrders': {
                     'method': 'privateGetTradeOrdersHistory', // privateGetTradeOrdersTpslHistory
@@ -2084,9 +2068,7 @@ export default class blofin extends Exchange {
         }
         const market = this.market(symbol);
         const request = [];
-        const options = this.safeDict(this.options, 'cancelOrders', {});
-        const defaultMethod = this.safeString(options, 'method', 'privatePostTradeCancelBatchOrders');
-        let method = this.safeString(params, 'method', defaultMethod);
+        let method = this.handleOption('cancelOrders', 'method', 'privatePostTradeCancelBatchOrders');
         const clientOrderIds = this.parseIds(this.safeValue(params, 'clientOrderId'));
         const tpslIds = this.parseIds(this.safeValue(params, 'tpslId'));
         const trigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl']);
@@ -2656,7 +2638,7 @@ export default class blofin extends Exchange {
         }
         const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl', 'TPSL'], false);
         let method = undefined;
-        [method, params] = this.handleOptionAndParams(params, 'fetchOpenOrders', 'method', 'privateGetTradeOrdersHistory');
+        [method, params] = this.handleOptionAndParams(params, 'fetchClosedOrders', 'method', 'privateGetTradeOrdersHistory');
         const query = this.omit(params, ['method', 'stop', 'trigger', 'tpsl', 'TPSL']);
         let response;
         if ((isTrigger) || (method === 'privateGetTradeOrdersTpslHistory')) {

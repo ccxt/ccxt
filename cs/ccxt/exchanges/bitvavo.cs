@@ -391,13 +391,15 @@ public partial class bitvavo : Exchange
             { "options", new Dictionary<string, object>() {
                 { "mica", true },
                 { "currencyToPrecisionRoundingMode", TRUNCATE },
-                { "BITVAVO-ACCESS-WINDOW", 10000 },
+                { "recvWindow", 10000 },
                 { "networks", new Dictionary<string, object>() {
                     { "ERC20", "ETH" },
                     { "TRC20", "TRX" },
                 } },
                 { "operatorId", null },
-                { "fiatCurrencies", new List<object>() {"EUR"} },
+                { "fetchCurrencies", new Dictionary<string, object>() {
+                    { "fiatCurrencies", new List<object>() {"EUR"} },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
@@ -611,7 +613,7 @@ public partial class bitvavo : Exchange
         //         },
         //     ]
         //
-        object fiatCurrencies = this.safeList(this.options, "fiatCurrencies", new List<object>() {});
+        object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         object id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
         object isFiat = this.inArray(code, fiatCurrencies);
@@ -2911,7 +2913,7 @@ public partial class bitvavo : Exchange
             object timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
             object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            object accessWindow = this.safeString(this.options, "BITVAVO-ACCESS-WINDOW", "10000");
+            object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },
                 { "BITVAVO-ACCESS-SIGNATURE", signature },

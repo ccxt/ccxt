@@ -35,7 +35,6 @@
       "Bash(npm run buildGO:*)",
       "Bash(npm run build-go-cli:*)",
       "Bash(npm run go-build-single:*)",
-      "Bash(npm run formatGO:*)",
       "Bash(npm run emitAPI:*)",
       "Bash(npm run emitAPITs:*)",
       "Bash(npm run emitAPIPy:*)",

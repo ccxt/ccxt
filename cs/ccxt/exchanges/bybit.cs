@@ -1055,16 +1055,20 @@ public partial class bybit : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
-                { "usePrivateInstrumentsInfo", false },
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new Dictionary<string, object>() {
+                    { "usePrivateInstrumentsInfo", false },
                     { "types", new List<object>() {"spot", "linear", "inverse", "option"} },
                     { "options", new List<object>() {"BTC", "ETH", "SOL", "XRP", "MNT", "DOGE"} },
+                    { "loadAllOptions", false },
+                    { "loadExpiredOptions", false },
                 } },
                 { "enableUnifiedMargin", null },
                 { "enableUnifiedAccount", null },
                 { "unifiedMarginStatus", null },
-                { "createMarketBuyOrderRequiresPrice", false },
+                { "createOrder", new Dictionary<string, object>() {
+                    { "createMarketBuyOrderRequiresPrice", false },
+                } },
                 { "createUnifiedMarginAccount", false },
                 { "defaultType", "swap" },
                 { "defaultSubType", "linear" },
@@ -1073,8 +1077,6 @@ public partial class bybit : Exchange
                 { "recvWindow", multiply(5, 1000) },
                 { "timeDifference", 0 },
                 { "adjustForTimeDifference", false },
-                { "loadAllOptions", false },
-                { "loadExpiredOptions", false },
                 { "brokerId", "CCXT" },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "SPOT" },
@@ -1933,7 +1935,7 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "category", "spot" },
         };
-        object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+        object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
         object response = null;
         if (isTrue(usePrivateInstrumentsInfo))
         {
@@ -2056,7 +2058,7 @@ public partial class bybit : Exchange
         parameters = this.extend(parameters, new Dictionary<string, object>() {});
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
         object preLaunchMarkets = ((object)new List<object>() {});
-        object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+        object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
         object response = null;
         if (isTrue(usePrivateInstrumentsInfo))
         {
@@ -2268,7 +2270,7 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "category", "option" },
         };
-        object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+        object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
         object response = null;
         if (isTrue(usePrivateInstrumentsInfo))
         {
@@ -2279,7 +2281,8 @@ public partial class bybit : Exchange
         }
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "list", new List<object>() {});
-        if (isTrue(getValue(this.options, "loadAllOptions")))
+        object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions");
+        if (isTrue(loadAllOptions))
         {
             ((IDictionary<string,object>)request)["limit"] = 1000;
             object paginationCursor = this.safeString(data, "nextPageCursor");
@@ -2363,7 +2366,8 @@ public partial class bybit : Exchange
             object optionLetter = this.safeString(splitId, 3);
             object isActive = (isEqual(status, "Trading"));
             object isInverse = isEqual(bs, settle);
-            if (isTrue(isTrue(isTrue(isActive) || isTrue((getValue(this.options, "loadAllOptions")))) || isTrue((getValue(this.options, "loadExpiredOptions")))))
+            object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions");
+            if (isTrue(isTrue(isTrue(isActive) || isTrue(loadAllOptions)) || isTrue(loadExpiredOptions)))
             {
                 ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                     { "id", id },

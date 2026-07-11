@@ -372,7 +372,10 @@ public class ZaifCore extends ZaifApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.privatePostGetInfo(parameters)).join();
             return this.parseBalance(response);
         });
@@ -396,7 +399,10 @@ public class ZaifCore extends ZaifApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -465,7 +471,10 @@ public class ZaifCore extends ZaifApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -547,7 +556,10 @@ public class ZaifCore extends ZaifApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -599,7 +611,10 @@ public class ZaifCore extends ZaifApi
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
@@ -741,7 +756,10 @@ public class ZaifCore extends ZaifApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -775,7 +793,10 @@ public class ZaifCore extends ZaifApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -812,7 +833,10 @@ public class ZaifCore extends ZaifApi
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(code, "JPY")))
             {

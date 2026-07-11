@@ -406,13 +406,15 @@ class bitvavo extends Exchange {
             'options' => array(
                 'mica' => true,
                 'currencyToPrecisionRoundingMode' => TRUNCATE,
-                'BITVAVO-ACCESS-WINDOW' => 10000, // default 10 sec
+                'recvWindow' => 10000, // default 10 sec
                 'networks' => array(
                     'ERC20' => 'ETH',
                     'TRC20' => 'TRX',
                 ),
                 'operatorId' => null, // this will be required soon for order-related endpoints
-                'fiatCurrencies' => array( 'EUR' ), // only fiat atm
+                'fetchCurrencies' => array(
+                    'fiatCurrencies' => array( 'EUR' ), // only fiat atm
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
@@ -623,7 +625,7 @@ class bitvavo extends Exchange {
         //         ),
         //     )
         //
-        $fiatCurrencies = $this->safe_list($this->options, 'fiatCurrencies', array());
+        $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $id = $this->safe_string($rawCurrency, 'symbol');
         $code = $this->safe_currency_code($id);
         $isFiat = $this->in_array($code, $fiatCurrencies);
@@ -2757,7 +2759,7 @@ class bitvavo extends Exchange {
             $timestamp = (string) $this->milliseconds();
             $auth = $timestamp . $method . $url . $payload;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $accessWindow = $this->safe_string($this->options, 'BITVAVO-ACCESS-WINDOW', '10000');
+            $accessWindow = $this->safe_string_2($this->options, 'recvWindow', 'BITVAVO-ACCESS-WINDOW', '10000');
             $headers = array(
                 'BITVAVO-ACCESS-KEY' => $this->apiKey,
                 'BITVAVO-ACCESS-SIGNATURE' => $signature,

@@ -349,7 +349,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object options = this.safeDict(this.options, "watchTicker");
             Object defaultMethod = this.safeString(options, "method", "ticker");
@@ -378,7 +381,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object options = this.safeDict(this.options, "unWatchTicker");
             Object defaultMethod = this.safeString(options, "method", "ticker");
@@ -409,7 +415,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object options = this.safeDict(this.options, "watchTickers");
             Object defaultMethod = this.safeString(options, "method", "tickers");
             Object name = this.safeString(parameters, "method", defaultMethod);
@@ -447,7 +456,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object options = this.safeDict(this.options, "unWatchTickers");
             Object defaultMethod = this.safeString(options, "method", "tickers");
             Object name = this.safeString(parameters, "method", defaultMethod);
@@ -488,7 +500,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object name = Helpers.add(Helpers.add(Helpers.add("kline@", Helpers.GetValue(market, "id")), ","), timeframe);
             Object ohlcv = (this.subscribe(name, "public", "watchOHLCV", market, null, parameters)).join();
@@ -519,7 +534,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
 
             Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object name = Helpers.add(Helpers.add(Helpers.add("kline@", Helpers.GetValue(market, "id")), ","), timeframe);
             Object messageHash = Helpers.add("unsubscribe::", name);
@@ -551,7 +569,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object name = Helpers.add("trade@", Helpers.GetValue(market, "id"));
             Object trades = (this.subscribe(name, "public", "watchTrades", market, null, parameters)).join();
@@ -580,7 +601,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object name = Helpers.add("trade@", Helpers.GetValue(market, "id"));
             Object messageHash = Helpers.add("unsubscribe::", name);
@@ -610,7 +634,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object levels = this.safeString(parameters, "levels");
             parameters = this.omit(parameters, "levels");
@@ -644,7 +671,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object levels = this.safeString(parameters, "levels");
             parameters = this.omit(parameters, "levels");
@@ -680,7 +710,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "order";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -718,7 +751,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "trade";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -750,7 +786,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object name = "balance";
             return (this.subscribe(name, "private", "watchBalance", null, null, parameters)).join();
         });
@@ -777,7 +816,10 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "contract"), "/"), "user");
             Client client = this.client(url);
             this.setPositionsCache(client);

@@ -221,7 +221,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -351,7 +354,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object timeframes = this.safeDict(Helpers.GetValue(this.options, "ws"), "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -484,7 +490,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbol = this.symbol(symbol);
             Object tickers = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(tickers, symbol);
@@ -508,7 +517,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -636,7 +648,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
@@ -794,7 +809,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -941,7 +959,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.marketOrNull(symbol);
             symbol = this.safeString(market, "symbol", symbol);
@@ -1083,7 +1104,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object market = this.marketOrNull(symbol);
             symbol = this.safeString(market, "symbol", symbol);
@@ -1177,7 +1201,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             Object messageHash = "";
             if (!Helpers.isTrue(this.isEmpty(symbols)))

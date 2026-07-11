@@ -1240,7 +1240,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1398,7 +1401,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1661,7 +1667,10 @@ public class BingxCore extends BingxApi
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1788,7 +1797,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1841,7 +1853,10 @@ public class BingxCore extends BingxApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols, "swap", true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object subType = "linear";
@@ -1924,7 +1939,10 @@ public class BingxCore extends BingxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2013,7 +2031,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -2112,7 +2133,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2220,7 +2244,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2297,7 +2324,10 @@ public class BingxCore extends BingxApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -2381,7 +2411,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object subType = null;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
@@ -2424,7 +2457,10 @@ public class BingxCore extends BingxApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -2610,7 +2646,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = null;
             Object standard = null;
             var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
@@ -2788,7 +2827,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2867,7 +2909,10 @@ public class BingxCore extends BingxApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             symbols = this.marketSymbols(symbols);
             Object standard = null;
             var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
@@ -2923,7 +2968,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {
@@ -3458,7 +3506,10 @@ public class BingxCore extends BingxApi
             Object type = type3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object test = this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
@@ -3603,7 +3654,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -4169,7 +4223,10 @@ public class BingxCore extends BingxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             Object response = null;
@@ -4347,7 +4404,10 @@ public class BingxCore extends BingxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -4410,7 +4470,10 @@ public class BingxCore extends BingxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4471,7 +4534,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object isActive = (Helpers.isGreaterThan(timeout, 0));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", ((Helpers.isTrue((isActive)))) ? "ACTIVATE" : "CLOSE" );
@@ -4529,7 +4595,10 @@ public class BingxCore extends BingxApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             Object response = null;
@@ -4604,7 +4673,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -4715,7 +4787,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -4921,7 +4996,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "closed");
         });
@@ -4953,7 +5031,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object orders = (this.fetchCanceledAndClosedOrders(symbol, since, limit, parameters)).join();
             return this.filterBy(orders, "status", "canceled");
         });
@@ -4987,7 +5068,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -5064,7 +5148,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object subType = null;
@@ -5146,7 +5233,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -5263,7 +5353,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Object recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
@@ -5388,7 +5481,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -5447,7 +5543,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -5637,7 +5736,10 @@ public class BingxCore extends BingxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
@@ -5725,7 +5827,10 @@ public class BingxCore extends BingxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMargin() requires a type parameter either 1 (increase margin) or 2 (decrease margin)")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -5790,7 +5895,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5875,7 +5983,10 @@ public class BingxCore extends BingxApi
             }
             Object side = this.safeStringUpper(parameters, "side");
             this.checkRequiredArgument("setLeverage", side, "side", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT", "BOTH")));
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -5922,7 +6033,10 @@ public class BingxCore extends BingxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object fills = null;
@@ -6049,7 +6163,10 @@ public class BingxCore extends BingxApi
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object response = (this.fetchCurrencies(parameters)).join();
             Object depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
             Object responseCodes = Helpers.objectKeys(response);
@@ -6091,7 +6208,10 @@ public class BingxCore extends BingxApi
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object currency = this.currency(code);
             Object defaultWalletType = 15; // spot
             Object walletType = null;
@@ -6187,7 +6307,10 @@ public class BingxCore extends BingxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "autoCloseType", "LIQUIDATION" );
             }};
@@ -6349,7 +6472,10 @@ public class BingxCore extends BingxApi
 
             Object side = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object positionId = this.safeString(parameters, "positionId");
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -6390,7 +6516,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Object recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
             Object marketType = null;
@@ -6551,7 +6680,10 @@ public class BingxCore extends BingxApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Helpers.addElementToObject(request, "cancelOrderId", id);
@@ -6586,7 +6718,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -6640,7 +6775,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -6790,7 +6928,10 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             if (!Helpers.isTrue(Helpers.GetValue(market, "swap")))
             {

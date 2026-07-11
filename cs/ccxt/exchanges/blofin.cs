@@ -410,7 +410,6 @@ public partial class blofin : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
-                { "brokerId", "ec6dd3a7dd982d0b" },
                 { "accountsByType", new Dictionary<string, object>() {
                     { "swap", "futures" },
                     { "funding", "funding" },
@@ -450,27 +449,13 @@ public partial class blofin : Exchange
                         { "1D", "1D" },
                     } },
                 } },
-                { "fetchOHLCV", new Dictionary<string, object>() {
-                    { "timezone", "UTC" },
-                } },
-                { "fetchPositions", new Dictionary<string, object>() {
-                    { "method", "privateGetAccountPositions" },
-                } },
-                { "createOrder", "privatePostTradeOrder" },
-                { "createMarketBuyOrderRequiresPrice", false },
-                { "fetchMarkets", new List<object>() {"swap"} },
                 { "defaultType", "swap" },
-                { "fetchLedger", new Dictionary<string, object>() {
-                    { "method", "privateGetAssetBills" },
-                } },
+                { "brokerId", "ec6dd3a7dd982d0b" },
                 { "fetchOpenOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersPending" },
                 } },
                 { "cancelOrders", new Dictionary<string, object>() {
                     { "method", "privatePostTradeCancelBatchOrders" },
-                } },
-                { "fetchCanceledOrders", new Dictionary<string, object>() {
-                    { "method", "privateGetTradeOrdersHistory" },
                 } },
                 { "fetchClosedOrders", new Dictionary<string, object>() {
                     { "method", "privateGetTradeOrdersHistory" },
@@ -2286,9 +2271,7 @@ public partial class blofin : Exchange
         }
         object market = this.market(symbol);
         object request = new List<object>() {};
-        object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
-        object defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
-        object method = this.safeString(parameters, "method", defaultMethod);
+        object method = ((string)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
         object trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
@@ -2946,7 +2929,7 @@ public partial class blofin : Exchange
         }
         object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
-        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersHistory");
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
         object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});

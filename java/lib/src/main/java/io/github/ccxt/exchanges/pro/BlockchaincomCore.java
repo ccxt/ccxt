@@ -164,7 +164,10 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -253,7 +256,10 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -379,7 +385,10 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -496,7 +505,10 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             (this.authenticate()).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -736,7 +748,10 @@ final Object finalTradeId = tradeId;
 
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            (this.loadMarkets()).join();
+            if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
+            {
+                (this.loadMarkets()).join();
+            }
             Object market = this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object type = this.safeString(parameters, "type", "l2");
