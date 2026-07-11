@@ -152,7 +152,9 @@ public partial class Exchange
             var keepAliveValue = this.safeInteger(wsOptions, "keepAlive", 30000) ?? 30000;
             var keepAlive = keepAliveValue;
             var decompressBinary = this.safeBool(this.options, "decompressBinary", true) as bool? ?? true;
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary);
+
+            var nativeKeepAlive = this.safeBool(this.options, "nativeKeepAlive", false) as bool? ?? false;
+            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, decompressBinary, nativeKeepAlive);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
