@@ -1077,7 +1077,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             this.checkRequiredCredentials();
             Object startIndex = Helpers.getArrayLength(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"));
             Object urlParamsIndex = Helpers.getIndexOf(url, "?");
-            Object urlLength = ((String)url).length();
+            Object urlLength = Helpers.getArrayLength(url);
             Object endIndex = ((Helpers.isTrue((Helpers.isGreaterThanOrEqual(urlParamsIndex, 0))))) ? urlParamsIndex : urlLength;
             Object request = Helpers.slice(url, startIndex, endIndex);
             Object payload = new java.util.HashMap<String, Object>() {{

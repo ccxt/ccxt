@@ -4895,7 +4895,7 @@ final Object finalI = i;
         } else
         {
             query = this.urlencode(parameters);
-            if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
+            if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(query), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
