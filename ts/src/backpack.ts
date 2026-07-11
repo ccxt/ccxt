@@ -870,9 +870,16 @@ export default class backpack extends Exchange {
         const low = this.safeString (ticker, 'low');
         const baseVolume = this.safeString (ticker, 'volume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
-        const percentage = this.safeString (ticker, 'priceChangePercent');
+        const percentageRaw = this.safeString (ticker, 'priceChangePercent');
+        const percentageNumber = this.safeFloat (ticker, 'priceChangePercent');
+        const percentageIsFinite = (percentageNumber !== undefined) && ((percentageNumber - percentageNumber) === 0);
+        const invalidPercentage = (percentageRaw !== undefined) && !percentageIsFinite;
+        let percentage: Str = undefined;
+        if (percentageIsFinite) {
+            percentage = this.numberToString (percentageNumber * 100);
+        }
         const change = this.safeString (ticker, 'priceChange');
-        return this.safeTicker ({
+        const parsedTicker = this.safeTicker ({
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -896,6 +903,10 @@ export default class backpack extends Exchange {
             'indexPrice': undefined,
             'info': ticker,
         }, market);
+        if (invalidPercentage) {
+            parsedTicker['percentage'] = undefined;
+        }
+        return parsedTicker;
     }
 
     /**
