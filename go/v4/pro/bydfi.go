@@ -481,11 +481,9 @@ func (this *BydfiCore) WatchOHLCVForSymbols(symbolsAndTimeframes any, optionalAr
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [\\'ETH/USDC\\', \\'1m\\']")))
 		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes34812 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes34812)
-		}
+		retRes3478 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes3478)
 		var channels any = []any{}
 		var messageHashes any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -534,11 +532,9 @@ func (this *BydfiCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optional
 		if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(symbolsLength, 0)) || !ccxt.IsTrue(ccxt.IsArray(ccxt.GetValue(symbolsAndTimeframes, 0)))) {
 			panic(ccxt.ArgumentsRequired(ccxt.Add(this.Id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [\\'ETH/USDC\\', \\'1m\\']")))
 		}
-		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes38512 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes38512)
-		}
+		retRes3828 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes3828)
 		var channels any = []any{}
 		var messageHashes any = []any{}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(symbolsAndTimeframes)); i++ {
@@ -558,9 +554,9 @@ func (this *BydfiCore) UnWatchOHLCVForSymbols(symbolsAndTimeframes any, optional
 			"symbolsAndTimeframes": symbolsAndTimeframes,
 		}
 
-		retRes40315 := (<-this.WatchPublic(messageHashes, channels, params, subscription))
-		ccxt.PanicOnError(retRes40315)
-		ch <- retRes40315
+		retRes39915 := (<-this.WatchPublic(messageHashes, channels, params, subscription))
+		ccxt.PanicOnError(retRes39915)
+		ch <- retRes39915
 		return nil
 
 	}()
@@ -622,9 +618,9 @@ func (this *BydfiCore) WatchOrderBook(symbol any, optionalArgs ...any) <-chan an
 		params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 		_ = params
 
-		retRes45315 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
-		ccxt.PanicOnError(retRes45315)
-		ch <- retRes45315
+		retRes44915 := (<-this.WatchOrderBookForSymbols([]any{symbol}, limit, params))
+		ccxt.PanicOnError(retRes44915)
+		ch <- retRes44915
 		return nil
 
 	}()
@@ -648,9 +644,9 @@ func (this *BydfiCore) UnWatchOrderBook(symbol any, optionalArgs ...any) <-chan 
 		params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 		_ = params
 
-		retRes46615 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
-		ccxt.PanicOnError(retRes46615)
-		ch <- retRes46615
+		retRes46215 := (<-this.UnWatchOrderBookForSymbols([]any{symbol}, params))
+		ccxt.PanicOnError(retRes46215)
+		ch <- retRes46215
 		return nil
 
 	}()
@@ -678,8 +674,8 @@ func (this *BydfiCore) WatchOrderBookForSymbols(symbols any, optionalArgs ...any
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes48112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes48112)
+			retRes47712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes47712)
 		}
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var depth any = "100"
@@ -732,8 +728,8 @@ func (this *BydfiCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...a
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes51612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes51612)
+			retRes51212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes51212)
 		}
 		symbols = this.MarketSymbols(symbols, nil, false)
 		var depth any = "100"
@@ -764,9 +760,9 @@ func (this *BydfiCore) UnWatchOrderBookForSymbols(symbols any, optionalArgs ...a
 			"unsubscribe": true,
 		})
 
-		retRes54015 := (<-this.WatchPublic(messageHashes, channels, params, subscription))
-		ccxt.PanicOnError(retRes54015)
-		ch <- retRes54015
+		retRes53615 := (<-this.WatchPublic(messageHashes, channels, params, subscription))
+		ccxt.PanicOnError(retRes53615)
+		ch <- retRes53615
 		return nil
 
 	}()
@@ -825,9 +821,9 @@ func (this *BydfiCore) WatchOrders(optionalArgs ...any) <-chan any {
 			symbols = []any{symbol}
 		}
 
-		retRes58315 := (<-this.WatchOrdersForSymbols(symbols, since, limit, params))
-		ccxt.PanicOnError(retRes58315)
-		ch <- retRes58315
+		retRes57915 := (<-this.WatchOrdersForSymbols(symbols, since, limit, params))
+		ccxt.PanicOnError(retRes57915)
+		ch <- retRes57915
 		return nil
 
 	}()
@@ -858,8 +854,8 @@ func (this *BydfiCore) WatchOrdersForSymbols(symbols any, optionalArgs ...any) <
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes59912 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes59912)
+			retRes59512 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes59512)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true)
 		var messageHashes any = []any{}
@@ -1026,8 +1022,8 @@ func (this *BydfiCore) WatchPositions(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes74612 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes74612)
+			retRes74212 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes74212)
 		}
 		symbols = this.MarketSymbols(symbols, nil, true)
 		var messageHashes any = []any{}
@@ -1197,8 +1193,8 @@ func (this *BydfiCore) WatchBalance(optionalArgs ...any) <-chan any {
 		_ = params
 		if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-			retRes90112 := (<-this.LoadMarkets())
-			ccxt.PanicOnError(retRes90112)
+			retRes89712 := (<-this.LoadMarkets())
+			ccxt.PanicOnError(retRes89712)
 		}
 		var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 		var client any = this.Client(url)
@@ -1208,14 +1204,14 @@ func (this *BydfiCore) WatchBalance(optionalArgs ...any) <-chan any {
 		var awaitBalanceSnapshot any = this.SafeBool(options, "awaitBalanceSnapshot", true)
 		if ccxt.IsTrue(ccxt.IsTrue(fetchBalanceSnapshot) && ccxt.IsTrue(awaitBalanceSnapshot)) {
 
-			retRes91012 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
-			ccxt.PanicOnError(retRes91012)
+			retRes90612 := (<-client.(ccxt.ClientInterface).Future("fetchBalanceSnapshot"))
+			ccxt.PanicOnError(retRes90612)
 		}
 		var messageHash any = "balance"
 
-		retRes91315 := (<-this.WatchPrivate([]any{messageHash}, params))
-		ccxt.PanicOnError(retRes91315)
-		ch <- retRes91315
+		retRes90915 := (<-this.WatchPrivate([]any{messageHash}, params))
+		ccxt.PanicOnError(retRes90915)
+		ch <- retRes90915
 		return nil
 
 	}()

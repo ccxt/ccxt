@@ -5022,7 +5022,7 @@ func (this *HashkeyCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "broker_sign", signature)
 	} else {
 		query = this.Urlencode(params)
-		if IsTrue(!IsEqual(GetLength(query), 0)) {
+		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

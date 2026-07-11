@@ -1057,7 +1057,7 @@ func (this *GeminiCore) Authenticate(optionalArgs ...any) <-chan any {
 		this.CheckRequiredCredentials()
 		var startIndex any = ccxt.GetArrayLength(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"))
 		var urlParamsIndex any = ccxt.GetIndexOf(url, "?")
-		var urlLength any = ccxt.GetLength(url)
+		var urlLength any = ccxt.GetArrayLength(url)
 		var endIndex any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsGreaterThanOrEqual(urlParamsIndex, 0))), urlParamsIndex, urlLength)
 		var request any = ccxt.Slice(url, startIndex, endIndex)
 		var payload any = map[string]any{

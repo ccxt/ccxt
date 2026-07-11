@@ -428,7 +428,9 @@ func (this *BitmexCore) WatchLiquidations(symbol any, optionalArgs ...any) <-cha
 		params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 		_ = params
 
-		ch <- this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params)
+		retRes38215 := (<-this.WatchLiquidationsForSymbols([]any{symbol}, since, limit, params))
+		ccxt.PanicOnError(retRes38215)
+		ch <- retRes38215
 		return nil
 
 	}()
